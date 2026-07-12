@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 3 — Truth Tables & Semantic Evaluation</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Logic</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 3 of 14 &nbsp;·&nbsp; Logic &nbsp;·&nbsp; ~25 min</p>
+  <h1>Truth Tables & Semantic Evaluation</h1>
+  <p>Lesson 2 gave you a precise language for writing formulas. This lesson gives you a mechanical, purely algorithmic procedure for deciding whether any formula is true or false, and — critically — whether any argument is valid. No intuition required, no arguing about it: just enumerate every possibility and check.</p>
+
+  <h2>Quick recall</h2>
+  <p>From memory:</p>
+  <ul>
+    <li>What's the <a href="0002-propositional-logic-syntax.html#main-connective">main connective</a> of <code>(P ∧ Q) → R</code>?</li>
+    <li>In <code>P → Q</code>, which is the <a href="0002-propositional-logic-syntax.html#antecedent-consequent">antecedent</a>?</li>
+  </ul>
+  <p style="color:var(--muted); font-size:.9rem;">Answers: → (it was applied last) · P is the antecedent, Q is the consequent</p>
+
+  <h2>Why truth tables</h2>
+  <p>Every atomic proposition is either true or false. A formula with <code>n</code> distinct atomic propositions has <strong>2ⁿ</strong> possible combinations of truth values — and a truth table just lists every single one and evaluates the formula for each. This is exhaustive case analysis: brute-force enumeration, exactly like iterating <code>i</code> from <code>0</code> to <code>2ⁿ - 1</code> and reading each bit of <code>i</code> as a boolean.</p>
+
+  <div class="callout">
+    <strong>The Rust translation</strong>
+    Recall the <code>Formula</code> enum from <a href="0002-propositional-logic-syntax.html#well-formed-formulas">lesson 2</a>. A truth table is just this evaluator, called once per row:
+    <pre style="margin-top:.6rem;"><code><span class="kw">fn</span> <span class="fn">eval</span>(f: &amp;<span class="ty">Formula</span>, env: &amp;<span class="ty">HashMap</span>&lt;<span class="ty">char</span>, <span class="ty">bool</span>&gt;) -&gt; <span class="ty">bool</span> {
+    <span class="kw">match</span> f {
+        <span class="ty">Formula</span>::Atom(c)       =&gt; env[c],
+        <span class="ty">Formula</span>::Not(a)        =&gt; !<span class="fn">eval</span>(a, env),
+        <span class="ty">Formula</span>::And(a, b)     =&gt; <span class="fn">eval</span>(a, env) &amp;&amp; <span class="fn">eval</span>(b, env),
+        <span class="ty">Formula</span>::Or(a, b)      =&gt; <span class="fn">eval</span>(a, env) || <span class="fn">eval</span>(b, env),
+        <span class="ty">Formula</span>::Implies(a, b) =&gt; !<span class="fn">eval</span>(a, env) || <span class="fn">eval</span>(b, env),
+        <span class="ty">Formula</span>::Iff(a, b)      =&gt; <span class="fn">eval</span>(a, env) == <span class="fn">eval</span>(b, env),
+    }
+}</code></pre>
+    Generating the whole table is just looping over all 2ⁿ boolean assignments to the atoms and calling <code>eval</code> on each. Every table below was generated exactly this way — computed, not hand-typed — so there's no risk of a transcription slip.
+  </div>
+
+  <h2>The master truth table</h2>
+  <p>Here are all five connectives evaluated together over the same <code>P</code>, <code>Q</code> — this is the canonical reference table everything else builds on.</p>
+  <div class="tt-wrap"><div id="tt-master"></div></div>
+
+  <h2>Evaluating a compound formula</h2>
+  <p>Recall <code>(P ∧ Q) → R</code> from <a href="0002-propositional-logic-syntax.html#main-connective">lesson 2's main-connective example</a>. To evaluate it, compute the intermediate column first (<code>P ∧ Q</code>), then apply the main connective (<code>→</code>) last — the exact same order the parse tree from lesson 2 dictated.</p>
+  <div class="tt-wrap"><div id="tt-compound"></div></div>
+  <div class="tt-verdict" id="tt-compound-verdict"></div>
+
+  <h2 id="tautology-contradiction-contingency">Tautology, contradiction, contingency</h2>
+  <p>Every formula falls into exactly one of three categories, based on its final column:</p>
+  <ul>
+    <li><strong id="tautology">Tautology</strong> — true in every row, no matter what. Structurally guaranteed true.</li>
+    <li><strong id="contradiction">Contradiction</strong> — false in every row. Structurally guaranteed false.</li>
+    <li><strong id="contingency">Contingency</strong> — true in some rows, false in others. Depends on the actual facts.</li>
+  </ul>
+
+  <div class="tt-grid">
+    <div>
+      <p style="font-family:'Helvetica Neue',Arial,sans-serif; font-size:.85rem; color:var(--muted); margin-bottom:.4rem;"><code>P ∨ ¬P</code></p>
+      <div id="tt-taut"></div>
+      <div class="tt-verdict" id="tt-taut-verdict"></div>
+    </div>
+    <div>
+      <p style="font-family:'Helvetica Neue',Arial,sans-serif; font-size:.85rem; color:var(--muted); margin-bottom:.4rem;"><code>P ∧ ¬P</code></p>
+      <div id="tt-contra"></div>
+      <div class="tt-verdict" id="tt-contra-verdict"></div>
+    </div>
+    <div>
+      <p style="font-family:'Helvetica Neue',Arial,sans-serif; font-size:.85rem; color:var(--muted); margin-bottom:.4rem;"><code>P → Q</code></p>
+      <div id="tt-cont"></div>
+      <div class="tt-verdict" id="tt-cont-verdict"></div>
+    </div>
+  </div>
+
+  <h2 id="validity-test">Truth tables prove validity</h2>
+  <p>Lesson 1 defined <a href="0001-arguments-validity-soundness.html#validity">validity</a> in prose: an argument is valid if the conclusion <em>must</em> be true whenever the premises are true. Truth tables make this fully mechanical:</p>
+
+  <div class="callout">
+    <strong>The validity test</strong>
+    An argument is <strong>valid</strong> exactly when there is <strong>no row</strong> where all the premises are true and the conclusion is false. Find one such row — a <strong id="counterexample">counterexample</strong> — and the argument is invalid, full stop. Check every row and find none, and the argument is valid, guaranteed.
+  </div>
+
+  <h3 id="modus-ponens">Modus Ponens — valid</h3>
+  <p>Premises: <code>P</code>, <code>P → Q</code>. Conclusion: <code>Q</code>.</p>
+  <div class="tt-wrap"><div id="tt-mp"></div></div>
+  <div class="tt-verdict" id="tt-mp-verdict"></div>
+
+  <h3 id="affirming-the-consequent-proof"><a href="0002-propositional-logic-syntax.html#affirming-the-consequent">Affirming the Consequent</a> — invalid</h3>
+  <p>Premises: <code>P → Q</code>, <code>Q</code>. Conclusion: <code>P</code>. This is the exact shape of <a href="0001-arguments-validity-soundness.html#classifier">lesson 1's dolphin argument</a> ("all fish live in water, dolphins live in water, therefore dolphins are fish") — now we can prove formally why it fails.</p>
+  <div class="tt-wrap"><div id="tt-ac"></div></div>
+  <div class="tt-verdict" id="tt-ac-verdict"></div>
+
+  <h2 id="equivalence-preview">Logical equivalence, previewed</h2>
+  <p>Right back at the start of this topic you asked why <code>P → Q</code> is equivalent to <code>¬P ∨ Q</code>, and we derived it two ways. Here's the third way, and the most general one: <strong>two formulas are logically equivalent exactly when their truth tables match in every single row.</strong> Watch it happen:</p>
+  <div class="tt-wrap"><div id="tt-equiv"></div></div>
+  <div class="tt-verdict" id="tt-equiv-verdict"></div>
+  <p>This "compare the full columns" method is completely general — it's how <a href="../index.html#lesson-04">lesson 4 (Logical Equivalence & Normal Forms)</a> will verify De Morgan's laws and every other equivalence, mechanically, with zero ambiguity.</p>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. A truth table for a formula with 4 distinct atomic propositions needs…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q1')">4 rows total</button>
+        <button onclick="answer(this,false,'q1')">8 rows total</button>
+        <button onclick="answer(this,true, 'q1')">16 rows total</button>
+        <button onclick="answer(this,false,'q1')">32 rows total</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. A formula that's true in every row of its truth table is called a…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q2')">Contradiction, always false</button>
+        <button onclick="answer(this,false,'q2')">Contingency, sometimes true</button>
+        <button onclick="answer(this,true, 'q2')">Tautology, always true</button>
+        <button onclick="answer(this,false,'q2')">Antecedent, the if-part</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. By the truth-table method, an argument is valid exactly when…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q3')">Every premise is a tautology</button>
+        <button onclick="answer(this,true, 'q3')">No row makes premises true, conclusion false</button>
+        <button onclick="answer(this,false,'q3')">The conclusion is a tautology</button>
+        <button onclick="answer(this,false,'q3')">Most rows favor the conclusion</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Two formulas are logically equivalent exactly when…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q4')">They use the same connectives</button>
+        <button onclick="answer(this,false,'q4')">They have the same atoms</button>
+        <button onclick="answer(this,true, 'q4')">Their truth tables match every row</button>
+        <button onclick="answer(this,false,'q4')">Both are tautologies always</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Take one of the arguments you symbolized in lesson 2's practice task and build its full truth table. Check every row where the premises are all true — is the conclusion true in all of them? If you find a counterexample row, you've just formally proven the argument invalid, the same way this lesson proved affirming the consequent invalid.</p>
+
+  <h2>Primary resource</h2>
+  <p>Read Chapter 4 (Truth Tables) of <a href="https://forallx.openlogicproject.org/" target="_blank">forall x: Calgary</a> for the fully formal treatment, including tautological consequence and a wider set of worked examples.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Want to test a specific formula or argument that isn't covered here? Bring it to Claude Code — we'll build the table together.
+  </div>
+
+  <div class="nav">
+    <a href="0002-propositional-logic-syntax.html">← Lesson 2: Propositional Logic — Syntax & Connectives</a>
+    <span class="spacer"></span>
+    <a href="../index.html">Logic: All Lessons →</a>
+  </div>
+
+</div>
+
+<style>
+.tt-wrap { overflow-x: auto; margin: 1rem 0; }
+.tt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.25rem;
+  margin: 1.25rem 0;
+}
+.tt-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  font-size: .85rem;
+}
+.tt-table th, .tt-table td {
+  border: 1px solid var(--border);
+  padding: .4rem .6rem;
+  text-align: center;
+  white-space: nowrap;
+}
+.tt-table thead th {
+  background: #111;
+  color: var(--muted);
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.tt-table th.tt-main-h { color: var(--accent); }
+.tt-true  { color: var(--accent); font-weight: 700; background: #132a1c; }
+.tt-false { color: var(--err); font-weight: 700; background: #2a1414; }
+tr.tt-counter td { box-shadow: inset 0 0 0 2px var(--err); }
+
+.tt-verdict {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: .85rem;
+  margin-top: .6rem;
+  padding: .6rem .9rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #1e1e1e;
+}
+.tt-verdict.tautology, .tt-verdict.valid  { border-color: var(--accent); color: var(--accent); }
+.tt-verdict.contradiction, .tt-verdict.invalid { border-color: var(--err); color: var(--err); }
+.tt-verdict.contingency, .tt-verdict.equivalent { border-color: var(--warn); color: var(--warn); }
+</style>
+
+<script>
+// ── Mini formula engine (mirrors the Formula enum from lesson 2) ──
+const atom    = name => ({ type: 'atom', name });
+const not_    = a    => ({ type: 'not', a });
+const and_    = (a,b)=> ({ type: 'and', a, b });
+const or_     = (a,b)=> ({ type: 'or', a, b });
+const implies = (a,b)=> ({ type: 'implies', a, b });
+const iff     = (a,b)=> ({ type: 'iff', a, b });
+
+function evalNode(node, env) {
+  switch (node.type) {
+    case 'atom':    return env[node.name];
+    case 'not':     return !evalNode(node.a, env);
+    case 'and':     return evalNode(node.a, env) && evalNode(node.b, env);
+    case 'or':      return evalNode(node.a, env) || evalNode(node.b, env);
+    case 'implies': return !evalNode(node.a, env) || evalNode(node.b, env);
+    case 'iff':     return evalNode(node.a, env) === evalNode(node.b, env);
+  }
+}
+
+function collectAtoms(node, seen) {
+  if (node.type === 'atom') { if (!seen.includes(node.name)) seen.push(node.name); return seen; }
+  if (node.type === 'not')  { return collectAtoms(node.a, seen); }
+  return collectAtoms(node.b, collectAtoms(node.a, seen));
+}
+function atomsFromNodes(nodes) {
+  let seen = [];
+  nodes.forEach(n => { seen = collectAtoms(n, seen); });
+  return seen;
+}
+function allEnvs(names) {
+  const n = names.length;
+  const rows = [];
+  for (let i = 0; i < Math.pow(2, n); i++) {
+    const env = {};
+    names.forEach((name, j) => {
+      const groupSize = Math.pow(2, n - 1 - j);
+      env[name] = Math.floor(i / groupSize) % 2 === 0;
+    });
+    rows.push(env);
+  }
+  return rows;
+}
+const fmtBool = b => b ? 'T' : 'F';
+
+// ── Generic truth table renderer ──
+// columns: [{label, node, main?}]
+function renderTruthTable(containerId, columns) {
+  const atomsList = atomsFromNodes(columns.map(c => c.node));
+  const envs = allEnvs(atomsList);
+  const colValues = columns.map(c => envs.map(env => evalNode(c.node, env)));
+
+  let html = '<table class="tt-table"><thead><tr>';
+  atomsList.forEach(a => html += `<th>${a}</th>`);
+  columns.forEach(c => html += `<th class="${c.main ? 'tt-main-h' : ''}">${c.label}</th>`);
+  html += '</tr></thead><tbody>';
+  envs.forEach((env, i) => {
+    html += '<tr>';
+    atomsList.forEach(a => html += `<td>${fmtBool(env[a])}</td>`);
+    columns.forEach((c, ci) => {
+      const v = colValues[ci][i];
+      html += `<td class="${v ? 'tt-true' : 'tt-false'}">${fmtBool(v)}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById(containerId).innerHTML = html;
+
+  const mainIdx = columns.findIndex(c => c.main);
+  const idx = mainIdx === -1 ? columns.length - 1 : mainIdx;
+  const vals = colValues[idx];
+  const allTrue = vals.every(v => v);
+  const allFalse = vals.every(v => !v);
+  return allTrue ? 'tautology' : allFalse ? 'contradiction' : 'contingency';
+}
+
+function setVerdict(id, cls, text) {
+  const el = document.getElementById(id);
+  el.className = 'tt-verdict ' + cls;
+  el.textContent = text;
+}
+
+// ── Argument validity table ──
+function renderArgumentTable(containerId, premises, conclusion) {
+  const nodes = premises.map(p => p.node).concat([conclusion.node]);
+  const atomsList = atomsFromNodes(nodes);
+  const envs = allEnvs(atomsList);
+  const premVals = premises.map(p => envs.map(env => evalNode(p.node, env)));
+  const conclVals = envs.map(env => evalNode(conclusion.node, env));
+
+  let counterIdx = -1;
+  envs.forEach((env, i) => {
+    const allPremTrue = premises.every((p, pi) => premVals[pi][i]);
+    if (allPremTrue && !conclVals[i] && counterIdx === -1) counterIdx = i;
+  });
+
+  let html = '<table class="tt-table"><thead><tr>';
+  atomsList.forEach(a => html += `<th>${a}</th>`);
+  premises.forEach(p => html += `<th>${p.label}</th>`);
+  html += `<th class="tt-main-h">${conclusion.label}</th></tr></thead><tbody>`;
+  envs.forEach((env, i) => {
+    html += `<tr class="${i === counterIdx ? 'tt-counter' : ''}">`;
+    atomsList.forEach(a => html += `<td>${fmtBool(env[a])}</td>`);
+    premises.forEach((p, pi) => {
+      const v = premVals[pi][i];
+      html += `<td class="${v ? 'tt-true' : 'tt-false'}">${fmtBool(v)}</td>`;
+    });
+    const cv = conclVals[i];
+    html += `<td class="${cv ? 'tt-true' : 'tt-false'}">${fmtBool(cv)}</td>`;
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById(containerId).innerHTML = html;
+  return counterIdx;
+}
+
+window.addEventListener('load', () => {
+  // Master table
+  renderTruthTable('tt-master', [
+    { label: '¬P',     node: not_(atom('P')) },
+    { label: 'P ∧ Q',  node: and_(atom('P'), atom('Q')) },
+    { label: 'P ∨ Q',  node: or_(atom('P'), atom('Q')) },
+    { label: 'P → Q',  node: implies(atom('P'), atom('Q')) },
+    { label: 'P ↔ Q',  node: iff(atom('P'), atom('Q')) },
+  ]);
+
+  // Compound example (P ∧ Q) → R
+  const compound = implies(and_(atom('P'), atom('Q')), atom('R'));
+  const compoundVerdict = renderTruthTable('tt-compound', [
+    { label: 'P ∧ Q', node: and_(atom('P'), atom('Q')) },
+    { label: '(P ∧ Q) → R', node: compound, main: true },
+  ]);
+  setVerdict('tt-compound-verdict', compoundVerdict,
+    `${compoundVerdict[0].toUpperCase()}${compoundVerdict.slice(1)} — true in 7 of the 8 rows. The only way to make it false is P and Q both true with R false; every other row is true (including vacuously, whenever P ∧ Q is false).`);
+
+  // Tautology / contradiction / contingency
+  const tautV = renderTruthTable('tt-taut', [{ label: 'P ∨ ¬P', node: or_(atom('P'), not_(atom('P'))), main: true }]);
+  setVerdict('tt-taut-verdict', tautV, 'Tautology — true in both rows, no matter what P is.');
+
+  const contraV = renderTruthTable('tt-contra', [{ label: 'P ∧ ¬P', node: and_(atom('P'), not_(atom('P'))), main: true }]);
+  setVerdict('tt-contra-verdict', contraV, 'Contradiction — false in both rows, no matter what P is.');
+
+  const contV = renderTruthTable('tt-cont', [{ label: 'P → Q', node: implies(atom('P'), atom('Q')), main: true }]);
+  setVerdict('tt-cont-verdict', contV, 'Contingency — 3 true rows, 1 false row. Depends on the actual values.');
+
+  // Modus Ponens
+  const mpCounter = renderArgumentTable('tt-mp',
+    [{ label: 'P', node: atom('P') }, { label: 'P → Q', node: implies(atom('P'), atom('Q')) }],
+    { label: 'Q', node: atom('Q') }
+  );
+  setVerdict('tt-mp-verdict', mpCounter === -1 ? 'valid' : 'invalid',
+    mpCounter === -1
+      ? 'VALID — only one row has both premises true (P=T, Q=T), and the conclusion is true there too. No counterexample anywhere.'
+      : 'Unexpected counterexample found.');
+
+  // Affirming the Consequent
+  const acCounter = renderArgumentTable('tt-ac',
+    [{ label: 'P → Q', node: implies(atom('P'), atom('Q')) }, { label: 'Q', node: atom('Q') }],
+    { label: 'P', node: atom('P') }
+  );
+  setVerdict('tt-ac-verdict', acCounter === -1 ? 'valid' : 'invalid',
+    acCounter === -1
+      ? 'Unexpectedly valid.'
+      : 'INVALID — counterexample at P=F, Q=T: both premises true, conclusion false. This row is exactly the dolphin shape: "lives in water" (Q) true without "is a fish" (P) true.');
+
+  // Equivalence: P → Q vs ¬P ∨ Q
+  const eqVerdict = renderTruthTable('tt-equiv', [
+    { label: 'P → Q',   node: implies(atom('P'), atom('Q')) },
+    { label: '¬P ∨ Q',  node: or_(not_(atom('P')), atom('Q')) },
+  ]);
+  setVerdict('tt-equiv-verdict', 'equivalent', 'Both columns match on all 4 rows — confirmed equivalent, exactly as derived earlier by hand.');
+});
+
+// ── Quiz ───────────────────────────────────────────────────
+let scores = {};
+function answer(btn, correct, qid) {
+  const block = document.getElementById(qid);
+  if (block.dataset.done) return;
+  block.dataset.done = 'true';
+  const fb = document.getElementById(qid + '-fb');
+  btn.classList.add(correct ? 'correct' : 'wrong');
+  fb.textContent = correct ? '✓ Correct.' : '✗ Not quite — review the section above.';
+  fb.className = 'feedback ' + (correct ? 'good' : 'bad');
+  scores[qid] = correct ? 1 : 0;
+  const total = Object.keys(scores).length;
+  const right = Object.values(scores).filter(Boolean).length;
+  document.getElementById('score').textContent = `${right} / ${total} correct so far`;
+}
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

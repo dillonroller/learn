@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 2 — Propositional Logic: Syntax & Connectives</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Logic</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 2 of 14 &nbsp;·&nbsp; Logic &nbsp;·&nbsp; ~25 min</p>
+  <h1>Propositional Logic: Syntax & Connectives</h1>
+  <p>Lesson 1 gave you <a href="0001-arguments-validity-soundness.html#validity">validity</a> and <a href="0001-arguments-validity-soundness.html#soundness">soundness</a>, but only in prose — "if the premises are true, the conclusion must be true." That's fine for simple syllogisms, but it falls apart fast on anything with nested conditions, "unless," "neither/nor," or multi-step reasoning. Propositional logic gives you a precise, unambiguous language to represent exactly what an argument's structure is, stripped of English's vagueness.</p>
+
+  <h2>Quick recall</h2>
+  <p>Before continuing — from memory:</p>
+  <ul>
+    <li>What's the difference between validity and soundness?</li>
+    <li>Can a valid argument have a false conclusion?</li>
+  </ul>
+  <p style="color:var(--muted); font-size:.9rem;">Answers: validity = structure guarantees truth-preservation; soundness = valid + true premises · Yes — if at least one premise is false, a valid argument can still have a false conclusion.</p>
+
+  <h2 id="atomic-proposition">Atomic propositions</h2>
+  <p>The basic unit is the <strong>atomic proposition</strong> — a statement that is either true or false, with no internal logical structure. We name them with capital letters: <code>P</code>, <code>Q</code>, <code>R</code>...</p>
+  <div class="callout">
+    <strong>Propositions</strong>
+    "It is raining." "Socrates is mortal." "2 + 2 = 5." All propositions — each is true or false (even if we don't know which yet).
+  </div>
+  <div class="callout warn">
+    <strong>Not propositions</strong>
+    "Close the door." (command) · "Is it raining?" (question) · "Wow!" (exclamation) — none of these are true or false, so they have no place in propositional logic on their own.
+  </div>
+
+  <h2 id="connectives">The five connectives</h2>
+  <p>You already know these — they're boolean operators. If you've written <code>if p && q</code> in Rust or C, you've used propositional logic without the name.</p>
+
+  <div class="conn-table">
+    <div class="conn-row header">
+      <span>Symbol</span><span>Name</span><span>English</span><span>Rust / C</span>
+    </div>
+    <div class="conn-row"><span><code>¬P</code></span><span>Negation</span><span>"not P"</span><span><code>!p</code></span></div>
+    <div class="conn-row"><span><code>P ∧ Q</code></span><span>Conjunction</span><span>"P and Q"</span><span><code>p && q</code></span></div>
+    <div class="conn-row"><span><code>P ∨ Q</code></span><span>Disjunction</span><span>"P or Q" (inclusive)</span><span><code>p || q</code></span></div>
+    <div class="conn-row"><span><code>P → Q</code></span><span>Conditional</span><span>"if P then Q"</span><span><code>!p || q</code></span></div>
+    <div class="conn-row"><span><code>P ↔ Q</code></span><span>Biconditional</span><span>"P if and only if Q"</span><span><code>p == q</code></span></div>
+  </div>
+
+  <div class="callout">
+    <strong>The one that isn't obvious: ∨ is inclusive</strong>
+    "P ∨ Q" is true if P is true, Q is true, or both. This matches Rust/C's <code>||</code> exactly — not the everyday English "or" that often means "one or the other, not both" (an <em>exclusive</em> or, like a restaurant menu's "soup or salad"). Logic always means inclusive ∨ unless stated otherwise.
+  </div>
+
+  <div class="callout" id="antecedent-consequent">
+    <strong>Antecedent and consequent</strong>
+    In <code>P → Q</code>, <strong id="antecedent">P is the antecedent</strong> (the "if" part) and <strong id="consequent">Q is the consequent</strong> (the "then" part). These names keep coming up — the fallacy <span id="affirming-the-consequent"><em>affirming the consequent</em></span> mistakes "Q is true" for proof that "P is true"; <span id="denying-the-antecedent"><em>denying the antecedent</em></span> mistakes "P is false" for proof that "Q is false." Both are covered properly in <a href="../index.html#lesson-12">lesson 12 (Informal Fallacies)</a>.
+  </div>
+
+  <h2 id="well-formed-formulas">Well-formed formulas (WFFs)</h2>
+  <p>Not every string of symbols is a legal formula — just like not every sequence of tokens compiles. Propositional logic has a grammar that says precisely which strings count. Here it is again, this time unpacked piece by piece.</p>
+
+  <pre><code>φ ::= P | Q | R | ...        <span class="cm">// any atomic proposition is a WFF</span>
+    | ¬φ                       <span class="cm">// negating a WFF gives a WFF</span>
+    | (φ ∧ φ)                  <span class="cm">// conjoining two WFFs, in parens, is a WFF</span>
+    | (φ ∨ φ)
+    | (φ → φ)
+    | (φ ↔ φ)</code></pre>
+
+  <p>Reading the notation: <code>φ</code> ("phi") is a <strong>placeholder</strong> — it doesn't name one specific formula, it stands for "any WFF, whatever that turns out to be." <code>::=</code> means "can be defined as," and <code>|</code> separates alternatives, the same job <code>|</code> does in a Rust <code>match</code> pattern. Read the whole block as: "a WFF is either an atomic proposition, or a negation of a WFF, or a conjunction of two WFFs, or..." — six ways to build one, and five of the six require you to already have smaller WFFs in hand. That's what makes it recursive.</p>
+
+  <div class="callout">
+    <strong>The Rust translation</strong>
+    This grammar <em>is</em> a recursive <code>enum</code>:
+    <pre style="margin-top:.6rem;"><code><span class="kw">enum</span> <span class="ty">Formula</span> {
+    Atom(<span class="ty">char</span>),                              <span class="cm">// P | Q | R | ...</span>
+    Not(<span class="ty">Box</span>&lt;<span class="ty">Formula</span>&gt;),                       <span class="cm">// ¬φ</span>
+    And(<span class="ty">Box</span>&lt;<span class="ty">Formula</span>&gt;, <span class="ty">Box</span>&lt;<span class="ty">Formula</span>&gt;),          <span class="cm">// (φ ∧ φ)</span>
+    Or(<span class="ty">Box</span>&lt;<span class="ty">Formula</span>&gt;, <span class="ty">Box</span>&lt;<span class="ty">Formula</span>&gt;),
+    Implies(<span class="ty">Box</span>&lt;<span class="ty">Formula</span>&gt;, <span class="ty">Box</span>&lt;<span class="ty">Formula</span>&gt;),
+    Iff(<span class="ty">Box</span>&lt;<span class="ty">Formula</span>&gt;, <span class="ty">Box</span>&lt;<span class="ty">Formula</span>&gt;),
+}</code></pre>
+    <code>Box</code> is doing the same job the recursion in the grammar does: a <code>Formula</code> can contain other <code>Formula</code>s, so you need indirection just to describe the type. <code>Atom</code> is the base case — no <code>Formula</code> inside — exactly matching the grammar's first line, the only alternative that doesn't mention <code>φ</code> on the right.
+  </div>
+
+  <h3>Building a formula step by step</h3>
+  <p>Take <code>((P ∧ Q) → (¬R ∨ S))</code>. Nobody writes this in one move — it gets certified well-formed by applying the grammar's rules bottom-up, smallest pieces first:</p>
+
+  <ol>
+    <li><code>P</code> is a WFF — atomic (base case).</li>
+    <li><code>Q</code> is a WFF — atomic.</li>
+    <li><code>(P ∧ Q)</code> is a WFF — conjunction rule, applied to steps 1 and 2.</li>
+    <li><code>R</code> is a WFF — atomic.</li>
+    <li><code>¬R</code> is a WFF — negation rule, applied to step 4.</li>
+    <li><code>S</code> is a WFF — atomic.</li>
+    <li><code>(¬R ∨ S)</code> is a WFF — disjunction rule, applied to steps 5 and 6.</li>
+    <li><code>((P ∧ Q) → (¬R ∨ S))</code> is a WFF — conditional rule, applied to steps 3 and 7. <strong>This step was applied last, so → is the main connective.</strong></li>
+  </ol>
+
+  <p>Drawn as a tree instead of a numbered list, that final formula has the same shape a compiler's AST would give it:</p>
+
+  <div class="tree-node root">
+    <span class="tree-label main">→ &nbsp;(main connective)</span>
+    <div class="tree-children">
+      <div class="tree-node">
+        <span class="tree-label">∧</span>
+        <div class="tree-children">
+          <div class="tree-node"><span class="tree-label leaf">P</span></div>
+          <div class="tree-node"><span class="tree-label leaf">Q</span></div>
+        </div>
+      </div>
+      <div class="tree-node">
+        <span class="tree-label">∨</span>
+        <div class="tree-children">
+          <div class="tree-node">
+            <span class="tree-label">¬</span>
+            <div class="tree-children">
+              <div class="tree-node"><span class="tree-label leaf">R</span></div>
+            </div>
+          </div>
+          <div class="tree-node"><span class="tree-label leaf">S</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <strong>Not well-formed</strong>
+    <code>P ∧</code> (dangling operator, missing operand) · <code>∧ P Q</code> (wrong syntax, connective isn't prefix except ¬) · <code>P Q</code> (juxtaposition means nothing — you need a connective between them)
+  </div>
+
+  <h2 id="main-connective">Main connective</h2>
+  <p>Every non-atomic WFF has exactly one <strong>main connective</strong> — highlighted at the root of the tree above. It's whichever connective was applied <em>last</em> when the formula was built, and it determines the formula's overall shape: everything else is detail buried inside its left and/or right branch.</p>
+
+  <div class="callout">
+    <strong>Example</strong>
+    <code>(P ∧ Q) → R</code> — despite the ∧ inside, the <strong>main connective is →</strong>. The whole formula is a conditional whose antecedent happens to be a conjunction. Read it as: "IF (P and Q), THEN R" — not "P AND (Q implies R)".
+  </div>
+
+  <h2>Try it: find the main connective</h2>
+  <p>Click the connective you think is the main one for each formula.</p>
+  <div id="main-conn-exercise" class="mc-exercise"></div>
+
+  <h2>The conditional's uncomfortable truth</h2>
+  <p>This is the part that trips up almost everyone the first time, and it matters enormously for evaluating real arguments.</p>
+
+  <div class="callout warn">
+    <strong>P → Q is true whenever P is false — regardless of Q</strong>
+    "If the moon is made of cheese, then 2 + 2 = 4" is, by the material conditional, a <strong>true</strong> statement. It sounds absurd in English, but it's exactly what <code>!p || q</code> evaluates to when <code>p</code> is <code>false</code>: always <code>true</code>. A false antecedent makes the whole conditional vacuously true.
+  </div>
+
+  <p>Why does this matter for debates? Because people routinely build arguments on conditionals whose antecedent is false, then act as if that makes the conditional meaningful evidence for something. A conditional being <em>true</em> tells you nothing about whether its antecedent or consequent is true — that distinction (validity of the conditional structure vs. truth of its parts) is precisely lesson 1's <a href="0001-arguments-validity-soundness.html#validity">validity</a>/<a href="0001-arguments-validity-soundness.html#soundness">soundness</a> split, now showing up inside a single connective.</p>
+
+  <h2>Symbolizing English</h2>
+  <p>Certain English phrases map to specific connectives — this is the translation skill you'll use constantly:</p>
+
+  <div class="conn-table">
+    <div class="conn-row header"><span>English phrase</span><span>Connective</span><span>Note</span></div>
+    <div class="conn-row"><span>"P unless Q"</span><span><code>P ∨ Q</code></span><span>"unless" ≈ "or"</span></div>
+    <div class="conn-row"><span>"if P, then Q"</span><span><code>P → Q</code></span><span>the plain form</span></div>
+    <div class="conn-row"><span>"P only if Q"</span><span><code>P → Q</code></span><span>same as "if P then Q" — just reworded</span></div>
+    <div class="conn-row"><span>"P if Q"</span><span><code>Q → P</code></span><span>reversed — the missing "only" flips direction</span></div>
+    <div class="conn-row"><span>"neither P nor Q"</span><span><code>¬P ∧ ¬Q</code></span><span>equivalently ¬(P ∨ Q)</span></div>
+    <div class="conn-row"><span>"P unless not Q"</span><span><code>P ∨ ¬Q</code></span><span>just substitute directly</span></div>
+  </div>
+
+  <div class="callout warn" id="only-if-necessary-sufficient">
+    <strong>"Only if" vs "if" — one word flips the direction</strong>
+    "If P then Q" and "P only if Q" are the <strong>same</strong> statement, both <code>P → Q</code>. The trap is "P if Q" — drop the word "only" and the direction reverses to <code>Q → P</code>. Concretely: "you'll pass <em>only if</em> you study" means <strong>Pass → Study</strong> (passing guarantees you studied). "You'll pass <em>if</em> you study" means <strong>Study → Pass</strong> (studying guarantees you'll pass) — a completely different, much stronger claim. Same two words, reordered, opposite direction.
+  </div>
+
+  <div class="callout" id="falsification-test">
+    <strong>The falsification test — a check that always works</strong>
+    Recall: <code>P → Q</code> is broken by exactly one scenario — P happens, Q doesn't. So ask: <em>what single scenario would prove "you'll pass only if you study" was a lie?</em> Answer: passing <strong>without</strong> studying. That's the only thing that breaks it — so P = Pass, Q = Study, giving <code>Pass → Study</code>.
+    <br><br>
+    Now test the tempting wrong answer, <code>Study → Pass</code>. That gets broken by <em>studying but not passing</em>. But does failing after studying make the original sentence a lie? No — "only if you study" never promised studying would work, only that passing requires it. Since that scenario doesn't break the sentence, <code>Study → Pass</code> isn't what it means. When in doubt, find the one scenario that would make the English sentence false, then match it to the one scenario that makes <code>P → Q</code> false.
+  </div>
+
+  <div class="callout warn" id="modal-words">
+    <strong>Pin down what your atomic proposition actually means</strong>
+    Watch for modal words like "may," "can," "must," "should" — they change what the proposition is claiming. "You may enter only if you have a ticket" is a statement about <em>permission</em>, not about whether you physically walked through the door. If you sloppily let <code>Enter</code> mean "you actually entered," the sentence "you may enter <em>if</em> you have a ticket" would wrongly symbolize as <code>Ticket → Entered</code> — claiming a ticket <em>guarantees</em> you enter, which is false; you could have a ticket and simply not go in. The proposition has to mean "you are <strong>permitted</strong> to enter" for the conditional to hold at all. Before symbolizing any sentence, state in your own words exactly what each atomic proposition claims — a sloppily-defined proposition produces a wrong formula even when you pick the right connective. This is exactly why <a href="../index.html#lesson-10">lesson 10 (Modal Logic)</a> gives "may" and "must" their own dedicated symbols instead of folding them into plain propositions.
+  </div>
+
+  <div class="callout" id="necessary-sufficient">
+    <strong>Necessary ≠ sufficient — the ticket, precisely</strong>
+    Even with <code>Permitted</code> pinned down correctly, one trap remains: "only if" claims a <strong>necessary</strong> condition, not a <strong>sufficient</strong> one — and those are genuinely different claims. Necessary: a ticket is <em>required</em> for permission. Sufficient: a ticket <em>alone guarantees</em> permission. "Only if you have a ticket" promises the first, not the second.
+    <br><br>
+    Test it: imagine a sold-out venue. You have a valid ticket, but security turns you away — the room is over capacity. Here <code>Ticket = true</code>, <code>Permitted = false</code>. Does that break "you may enter only if you have a ticket"? No — nobody without a ticket got in either; the rule is still honestly enforced. Since this scenario doesn't falsify the English sentence, <code>Ticket → Permitted</code> was never guaranteed by it. Check <code>Permitted → Ticket</code> against the same scenario: untouched, since nobody was permitted without a ticket — which is exactly why that's the correct symbolization, not the other way around.
+  </div>
+
+  <h2>Try it: symbolize these sentences</h2>
+  <p>Pick the correct symbolization for each English sentence.</p>
+  <div id="symbolize-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. "P ∨ Q" is true when…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q1')">Only P is true, not Q</button>
+        <button onclick="answer(this,false,'q1')">Only Q is true, not P</button>
+        <button onclick="answer(this,true, 'q1')">P, Q, or both are true</button>
+        <button onclick="answer(this,false,'q1')">Both must be true together</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. In <code>(P ∨ Q) ∧ R</code>, the main connective is…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q2')">The ∨ inside the parens</button>
+        <button onclick="answer(this,true, 'q2')">The ∧ outside the parens</button>
+        <button onclick="answer(this,false,'q2')">There are two main connectives</button>
+        <button onclick="answer(this,false,'q2')">R has no connective attached</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. If P is false, then "P → Q" is…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q3')">Always false</button>
+        <button onclick="answer(this,true, 'q3')">Always true, regardless of Q</button>
+        <button onclick="answer(this,false,'q3')">Undefined — need to know Q</button>
+        <button onclick="answer(this,false,'q3')">Equal to Q's truth value</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. "You may enter only if you have a ticket" — let <code>Admitted</code> = "you are permitted to enter" — symbolizes as…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q4')">Ticket → Admitted</button>
+        <button onclick="answer(this,true, 'q4')">Admitted → Ticket</button>
+        <button onclick="answer(this,false,'q4')">Admitted ↔ Ticket</button>
+        <button onclick="answer(this,false,'q4')">Admitted ∨ Ticket</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Take three sentences from a real conversation, article, or debate. For each: identify the atomic propositions, name the connective(s) involved, and write the full symbolization. Watch especially for "only if," "unless," and "neither/nor" — they're the ones most people get wrong on the first pass.</p>
+
+  <h2>Primary resource</h2>
+  <p>Read Chapter 2 (Syntax) and Chapter 3 (Symbolization) of <a href="https://forallx.openlogicproject.org/" target="_blank">forall x: Calgary</a> for the fully formal treatment, including the tricky symbolization cases this lesson only sampled.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Got an English sentence you're not sure how to symbolize? Bring it to Claude Code — we'll work through it together.
+  </div>
+
+  <div class="nav">
+    <a href="0001-arguments-validity-soundness.html">← Lesson 1: Arguments, Validity & Soundness</a>
+    <span class="spacer"></span>
+    <a href="../index.html">Logic: All Lessons →</a>
+  </div>
+
+</div>
+
+<style>
+.conn-table {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin: 1.25rem 0;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: .85rem;
+}
+.conn-row {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1.6fr 1.2fr;
+  padding: .55rem 1rem;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  gap: .5rem;
+}
+.conn-row:last-child { border-bottom: none; }
+.conn-row.header { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; background: #111; }
+.conn-row:not(.header):nth-child(even) { background: #1e1e1e; }
+
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card {
+  background: #242424;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+}
+.mc-formula {
+  font-size: 1.1rem;
+  margin-bottom: .75rem;
+  letter-spacing: .03em;
+}
+.mc-formula .en { font-size: .95rem; color: var(--muted); font-style: italic; margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+
+.tree-node {
+  border-left: 2px solid var(--border);
+  margin-left: .7rem;
+  padding-left: 1rem;
+  margin-top: .35rem;
+}
+.tree-node.root {
+  border-left: none;
+  margin-left: 0;
+  padding-left: 0;
+  margin: 1.25rem 0;
+}
+.tree-label {
+  display: inline-block;
+  background: #242424;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: .2rem .6rem;
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  font-size: .9rem;
+}
+.tree-label.main { border-color: var(--accent); color: var(--accent); font-weight: 700; }
+.tree-label.leaf { color: var(--muted); }
+.tree-children { margin-top: .2rem; }
+</style>
+
+<script>
+// ── Main connective exercise ──────────────────────────────
+const MC_ITEMS = [
+  {
+    formula: '(P ∧ Q) → R',
+    options: ['∧', '→'],
+    correct: '→',
+    note: 'The → was applied last: it joins the whole (P ∧ Q) block to R.'
+  },
+  {
+    formula: '¬(P ∨ Q)',
+    options: ['¬', '∨'],
+    correct: '¬',
+    note: 'The ¬ wraps the entire (P ∨ Q), so it was applied last — ¬ is the main connective.'
+  },
+  {
+    formula: '(P → Q) ↔ (¬Q → ¬P)',
+    options: ['→', '↔', '¬'],
+    correct: '↔',
+    note: 'Two conditionals are joined by ↔ at the top level — that\'s the main connective, applied last.'
+  },
+];
+
+const mcDiv = document.getElementById('main-conn-exercise');
+MC_ITEMS.forEach((item, i) => {
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.innerHTML = `
+    <div class="mc-formula"><code>${item.formula}</code></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,'${o}','${item.correct}',${i})">${o}</button>`).join('')}
+    </div>
+    <div class="mc-fb" id="mc-fb-${i}"></div>
+  `;
+  mcDiv.appendChild(card);
+});
+
+function mcAnswer(btn, chosen, correct, i) {
+  const card = btn.closest('.mc-card');
+  if (card.dataset.done) return;
+  card.dataset.done = 'true';
+  const isRight = chosen === correct;
+  btn.classList.add(isRight ? 'correct' : 'wrong');
+  const fb = document.getElementById(`mc-fb-${i}`);
+  fb.textContent = (isRight ? '✓ ' : `✗ Main connective is ${correct}. `) + MC_ITEMS[i].note;
+  fb.className = 'mc-fb ' + (isRight ? 'good' : 'bad');
+}
+
+// ── Symbolization exercise ────────────────────────────────
+const SYM_ITEMS = [
+  {
+    english: '"The alarm will sound unless the code is entered."',
+    options: ['Sound ∨ Code', 'Sound → Code', 'Sound ∧ Code'],
+    correct: 'Sound ∨ Code',
+    note: '"unless" translates to ∨: either the alarm sounds, or the code is entered (or both, though realistically not).'
+  },
+  {
+    english: '"You get a refund only if you keep the receipt."',
+    options: ['Refund → Receipt', 'Receipt → Refund', 'Refund ↔ Receipt'],
+    correct: 'Refund → Receipt',
+    note: '"only if" — the first clause implies the second: getting a refund guarantees you kept the receipt.'
+  },
+  {
+    english: '"Neither the witness nor the suspect was lying."',
+    options: ['¬Witness ∨ ¬Suspect', '¬Witness ∧ ¬Suspect', 'Witness ∧ Suspect'],
+    correct: '¬Witness ∧ ¬Suspect',
+    note: '"neither...nor" means both are false: ¬Witness AND ¬Suspect.'
+  },
+];
+
+const symDiv = document.getElementById('symbolize-exercise');
+SYM_ITEMS.forEach((item, i) => {
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="symAnswer(this,'${o}','${item.correct}',${i})">${o}</button>`).join('')}
+    </div>
+    <div class="mc-fb" id="sym-fb-${i}"></div>
+  `;
+  symDiv.appendChild(card);
+});
+
+function symAnswer(btn, chosen, correct, i) {
+  const card = btn.closest('.mc-card');
+  if (card.dataset.done) return;
+  card.dataset.done = 'true';
+  const isRight = chosen === correct;
+  btn.classList.add(isRight ? 'correct' : 'wrong');
+  const fb = document.getElementById(`sym-fb-${i}`);
+  fb.textContent = (isRight ? '✓ ' : `✗ Correct answer: ${correct}. `) + SYM_ITEMS[i].note;
+  fb.className = 'mc-fb ' + (isRight ? 'good' : 'bad');
+}
+
+// ── Quiz ───────────────────────────────────────────────────
+let scores = {};
+function answer(btn, correct, qid) {
+  const block = document.getElementById(qid);
+  if (block.dataset.done) return;
+  block.dataset.done = 'true';
+  const fb = document.getElementById(qid + '-fb');
+  btn.classList.add(correct ? 'correct' : 'wrong');
+  fb.textContent = correct ? '✓ Correct.' : '✗ Not quite — review the section above.';
+  fb.className = 'feedback ' + (correct ? 'good' : 'bad');
+  scores[qid] = correct ? 1 : 0;
+  const total = Object.keys(scores).length;
+  const right = Object.values(scores).filter(Boolean).length;
+  document.getElementById('score').textContent = `${right} / ${total} correct so far`;
+}
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

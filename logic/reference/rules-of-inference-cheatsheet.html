@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reference — Rules of Inference Cheat Sheet</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    body { font-size: 16px; }
+    .page { max-width: 780px; }
+    h2 { margin-top: 2rem; }
+    .ref-table {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: .82rem;
+      margin: .75rem 0 1.25rem;
+    }
+    .ref-row {
+      display: grid;
+      grid-template-columns: 1.1fr 1.3fr;
+      padding: .45rem .8rem;
+      border-bottom: 1px solid var(--border);
+      gap: .5rem;
+      align-items: center;
+    }
+    .ref-row:last-child { border-bottom: none; }
+    .ref-row.header { background: #111; color: var(--muted); text-transform: uppercase; font-size: .7rem; letter-spacing: .05em; }
+    .ref-row:not(.header):nth-child(even) { background: #1e1e1e; }
+    .proof {
+      font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+      font-size: .85rem;
+      background: #141414;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: .9rem 1.1rem;
+      margin: .75rem 0;
+    }
+    .proof-line { display: grid; grid-template-columns: 1.5rem 1fr auto; gap: .6rem; padding: .15rem 0; }
+    .proof-line .ln { color: #555; }
+    .proof-line .just { color: var(--muted); font-size: .75rem; font-family: 'Helvetica Neue', Arial, sans-serif; white-space: nowrap; }
+    .proof-sub { margin-left: 1.2rem; padding-left: .9rem; border-left: 2px solid var(--warn); }
+    @media print {
+      body { background: #fff; color: #000; padding-top: 1rem; }
+      .topnav, .teacher-tip { display: none; }
+    }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Logic</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Reference &nbsp;·&nbsp; Logic &nbsp;·&nbsp; Covers lesson 5</p>
+  <h1>Rules of Inference Cheat Sheet</h1>
+  <p style="color:var(--muted);">The compressed version of <a href="../lessons/0005-natural-deduction.html">lesson 5</a>. Every rule here is itself a valid argument form, checkable by truth table.</p>
+
+  <h2>Core rules</h2>
+  <p style="font-size:.85rem; color:var(--muted);">"⊢" (<a href="../lessons/0005-natural-deduction.html#turnstile">turnstile</a>) means "therefore" — everything left of it must already be established for the rule to apply.</p>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Rule</span><span>Pattern</span></div>
+    <div class="ref-row"><span>Modus Ponens (MP)</span><span><code>P → Q, P ⊢ Q</code></span></div>
+    <div class="ref-row"><span><a href="../lessons/0005-natural-deduction.html#modus-tollens">Modus Tollens (MT)</a></span><span><code>P → Q, ¬Q ⊢ ¬P</code></span></div>
+    <div class="ref-row"><span><a href="../lessons/0005-natural-deduction.html#hypothetical-syllogism">Hypothetical Syllogism (HS)</a></span><span><code>P → Q, Q → R ⊢ P → R</code></span></div>
+    <div class="ref-row"><span><a href="../lessons/0005-natural-deduction.html#disjunctive-syllogism">Disjunctive Syllogism (DS)</a></span><span><code>P ∨ Q, ¬P ⊢ Q</code></span></div>
+    <div class="ref-row"><span>Conjunction (Conj)</span><span><code>P, Q ⊢ P ∧ Q</code></span></div>
+    <div class="ref-row"><span>Simplification (Simp)</span><span><code>P ∧ Q ⊢ P</code></span></div>
+    <div class="ref-row"><span>Addition (Add)</span><span><code>P ⊢ P ∨ Q</code></span></div>
+  </div>
+
+  <h2>Invalid look-alikes — do not confuse these</h2>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Invalid pattern</span><span>Looks like</span></div>
+    <div class="ref-row"><span><a href="../lessons/0002-propositional-logic-syntax.html#denying-the-antecedent">Denying the Antecedent</a><br><code>P→Q, ¬P ⊢ ¬Q</code></span><span>Modus Tollens, but ¬P and ¬Q are swapped</span></div>
+    <div class="ref-row"><span>Affirming a Disjunct<br><code>P∨Q, P ⊢ ¬Q</code></span><span>Disjunctive Syllogism, but ∨ is inclusive — both can be true</span></div>
+    <div class="ref-row"><span><a href="../lessons/0002-propositional-logic-syntax.html#affirming-the-consequent">Affirming the Consequent</a><br><code>P→Q, Q ⊢ P</code></span><span>Modus Ponens, run backwards</span></div>
+  </div>
+
+  <h2 id="reductio">Proof by contradiction</h2>
+  <p style="font-size:.85rem; color:var(--muted);">Assume the opposite of what you want to prove, derive a contradiction, conclude the assumption was false.</p>
+  <div class="proof">
+    <div class="proof-line"><span class="ln">1</span><span><code>A → B</code></span><span class="just">premise</span></div>
+    <div class="proof-line"><span class="ln">2</span><span><code>A → ¬B</code></span><span class="just">premise</span></div>
+    <div class="proof-sub">
+      <div class="proof-line"><span class="ln">3</span><span><code>A</code></span><span class="just">assumption</span></div>
+      <div class="proof-line"><span class="ln">4</span><span><code>B</code></span><span class="just">1,3 MP</span></div>
+      <div class="proof-line"><span class="ln">5</span><span><code>¬B</code></span><span class="just">2,3 MP</span></div>
+      <div class="proof-line"><span class="ln">6</span><span><code>B ∧ ¬B</code></span><span class="just">4,5 Conj — contradiction</span></div>
+    </div>
+    <div class="proof-line"><span class="ln">7</span><span><code>¬A</code></span><span class="just">3–6, reductio</span></div>
+  </div>
+
+  <h2>Worked example — full chain</h2>
+  <p style="font-size:.85rem; color:var(--muted);">Given <code>P→Q</code>, <code>Q→R</code>, <code>¬R</code>, prove <code>¬P</code>:</p>
+  <div class="proof">
+    <div class="proof-line"><span class="ln">1</span><span><code>P → Q</code></span><span class="just">premise</span></div>
+    <div class="proof-line"><span class="ln">2</span><span><code>Q → R</code></span><span class="just">premise</span></div>
+    <div class="proof-line"><span class="ln">3</span><span><code>¬R</code></span><span class="just">premise</span></div>
+    <div class="proof-line"><span class="ln">4</span><span><code>P → R</code></span><span class="just">1,2 HS</span></div>
+    <div class="proof-line"><span class="ln">5</span><span><code>¬P</code></span><span class="just">3,4 MT</span></div>
+  </div>
+
+  <p style="margin-top:2rem; font-size:.8rem; color:#444;">From <a href="../index.html">Logic</a> — <a href="../lessons/0005-natural-deduction.html">lesson 5 (Natural Deduction)</a>. See also the <a href="propositional-logic-cheatsheet.html">Propositional Logic Cheat Sheet</a> for lessons 1–4. Primary source: <a href="https://forallx.openlogicproject.org/" target="_blank">forall x: Calgary</a>.</p>
+
+</div>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

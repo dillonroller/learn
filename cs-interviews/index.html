@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CS Interview Prep — Lessons</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    .topic-header { margin-bottom: 2.5rem; }
+    .topic-header h1 { font-size: 1.9rem; margin-bottom: .3rem; }
+    .topic-header p  { color: var(--muted); font-size: .95rem; max-width: 520px; line-height: 1.6; }
+
+    .lesson-list { display: flex; flex-direction: column; gap: .75rem; margin-top: 1.5rem; }
+
+    .lesson-card {
+      display: flex;
+      align-items: center;
+      gap: 1.1rem;
+      background: #212121;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color .15s, transform .1s;
+    }
+    .lesson-card:hover {
+      border-color: var(--accent);
+      transform: translateX(3px);
+    }
+    .lesson-card.locked {
+      opacity: .4;
+      pointer-events: none;
+    }
+
+    .lesson-num {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: .78rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--accent-lt);
+      border: 1px solid #2d4a38;
+      border-radius: 4px;
+      padding: .25rem .55rem;
+      flex-shrink: 0;
+      letter-spacing: .04em;
+    }
+
+    .lesson-info { flex: 1; min-width: 0; }
+    .lesson-title {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: .15rem;
+    }
+    .lesson-desc {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: .82rem;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .lesson-arrow {
+      color: #444;
+      font-size: .9rem;
+      flex-shrink: 0;
+    }
+    .lesson-card:hover .lesson-arrow { color: var(--accent); }
+
+    .section-label {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--muted);
+      margin-bottom: .75rem;
+    }
+
+    .roadmap-group { margin-bottom: 2rem; }
+    .roadmap-group h3 {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #555;
+      margin: 1.5rem 0 .6rem;
+      padding-left: .1rem;
+    }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <span class="tn-topic">CS Interview Prep</span>
+</nav>
+<div class="page">
+
+  <div class="topic-header">
+    <p class="lesson-meta" style="margin-bottom:.6rem;">Topic overview</p>
+    <h1>CS Interview Prep</h1>
+    <p>Core computer science for passing technical interviews at Google-tier companies — algorithm patterns, data structures, and complexity reasoning. Code examples in Rust / C.</p>
+  </div>
+
+  <div class="roadmap-group">
+    <p class="section-label">Foundations</p>
+    <div class="lesson-list">
+
+      <a class="lesson-card" href="lessons/0001-big-o-and-complexity.html">
+        <span class="lesson-num">01</span>
+        <div class="lesson-info">
+          <div class="lesson-title">Big-O & Complexity</div>
+          <div class="lesson-desc">Time and space complexity, the 6 complexity classes, reading Big-O from code, talking trade-offs</div>
+        </div>
+        <span class="lesson-arrow">→</span>
+      </a>
+
+      <a class="lesson-card locked" href="lessons/0002-arrays-and-hashmaps.html">
+        <span class="lesson-num">02</span>
+        <div class="lesson-info">
+          <div class="lesson-title">Arrays & Hash Maps</div>
+          <div class="lesson-desc">Coming next — the two structures that solve ~40% of interview problems</div>
+        </div>
+        <span class="lesson-arrow">→</span>
+      </a>
+
+      <a class="lesson-card locked" href="#">
+        <span class="lesson-num">03</span>
+        <div class="lesson-info">
+          <div class="lesson-title">Two Pointers & Sliding Window</div>
+          <div class="lesson-desc">Coming soon</div>
+        </div>
+        <span class="lesson-arrow">→</span>
+      </a>
+
+      <a class="lesson-card locked" href="#">
+        <span class="lesson-num">04</span>
+        <div class="lesson-info">
+          <div class="lesson-title">Stacks & Queues</div>
+          <div class="lesson-desc">Coming soon</div>
+        </div>
+        <span class="lesson-arrow">→</span>
+      </a>
+
+    </div>
+  </div>
+
+  <div class="roadmap-group">
+    <p class="section-label">Trees & Graphs</p>
+    <div class="lesson-list">
+
+      <a class="lesson-card locked" href="#">
+        <span class="lesson-num">05</span>
+        <div class="lesson-info">
+          <div class="lesson-title">Binary Trees & BSTs</div>
+          <div class="lesson-desc">Coming soon</div>
+        </div>
+        <span class="lesson-arrow">→</span>
+      </a>
+
+      <a class="lesson-card locked" href="#">
+        <span class="lesson-num">06</span>
+        <div class="lesson-info">
+          <div class="lesson-title">Graph Traversal (BFS / DFS)</div>
+          <div class="lesson-desc">Coming soon</div>
+        </div>
+        <span class="lesson-arrow">→</span>
+      </a>
+
+    </div>
+  </div>
+
+  <div class="roadmap-group">
+    <p class="section-label">Core Patterns</p>
+    <div class="lesson-list">
+
+      <a class="lesson-card locked" href="#">
+        <span class="lesson-num">07</span>
+        <div class="lesson-info">
+          <div class="lesson-title">Binary Search</div>
+          <div class="lesson-desc">Coming soon</div>
+        </div>
+        <span class="lesson-arrow">→</span>
+      </a>
+
+      <a class="lesson-card locked" href="#">
+        <span class="lesson-num">08</span>
+        <div class="lesson-info">
+          <div class="lesson-title">Recursion & Backtracking</div>
+          <div class="lesson-desc">Coming soon</div>
+        </div>
+        <span class="lesson-arrow">→</span>
+      </a>
+
+      <a class="lesson-card locked" href="#">
+        <span class="lesson-num">09</span>
+        <div class="lesson-info">
+          <div class="lesson-title">Dynamic Programming</div>
+          <div class="lesson-desc">Coming soon</div>
+        </div>
+        <span class="lesson-arrow">→</span>
+      </a>
+
+      <a class="lesson-card locked" href="#">
+        <span class="lesson-num">10</span>
+        <div class="lesson-info">
+          <div class="lesson-title">Sorting Algorithms</div>
+          <div class="lesson-desc">Coming soon</div>
+        </div>
+        <span class="lesson-arrow">→</span>
+      </a>
+
+    </div>
+  </div>
+
+  <div class="roadmap-group">
+    <p class="section-label">System Design</p>
+    <div class="lesson-list">
+
+      <a class="lesson-card locked" href="#">
+        <span class="lesson-num">11</span>
+        <div class="lesson-info">
+          <div class="lesson-title">System Design Fundamentals</div>
+          <div class="lesson-desc">Coming soon</div>
+        </div>
+        <span class="lesson-arrow">→</span>
+      </a>
+
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

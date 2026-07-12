@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 2 — Half Steps & Whole Steps</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Music Theory & Keyboard</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 2 of ∞ &nbsp;·&nbsp; Keyboard & Music Theory &nbsp;·&nbsp; ~15 min</p>
+  <h1>Half Steps & Whole Steps</h1>
+  <p>You know the map. Now you need to measure distances on it. Every scale, chord, and melody you'll compose is built from just two distances — the half step and the whole step.</p>
+
+  <h2>The half step</h2>
+  <p>A <strong>half step</strong> (also called a <em>semitone</em>) is the smallest distance between any two notes on the keyboard — always the next key, whether white or black.</p>
+  <ul>
+    <li>E → F is a half step (white to white, no black key between)</li>
+    <li>B → C is a half step (white to white, no black key between)</li>
+    <li>C → C♯ is a half step (white to the black key directly above)</li>
+    <li>G♯ → A is a half step (black to the white key directly above)</li>
+  </ul>
+
+  <div class="callout">
+    <strong>Try it now</strong>
+    Place your thumb on Middle C. Now play the very next key to the right — that's C♯, a half step up. Go back and play the very next key to the left — that's B, a half step down. You can't get any smaller than this on the keyboard.
+  </div>
+
+  <h2>The whole step</h2>
+  <p>A <strong>whole step</strong> (also called a <em>tone</em>) is simply two half steps stacked together — skip one key, land on the next.</p>
+  <ul>
+    <li>C → D is a whole step (skip C♯)</li>
+    <li>D → E is a whole step (skip D♯)</li>
+    <li>A → B is a whole step (skip A♯)</li>
+  </ul>
+
+  <div class="callout">
+    <strong>Try it now</strong>
+    Play C, then skip C♯ and land on D. That gap you just jumped is a whole step. Play it slowly back and forth — C to D, D to C. This is one of the most important moves in music.
+  </div>
+
+  <h2>Why this matters for composition</h2>
+  <p>Every scale is just a <strong>recipe of half steps and whole steps</strong>. The major scale — the one that sounds bright and happy — uses this exact recipe:</p>
+
+  <div class="recipe">
+    <div class="recipe-row">
+      <span class="step whole">W</span>
+      <span class="step whole">W</span>
+      <span class="step half">H</span>
+      <span class="step whole">W</span>
+      <span class="step whole">W</span>
+      <span class="step whole">W</span>
+      <span class="step half">H</span>
+    </div>
+    <div class="recipe-labels">
+      <span>C→D</span><span>D→E</span><span>E→F</span><span>F→G</span><span>G→A</span><span>A→B</span><span>B→C</span>
+    </div>
+  </div>
+
+  <p>That recipe — <strong>W W H W W W H</strong> — produces the C major scale you played in lesson 1. The same recipe starting on any note produces a major scale in that key. This is how musicians transpose: same recipe, different starting point.</p>
+
+  <h2>Count the steps: interactive</h2>
+  <p>Click a key below, then click another to count the half steps between them.</p>
+
+  <div class="piano-wrap">
+    <div id="piano2" class="piano"></div>
+  </div>
+  <div id="step-display" class="step-display">Click a key to start</div>
+
+  <h2>The 12-note chromatic scale</h2>
+  <p>If you play every single key — white and black — from one C up to the next C, you get 12 half steps. This is called the <strong>chromatic scale</strong>, and it contains all the raw material Western music uses. Every scale, chord, and melody is a selection from these 12 notes.</p>
+
+  <div class="callout">
+    <strong>The composer's insight</strong>
+    Scales are filters. The major scale is one filter — it selects 7 of the 12 notes using the W W H W W W H recipe. Minor scales, jazz scales, and pentatonic scales are different filters. Learning to choose the right filter for a mood is one of the core skills of composition.
+  </div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. A half step is…</p>
+      <div class="options">
+        <button onclick="answer(this, false, 'q1')">Two keys apart, skipping one</button>
+        <button onclick="answer(this, true,  'q1')">The very next key, white or black</button>
+        <button onclick="answer(this, false, 'q1')">Any white key to white key move</button>
+        <button onclick="answer(this, false, 'q1')">Any black key to black key move</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. How many half steps are in a whole step?</p>
+      <div class="options">
+        <button onclick="answer(this, false, 'q2')">One half step total</button>
+        <button onclick="answer(this, true,  'q2')">Two half steps total</button>
+        <button onclick="answer(this, false, 'q2')">Three half steps total</button>
+        <button onclick="answer(this, false, 'q2')">Four half steps total</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. The major scale recipe is…</p>
+      <div class="options">
+        <button onclick="answer(this, false, 'q3')">H H W H H H W pattern</button>
+        <button onclick="answer(this, false, 'q3')">W H W W H W W pattern</button>
+        <button onclick="answer(this, true,  'q3')">W W H W W W H pattern</button>
+        <button onclick="answer(this, false, 'q3')">W W W H W W H pattern</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. How many notes are in the chromatic scale?</p>
+      <div class="options">
+        <button onclick="answer(this, false, 'q4')">Seven notes per octave</button>
+        <button onclick="answer(this, false, 'q4')">Eight notes per octave</button>
+        <button onclick="answer(this, false, 'q4')">Ten notes per octave</button>
+        <button onclick="answer(this, true,  'q4')">Twelve notes per octave</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Sit at your keyboard and try to play the C major scale from memory using the W W H W W W H recipe as a guide. Don't look up which notes — just count steps. If you land on all white keys from C to C, you've got it.</p>
+
+  <h2>Primary resource</h2>
+  <p>Read <a href="https://www.musictheory.net/lessons/20" target="_blank">musictheory.net — Half Steps and Whole Steps</a> for a notation-based view of what you just learned.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Not sure how to count steps? Confused about why E→F is only a half step? Type a question in Claude Code — your teacher is here.
+  </div>
+
+  <div class="nav">
+    <a href="0001-the-keyboard-map.html">← Lesson 1: The Keyboard Map</a>
+    <span class="spacer"></span>
+    <a href="0003-the-major-scale.html">Lesson 3: The Major Scale →</a>
+  </div>
+
+</div>
+
+<style>
+.recipe {
+  background: #242424;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  margin: 1.5rem 0;
+  text-align: center;
+}
+.recipe-row {
+  display: flex;
+  justify-content: center;
+  gap: .5rem;
+  margin-bottom: .6rem;
+}
+.step {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: .85rem;
+  font-weight: bold;
+}
+.step.whole { background: #2d6a4f; color: #4ade80; border: 1px solid #4ade80; }
+.step.half  { background: #3a1f2e; color: #e879a0; border: 1px solid #e879a0; }
+.recipe-labels {
+  display: flex;
+  justify-content: center;
+  gap: .5rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: .72rem;
+  color: var(--muted);
+}
+.recipe-labels span { width: 2.4rem; text-align: center; }
+
+.step-display {
+  text-align: center;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1rem;
+  color: var(--accent);
+  background: #242424;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .75rem;
+  margin: -1rem 0 2rem;
+}
+</style>
+
+<script>
+// ── Piano (two octaves, same as lesson 1) ─────────────────
+const NOTES = ['C','D','E','F','G','A','B'];
+const BLACK = [1,1,0,1,1,1,0];
+const ALL_KEYS = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+
+let selected = null;
+let allKeyEls = [];
+
+function buildPiano() {
+  const piano = document.getElementById('piano2');
+  const startOct = 3;
+  const octaves = 2;
+  const whites = [];
+
+  for (let oct = startOct; oct < startOct + octaves; oct++) {
+    NOTES.forEach((note, i) => {
+      const k = document.createElement('div');
+      k.className = 'key-w' + (note === 'C' ? ' highlight' : '');
+      const midi = octToMidi(note, oct);
+      k.dataset.midi = midi;
+      k.dataset.label = note + oct;
+      k.innerHTML = `<span>${note}</span>`;
+      k.onclick = () => selectKey(k, midi, note + oct);
+      piano.appendChild(k);
+      whites.push({ el: k, note, oct, i });
+      allKeyEls.push({ el: k, midi });
+    });
+  }
+
+  whites.forEach(({ el, note, oct, i }) => {
+    if (BLACK[i]) {
+      const b = document.createElement('div');
+      b.className = 'key-b';
+      b.style.left = (el.offsetLeft + 36 - 11) + 'px';
+      b.style.top = '0px';
+      const midi = octToMidi(note, oct) + 1;
+      const label = note + '♯' + oct;
+      b.dataset.midi = midi;
+      b.dataset.label = label;
+      b.onclick = () => selectKey(b, midi, label);
+      piano.appendChild(b);
+      allKeyEls.push({ el: b, midi });
+    }
+  });
+}
+
+function octToMidi(note, oct) {
+  const idx = ALL_KEYS.indexOf(note);
+  return (oct + 1) * 12 + idx;
+}
+
+function selectKey(el, midi, label) {
+  if (!selected) {
+    selected = { el, midi, label };
+    el.style.outline = '2px solid var(--accent)';
+    document.getElementById('step-display').textContent = `Start: ${label} — now click another key`;
+  } else {
+    const diff = Math.abs(midi - selected.midi);
+    selected.el.style.outline = '';
+    const dir = midi > selected.midi ? 'up' : 'down';
+    document.getElementById('step-display').textContent =
+      `${selected.label} → ${label}: ${diff} half step${diff === 1 ? '' : 's'} ${dir} (${(diff/2)} whole step${diff/2 === 1 ? '' : 's'})`;
+    selected = null;
+  }
+}
+
+window.addEventListener('load', buildPiano);
+
+// ── Quiz ───────────────────────────────────────────────────
+let scores = {};
+
+function answer(btn, correct, qid) {
+  const block = document.getElementById(qid);
+  if (block.dataset.done) return;
+  block.dataset.done = 'true';
+  const fb = document.getElementById(qid + '-fb');
+  btn.classList.add(correct ? 'correct' : 'wrong');
+  fb.textContent = correct ? '✓ Correct.' : '✗ Not quite — review the section above.';
+  fb.className = 'feedback ' + (correct ? 'good' : 'bad');
+  scores[qid] = correct ? 1 : 0;
+  updateScore();
+}
+
+function updateScore() {
+  const total = Object.keys(scores).length;
+  const right = Object.values(scores).filter(Boolean).length;
+  document.getElementById('score').textContent = `${right} / ${total} correct so far`;
+}
+</script>
+</body>
+</html>

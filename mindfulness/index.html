@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mindfulness — Lessons</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    .topic-header { margin-bottom: 2.5rem; }
+    .topic-header h1 { font-size: 1.9rem; margin-bottom: .3rem; }
+    .topic-header p { color: var(--muted); font-size: .95rem; max-width: 520px; line-height: 1.6; }
+    .section-label { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .75rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin: 1.5rem 0 .6rem; }
+    .lesson-list { display: flex; flex-direction: column; gap: .75rem; margin-bottom: 1.5rem; }
+    .lesson-card { display: flex; align-items: center; gap: 1.1rem; background: #212121; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; text-decoration: none; color: inherit; transition: border-color .15s, transform .1s; }
+    .lesson-card:hover { border-color: var(--accent); transform: translateX(3px); }
+    .lesson-card.locked { opacity: .4; pointer-events: none; }
+    .lesson-num { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .78rem; font-weight: 700; color: var(--accent); background: var(--accent-lt); border: 1px solid #2d4a38; border-radius: 4px; padding: .25rem .55rem; flex-shrink: 0; letter-spacing: .04em; }
+    .lesson-info { flex: 1; min-width: 0; }
+    .lesson-title { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 1rem; font-weight: 600; color: var(--ink); margin-bottom: .15rem; }
+    .lesson-desc { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .82rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lesson-arrow { color: #444; font-size: .9rem; flex-shrink: 0; }
+    .lesson-card:hover .lesson-arrow { color: var(--accent); }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <span class="tn-topic">Mindfulness</span>
+</nav>
+<div class="page">
+  <div class="topic-header">
+    <p class="lesson-meta" style="margin-bottom:.6rem;">Topic overview</p>
+    <h1>Mindfulness</h1>
+    <p>Developing a genuine, sustainable mindfulness practice — understanding what it actually is, why it works, and how to integrate it into daily life.</p>
+  </div>
+
+  <p class="section-label">Understanding the Practice</p>
+  <div class="lesson-list">
+    <a class="lesson-card locked" href="#"><span class="lesson-num">01</span><div class="lesson-info"><div class="lesson-title">What Mindfulness Actually Is</div><div class="lesson-desc">Cutting through the hype — the real definition, the Buddhist origins, the secular version</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card locked" href="#"><span class="lesson-num">02</span><div class="lesson-info"><div class="lesson-title">The Science Behind It</div><div class="lesson-desc">What neuroscience actually shows — attention networks, default mode, stress response</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card locked" href="#"><span class="lesson-num">03</span><div class="lesson-info"><div class="lesson-title">The Wandering Mind Problem</div><div class="lesson-desc">Why the mind wanders, why that's not failure, and what noticing actually trains</div></div><span class="lesson-arrow">→</span></a>
+  </div>
+
+  <p class="section-label">The Practices</p>
+  <div class="lesson-list">
+    <a class="lesson-card locked" href="#"><span class="lesson-num">04</span><div class="lesson-info"><div class="lesson-title">The Breath — Your Anchor</div><div class="lesson-desc">Breath-focused meditation: posture, technique, common obstacles, first sitting</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card locked" href="#"><span class="lesson-num">05</span><div class="lesson-info"><div class="lesson-title">Body Scan</div><div class="lesson-desc">Systematic attention through the body — the foundational MBSR practice</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card locked" href="#"><span class="lesson-num">06</span><div class="lesson-info"><div class="lesson-title">Open Awareness</div><div class="lesson-desc">Expanding from focused attention to choiceless awareness</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card locked" href="#"><span class="lesson-num">07</span><div class="lesson-info"><div class="lesson-title">Mindfulness in Daily Life</div><div class="lesson-desc">Integrating practice into real days — eating, walking, conversations, work</div></div><span class="lesson-arrow">→</span></a>
+  </div>
+</div>
+</body>
+</html>

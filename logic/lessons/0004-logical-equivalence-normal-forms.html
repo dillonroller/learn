@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 4 — Logical Equivalence & Normal Forms</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Logic</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 4 of 14 &nbsp;·&nbsp; Logic &nbsp;·&nbsp; ~30 min</p>
+  <h1>Logical Equivalence & Normal Forms</h1>
+  <p>You already proved one equivalence by hand, back at the start of this topic: <code>P → Q ≡ ¬P ∨ Q</code>. This lesson gives you the full toolkit of equivalences — the rewrite rules that let you take any formula and reshape it into something logically identical but structurally different. Then it gives you two standard target shapes every formula can be rewritten into: CNF and DNF.</p>
+
+  <h2>Quick recall</h2>
+  <p>From <a href="0003-truth-tables.html#equivalence-preview">lesson 3</a>: two formulas are logically equivalent exactly when their truth tables match on every row. That's the test everything below is built on — every law in this lesson can be verified that same way.</p>
+
+  <h2 id="equivalence-laws">The equivalence laws</h2>
+  <p>These are the standard rewrite rules of propositional logic. Each one is provable by truth table — you're not asked to take any of these on faith.</p>
+
+  <div class="eq-table">
+    <div class="eq-row header"><span>Name</span><span>Law</span></div>
+    <div class="eq-row"><span>Double Negation</span><span><code>¬¬P ≡ P</code></span></div>
+    <div class="eq-row"><span>De Morgan (¬∧)</span><span><code>¬(P ∧ Q) ≡ ¬P ∨ ¬Q</code></span></div>
+    <div class="eq-row"><span>De Morgan (¬∨)</span><span><code>¬(P ∨ Q) ≡ ¬P ∧ ¬Q</code></span></div>
+    <div class="eq-row"><span>Commutativity</span><span><code>P ∧ Q ≡ Q ∧ P</code> &nbsp;·&nbsp; <code>P ∨ Q ≡ Q ∨ P</code></span></div>
+    <div class="eq-row"><span>Associativity</span><span><code>(P∧Q)∧R ≡ P∧(Q∧R)</code> &nbsp;·&nbsp; same for ∨</span></div>
+    <div class="eq-row"><span>Distributivity</span><span><code>P∧(Q∨R) ≡ (P∧Q)∨(P∧R)</code> &nbsp;·&nbsp; and the mirror</span></div>
+    <div class="eq-row"><span>Idempotence</span><span><code>P ∧ P ≡ P</code> &nbsp;·&nbsp; <code>P ∨ P ≡ P</code></span></div>
+    <div class="eq-row"><span>Identity</span><span><code>P ∧ ⊤ ≡ P</code> &nbsp;·&nbsp; <code>P ∨ ⊥ ≡ P</code></span></div>
+    <div class="eq-row"><span>Domination</span><span><code>P ∨ ⊤ ≡ ⊤</code> &nbsp;·&nbsp; <code>P ∧ ⊥ ≡ ⊥</code></span></div>
+    <div class="eq-row"><span>Material Implication</span><span><code>P → Q ≡ ¬P ∨ Q</code></span></div>
+    <div class="eq-row"><span>Contraposition</span><span><code>P → Q ≡ ¬Q → ¬P</code></span></div>
+    <div class="eq-row"><span>Biconditional Expansion</span><span><code>P ↔ Q ≡ (P → Q) ∧ (Q → P)</code></span></div>
+  </div>
+
+  <div class="callout">
+    <strong>Material Implication — where you started</strong>
+    That very first row is the equivalence you derived by hand at the beginning of this topic (<code>P → Q ≡ ¬P ∨ Q</code>) — now filed properly among its siblings. Everything in this table is the same kind of move: a formula that looks different but is truth-functionally identical, in every possible world.
+  </div>
+
+  <div class="callout">
+    <strong>The Rust translation — De Morgan's laws</strong>
+    You've almost certainly written De Morgan's laws in code without naming them: <code>!(a && b) == (!a || !b)</code> and <code>!(a || b) == (!a && !b)</code>. This is the exact same law — negating a conjunction flips it into a disjunction of negations, and vice versa. Compilers and linters use this to simplify conditions; you can use it to simplify arguments.
+  </div>
+
+  <h2 id="de-morgan-proven">De Morgan's laws, proven</h2>
+  <p>Rather than trust the table, let's watch both De Morgan equivalences get verified mechanically, using the same engine from lesson 3.</p>
+
+  <div class="tt-wrap"><div id="tt-demorgan1"></div></div>
+  <div class="tt-verdict" id="tt-demorgan1-verdict"></div>
+
+  <div class="tt-wrap"><div id="tt-demorgan2"></div></div>
+  <div class="tt-verdict" id="tt-demorgan2-verdict"></div>
+
+  <h2 id="verify-any-law">Interactive: verify any law</h2>
+  <p>Pick a law below and watch its two sides get checked against each other, row by row.</p>
+  <div class="law-picker" id="law-picker"></div>
+  <div class="tt-wrap"><div id="tt-law"></div></div>
+  <div class="tt-verdict" id="tt-law-verdict"></div>
+
+  <h2 id="normal-forms">Normal forms: CNF and DNF</h2>
+  <p>A <strong>literal</strong> is an atomic proposition or its negation — <code>P</code> or <code>¬P</code>, nothing more complex. Two standard shapes are built entirely from literals combined with just ∧ and ∨:</p>
+
+  <div class="callout">
+    <strong id="cnf">Conjunctive Normal Form (CNF)</strong>
+    An AND of ORs: <code>(l₁ ∨ l₂ ∨ ...) ∧ (l₃ ∨ l₄ ∨ ...) ∧ ...</code> — a conjunction of "clauses," each clause a disjunction of literals.
+  </div>
+  <div class="callout">
+    <strong id="dnf">Disjunctive Normal Form (DNF)</strong>
+    An OR of ANDs: <code>(l₁ ∧ l₂ ∧ ...) ∨ (l₃ ∧ l₄ ∨ ...) ∨ ...</code> — the mirror image of CNF.
+  </div>
+
+  <p><strong>Every formula in propositional logic can be rewritten into CNF, and separately into DNF.</strong> Neither is "more true" than the original — they're just standardized shapes, useful because algorithms can process a standard shape far more easily than arbitrary nested formulas.</p>
+
+  <div class="callout warn">
+    <strong>Why this matters beyond logic class</strong>
+    CNF is the input format every SAT solver expects — the algorithms (DPLL, CDCL) that decide whether a formula is satisfiable, which underlie automated theorem proving, hardware/software verification, and scheduling/constraint solvers. If you've ever seen a `.cnf` file or heard "reduce to SAT," this is the format. Digital circuit minimization (turning a boolean expression into the fewest logic gates) uses the same normal-form machinery.
+  </div>
+
+  <h3>Converting to CNF — worked example</h3>
+  <p>Convert <code>¬(P → Q) ∨ R</code> into CNF, one law at a time:</p>
+
+  <ol>
+    <li><strong>Eliminate →</strong> using Material Implication: <code>¬(P → Q) ∨ R</code> becomes <code>¬(¬P ∨ Q) ∨ R</code></li>
+    <li><strong>Push ¬ inward</strong> using De Morgan: <code>¬(¬P ∨ Q)</code> becomes <code>(¬¬P ∧ ¬Q)</code>, which simplifies via Double Negation to <code>(P ∧ ¬Q)</code>. Formula so far: <code>(P ∧ ¬Q) ∨ R</code></li>
+    <li><strong>Distribute ∨ over ∧</strong> — CNF needs ANDs of ORs, not ORs of ANDs, so distribute: <code>(P ∧ ¬Q) ∨ R</code> becomes <code>(P ∨ R) ∧ (¬Q ∨ R)</code></li>
+  </ol>
+
+  <p>Final CNF: <code>(P ∨ R) ∧ (¬Q ∨ R)</code> — two clauses, each a disjunction of literals, joined by ∧. Let's verify the whole conversion actually preserved meaning, start to finish:</p>
+
+  <div class="tt-wrap"><div id="tt-cnf-proof"></div></div>
+  <div class="tt-verdict" id="tt-cnf-proof-verdict"></div>
+
+  <p style="font-size:.9rem; color:var(--muted);">Converting to DNF is the mirror process: eliminate →, push ¬ inward with De Morgan, then distribute ∧ over ∨ instead of ∨ over ∧.</p>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. De Morgan's law says <code>¬(P ∧ Q)</code> is equivalent to…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q1')">¬P ∧ ¬Q</button>
+        <button onclick="answer(this,true, 'q1')">¬P ∨ ¬Q</button>
+        <button onclick="answer(this,false,'q1')">P ∨ Q</button>
+        <button onclick="answer(this,false,'q1')">P ∧ Q</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Contraposition says <code>P → Q</code> is equivalent to…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q2')">Q → P</button>
+        <button onclick="answer(this,false,'q2')">¬P → ¬Q</button>
+        <button onclick="answer(this,true, 'q2')">¬Q → ¬P</button>
+        <button onclick="answer(this,false,'q2')">¬P ∧ ¬Q</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Conjunctive Normal Form is best described as…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q3')">An OR of AND-clauses</button>
+        <button onclick="answer(this,true, 'q3')">An AND of OR-clauses</button>
+        <button onclick="answer(this,false,'q3')">Only negated literals allowed</button>
+        <button onclick="answer(this,false,'q3')">No connectives at all</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Why do SAT solvers require formulas in CNF?</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q4')">CNF is the only valid form</button>
+        <button onclick="answer(this,false,'q4')">CNF formulas are always true</button>
+        <button onclick="answer(this,true, 'q4')">A standard shape is easier to process algorithmically</button>
+        <button onclick="answer(this,false,'q4')">CNF has no atomic propositions</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Convert <code>¬(P ∨ ¬Q)</code> into CNF by hand, one law at a time (it should take 2 steps). Then convert <code>P → (Q ∧ R)</code> into CNF (this one needs the distribution step). Check each conversion by building the truth table of the original and the converted formula side by side — they should match on every row.</p>
+
+  <h2>Primary resource</h2>
+  <p>See the sections on truth-functional equivalence and normal forms in <a href="https://forallx.openlogicproject.org/" target="_blank">forall x: Calgary</a> — the book proves formally that every TFL sentence has both a CNF and DNF equivalent.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Want to convert a specific formula to CNF or DNF that isn't covered here? Bring it to Claude Code — we'll work through it together.
+  </div>
+
+  <div class="nav">
+    <a href="0003-truth-tables.html">← Lesson 3: Truth Tables & Semantic Evaluation</a>
+    <span class="spacer"></span>
+    <a href="0005-natural-deduction.html">Lesson 5: Natural Deduction — Propositional Proofs →</a>
+  </div>
+
+</div>
+
+<style>
+.eq-table {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin: 1.25rem 0;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: .85rem;
+}
+.eq-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  padding: .5rem .9rem;
+  border-bottom: 1px solid var(--border);
+  gap: .5rem;
+  align-items: center;
+}
+.eq-row:last-child { border-bottom: none; }
+.eq-row.header { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; background: #111; }
+.eq-row:not(.header):nth-child(even) { background: #1e1e1e; }
+
+.tt-wrap { overflow-x: auto; margin: 1rem 0; }
+.tt-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  font-size: .85rem;
+}
+.tt-table th, .tt-table td {
+  border: 1px solid var(--border);
+  padding: .4rem .6rem;
+  text-align: center;
+  white-space: nowrap;
+}
+.tt-table thead th {
+  background: #111;
+  color: var(--muted);
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.tt-true  { color: var(--accent); font-weight: 700; background: #132a1c; }
+.tt-false { color: var(--err); font-weight: 700; background: #2a1414; }
+
+.tt-verdict {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: .85rem;
+  margin-top: .6rem;
+  padding: .6rem .9rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #1e1e1e;
+}
+.tt-verdict.equivalent { border-color: var(--accent); color: var(--accent); }
+.tt-verdict.not-equivalent { border-color: var(--err); color: var(--err); }
+
+.law-picker { display: flex; flex-wrap: wrap; gap: .4rem; margin: 1rem 0; }
+.law-picker button {
+  background: #242424; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .82rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.law-picker button:hover { border-color: var(--accent); background: var(--accent-lt); }
+.law-picker button.active { background: #2d6a4f; border-color: var(--accent); color: var(--accent); }
+</style>
+
+<script>
+// ── Mini formula engine (same as lesson 3) ──
+const atom    = name => ({ type: 'atom', name });
+const not_    = a    => ({ type: 'not', a });
+const and_    = (a,b)=> ({ type: 'and', a, b });
+const or_     = (a,b)=> ({ type: 'or', a, b });
+const implies = (a,b)=> ({ type: 'implies', a, b });
+const iff     = (a,b)=> ({ type: 'iff', a, b });
+
+function evalNode(node, env) {
+  switch (node.type) {
+    case 'atom':    return env[node.name];
+    case 'not':     return !evalNode(node.a, env);
+    case 'and':     return evalNode(node.a, env) && evalNode(node.b, env);
+    case 'or':      return evalNode(node.a, env) || evalNode(node.b, env);
+    case 'implies': return !evalNode(node.a, env) || evalNode(node.b, env);
+    case 'iff':     return evalNode(node.a, env) === evalNode(node.b, env);
+  }
+}
+function collectAtoms(node, seen) {
+  if (node.type === 'atom') { if (!seen.includes(node.name)) seen.push(node.name); return seen; }
+  if (node.type === 'not')  { return collectAtoms(node.a, seen); }
+  return collectAtoms(node.b, collectAtoms(node.a, seen));
+}
+function atomsFromNodes(nodes) {
+  let seen = [];
+  nodes.forEach(n => { seen = collectAtoms(n, seen); });
+  return seen;
+}
+function allEnvs(names) {
+  const n = names.length;
+  const rows = [];
+  for (let i = 0; i < Math.pow(2, n); i++) {
+    const env = {};
+    names.forEach((name, j) => {
+      const groupSize = Math.pow(2, n - 1 - j);
+      env[name] = Math.floor(i / groupSize) % 2 === 0;
+    });
+    rows.push(env);
+  }
+  return rows;
+}
+const fmtBool = b => b ? 'T' : 'F';
+
+function renderTruthTable(containerId, columns) {
+  const atomsList = atomsFromNodes(columns.map(c => c.node));
+  const envs = allEnvs(atomsList);
+  const colValues = columns.map(c => envs.map(env => evalNode(c.node, env)));
+
+  let html = '<table class="tt-table"><thead><tr>';
+  atomsList.forEach(a => html += `<th>${a}</th>`);
+  columns.forEach(c => html += `<th>${c.label}</th>`);
+  html += '</tr></thead><tbody>';
+  envs.forEach((env, i) => {
+    html += '<tr>';
+    atomsList.forEach(a => html += `<td>${fmtBool(env[a])}</td>`);
+    columns.forEach((c, ci) => {
+      const v = colValues[ci][i];
+      html += `<td class="${v ? 'tt-true' : 'tt-false'}">${fmtBool(v)}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById(containerId).innerHTML = html;
+
+  // equivalence check: do all "compare" columns match on every row?
+  if (columns.length >= 2) {
+    const allMatch = envs.every((env, i) => colValues.every(vals => vals[i] === colValues[0][i]));
+    return allMatch;
+  }
+  return null;
+}
+
+function setVerdict(id, cls, text) {
+  const el = document.getElementById(id);
+  el.className = 'tt-verdict ' + cls;
+  el.textContent = text;
+}
+
+window.addEventListener('load', () => {
+  // De Morgan 1: ¬(P∧Q) vs ¬P∨¬Q
+  const dm1 = renderTruthTable('tt-demorgan1', [
+    { label: '¬(P ∧ Q)', node: not_(and_(atom('P'), atom('Q'))) },
+    { label: '¬P ∨ ¬Q',  node: or_(not_(atom('P')), not_(atom('Q'))) },
+  ]);
+  setVerdict('tt-demorgan1-verdict', dm1 ? 'equivalent' : 'not-equivalent',
+    dm1 ? '✓ Equivalent on all 4 rows — De Morgan (¬∧) confirmed.' : 'Unexpected mismatch.');
+
+  // De Morgan 2: ¬(P∨Q) vs ¬P∧¬Q
+  const dm2 = renderTruthTable('tt-demorgan2', [
+    { label: '¬(P ∨ Q)', node: not_(or_(atom('P'), atom('Q'))) },
+    { label: '¬P ∧ ¬Q',  node: and_(not_(atom('P')), not_(atom('Q'))) },
+  ]);
+  setVerdict('tt-demorgan2-verdict', dm2 ? 'equivalent' : 'not-equivalent',
+    dm2 ? '✓ Equivalent on all 4 rows — De Morgan (¬∨) confirmed.' : 'Unexpected mismatch.');
+
+  // CNF conversion proof: ¬(P→Q)∨R  vs  (P∨R)∧(¬Q∨R)
+  const cnfCheck = renderTruthTable('tt-cnf-proof', [
+    { label: '¬(P → Q) ∨ R (original)', node: or_(not_(implies(atom('P'), atom('Q'))), atom('R')) },
+    { label: '(P ∨ R) ∧ (¬Q ∨ R) (CNF)', node: and_(or_(atom('P'), atom('R')), or_(not_(atom('Q')), atom('R'))) },
+  ]);
+  setVerdict('tt-cnf-proof-verdict', cnfCheck ? 'equivalent' : 'not-equivalent',
+    cnfCheck ? '✓ Equivalent on all 8 rows — the CNF conversion is verified correct.' : 'Unexpected mismatch — conversion error.');
+
+  // Law picker
+  const LAWS = {
+    'Double Negation':        { a: { label: '¬¬P', node: not_(not_(atom('P'))) },                                   b: { label: 'P', node: atom('P') } },
+    'Commutativity (∧)':      { a: { label: 'P ∧ Q', node: and_(atom('P'), atom('Q')) },                            b: { label: 'Q ∧ P', node: and_(atom('Q'), atom('P')) } },
+    'Commutativity (∨)':      { a: { label: 'P ∨ Q', node: or_(atom('P'), atom('Q')) },                             b: { label: 'Q ∨ P', node: or_(atom('Q'), atom('P')) } },
+    'Associativity (∧)':      { a: { label: '(P∧Q)∧R', node: and_(and_(atom('P'), atom('Q')), atom('R')) },         b: { label: 'P∧(Q∧R)', node: and_(atom('P'), and_(atom('Q'), atom('R'))) } },
+    'Distributivity':         { a: { label: 'P∧(Q∨R)', node: and_(atom('P'), or_(atom('Q'), atom('R'))) },          b: { label: '(P∧Q)∨(P∧R)', node: or_(and_(atom('P'), atom('Q')), and_(atom('P'), atom('R'))) } },
+    'Idempotence':            { a: { label: 'P ∨ P', node: or_(atom('P'), atom('P')) },                             b: { label: 'P', node: atom('P') } },
+    'Material Implication':   { a: { label: 'P → Q', node: implies(atom('P'), atom('Q')) },                         b: { label: '¬P ∨ Q', node: or_(not_(atom('P')), atom('Q')) } },
+    'Contraposition':         { a: { label: 'P → Q', node: implies(atom('P'), atom('Q')) },                         b: { label: '¬Q → ¬P', node: implies(not_(atom('Q')), not_(atom('P'))) } },
+    'Biconditional Expansion':{ a: { label: 'P ↔ Q', node: iff(atom('P'), atom('Q')) },                             b: { label: '(P→Q)∧(Q→P)', node: and_(implies(atom('P'),atom('Q')), implies(atom('Q'),atom('P'))) } },
+  };
+
+  const picker = document.getElementById('law-picker');
+  Object.keys(LAWS).forEach(name => {
+    const btn = document.createElement('button');
+    btn.textContent = name;
+    btn.onclick = () => {
+      picker.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const law = LAWS[name];
+      const match = renderTruthTable('tt-law', [law.a, law.b]);
+      setVerdict('tt-law-verdict', match ? 'equivalent' : 'not-equivalent',
+        match ? `✓ "${name}" verified equivalent on every row.` : 'Unexpected mismatch.');
+    };
+    picker.appendChild(btn);
+  });
+  picker.querySelector('button').click();
+});
+
+// ── Quiz ───────────────────────────────────────────────────
+let scores = {};
+function answer(btn, correct, qid) {
+  const block = document.getElementById(qid);
+  if (block.dataset.done) return;
+  block.dataset.done = 'true';
+  const fb = document.getElementById(qid + '-fb');
+  btn.classList.add(correct ? 'correct' : 'wrong');
+  fb.textContent = correct ? '✓ Correct.' : '✗ Not quite — review the section above.';
+  fb.className = 'feedback ' + (correct ? 'good' : 'bad');
+  scores[qid] = correct ? 1 : 0;
+  const total = Object.keys(scores).length;
+  const right = Object.values(scores).filter(Boolean).length;
+  document.getElementById('score').textContent = `${right} / ${total} correct so far`;
+}
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

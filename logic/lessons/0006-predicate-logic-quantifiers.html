@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 6 — Predicate Logic: Quantifiers & Predicates</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Logic</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 6 of 14 &nbsp;·&nbsp; Logic &nbsp;·&nbsp; ~30 min</p>
+  <h1>Predicate Logic: Quantifiers & Predicates</h1>
+  <p>Go all the way back to <a href="0001-arguments-validity-soundness.html#argument">lesson 1's opening example</a> — "all humans are mortal, Socrates is a human, therefore Socrates is mortal." Propositional logic can't actually formalize that argument. It has to treat "all humans are mortal" as one opaque atom — call it P — with no way to see that "human" and "mortal" are even related to "Socrates." Predicate logic is what fixes that: it opens up the inside of a sentence.</p>
+
+  <h2>Quick recall</h2>
+  <p>From <a href="0002-propositional-logic-syntax.html#only-if-necessary-sufficient">lesson 2</a>: <code>P → Q</code> is false in exactly one case — P true, Q false; everywhere else it's vacuously true. Keep that fact close, it resurfaces in a big way below.</p>
+
+  <h2 id="predicate">Predicates: functions that return propositions</h2>
+  <p>A <strong>predicate</strong> is a property or relation with a blank to fill in — not a proposition by itself, but something that <em>becomes</em> one once you plug in a specific thing. Write predicates as a name with parentheses: <code>Man(x)</code>, <code>Mortal(x)</code>, <code>LivesInWater(x)</code>.</p>
+
+  <div class="callout">
+    <strong>The Rust translation</strong>
+    A predicate is exactly a function that returns <code>bool</code>: <code>fn is_mortal(x: Thing) -> bool</code>. The function itself isn't true or false — only a specific <em>call</em> like <code>is_mortal(socrates)</code> is. Same idea: <code>Mortal(x)</code> with a free variable <code>x</code> isn't a proposition yet; <code>Mortal(Socrates)</code> is — it's now a closed, evaluable statement, exactly like calling the function with a real argument.
+  </div>
+
+  <p>The set of things you're allowed to plug in is called the <strong id="domain-of-discourse">domain of discourse</strong> — "all people," "all natural numbers," "all animals," whatever the conversation is actually about. Every quantified statement below is implicitly relative to some domain.</p>
+
+  <h2 id="universal-quantifier">The universal quantifier: ∀</h2>
+  <p><code>∀x P(x)</code> reads "for all x, P(x)" — P holds for every single thing in the domain, no exceptions.</p>
+
+  <div class="callout warn">
+    <strong>∀ pairs with →, not ∧</strong>
+    "All humans are mortal" symbolizes as <code>∀x (Human(x) → Mortal(x))</code> — <strong>"for anything, if it's human, then it's mortal."</strong> Not <code>∀x (Human(x) ∧ Mortal(x))</code>, which would claim <em>everything in the entire domain is both human and mortal</em> — rocks, numbers, the domain itself, all of it. That's an absurd, almost certainly false claim. The conditional is what lets the statement talk about <em>only</em> the humans, while staying silent about everything else.
+  </div>
+
+  <h2 id="existential-quantifier">The existential quantifier: ∃</h2>
+  <p><code>∃x P(x)</code> reads "there exists an x such that P(x)" — at least one thing in the domain makes P true.</p>
+
+  <div class="callout warn">
+    <strong>∃ pairs with ∧, not →</strong>
+    "Some birds cannot fly" symbolizes as <code>∃x (Bird(x) ∧ ¬Fly(x))</code> — <strong>"there's something that is a bird and can't fly."</strong> Not <code>∃x (Bird(x) → ¬Fly(x))</code>. Remember the vacuous-truth fact from the recall above: a conditional is true whenever its antecedent is false. So <code>Bird(x) → ¬Fly(x)</code> is satisfied by <em>any x that isn't a bird at all</em> — a rock, a number, anything non-bird makes the conditional vacuously true. That formula would be satisfied even in a world with zero non-flying birds, as long as one non-bird exists anywhere in the domain. It says almost nothing.
+  </div>
+
+  <div class="callout">
+    <strong>The pairing rule, side by side</strong>
+    <code>∀x (P(x) → Q(x))</code> — "everything that's P is also Q."<br>
+    <code>∃x (P(x) ∧ Q(x))</code> — "something is both P and Q."<br>
+    Swap the connectives and you get either an absurdly strong claim (∀ + ∧) or an almost-empty one (∃ + →). This is the single most common mistake when learning predicate logic — and it's really lesson 2's necessary/sufficient distinction showing up again in a new notation.
+  </div>
+
+  <h2>Try it: pick the correct symbolization</h2>
+  <p>For each English sentence, choose the correctly-paired formula.</p>
+  <div id="pairing-exercise" class="mc-exercise"></div>
+
+  <h2 id="quantifier-negation">Negating quantifiers</h2>
+  <p>Quantifiers have their own De Morgan-style duality — pushing a negation through a quantifier flips which quantifier it is:</p>
+
+  <div class="conn-table">
+    <div class="conn-row header"><span>Original</span><span>Equivalent</span></div>
+    <div class="conn-row"><span><code>¬∀x P(x)</code></span><span><code>∃x ¬P(x)</code></span></div>
+    <div class="conn-row"><span><code>¬∃x P(x)</code></span><span><code>∀x ¬P(x)</code></span></div>
+  </div>
+
+  <div class="callout">
+    <strong>Direct extension of <a href="0004-logical-equivalence-normal-forms.html#de-morgan-proven">lesson 4's De Morgan laws</a></strong>
+    "Not everyone likes pizza" (<code>¬∀x Likes(x)</code>) means exactly "someone doesn't like pizza" (<code>∃x ¬Likes(x)</code>). "No one is perfect" is <code>¬∃x Perfect(x)</code>, which is the same claim as <code>∀x ¬Perfect(x)</code> — "everyone is imperfect." Same shape as ¬(P∧Q) ≡ ¬P∨¬Q: negation flips the quantifier the same way it flips the connective.
+  </div>
+
+  <h2>Try it: negate these statements</h2>
+  <p>Pick the correct negation for each quantified statement.</p>
+  <div id="negation-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. <code>Mortal(x)</code> with a free variable x is…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q1')">Always true</button>
+        <button onclick="answer(this,false,'q1')">Always false</button>
+        <button onclick="answer(this,true, 'q1')">Not yet a proposition — no truth value until x is filled in</button>
+        <button onclick="answer(this,false,'q1')">A contradiction</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. "All cats are mammals" correctly symbolizes as…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q2')">∀x (Cat(x) ∧ Mammal(x))</button>
+        <button onclick="answer(this,true, 'q2')">∀x (Cat(x) → Mammal(x))</button>
+        <button onclick="answer(this,false,'q2')">∃x (Cat(x) → Mammal(x))</button>
+        <button onclick="answer(this,false,'q2')">∃x (Cat(x) ∧ Mammal(x))</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Why is <code>∃x (Bird(x) → ¬Fly(x))</code> a bad symbolization of "some birds can't fly"?</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q3')">It uses the wrong quantifier symbol</button>
+        <button onclick="answer(this,true, 'q3')">It's vacuously satisfied by any non-bird, saying almost nothing</button>
+        <button onclick="answer(this,false,'q3')">Predicates can't appear inside →</button>
+        <button onclick="answer(this,false,'q3')">It's actually correct</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. The negation of <code>∀x P(x)</code> is…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q4')">∀x ¬P(x)</button>
+        <button onclick="answer(this,true, 'q4')">∃x ¬P(x)</button>
+        <button onclick="answer(this,false,'q4')">¬∃x P(x)</button>
+        <button onclick="answer(this,false,'q4')">∀x P(¬x)</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Symbolize these three sentences, paying close attention to ∀/→ vs ∃/∧: "All snakes are reptiles." "Some students failed the exam." "No fish are mammals" (try writing this two ways — once starting with ¬∃, once starting with ∀ — and check they're equivalent using the negation rule above).</p>
+
+  <h2>Primary resource</h2>
+  <p>See the predicate logic (FOL) sections of <a href="https://forallx.openlogicproject.org/" target="_blank">forall x: Calgary</a> for the fully formal treatment of quantifiers, domains, and interpretations.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Got an English sentence with "all," "some," or "no" that you're not sure how to symbolize? Bring it to Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0005-natural-deduction.html">← Lesson 5: Natural Deduction</a>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-07">Lesson 7: Symbolizing English Arguments in FOL →</a>
+  </div>
+
+</div>
+
+<style>
+.conn-table {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin: 1.25rem 0;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: .85rem;
+}
+.conn-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: .55rem 1rem;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  gap: .5rem;
+}
+.conn-row:last-child { border-bottom: none; }
+.conn-row.header { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; background: #111; }
+.conn-row:not(.header):nth-child(even) { background: #1e1e1e; }
+
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card {
+  background: #242424;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+}
+.mc-formula { font-size: 1.1rem; margin-bottom: .75rem; letter-spacing: .03em; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); font-style: italic; margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+// ── Pairing exercise ──────────────────────────────────────
+const PAIRING_ITEMS = [
+  {
+    english: '"All spiders are arachnids."',
+    options: ['∀x (Spider(x) ∧ Arachnid(x))', '∀x (Spider(x) → Arachnid(x))', '∃x (Spider(x) → Arachnid(x))'],
+    correct: '∀x (Spider(x) → Arachnid(x))',
+    note: '∀ pairs with →. The wrong option ∀x(Spider∧Arachnid) would claim everything in the universe is a spider.'
+  },
+  {
+    english: '"Some numbers are prime."',
+    options: ['∃x (Number(x) → Prime(x))', '∀x (Number(x) ∧ Prime(x))', '∃x (Number(x) ∧ Prime(x))'],
+    correct: '∃x (Number(x) ∧ Prime(x))',
+    note: '∃ pairs with ∧. The ∃x(Number→Prime) option is vacuously true — satisfied by any non-number.'
+  },
+  {
+    english: '"No reptiles are warm-blooded."',
+    options: ['∀x (Reptile(x) → ¬WarmBlooded(x))', '∃x (Reptile(x) ∧ WarmBlooded(x))', '∀x (Reptile(x) ∧ ¬WarmBlooded(x))'],
+    correct: '∀x (Reptile(x) → ¬WarmBlooded(x))',
+    note: '"No reptiles are X" = "all reptiles are not-X" — still the ∀/→ pattern, with the consequent negated.'
+  },
+];
+
+const pairDiv = document.getElementById('pairing-exercise');
+PAIRING_ITEMS.forEach((item, i) => {
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="pairAnswer(this,'${o.replace(/'/g, "\\'")}','${item.correct.replace(/'/g, "\\'")}',${i})">${o}</button>`).join('')}
+    </div>
+    <div class="mc-fb" id="pair-fb-${i}"></div>
+  `;
+  pairDiv.appendChild(card);
+});
+
+function pairAnswer(btn, chosen, correct, i) {
+  const card = btn.closest('.mc-card');
+  if (card.dataset.done) return;
+  card.dataset.done = 'true';
+  const isRight = chosen === correct;
+  btn.classList.add(isRight ? 'correct' : 'wrong');
+  const fb = document.getElementById(`pair-fb-${i}`);
+  fb.textContent = (isRight ? '✓ ' : `✗ Correct: ${correct}. `) + PAIRING_ITEMS[i].note;
+  fb.className = 'mc-fb ' + (isRight ? 'good' : 'bad');
+}
+
+// ── Negation exercise ──────────────────────────────────────
+const NEGATION_ITEMS = [
+  {
+    english: '"Not everyone finished the race." Negate: ∀x Finished(x)',
+    options: ['∀x ¬Finished(x)', '∃x ¬Finished(x)', '¬∃x Finished(x)'],
+    correct: '∃x ¬Finished(x)',
+    note: '¬∀x P(x) ≡ ∃x ¬P(x) — "not everyone" means "someone didn\'t."'
+  },
+  {
+    english: '"There are no unicorns." Symbolize directly, then find the ∀-equivalent of ¬∃x Unicorn(x)',
+    options: ['∀x ¬Unicorn(x)', '∀x Unicorn(x)', '∃x ¬Unicorn(x)'],
+    correct: '∀x ¬Unicorn(x)',
+    note: '¬∃x P(x) ≡ ∀x ¬P(x) — "nothing is a unicorn" means "everything is a non-unicorn."'
+  },
+];
+
+const negDiv = document.getElementById('negation-exercise');
+NEGATION_ITEMS.forEach((item, i) => {
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="negAnswer(this,'${o.replace(/'/g, "\\'")}','${item.correct.replace(/'/g, "\\'")}',${i})">${o}</button>`).join('')}
+    </div>
+    <div class="mc-fb" id="neg-fb-${i}"></div>
+  `;
+  negDiv.appendChild(card);
+});
+
+function negAnswer(btn, chosen, correct, i) {
+  const card = btn.closest('.mc-card');
+  if (card.dataset.done) return;
+  card.dataset.done = 'true';
+  const isRight = chosen === correct;
+  btn.classList.add(isRight ? 'correct' : 'wrong');
+  const fb = document.getElementById(`neg-fb-${i}`);
+  fb.textContent = (isRight ? '✓ ' : `✗ Correct: ${correct}. `) + NEGATION_ITEMS[i].note;
+  fb.className = 'mc-fb ' + (isRight ? 'good' : 'bad');
+}
+
+// ── Quiz ───────────────────────────────────────────────────
+let scores = {};
+function answer(btn, correct, qid) {
+  const block = document.getElementById(qid);
+  if (block.dataset.done) return;
+  block.dataset.done = 'true';
+  const fb = document.getElementById(qid + '-fb');
+  btn.classList.add(correct ? 'correct' : 'wrong');
+  fb.textContent = correct ? '✓ Correct.' : '✗ Not quite — review the section above.';
+  fb.className = 'feedback ' + (correct ? 'good' : 'bad');
+  scores[qid] = correct ? 1 : 0;
+  const total = Object.keys(scores).length;
+  const right = Object.values(scores).filter(Boolean).length;
+  document.getElementById('score').textContent = `${right} / ${total} correct so far`;
+}
+</script>
+
+<script src="../../assets/search.js"></script>
+</body>
+</html>

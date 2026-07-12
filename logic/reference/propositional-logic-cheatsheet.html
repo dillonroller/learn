@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reference — Propositional Logic Cheat Sheet</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    body { font-size: 16px; }
+    .page { max-width: 780px; }
+    h2 { margin-top: 2rem; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    @media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+    .ref-table {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: .82rem;
+      margin: .75rem 0 1.25rem;
+    }
+    .ref-row {
+      display: grid;
+      grid-template-columns: 1fr 1.3fr 1.4fr;
+      padding: .45rem .8rem;
+      border-bottom: 1px solid var(--border);
+      gap: .5rem;
+      align-items: center;
+    }
+    .ref-row:last-child { border-bottom: none; }
+    .ref-row.header { background: #111; color: var(--muted); text-transform: uppercase; font-size: .7rem; letter-spacing: .05em; }
+    .ref-row:not(.header):nth-child(even) { background: #1e1e1e; }
+    @media print {
+      body { background: #fff; color: #000; padding-top: 1rem; }
+      .topnav, .teacher-tip { display: none; }
+    }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Logic</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Reference &nbsp;·&nbsp; Logic &nbsp;·&nbsp; Covers lessons 1–4</p>
+  <h1>Propositional Logic Cheat Sheet</h1>
+  <p style="color:var(--muted);">The compressed version of lessons 1–4. Print this, or come back to it before evaluating any real argument. See also the <a href="rules-of-inference-cheatsheet.html">Rules of Inference Cheat Sheet</a> for lesson 5.</p>
+
+  <h2>Arguments</h2>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Term</span><span>Definition</span><span>Test</span></div>
+    <div class="ref-row"><span><a href="../lessons/0001-arguments-validity-soundness.html#validity">Valid</a></span><span>Conclusion must be true if premises are</span><span>No row: premises true, conclusion false</span></div>
+    <div class="ref-row"><span><a href="../lessons/0001-arguments-validity-soundness.html#soundness">Sound</a></span><span>Valid + all premises actually true</span><span>Valid, and check the facts</span></div>
+    <div class="ref-row"><span><a href="../lessons/0001-arguments-validity-soundness.html#deductive-inductive">Deductive</a></span><span>Premises guarantee the conclusion</span><span>Certainty, if valid + sound</span></div>
+    <div class="ref-row"><span><a href="../lessons/0001-arguments-validity-soundness.html#deductive-inductive">Inductive</a></span><span>Premises make conclusion probable</span><span>Evaluated by strength, not validity</span></div>
+  </div>
+  <p style="font-size:.85rem; color:var(--muted);">Validity is about structure, not truth. A valid argument can have a false premise and false conclusion. Only <strong>sound</strong> arguments guarantee a true conclusion.</p>
+
+  <h2><a href="../lessons/0002-propositional-logic-syntax.html#connectives">The five connectives</a></h2>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Symbol</span><span>Name</span><span>Rust / C</span></div>
+    <div class="ref-row"><span><code>¬P</code></span><span>Negation — "not P"</span><span><code>!p</code></span></div>
+    <div class="ref-row"><span><code>P ∧ Q</code></span><span>Conjunction — "P and Q"</span><span><code>p && q</code></span></div>
+    <div class="ref-row"><span><code>P ∨ Q</code></span><span>Disjunction — "P or Q" (inclusive)</span><span><code>p || q</code></span></div>
+    <div class="ref-row"><span><code>P → Q</code></span><span>Conditional — "if P then Q"</span><span><code>!p || q</code></span></div>
+    <div class="ref-row"><span><code>P ↔ Q</code></span><span>Biconditional — "P iff Q"</span><span><code>p == q</code></span></div>
+  </div>
+  <p style="font-size:.85rem; color:var(--muted);">In <code>P → Q</code>: P is the <a href="../lessons/0002-propositional-logic-syntax.html#antecedent-consequent"><strong>antecedent</strong></a>, Q is the <strong>consequent</strong>. <code>P → Q</code> is false in exactly one case — P true, Q false. Every other case is true (including vacuously, whenever P is false).</p>
+
+  <h2>Translating English</h2>
+  <div class="ref-table">
+    <div class="ref-row header"><span>English</span><span>Symbolizes as</span><span>Note</span></div>
+    <div class="ref-row"><span>"P unless Q"</span><span><code>P ∨ Q</code></span><span>unless ≈ or</span></div>
+    <div class="ref-row"><span>"if P, then Q"</span><span><code>P → Q</code></span><span>plain form</span></div>
+    <div class="ref-row"><span>"P only if Q"</span><span><code>P → Q</code></span><span>same as "if P then Q"</span></div>
+    <div class="ref-row"><span>"P if Q"</span><span><code>Q → P</code></span><span>reversed — no "only"</span></div>
+    <div class="ref-row"><span>"neither P nor Q"</span><span><code>¬P ∧ ¬Q</code></span><span>both false</span></div>
+  </div>
+
+  <div class="callout warn" style="margin-top:1rem;">
+    <strong><a href="../lessons/0002-propositional-logic-syntax.html#necessary-sufficient">Necessary vs. sufficient — the trap</a></strong>
+    "Only if" states a <strong>necessary</strong> condition (required, but maybe not enough on its own): "pass only if you study" = <code>Pass → Study</code>. Plain "if" states a <strong>sufficient</strong> condition (enough on its own): "pass if you study" = <code>Study → Pass</code>. Dropping the word "only" reverses the arrow.
+    <br><br>
+    <strong><a href="../lessons/0002-propositional-logic-syntax.html#falsification-test">The falsification test</a></strong> (always works): find the one scenario that would make the English sentence a lie, then match it to the one scenario that makes <code>P → Q</code> false (P true, Q false).
+    <br><br>
+    <strong><a href="../lessons/0002-propositional-logic-syntax.html#modal-words">Watch modal words</a></strong> — "may," "can," "must," "should" change what the atomic proposition claims. "You may enter" is about <em>permission</em>, not the physical act of entering. Pin down exactly what each proposition means before symbolizing.
+  </div>
+
+  <h2><a href="../lessons/0002-propositional-logic-syntax.html#well-formed-formulas">Well-formed formulas</a></h2>
+  <pre><code>φ ::= P | Q | R | ...
+    | ¬φ
+    | (φ ∧ φ)
+    | (φ ∨ φ)
+    | (φ → φ)
+    | (φ ↔ φ)</code></pre>
+  <p style="font-size:.85rem; color:var(--muted);">Recursive grammar — same shape as a Rust enum with <code>Box</code> for recursion. The <a href="../lessons/0002-propositional-logic-syntax.html#main-connective"><strong>main connective</strong></a> is whichever was applied last; it determines the formula's overall shape.</p>
+
+  <h2><a href="../lessons/0003-truth-tables.html">Truth tables</a></h2>
+  <div class="grid2">
+    <div>
+      <p style="font-size:.85rem;"><strong>Rows needed:</strong> 2ⁿ for n atomic propositions.</p>
+      <p style="font-size:.85rem;"><a href="../lessons/0003-truth-tables.html#tautology-contradiction-contingency"><strong>Tautology:</strong></a> true in every row.</p>
+      <p style="font-size:.85rem;"><strong>Contradiction:</strong> false in every row.</p>
+      <p style="font-size:.85rem;"><strong>Contingency:</strong> true in some rows, false in others.</p>
+    </div>
+    <div>
+      <p style="font-size:.85rem;"><a href="../lessons/0003-truth-tables.html#validity-test"><strong>Validity test:</strong></a> valid iff no row makes all premises true and the conclusion false. One counterexample row disproves validity entirely.</p>
+      <p style="font-size:.85rem;"><a href="../lessons/0003-truth-tables.html#equivalence-preview"><strong>Equivalence test:</strong></a> two formulas are logically equivalent iff their truth tables match on every row (e.g. <code>P → Q</code> ≡ <code>¬P ∨ Q</code>).</p>
+    </div>
+  </div>
+
+  <h2><a href="../lessons/0004-logical-equivalence-normal-forms.html#equivalence-laws">Equivalence laws</a></h2>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Name</span><span>Law</span><span>Note</span></div>
+    <div class="ref-row"><span>Double Negation</span><span><code>¬¬P ≡ P</code></span><span></span></div>
+    <div class="ref-row"><span><a href="../lessons/0004-logical-equivalence-normal-forms.html#de-morgan-proven">De Morgan</a></span><span><code>¬(P∧Q)≡¬P∨¬Q</code></span><span><code>¬(P∨Q)≡¬P∧¬Q</code></span></div>
+    <div class="ref-row"><span>Commutativity</span><span><code>P∧Q≡Q∧P</code></span><span><code>P∨Q≡Q∨P</code></span></div>
+    <div class="ref-row"><span>Distributivity</span><span><code>P∧(Q∨R)≡(P∧Q)∨(P∧R)</code></span><span>mirror for ∨ over ∧</span></div>
+    <div class="ref-row"><span>Material Implication</span><span><code>P→Q≡¬P∨Q</code></span><span>where this topic started</span></div>
+    <div class="ref-row"><span>Contraposition</span><span><code>P→Q≡¬Q→¬P</code></span><span></span></div>
+  </div>
+
+  <h2><a href="../lessons/0004-logical-equivalence-normal-forms.html#normal-forms">Normal forms</a></h2>
+  <p style="font-size:.85rem;"><a href="../lessons/0004-logical-equivalence-normal-forms.html#cnf"><strong>CNF:</strong></a> AND of ORs — <code>(l₁∨l₂)∧(l₃∨l₄)∧...</code>. Required input format for SAT solvers.</p>
+  <p style="font-size:.85rem;"><a href="../lessons/0004-logical-equivalence-normal-forms.html#dnf"><strong>DNF:</strong></a> OR of ANDs — <code>(l₁∧l₂)∨(l₃∧l₄)∨...</code>. Mirror of CNF.</p>
+  <p style="font-size:.85rem; color:var(--muted);">Conversion recipe: eliminate → (Material Implication), push ¬ inward (De Morgan + Double Negation), then distribute to the target shape.</p>
+
+  <h2>Named fallacies covered so far</h2>
+  <p style="font-size:.85rem; color:var(--muted);">"⊢" (<a href="../lessons/0005-natural-deduction.html#turnstile">turnstile</a>) means "therefore" — everything left of it must already be established for the pattern to apply.</p>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Name</span><span>Pattern</span><span>Example</span></div>
+    <div class="ref-row"><span><a href="../lessons/0002-propositional-logic-syntax.html#affirming-the-consequent">Affirming the consequent</a></span><span>P→Q, Q ⊢ P (invalid)</span><span><a href="../lessons/0003-truth-tables.html#affirming-the-consequent-proof">"Lives in water, so it's a fish"</a></span></div>
+    <div class="ref-row"><span><a href="../lessons/0002-propositional-logic-syntax.html#denying-the-antecedent">Denying the antecedent</a></span><span>P→Q, ¬P ⊢ ¬Q (invalid)</span><span>Covered fully in <a href="../index.html#lesson-12">lesson 12</a></span></div>
+    <div class="ref-row"><span><a href="../lessons/0003-truth-tables.html#modus-ponens">Modus Ponens</a></span><span>P→Q, P ⊢ Q (valid)</span><span>The one that actually works</span></div>
+  </div>
+
+  <p style="margin-top:2rem; font-size:.8rem; color:#444;">From <a href="../index.html">Logic</a> — lessons <a href="../lessons/0001-arguments-validity-soundness.html">1 (Arguments, Validity & Soundness)</a>, <a href="../lessons/0002-propositional-logic-syntax.html">2 (Propositional Logic Syntax)</a>, <a href="../lessons/0003-truth-tables.html">3 (Truth Tables)</a>, <a href="../lessons/0004-logical-equivalence-normal-forms.html">4 (Equivalence & Normal Forms)</a>. Primary source: <a href="https://forallx.openlogicproject.org/" target="_blank">forall x: Calgary</a>.</p>
+
+</div>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

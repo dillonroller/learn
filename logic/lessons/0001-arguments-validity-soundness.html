@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 1 — Arguments, Validity & Soundness</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Logic</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 1 of 14 &nbsp;·&nbsp; Logic &nbsp;·&nbsp; ~20 min</p>
+  <h1>Arguments, Validity & Soundness</h1>
+  <p>Before any symbols, before ∧ and ∀, there is one distinction that everything else in this topic is built on. Get this wrong and no amount of formal notation will save you. Get it right and you can evaluate an argument on any subject — politics, science, religion, a conversation at dinner — without knowing anything about the subject itself.</p>
+
+  <h2 id="argument">What an argument actually is</h2>
+  <p>In logic, an <strong>argument</strong> is not a fight. It's a specific structure: one or more <strong>premises</strong> (claims offered as reasons) leading to a <strong>conclusion</strong> (the claim they're meant to support).</p>
+
+  <div class="callout">
+    <strong>Example argument</strong>
+    Premise 1: All humans are mortal.<br>
+    Premise 2: Socrates is a human.<br>
+    Conclusion: Therefore, Socrates is mortal.
+  </div>
+
+  <p>That's it. That's the whole unit. Every debate you've ever heard is, underneath the rhetoric, a bundle of these — usually several, chained together, often with premises left unstated.</p>
+
+  <h2 id="validity">The distinction that changes everything: validity</h2>
+  <p>Here is the single most important idea in this entire topic:</p>
+
+  <div class="callout warn">
+    <strong>Validity is about form, not content</strong>
+    An argument is <strong>valid</strong> if the conclusion <em>must</em> be true whenever all the premises are true. Validity says nothing about whether the premises actually <em>are</em> true. It only asks: does the conclusion follow from them?
+  </div>
+
+  <p>This is deeply counterintuitive at first, so sit with an uncomfortable example:</p>
+
+  <div class="callout">
+    <strong>Valid — but with a false premise</strong>
+    Premise 1: All birds can fly.<br>
+    Premise 2: Penguins are birds.<br>
+    Conclusion: Therefore, penguins can fly.
+  </div>
+
+  <p>This argument is <strong>perfectly valid</strong>. The structure is airtight — <em>if</em> both premises were true, the conclusion would have to follow. The problem isn't the logic. The problem is that Premise 1 is false (penguins exist). This is the move most people miss in a live debate: they attack the conclusion when they should be attacking a premise, or they attack a premise when the real problem is the structure.</p>
+
+  <h2 id="soundness">Soundness: validity plus truth</h2>
+  <p>A <strong>sound</strong> argument is a valid argument where <em>all the premises are actually true</em>. Soundness is the thing you actually want when you're trying to establish that a conclusion is correct — validity alone only guarantees internal consistency.</p>
+
+  <div class="complexity" style="display:flex; flex-wrap:wrap;">
+    <span class="label">Valid</span><span class="val">structure is airtight</span>
+  </div>
+  <div class="complexity" style="display:flex; flex-wrap:wrap;">
+    <span class="label">Sound</span><span class="val">valid + premises are true</span>
+  </div>
+
+  <p>Four combinations are possible. Only one guarantees a true conclusion:</p>
+
+  <div class="matrix" id="matrix"></div>
+
+  <h2 id="deductive-inductive">Deductive vs inductive</h2>
+  <p>Everything above describes <strong>deductive</strong> arguments — the kind where the premises are supposed to <em>guarantee</em> the conclusion. Most real-world arguments (scientific, everyday, political) are <strong>inductive</strong> — the premises make the conclusion <em>probable</em>, not certain.</p>
+  <ul>
+    <li><strong>Deductive:</strong> "All men are mortal. Socrates is a man. Therefore Socrates is mortal." — certainty, if premises hold.</li>
+    <li><strong>Inductive:</strong> "The sun has risen every day recorded in human history. Therefore the sun will rise tomorrow." — strong support, but not certainty.</li>
+  </ul>
+  <p>Inductive arguments are evaluated on a different scale — <em>strength</em>, not validity. A strong inductive argument makes its conclusion likely; it can never make it certain the way a valid deductive argument does. Confusing the two is one of the most common moves — sloppy or deliberate — in real debates: treating a merely probable inductive case as if it had deductive certainty.</p>
+
+  <h2>Why this is the whole game</h2>
+  <p>When you listen to a debate from now on, you're doing two separable jobs:</p>
+  <ol>
+    <li><strong>Structural check:</strong> does the conclusion actually follow from the premises (validity), or is there a gap?</li>
+    <li><strong>Factual check:</strong> are the premises actually true (soundness)?</li>
+  </ol>
+  <p>People conflate these constantly. Someone who says "that argument is wrong" is usually pointing at one or the other without saying which — and the two require completely different kinds of pushback. If the structure is broken, no amount of true premises fixes it. If the structure is fine but a premise is false, the argument's logic isn't the problem.</p>
+
+  <h2>Try it: classify these arguments</h2>
+  <p>For each argument below, decide: is it valid? Is it sound? Click to reveal.</p>
+
+  <div id="classifier" class="classifier"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. An argument with a false premise but airtight structure is…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q1')">Invalid and unsound both</button>
+        <button onclick="answer(this,true, 'q1')">Valid but unsound</button>
+        <button onclick="answer(this,false,'q1')">Sound but invalid</button>
+        <button onclick="answer(this,false,'q1')">Both valid and sound</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Soundness requires…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q2')">True premises alone</button>
+        <button onclick="answer(this,false,'q2')">Valid structure alone</button>
+        <button onclick="answer(this,true, 'q2')">Valid structure AND true premises</button>
+        <button onclick="answer(this,false,'q2')">A popular conclusion</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. "The sun has always risen, so it will rise tomorrow" is best classified as…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q3')">A valid deductive argument</button>
+        <button onclick="answer(this,false,'q3')">A sound deductive argument</button>
+        <button onclick="answer(this,true, 'q3')">A strong inductive argument</button>
+        <button onclick="answer(this,false,'q3')">Not an argument at all</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. If someone's premises are all true but their conclusion doesn't actually follow from them, the argument is…</p>
+      <div class="options">
+        <button onclick="answer(this,true, 'q4')">Invalid — and therefore unsound</button>
+        <button onclick="answer(this,false,'q4')">Valid and sound regardless</button>
+        <button onclick="answer(this,false,'q4')">Sound but not valid</button>
+        <button onclick="answer(this,false,'q4')">Impossible — true premises guarantee validity</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Pick a debate you've actually watched or listened to recently. Isolate <em>one</em> argument from it — just one premise-conclusion chain — and write it out in the form: "Premise 1... Premise 2... Therefore...". Then ask yourself the two-question test: is it valid? Are the premises true? You'll likely find the structure was never made explicit in the original debate at all — that's normal. Making it explicit is the whole skill.</p>
+
+  <h2>Primary resource</h2>
+  <p>Read the opening chapter of <a href="https://forallx.openlogicproject.org/" target="_blank">forall x: Calgary — An Introduction to Formal Logic</a>, which covers argument, validity, and soundness in more formal detail than this lesson. It's free and is the primary text for this entire topic.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Have a real argument from a debate you want to test? Bring it to Claude Code and we'll classify it together before the next lesson.
+  </div>
+
+  <div class="nav">
+    <a href="../index.html">← Logic: All Lessons</a>
+    <span class="spacer"></span>
+    <a href="0002-propositional-logic-syntax.html">Lesson 2: Propositional Logic — Syntax & Connectives →</a>
+  </div>
+
+</div>
+
+<style>
+.matrix {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem;
+  margin: 1.25rem 0 1.75rem;
+}
+.matrix-cell {
+  background: #242424;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: .85rem;
+}
+.matrix-cell .mc-title { font-weight: 700; margin-bottom: .3rem; }
+.matrix-cell.good { border-color: var(--accent); background: #142a1c; }
+.matrix-cell.good .mc-title { color: var(--accent); }
+.matrix-cell.bad  { border-color: var(--err); background: #2a1414; }
+.matrix-cell.bad  .mc-title { color: var(--err); }
+.matrix-cell.mid  { border-color: var(--warn); background: #2a2410; }
+.matrix-cell.mid  .mc-title { color: var(--warn); }
+
+.classifier { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.cl-card {
+  background: #242424;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+}
+.cl-arg { font-size: .95rem; margin-bottom: .6rem; line-height: 1.6; }
+.cl-arg .p { display: block; }
+.cl-buttons { display: flex; gap: .5rem; margin-bottom: .5rem; }
+.cl-buttons button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .82rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.cl-buttons button:hover { border-color: var(--accent); }
+.cl-reveal {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: .85rem; color: var(--accent);
+  display: none;
+}
+.cl-reveal.shown { display: block; }
+</style>
+
+<script>
+// ── Validity/soundness matrix ────────────────────────────────
+const cells = [
+  { title: 'Valid + True premises', desc: 'SOUND. Conclusion is guaranteed true.', cls: 'good' },
+  { title: 'Valid + False premise(s)', desc: 'Unsound. Structure fine, conclusion not guaranteed.', cls: 'mid' },
+  { title: 'Invalid + True premises', desc: 'Unsound. Conclusion doesn’t actually follow.', cls: 'bad' },
+  { title: 'Invalid + False premise(s)', desc: 'Unsound. Broken on both counts.', cls: 'bad' },
+];
+document.getElementById('matrix').innerHTML = cells.map(c =>
+  `<div class="matrix-cell ${c.cls}"><div class="mc-title">${c.title}</div><div>${c.desc}</div></div>`
+).join('');
+
+// ── Classifier exercise ──────────────────────────────────────
+const ARGS = [
+  {
+    premises: ['All mammals are warm-blooded.', 'Whales are mammals.'],
+    conclusion: 'Therefore, whales are warm-blooded.',
+    valid: true, sound: true,
+    note: 'Valid structure, and both premises are true → sound.'
+  },
+  {
+    premises: ['All fish live in water.', 'Dolphins live in water.'],
+    conclusion: 'Therefore, dolphins are fish.',
+    valid: false, sound: false,
+    note: 'Invalid — classic fallacy of <a href="0002-propositional-logic-syntax.html#affirming-the-consequent">affirming the consequent</a> (defined properly in lesson 2). Even though "dolphins live in water" is true, it doesn’t follow that they’re fish (this pattern would "prove" anything that lives in water is a fish).'
+  },
+  {
+    premises: ['All reptiles are cold-blooded.', 'Snakes are reptiles.'],
+    conclusion: 'Therefore, snakes are cold-blooded.',
+    valid: true, sound: true,
+    note: 'Valid structure, true premises → sound.'
+  },
+  {
+    premises: ['All planets orbit the sun in circles.', 'Earth is a planet.'],
+    conclusion: 'Therefore, Earth orbits the sun in a circle.',
+    valid: true, sound: false,
+    note: 'Valid structure — but Premise 1 is false (orbits are ellipses). Valid, unsound.'
+  },
+];
+
+const clDiv = document.getElementById('classifier');
+ARGS.forEach((a, i) => {
+  const card = document.createElement('div');
+  card.className = 'cl-card';
+  card.innerHTML = `
+    <div class="cl-arg">
+      ${a.premises.map(p => `<span class="p">Premise: ${p}</span>`).join('')}
+      <span class="p"><strong>${a.conclusion}</strong></span>
+    </div>
+    <div class="cl-buttons">
+      <button onclick="reveal(${i})">Reveal answer</button>
+    </div>
+    <div class="cl-reveal" id="cl-reveal-${i}">
+      <strong>${a.valid ? 'Valid' : 'Invalid'}, ${a.sound ? 'Sound' : 'Unsound'}.</strong> ${a.note}
+    </div>
+  `;
+  clDiv.appendChild(card);
+});
+
+function reveal(i) {
+  document.getElementById(`cl-reveal-${i}`).classList.add('shown');
+}
+
+// ── Quiz ───────────────────────────────────────────────────
+let scores = {};
+function answer(btn, correct, qid) {
+  const block = document.getElementById(qid);
+  if (block.dataset.done) return;
+  block.dataset.done = 'true';
+  const fb = document.getElementById(qid + '-fb');
+  btn.classList.add(correct ? 'correct' : 'wrong');
+  fb.textContent = correct ? '✓ Correct.' : '✗ Not quite — review the section above.';
+  fb.className = 'feedback ' + (correct ? 'good' : 'bad');
+  scores[qid] = correct ? 1 : 0;
+  const total = Object.keys(scores).length;
+  const right = Object.values(scores).filter(Boolean).length;
+  document.getElementById('score').textContent = `${right} / ${total} correct so far`;
+}
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

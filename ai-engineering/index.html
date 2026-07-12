@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Engineering — Lessons</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    .topic-header { margin-bottom: 2.5rem; }
+    .topic-header h1 { font-size: 1.9rem; margin-bottom: .3rem; }
+    .topic-header p { color: var(--muted); font-size: .95rem; max-width: 520px; line-height: 1.6; }
+    .section-label { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .75rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin: 1.5rem 0 .6rem; }
+    .lesson-list { display: flex; flex-direction: column; gap: .75rem; margin-bottom: 1.5rem; }
+    .lesson-card { display: flex; align-items: center; gap: 1.1rem; background: #212121; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; text-decoration: none; color: inherit; transition: border-color .15s, transform .1s; }
+    .lesson-card:hover { border-color: var(--accent); transform: translateX(3px); }
+    .lesson-card.locked { opacity: .4; pointer-events: none; }
+    .lesson-num { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .78rem; font-weight: 700; color: var(--accent); background: var(--accent-lt); border: 1px solid #2d4a38; border-radius: 4px; padding: .25rem .55rem; flex-shrink: 0; letter-spacing: .04em; }
+    .lesson-info { flex: 1; min-width: 0; }
+    .lesson-title { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 1rem; font-weight: 600; color: var(--ink); margin-bottom: .15rem; }
+    .lesson-desc { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .82rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lesson-arrow { color: #444; font-size: .9rem; flex-shrink: 0; }
+    .lesson-card:hover .lesson-arrow { color: var(--accent); }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <span class="tn-topic">AI Engineering</span>
+</nav>
+<div class="page">
+  <div class="topic-header">
+    <p class="lesson-meta" style="margin-bottom:.6rem;">Topic overview</p>
+    <h1>AI Engineering</h1>
+    <p>Agents, skills, orchestration, and the engineering patterns needed to build reliable, production-grade AI systems — not just calling APIs, but designing systems that work.</p>
+  </div>
+
+  <p class="section-label">Agent Foundations</p>
+  <div class="lesson-list">
+    <a class="lesson-card locked" href="#"><span class="lesson-num">01</span><div class="lesson-info"><div class="lesson-title">What an Agent Actually Is</div><div class="lesson-desc">The perceive-reason-act loop, tool use, and how agents differ from chatbots</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card locked" href="#"><span class="lesson-num">02</span><div class="lesson-info"><div class="lesson-title">Tool Use & Function Calling</div><div class="lesson-desc">How models call tools, the JSON schema contract, error handling</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card locked" href="#"><span class="lesson-num">03</span><div class="lesson-info"><div class="lesson-title">Memory Patterns</div><div class="lesson-desc">In-context, external, episodic, semantic — when to use which</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card locked" href="#"><span class="lesson-num">04</span><div class="lesson-info"><div class="lesson-title">Prompt Engineering at Depth</div><div class="lesson-desc">System prompts, few-shot, chain-of-thought, structured output — with rigour</div></div><span class="lesson-arrow">→</span></a>
+  </div>
+
+  <p class="section-label">Orchestration</p>
+  <div class="lesson-list">
+    <a class="lesson-card locked" href="#"><span class="lesson-num">05</span><div class="lesson-info"><div class="lesson-title">Orchestration Patterns</div><div class="lesson-desc">ReAct, plan-and-execute, DAG-based, and when each makes sense</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card locked" href="#"><span class="lesson-num">06</span><div class="lesson-info"><div class="lesson-title">Multi-Agent Systems</div><div class="lesson-desc">Subagents, critic patterns, parallelism, and how Claude Code itself works</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card locked" href="#"><span class="lesson-num">07</span><div class="lesson-info"><div class="lesson-title">Reliability & Evals</div><div class="lesson-desc">How to measure whether your agent actually works — not just vibes</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card locked" href="#"><span class="lesson-num">08</span><div class="lesson-info"><div class="lesson-title">MCP — Model Context Protocol</div><div class="lesson-desc">The standard for connecting agents to tools and data sources</div></div><span class="lesson-arrow">→</span></a>
+  </div>
+</div>
+</body>
+</html>

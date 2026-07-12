@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 1 — Big-O & Complexity</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">CS Interview Prep</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 1 of ∞ &nbsp;·&nbsp; CS Interview Prep &nbsp;·&nbsp; ~20 min</p>
+  <h1>Big-O & Complexity</h1>
+  <p>Every interview question you'll ever face has a hidden subtext: <em>"Can you tell me how efficient your solution is, and why?"</em> Big-O notation is the language for that conversation. You cannot pass a Google-level screen without it.</p>
+
+  <h2>What Big-O actually measures</h2>
+  <p>Big-O describes how the <strong>runtime or memory usage of an algorithm grows</strong> as the input size grows. It intentionally ignores constants and small inputs — it only cares about the dominant trend at scale.</p>
+  <p>Two key dimensions, and interviewers will ask about both:</p>
+  <ul>
+    <li><strong>Time complexity</strong> — how many operations does it take?</li>
+    <li><strong>Space complexity</strong> — how much extra memory does it use?</li>
+  </ul>
+
+  <div class="callout">
+    <strong>Why interviewers care</strong>
+    A brute-force O(n²) solution on a 10-element array is fine. On a 10-million-element array, it does 100 trillion operations and your server dies. Interviewers aren't being pedantic — they're testing whether you think about production scale.
+  </div>
+
+  <h2>The complexity classes you must know</h2>
+  <p>Listed from fastest to slowest. Memorise this order — you'll use it daily.</p>
+
+  <div class="complexity-table">
+    <div class="ct-row header">
+      <span>Notation</span><span>Name</span><span>Example</span><span>1M input → ops</span>
+    </div>
+    <div class="ct-row best">
+      <span><code>O(1)</code></span><span>Constant</span><span>Array index lookup</span><span>1</span>
+    </div>
+    <div class="ct-row good">
+      <span><code>O(log n)</code></span><span>Logarithmic</span><span>Binary search</span><span>~20</span>
+    </div>
+    <div class="ct-row good">
+      <span><code>O(n)</code></span><span>Linear</span><span>Single loop over array</span><span>1,000,000</span>
+    </div>
+    <div class="ct-row ok">
+      <span><code>O(n log n)</code></span><span>Linearithmic</span><span>Merge sort</span><span>~20,000,000</span>
+    </div>
+    <div class="ct-row bad">
+      <span><code>O(n²)</code></span><span>Quadratic</span><span>Nested loops</span><span>10¹²</span>
+    </div>
+    <div class="ct-row ugly">
+      <span><code>O(2ⁿ)</code></span><span>Exponential</span><span>Naive recursion</span><span>10³⁰⁰⁰⁰⁰</span>
+    </div>
+  </div>
+
+  <h2>Reading complexity from code</h2>
+  <p>You need to be able to look at code and state its complexity immediately. Here are the patterns:</p>
+
+  <h3>O(1) — no loops, no recursion depending on input</h3>
+  <pre><code><span class="kw">fn</span> <span class="fn">first</span>(v: &amp;[<span class="ty">i32</span>]) -&gt; <span class="ty">Option</span>&lt;<span class="ty">i32</span>&gt; {
+    v.get(<span class="nm">0</span>).copied()   <span class="cm">// one operation regardless of v.len()</span>
+}</code></pre>
+
+  <h3>O(n) — one loop over the input</h3>
+  <pre><code><span class="kw">fn</span> <span class="fn">sum</span>(v: &amp;[<span class="ty">i32</span>]) -&gt; <span class="ty">i32</span> {
+    v.iter().<span class="fn">sum</span>()   <span class="cm">// visits every element once</span>
+}</code></pre>
+
+  <h3>O(n²) — nested loops over the same input</h3>
+  <pre><code><span class="kw">fn</span> <span class="fn">has_duplicate</span>(v: &amp;[<span class="ty">i32</span>]) -&gt; <span class="ty">bool</span> {
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="nm">0</span>..v.len() {
+        <span class="kw">for</span> j <span class="kw">in</span> (i + <span class="nm">1</span>)..v.len() {   <span class="cm">// inner loop grows with n</span>
+            <span class="kw">if</span> v[i] == v[j] { <span class="kw">return true</span>; }
+        }
+    }
+    <span class="kw">false</span>
+}
+<span class="cm">// O(n²) time, O(1) space — an interviewer will immediately ask:
+// "Can you do better?" (Yes: use a HashSet → O(n) time, O(n) space)</span></code></pre>
+
+  <h3>O(log n) — halving the problem each step</h3>
+  <pre><code><span class="kw">fn</span> <span class="fn">binary_search</span>(v: &amp;[<span class="ty">i32</span>], target: <span class="ty">i32</span>) -&gt; <span class="ty">Option</span>&lt;<span class="ty">usize</span>&gt; {
+    <span class="kw">let</span> (<span class="kw">mut</span> lo, <span class="kw">mut</span> hi) = (<span class="nm">0</span>, v.len());
+    <span class="kw">while</span> lo &lt; hi {
+        <span class="kw">let</span> mid = lo + (hi - lo) / <span class="nm">2</span>;   <span class="cm">// halve the search space</span>
+        <span class="kw">match</span> v[mid].cmp(&amp;target) {
+            std::cmp::<span class="ty">Ordering</span>::Equal   =&gt; <span class="kw">return</span> <span class="ty">Some</span>(mid),
+            std::cmp::<span class="ty">Ordering</span>::Less    =&gt; lo = mid + <span class="nm">1</span>,
+            std::cmp::<span class="ty">Ordering</span>::Greater =&gt; hi = mid,
+        }
+    }
+    <span class="ty">None</span>
+}</code></pre>
+
+  <div class="callout warn">
+    <strong>Common interview trap</strong>
+    Space complexity counts <em>extra</em> memory your algorithm allocates, not the input itself. An algorithm that copies the input into a new array is O(n) space even if the logic is O(1) operations.
+  </div>
+
+  <h2>How to talk about it in an interview</h2>
+  <p>Don't wait to be asked. After you sketch a solution, immediately say:</p>
+  <blockquote class="quote">"This is O(n) time and O(1) space. If we need to reduce space further we could… but that would increase time to O(n log n)."</blockquote>
+  <p>This signals that you think about trade-offs — exactly what senior engineers do.</p>
+
+  <h2>Drop the constants — but understand why</h2>
+  <p>O(3n) simplifies to O(n). O(n + n²) simplifies to O(n²). We drop lower-order terms and constants because at large scale they stop mattering. But in a real interview, if you have two O(n) solutions and one has a constant 3x overhead, it's worth mentioning — just don't let it change your Big-O label.</p>
+
+  <!-- Interactive complexity visualiser -->
+  <h2>Visualise the growth</h2>
+  <p>Drag the slider to see how many operations each complexity class requires at a given input size.</p>
+
+  <div class="viz">
+    <input type="range" id="n-slider" min="1" max="100" value="10" style="width:100%; margin-bottom:1rem;">
+    <div id="n-label" class="n-label">n = 10</div>
+    <div id="bars" class="bars"></div>
+  </div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. An algorithm has two nested loops, each running n times. Its time complexity is…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q1')">O(n) — linear growth</button>
+        <button onclick="answer(this,false,'q1')">O(2n) — doubled linear</button>
+        <button onclick="answer(this,true, 'q1')">O(n²) — quadratic growth</button>
+        <button onclick="answer(this,false,'q1')">O(log n) — logarithmic</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Binary search on a sorted array of 1 million elements takes at most…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q2')">1,000,000 comparisons</button>
+        <button onclick="answer(this,false,'q2')">1,000 comparisons roughly</button>
+        <button onclick="answer(this,true, 'q2')">~20 comparisons roughly</button>
+        <button onclick="answer(this,false,'q2')">Exactly 500,000 comparisons</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. You allocate a Vec of size n inside your function. The space complexity is…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q3')">O(1) — constants are dropped</button>
+        <button onclick="answer(this,true, 'q3')">O(n) — extra memory scales with input</button>
+        <button onclick="answer(this,false,'q3')">O(n²) — nested allocation</button>
+        <button onclick="answer(this,false,'q3')">O(log n) — halved each step</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. O(n + n²) simplifies to…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q4')">O(2n²) — add the terms</button>
+        <button onclick="answer(this,true, 'q4')">O(n²) — drop the lower term</button>
+        <button onclick="answer(this,false,'q4')">O(n) — n dominates</button>
+        <button onclick="answer(this,false,'q4')">O(n³) — multiply the terms</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Primary resource</h2>
+  <p>Read <a href="https://www.techinterviewhandbook.org/algorithms/study-cheatsheet/" target="_blank">Tech Interview Handbook — Algorithm Cheat Sheets</a>. The Big-O cheat sheet at the top is worth printing out.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Confused about why log n is so fast? Want to see another Rust example? Type a question in Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="../../index.html">← Home</a>
+    <span class="spacer"></span>
+    <a href="0002-arrays-and-hashmaps.html">Lesson 2: Arrays & Hash Maps →</a>
+  </div>
+
+</div>
+
+<style>
+/* Complexity table */
+.complexity-table {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin: 1.25rem 0;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: .88rem;
+}
+.ct-row {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1.8fr 1.2fr;
+  padding: .55rem 1rem;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  gap: .5rem;
+}
+.ct-row:last-child { border-bottom: none; }
+.ct-row.header { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; background: #111; }
+.ct-row.best  { background: #0e1f14; }
+.ct-row.good  { background: #141f14; }
+.ct-row.ok    { background: #1f1f0e; }
+.ct-row.bad   { background: #1f110e; }
+.ct-row.ugly  { background: #1f0e0e; }
+
+/* Quote */
+blockquote.quote {
+  border-left: 3px solid var(--accent);
+  padding: .6rem 1rem;
+  margin: 1rem 0;
+  color: var(--muted);
+  font-style: italic;
+  font-size: .95rem;
+}
+
+/* Visualiser */
+.viz {
+  background: #242424;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  margin: 1.25rem 0;
+}
+.n-label {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: .85rem;
+  color: var(--accent);
+  margin-bottom: .75rem;
+}
+.bars { display: flex; flex-direction: column; gap: .4rem; }
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: .8rem;
+}
+.bar-label { width: 80px; text-align: right; color: var(--muted); flex-shrink: 0; }
+.bar-track { flex: 1; background: #333; border-radius: 3px; height: 18px; overflow: hidden; }
+.bar-fill  { height: 100%; border-radius: 3px; transition: width .2s; min-width: 2px; }
+.bar-val   { width: 70px; color: var(--ink); font-size: .78rem; flex-shrink: 0; }
+
+input[type=range] {
+  accent-color: var(--accent);
+}
+</style>
+
+<script>
+// ── Complexity visualiser ──────────────────────────────────
+const CLASSES = [
+  { label: 'O(1)',      fn: n => 1,              color: '#4ade80' },
+  { label: 'O(log n)', fn: n => Math.log2(n),   color: '#86efac' },
+  { label: 'O(n)',      fn: n => n,              color: '#fbbf24' },
+  { label: 'O(n log n)',fn: n => n*Math.log2(n), color: '#f97316' },
+  { label: 'O(n²)',     fn: n => n*n,            color: '#f87171' },
+];
+
+const slider = document.getElementById('n-slider');
+const nLabel = document.getElementById('n-label');
+const barsEl = document.getElementById('bars');
+
+function fmt(x) {
+  if (x >= 1e9) return (x/1e9).toFixed(1) + 'B';
+  if (x >= 1e6) return (x/1e6).toFixed(1) + 'M';
+  if (x >= 1e3) return (x/1e3).toFixed(1) + 'K';
+  return Math.round(x).toString();
+}
+
+function render(n) {
+  nLabel.textContent = `n = ${n}`;
+  const vals = CLASSES.map(c => c.fn(n));
+  const max  = Math.max(...vals);
+  barsEl.innerHTML = '';
+  CLASSES.forEach((c, i) => {
+    const pct = Math.min(100, (vals[i] / max) * 100);
+    const row = document.createElement('div');
+    row.className = 'bar-row';
+    row.innerHTML = `
+      <span class="bar-label">${c.label}</span>
+      <span class="bar-track"><span class="bar-fill" style="width:${pct}%;background:${c.color}"></span></span>
+      <span class="bar-val">${fmt(vals[i])} ops</span>
+    `;
+    barsEl.appendChild(row);
+  });
+}
+
+slider.addEventListener('input', () => render(+slider.value));
+render(10);
+
+// ── Quiz ───────────────────────────────────────────────────
+let scores = {};
+function answer(btn, correct, qid) {
+  const block = document.getElementById(qid);
+  if (block.dataset.done) return;
+  block.dataset.done = 'true';
+  const fb = document.getElementById(qid + '-fb');
+  btn.classList.add(correct ? 'correct' : 'wrong');
+  fb.textContent = correct ? '✓ Correct.' : '✗ Not quite — review the section above.';
+  fb.className = 'feedback ' + (correct ? 'good' : 'bad');
+  scores[qid] = correct ? 1 : 0;
+  const total = Object.keys(scores).length;
+  const right = Object.values(scores).filter(Boolean).length;
+  document.getElementById('score').textContent = `${right} / ${total} correct so far`;
+}
+</script>
+</body>
+</html>

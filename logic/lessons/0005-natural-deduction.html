@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 5 — Natural Deduction: Propositional Proofs</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Logic</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 5 of 14 &nbsp;·&nbsp; Logic &nbsp;·&nbsp; ~30 min</p>
+  <h1>Natural Deduction: Propositional Proofs</h1>
+  <p>Truth tables always work, but they don't scale and they don't explain anything — a 6-atom argument needs 64 rows, and even when it's valid, the table doesn't tell you <em>why</em>. Natural deduction is the alternative: a small set of rules for chaining premises into a conclusion, one clearly-justified step at a time. This is what an actual proof looks like, and it's the same reasoning skeleton a strong debate argument follows.</p>
+
+  <h2>Quick recall</h2>
+  <p>From <a href="0003-truth-tables.html#validity-test">lesson 3</a>: an argument is valid exactly when no row makes the premises true and the conclusion false. From <a href="0004-logical-equivalence-normal-forms.html#equivalence-laws">lesson 4</a>: two formulas are interchangeable wherever one appears, if they're logically equivalent.</p>
+
+  <h2>Why proofs, not just truth tables</h2>
+  <p>This mirrors a real distinction in software verification: <strong>model checking</strong> exhaustively tests every possible state (like a truth table — sound, but explodes combinatorially), while <strong>theorem proving</strong> builds a short chain of justified steps (like natural deduction — scales to arbitrary complexity, and the proof itself explains the reasoning). Both prove validity. Only one of them reads like an argument a human actually makes.</p>
+
+  <h2 id="core-inference-rules">Core inference rules</h2>
+  <p>Each rule below takes one or two already-established formulas and licenses a new one. Every rule here is itself just a valid argument form — you can verify any of them with a truth table, the same way lesson 3 verified Modus Ponens.</p>
+
+  <div class="callout warn" id="turnstile">
+    <strong>What ⊢ actually means</strong>
+    The <strong>turnstile</strong> (⊢) is not a connective like <code>∧</code> or <code>→</code> — it's a claim <em>about</em> an argument, not a formula inside one. "<code>Premises ⊢ Conclusion</code>" reads "the conclusion is derivable from the premises" — the same job the word "therefore" does in prose. It can't be negated or plugged into a truth table; it sits one level above the formulas, describing the whole argument.
+    <br><br>
+    Crucially, everything to the <em>left</em> of ⊢ is required. In <code>P → Q, P ⊢ Q</code>, both <code>P → Q</code> <strong>and</strong> <code>P</code> have to already be established — bare <code>P ⊢ Q</code>, with no conditional connecting them, would not be valid at all (P and Q could easily be unrelated). The conditional is what supplies the missing link; drop it and the inference collapses.
+  </div>
+
+  <div class="rule-table">
+    <div class="rule-row header"><span>Rule</span><span>Pattern</span></div>
+    <div class="rule-row"><span>Modus Ponens (MP)</span><span><code>P → Q, P ⊢ Q</code></span></div>
+    <div class="rule-row"><span id="modus-tollens">Modus Tollens (MT)</span><span><code>P → Q, ¬Q ⊢ ¬P</code></span></div>
+    <div class="rule-row"><span id="hypothetical-syllogism">Hypothetical Syllogism (HS)</span><span><code>P → Q, Q → R ⊢ P → R</code></span></div>
+    <div class="rule-row"><span id="disjunctive-syllogism">Disjunctive Syllogism (DS)</span><span><code>P ∨ Q, ¬P ⊢ Q</code></span></div>
+    <div class="rule-row"><span>Conjunction (Conj)</span><span><code>P, Q ⊢ P ∧ Q</code></span></div>
+    <div class="rule-row"><span>Simplification (Simp)</span><span><code>P ∧ Q ⊢ P</code></span></div>
+    <div class="rule-row"><span>Addition (Add)</span><span><code>P ⊢ P ∨ Q</code></span></div>
+  </div>
+
+  <h2>Verifying the rules mechanically</h2>
+  <p>Modus Ponens was already proven valid in <a href="0003-truth-tables.html#modus-ponens">lesson 3</a>. Here are Modus Tollens, Hypothetical Syllogism, and Disjunctive Syllogism, verified the same way — computed, not asserted.</p>
+
+  <div class="tt-wrap"><div id="tt-mt"></div></div>
+  <div class="tt-verdict" id="tt-mt-verdict"></div>
+
+  <div class="tt-wrap"><div id="tt-hs"></div></div>
+  <div class="tt-verdict" id="tt-hs-verdict"></div>
+
+  <div class="tt-wrap"><div id="tt-ds"></div></div>
+  <div class="tt-verdict" id="tt-ds-verdict"></div>
+
+  <h2>Building a proof: chaining rules together</h2>
+  <p>A proof is just a sequence of formulas, each one either a premise or licensed by a rule applied to earlier lines. Here's the whole skill, worked out twice.</p>
+
+  <h3>Example 1 — two applications of Modus Ponens</h3>
+  <p>Given: <code>P → Q</code>, <code>Q → R</code>, <code>P</code>. Prove: <code>R</code>.</p>
+  <div class="proof">
+    <div class="proof-line"><span class="ln">1</span><span><code>P → Q</code></span><span class="just">premise</span></div>
+    <div class="proof-line"><span class="ln">2</span><span><code>Q → R</code></span><span class="just">premise</span></div>
+    <div class="proof-line"><span class="ln">3</span><span><code>P</code></span><span class="just">premise</span></div>
+    <div class="proof-line"><span class="ln">4</span><span><code>Q</code></span><span class="just">1, 3, Modus Ponens</span></div>
+    <div class="proof-line"><span class="ln">5</span><span><code>R</code></span><span class="just">2, 4, Modus Ponens</span></div>
+  </div>
+
+  <h3>Example 2 — chaining Hypothetical Syllogism into Modus Tollens</h3>
+  <p>Given: <code>P → Q</code>, <code>Q → R</code>, <code>¬R</code>. Prove: <code>¬P</code>.</p>
+  <div class="proof">
+    <div class="proof-line"><span class="ln">1</span><span><code>P → Q</code></span><span class="just">premise</span></div>
+    <div class="proof-line"><span class="ln">2</span><span><code>Q → R</code></span><span class="just">premise</span></div>
+    <div class="proof-line"><span class="ln">3</span><span><code>¬R</code></span><span class="just">premise</span></div>
+    <div class="proof-line"><span class="ln">4</span><span><code>P → R</code></span><span class="just">1, 2, Hypothetical Syllogism</span></div>
+    <div class="proof-line"><span class="ln">5</span><span><code>¬P</code></span><span class="just">3, 4, Modus Tollens</span></div>
+  </div>
+
+  <p>Notice neither proof needed a truth table. Example 2 has 3 atomic propositions — a truth table would need 8 rows to prove the same thing. The proof does it in 2 inference steps, and each step is individually checkable.</p>
+
+  <h2 id="reductio">Proof by contradiction (reductio ad absurdum)</h2>
+  <p>This is the technique behind disproving a claim in a real argument: <strong>assume the thing you want to disprove, show it leads to a contradiction, conclude it must be false.</strong> Formally: assume <code>A</code>, derive both <code>B</code> and <code>¬B</code> from it, and since <code>B ∧ ¬B</code> can never be true, the assumption <code>A</code> must be rejected — giving <code>¬A</code>.</p>
+
+  <p>Given: <code>A → B</code>, <code>A → ¬B</code>. Prove: <code>¬A</code>.</p>
+  <div class="proof">
+    <div class="proof-line"><span class="ln">1</span><span><code>A → B</code></span><span class="just">premise</span></div>
+    <div class="proof-line"><span class="ln">2</span><span><code>A → ¬B</code></span><span class="just">premise</span></div>
+    <div class="proof-sub">
+      <div class="proof-line proof-assume"><span class="ln">3</span><span><code>A</code></span><span class="just">assumption, for reductio</span></div>
+      <div class="proof-line"><span class="ln">4</span><span><code>B</code></span><span class="just">1, 3, Modus Ponens</span></div>
+      <div class="proof-line"><span class="ln">5</span><span><code>¬B</code></span><span class="just">2, 3, Modus Ponens</span></div>
+      <div class="proof-line"><span class="ln">6</span><span><code>B ∧ ¬B</code></span><span class="just">4, 5, Conjunction — contradiction</span></div>
+    </div>
+    <div class="proof-line"><span class="ln">7</span><span><code>¬A</code></span><span class="just">3–6, reductio ad absurdum</span></div>
+  </div>
+
+  <div class="callout">
+    <strong>Why this is the sharpest tool in a debate</strong>
+    Whenever someone claims "X is true," you don't have to attack X directly — you can provisionally grant it, follow where it logically leads, and show it collides with something already established or with itself. If it does, X can't be true, full stop. This is the formal version of "let's assume you're right, and see where that goes" — a move you've probably used in conversation without the name.
+  </div>
+
+  <h2>Spot the invalid look-alike</h2>
+  <p>Two of the most common reasoning errors are one-word rewrites of valid rules. <a href="0002-propositional-logic-syntax.html#denying-the-antecedent">Denying the antecedent</a> looks like Modus Tollens; <strong>affirming a disjunct</strong> looks like Disjunctive Syllogism. Test both pairs — the invalid one will show a counterexample row.</p>
+
+  <div class="pair-picker" id="pair-picker"></div>
+  <div class="tt-wrap"><div id="tt-pair"></div></div>
+  <div class="tt-verdict" id="tt-pair-verdict"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Modus Tollens has the pattern…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q1')">P→Q, P ⊢ Q</button>
+        <button onclick="answer(this,true, 'q1')">P→Q, ¬Q ⊢ ¬P</button>
+        <button onclick="answer(this,false,'q1')">P→Q, ¬P ⊢ ¬Q</button>
+        <button onclick="answer(this,false,'q1')">P∨Q, ¬P ⊢ Q</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. A proof line can be justified by…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q2')">Being popularly believed true</button>
+        <button onclick="answer(this,true, 'q2')">Being a premise or following a rule from earlier lines</button>
+        <button onclick="answer(this,false,'q2')">Matching the desired conclusion</button>
+        <button onclick="answer(this,false,'q2')">Sounding intuitively correct</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Reductio ad absurdum works by…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q3')">Proving the conclusion directly</button>
+        <button onclick="answer(this,true, 'q3')">Assuming the opposite and deriving a contradiction</button>
+        <button onclick="answer(this,false,'q3')">Citing an authority on the topic</button>
+        <button onclick="answer(this,false,'q3')">Testing every row of a truth table</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Compared to truth tables, natural deduction proofs are mainly better because they…</p>
+      <div class="options">
+        <button onclick="answer(this,false,'q4')">Are always shorter, no exceptions</button>
+        <button onclick="answer(this,false,'q4')">Don't require valid logic</button>
+        <button onclick="answer(this,true, 'q4')">Scale better and show the reasoning explicitly</button>
+        <button onclick="answer(this,false,'q4')">Work on invalid arguments too</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Prove <code>¬R</code> from these premises: <code>P → Q</code>, <code>R → ¬Q</code>, <code>P</code>. Write it out Fitch-style like the examples above — line, formula, justification — using only the rules from this lesson's table.</p>
+
+  <h2>Primary resource</h2>
+  <p>See the natural deduction sections of <a href="https://forallx.openlogicproject.org/" target="_blank">forall x: Calgary</a>, which covers the full Fitch-style system (including subproofs for conditional and indirect proof) in complete rigor.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Stuck on the practice proof, or want to try one from a real argument you've heard? Bring it to Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0004-logical-equivalence-normal-forms.html">← Lesson 4: Logical Equivalence & Normal Forms</a>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-06">Lesson 6: Predicate Logic — Quantifiers & Predicates →</a>
+  </div>
+
+</div>
+
+<style>
+.rule-table {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin: 1.25rem 0;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: .85rem;
+}
+.rule-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1.5fr;
+  padding: .5rem .9rem;
+  border-bottom: 1px solid var(--border);
+  gap: .5rem;
+  align-items: center;
+}
+.rule-row:last-child { border-bottom: none; }
+.rule-row.header { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; background: #111; }
+.rule-row:not(.header):nth-child(even) { background: #1e1e1e; }
+
+.tt-wrap { overflow-x: auto; margin: 1rem 0; }
+.tt-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  font-size: .85rem;
+}
+.tt-table th, .tt-table td {
+  border: 1px solid var(--border);
+  padding: .4rem .6rem;
+  text-align: center;
+  white-space: nowrap;
+}
+.tt-table thead th {
+  background: #111;
+  color: var(--muted);
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.tt-true  { color: var(--accent); font-weight: 700; background: #132a1c; }
+.tt-false { color: var(--err); font-weight: 700; background: #2a1414; }
+tr.tt-counter td { box-shadow: inset 0 0 0 2px var(--err); }
+
+.tt-verdict {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: .85rem;
+  margin-top: .6rem;
+  padding: .6rem .9rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #1e1e1e;
+}
+.tt-verdict.valid   { border-color: var(--accent); color: var(--accent); }
+.tt-verdict.invalid { border-color: var(--err); color: var(--err); }
+
+/* Fitch-style proof display */
+.proof {
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  font-size: .88rem;
+  background: #141414;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin: 1rem 0;
+}
+.proof-line {
+  display: grid;
+  grid-template-columns: 1.6rem 1fr auto;
+  gap: .75rem;
+  padding: .2rem 0;
+  align-items: baseline;
+}
+.proof-line .ln { color: #555; }
+.proof-line .just {
+  color: var(--muted);
+  font-size: .78rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  white-space: nowrap;
+}
+.proof-sub {
+  margin-left: 1.4rem;
+  padding-left: 1rem;
+  border-left: 2px solid var(--warn);
+  margin-top: .2rem;
+  margin-bottom: .2rem;
+}
+.proof-assume { border-bottom: 1px dashed var(--border); padding-bottom: .35rem; margin-bottom: .2rem; }
+
+.pair-picker { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0; }
+.pair-picker button {
+  background: #242424; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .45rem .9rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.pair-picker button:hover { border-color: var(--accent); background: var(--accent-lt); }
+.pair-picker button.active { background: #2d6a4f; border-color: var(--accent); color: var(--accent); }
+</style>
+
+<script>
+// ── Mini formula engine (same as lessons 3–4) ──
+const atom    = name => ({ type: 'atom', name });
+const not_    = a    => ({ type: 'not', a });
+const and_    = (a,b)=> ({ type: 'and', a, b });
+const or_     = (a,b)=> ({ type: 'or', a, b });
+const implies = (a,b)=> ({ type: 'implies', a, b });
+
+function evalNode(node, env) {
+  switch (node.type) {
+    case 'atom':    return env[node.name];
+    case 'not':     return !evalNode(node.a, env);
+    case 'and':     return evalNode(node.a, env) && evalNode(node.b, env);
+    case 'or':      return evalNode(node.a, env) || evalNode(node.b, env);
+    case 'implies': return !evalNode(node.a, env) || evalNode(node.b, env);
+  }
+}
+function collectAtoms(node, seen) {
+  if (node.type === 'atom') { if (!seen.includes(node.name)) seen.push(node.name); return seen; }
+  if (node.type === 'not')  { return collectAtoms(node.a, seen); }
+  return collectAtoms(node.b, collectAtoms(node.a, seen));
+}
+function atomsFromNodes(nodes) {
+  let seen = [];
+  nodes.forEach(n => { seen = collectAtoms(n, seen); });
+  return seen;
+}
+function allEnvs(names) {
+  const n = names.length;
+  const rows = [];
+  for (let i = 0; i < Math.pow(2, n); i++) {
+    const env = {};
+    names.forEach((name, j) => {
+      const groupSize = Math.pow(2, n - 1 - j);
+      env[name] = Math.floor(i / groupSize) % 2 === 0;
+    });
+    rows.push(env);
+  }
+  return rows;
+}
+const fmtBool = b => b ? 'T' : 'F';
+
+function renderArgumentTable(containerId, premises, conclusion) {
+  const nodes = premises.map(p => p.node).concat([conclusion.node]);
+  const atomsList = atomsFromNodes(nodes);
+  const envs = allEnvs(atomsList);
+  const premVals = premises.map(p => envs.map(env => evalNode(p.node, env)));
+  const conclVals = envs.map(env => evalNode(conclusion.node, env));
+
+  let counterIdx = -1;
+  envs.forEach((env, i) => {
+    const allPremTrue = premises.every((p, pi) => premVals[pi][i]);
+    if (allPremTrue && !conclVals[i] && counterIdx === -1) counterIdx = i;
+  });
+
+  let html = '<table class="tt-table"><thead><tr>';
+  atomsList.forEach(a => html += `<th>${a}</th>`);
+  premises.forEach(p => html += `<th>${p.label}</th>`);
+  html += `<th>${conclusion.label}</th></tr></thead><tbody>`;
+  envs.forEach((env, i) => {
+    html += `<tr class="${i === counterIdx ? 'tt-counter' : ''}">`;
+    atomsList.forEach(a => html += `<td>${fmtBool(env[a])}</td>`);
+    premises.forEach((p, pi) => {
+      const v = premVals[pi][i];
+      html += `<td class="${v ? 'tt-true' : 'tt-false'}">${fmtBool(v)}</td>`;
+    });
+    const cv = conclVals[i];
+    html += `<td class="${cv ? 'tt-true' : 'tt-false'}">${fmtBool(cv)}</td>`;
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById(containerId).innerHTML = html;
+  return counterIdx;
+}
+
+function setVerdict(id, cls, text) {
+  const el = document.getElementById(id);
+  el.className = 'tt-verdict ' + cls;
+  el.textContent = text;
+}
+
+window.addEventListener('load', () => {
+  // Modus Tollens: P→Q, ¬Q ⊢ ¬P
+  const mtC = renderArgumentTable('tt-mt',
+    [{ label: 'P → Q', node: implies(atom('P'), atom('Q')) }, { label: '¬Q', node: not_(atom('Q')) }],
+    { label: '¬P', node: not_(atom('P')) }
+  );
+  setVerdict('tt-mt-verdict', mtC === -1 ? 'valid' : 'invalid',
+    mtC === -1 ? 'VALID — Modus Tollens confirmed, no counterexample.' : 'Unexpected counterexample.');
+
+  // Hypothetical Syllogism: P→Q, Q→R ⊢ P→R
+  const hsC = renderArgumentTable('tt-hs',
+    [{ label: 'P → Q', node: implies(atom('P'), atom('Q')) }, { label: 'Q → R', node: implies(atom('Q'), atom('R')) }],
+    { label: 'P → R', node: implies(atom('P'), atom('R')) }
+  );
+  setVerdict('tt-hs-verdict', hsC === -1 ? 'valid' : 'invalid',
+    hsC === -1 ? 'VALID — Hypothetical Syllogism confirmed across all 8 rows.' : 'Unexpected counterexample.');
+
+  // Disjunctive Syllogism: P∨Q, ¬P ⊢ Q
+  const dsC = renderArgumentTable('tt-ds',
+    [{ label: 'P ∨ Q', node: or_(atom('P'), atom('Q')) }, { label: '¬P', node: not_(atom('P')) }],
+    { label: 'Q', node: atom('Q') }
+  );
+  setVerdict('tt-ds-verdict', dsC === -1 ? 'valid' : 'invalid',
+    dsC === -1 ? 'VALID — Disjunctive Syllogism confirmed, no counterexample.' : 'Unexpected counterexample.');
+
+  // Pair picker: valid rule vs invalid look-alike
+  const PAIRS = {
+    'Modus Tollens (valid)': {
+      premises: [{ label: 'P → Q', node: implies(atom('P'), atom('Q')) }, { label: '¬Q', node: not_(atom('Q')) }],
+      conclusion: { label: '¬P', node: not_(atom('P')) }
+    },
+    'Denying the Antecedent (invalid)': {
+      premises: [{ label: 'P → Q', node: implies(atom('P'), atom('Q')) }, { label: '¬P', node: not_(atom('P')) }],
+      conclusion: { label: '¬Q', node: not_(atom('Q')) }
+    },
+    'Disjunctive Syllogism (valid)': {
+      premises: [{ label: 'P ∨ Q', node: or_(atom('P'), atom('Q')) }, { label: '¬P', node: not_(atom('P')) }],
+      conclusion: { label: 'Q', node: atom('Q') }
+    },
+    'Affirming a Disjunct (invalid)': {
+      premises: [{ label: 'P ∨ Q', node: or_(atom('P'), atom('Q')) }, { label: 'P', node: atom('P') }],
+      conclusion: { label: '¬Q', node: not_(atom('Q')) }
+    },
+  };
+
+  const picker = document.getElementById('pair-picker');
+  Object.keys(PAIRS).forEach(name => {
+    const btn = document.createElement('button');
+    btn.textContent = name;
+    btn.onclick = () => {
+      picker.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const pair = PAIRS[name];
+      const counterIdx = renderArgumentTable('tt-pair', pair.premises, pair.conclusion);
+      setVerdict('tt-pair-verdict', counterIdx === -1 ? 'valid' : 'invalid',
+        counterIdx === -1
+          ? `VALID — "${name}" has no counterexample row.`
+          : `INVALID — "${name}" has a counterexample row (highlighted): premises true, conclusion false.`);
+    };
+    picker.appendChild(btn);
+  });
+  picker.querySelector('button').click();
+});
+
+// ── Quiz ───────────────────────────────────────────────────
+let scores = {};
+function answer(btn, correct, qid) {
+  const block = document.getElementById(qid);
+  if (block.dataset.done) return;
+  block.dataset.done = 'true';
+  const fb = document.getElementById(qid + '-fb');
+  btn.classList.add(correct ? 'correct' : 'wrong');
+  fb.textContent = correct ? '✓ Correct.' : '✗ Not quite — review the section above.';
+  fb.className = 'feedback ' + (correct ? 'good' : 'bad');
+  scores[qid] = correct ? 1 : 0;
+  const total = Object.keys(scores).length;
+  const right = Object.values(scores).filter(Boolean).length;
+  document.getElementById('score').textContent = `${right} / ${total} correct so far`;
+}
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

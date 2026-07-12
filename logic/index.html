@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logic — Lessons</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    .topic-header { margin-bottom: 2.5rem; }
+    .topic-header h1 { font-size: 1.9rem; margin-bottom: .3rem; }
+    .topic-header p { color: var(--muted); font-size: .95rem; max-width: 560px; line-height: 1.6; }
+    .section-label { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .75rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin: 1.5rem 0 .6rem; }
+    .lesson-list { display: flex; flex-direction: column; gap: .75rem; margin-bottom: 1.5rem; }
+    .lesson-card { display: flex; align-items: center; gap: 1.1rem; background: #212121; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; text-decoration: none; color: inherit; transition: border-color .15s, transform .1s; }
+    .lesson-card:hover { border-color: var(--accent); transform: translateX(3px); }
+    .lesson-card.locked { opacity: .4; pointer-events: none; }
+    .lesson-num { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .78rem; font-weight: 700; color: var(--accent); background: var(--accent-lt); border: 1px solid #2d4a38; border-radius: 4px; padding: .25rem .55rem; flex-shrink: 0; letter-spacing: .04em; }
+    .lesson-info { flex: 1; min-width: 0; }
+    .lesson-title { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 1rem; font-weight: 600; color: var(--ink); margin-bottom: .15rem; }
+    .lesson-desc { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .82rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lesson-arrow { color: #444; font-size: .9rem; flex-shrink: 0; }
+    .lesson-card:hover .lesson-arrow { color: var(--accent); }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <span class="tn-topic">Logic</span>
+</nav>
+<div class="page">
+  <div class="topic-header">
+    <p class="lesson-meta" style="margin-bottom:.6rem;">Topic overview</p>
+    <h1>Logic</h1>
+    <p>Formal reasoning from the ground up — propositional and predicate logic, proofs, soundness and completeness, and the informal fallacies that break real arguments. Built to make you rigorous in any debate, on any topic.</p>
+  </div>
+
+  <p class="section-label">Reference</p>
+  <div class="lesson-list">
+    <a class="lesson-card" id="reference-cheatsheet" href="reference/propositional-logic-cheatsheet.html"><span class="lesson-num">REF</span><div class="lesson-info"><div class="lesson-title">Propositional Logic Cheat Sheet</div><div class="lesson-desc">Compressed reference covering lessons 1–4 — printable, come back to this</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="reference-rules-of-inference" href="reference/rules-of-inference-cheatsheet.html"><span class="lesson-num">REF</span><div class="lesson-info"><div class="lesson-title">Rules of Inference Cheat Sheet</div><div class="lesson-desc">Compressed reference covering lesson 5 — every valid rule, plus invalid look-alikes</div></div><span class="lesson-arrow">→</span></a>
+  </div>
+
+  <p class="section-label">Foundations</p>
+  <div class="lesson-list">
+    <a class="lesson-card" id="lesson-01" href="lessons/0001-arguments-validity-soundness.html"><span class="lesson-num">01</span><div class="lesson-info"><div class="lesson-title">Arguments, Validity & Soundness</div><div class="lesson-desc">What makes reasoning "logical" at all — the ground floor before any symbols</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="lesson-02" href="lessons/0002-propositional-logic-syntax.html"><span class="lesson-num">02</span><div class="lesson-info"><div class="lesson-title">Propositional Logic — Syntax & Connectives</div><div class="lesson-desc">Symbolizing statements: ¬ ∧ ∨ → ↔ and well-formed formulas</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="lesson-03" href="lessons/0003-truth-tables.html"><span class="lesson-num">03</span><div class="lesson-info"><div class="lesson-title">Truth Tables & Semantic Evaluation</div><div class="lesson-desc">Mechanically deciding validity — tautologies, contradictions, contingencies</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="lesson-04" href="lessons/0004-logical-equivalence-normal-forms.html"><span class="lesson-num">04</span><div class="lesson-info"><div class="lesson-title">Logical Equivalence & Normal Forms</div><div class="lesson-desc">De Morgan's laws, CNF/DNF, and rewriting arguments without changing meaning</div></div><span class="lesson-arrow">→</span></a>
+  </div>
+
+  <p class="section-label">Proof & Inference</p>
+  <div class="lesson-list">
+    <a class="lesson-card" id="lesson-05" href="lessons/0005-natural-deduction.html"><span class="lesson-num">05</span><div class="lesson-info"><div class="lesson-title">Natural Deduction — Propositional Proofs</div><div class="lesson-desc">Modus ponens, modus tollens, and building rigorous proof chains</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="lesson-06" href="lessons/0006-predicate-logic-quantifiers.html"><span class="lesson-num">06</span><div class="lesson-info"><div class="lesson-title">Predicate Logic — Quantifiers & Predicates</div><div class="lesson-desc">∀ and ∃ — reasoning about "all" and "some" formally</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card locked" id="lesson-07" href="#"><span class="lesson-num">07</span><div class="lesson-info"><div class="lesson-title">Symbolizing English Arguments in FOL</div><div class="lesson-desc">Turning real sentences into precise first-order logic</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card locked" id="lesson-08" href="#"><span class="lesson-num">08</span><div class="lesson-info"><div class="lesson-title">Proofs in Predicate Logic</div><div class="lesson-desc">Universal/existential instantiation and generalization rules</div></div><span class="lesson-arrow">→</span></a>
+  </div>
+
+  <p class="section-label">Modern Theory</p>
+  <div class="lesson-list">
+    <a class="lesson-card locked" id="lesson-09" href="#"><span class="lesson-num">09</span><div class="lesson-info"><div class="lesson-title">Soundness & Completeness</div><div class="lesson-desc">What a formal system actually guarantees you — and what it can't</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card locked" id="lesson-10" href="#"><span class="lesson-num">10</span><div class="lesson-info"><div class="lesson-title">Modal Logic — Necessity & Possibility</div><div class="lesson-desc">□ and ◇ — reasoning about what must be true vs what could be true</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card locked" id="lesson-11" href="#"><span class="lesson-num">11</span><div class="lesson-info"><div class="lesson-title">Gödel's Incompleteness Theorems</div><div class="lesson-desc">What they actually say, and the popular claims that misuse them</div></div><span class="lesson-arrow">→</span></a>
+  </div>
+
+  <p class="section-label">Applying Logic to Real Arguments</p>
+  <div class="lesson-list">
+    <a class="lesson-card locked" id="lesson-12" href="#"><span class="lesson-num">12</span><div class="lesson-info"><div class="lesson-title">Informal Fallacies</div><div class="lesson-desc">Ad hominem, strawman, slippery slope — where real debates actually break</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card locked" id="lesson-13" href="#"><span class="lesson-num">13</span><div class="lesson-info"><div class="lesson-title">Argument Mapping & Reconstruction</div><div class="lesson-desc">Turning a spoken argument you just heard into premises and a conclusion</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card locked" id="lesson-14" href="#"><span class="lesson-num">14</span><div class="lesson-info"><div class="lesson-title">Evaluating Real Debates</div><div class="lesson-desc">Putting it all together — applying the full toolkit live</div></div><span class="lesson-arrow">→</span></a>
+  </div>
+</div>
+<script src="../assets/search.js"></script>
+</body>
+</html>

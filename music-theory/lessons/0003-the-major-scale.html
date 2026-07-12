@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 3 — The Major Scale in Any Key</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Music Theory & Keyboard</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 3 of ∞ &nbsp;·&nbsp; Keyboard & Music Theory &nbsp;·&nbsp; ~20 min</p>
+  <h1>The Major Scale in Any Key</h1>
+  <p>You know the recipe: <strong>W W H W W W H</strong>. C major is just one application of it. The recipe works from any starting note — and every starting note produces a different <em>key</em>. This is where composition starts to open up.</p>
+
+  <h2>Quick recall</h2>
+  <p>Before reading on — without looking back — can you answer these from memory?</p>
+  <ul>
+    <li>How many half steps are in a whole step?</li>
+    <li>What is the major scale recipe?</li>
+    <li>Between which two pairs of white keys is there no black key?</li>
+  </ul>
+  <p style="color:var(--muted); font-size:.9rem;">Answers: 2 · W W H W W W H · E–F and B–C</p>
+
+  <h2>Building G major</h2>
+  <p>Start on G. Apply the recipe step by step:</p>
+
+  <div class="scale-build" id="g-major">
+    <div class="scale-row">
+      <div class="scale-note root">G</div>
+      <div class="scale-arrow">W→</div>
+      <div class="scale-note">A</div>
+      <div class="scale-arrow">W→</div>
+      <div class="scale-note">B</div>
+      <div class="scale-arrow">H→</div>
+      <div class="scale-note">C</div>
+      <div class="scale-arrow">W→</div>
+      <div class="scale-note">D</div>
+      <div class="scale-arrow">W→</div>
+      <div class="scale-note">E</div>
+      <div class="scale-arrow">W→</div>
+      <div class="scale-note sharp">F♯</div>
+      <div class="scale-arrow">H→</div>
+      <div class="scale-note root">G</div>
+    </div>
+  </div>
+
+  <p>Notice <strong>F♯</strong> — not F. When you apply the recipe honestly from G, the 7th step forces you onto a black key. This is not an exception; it's the recipe doing its job. G major has one sharp: F♯.</p>
+
+  <div class="callout">
+    <strong>Try it now</strong>
+    Find G on your keyboard (the white key between the 2nd and 3rd black key in any group of 3). Play G A B C D E F♯ G. It should sound exactly like the major scale — same feel as C major, just higher.
+  </div>
+
+  <h2>Building F major</h2>
+  <p>Start on F. Apply the recipe:</p>
+
+  <div class="scale-build">
+    <div class="scale-row">
+      <div class="scale-note root">F</div>
+      <div class="scale-arrow">W→</div>
+      <div class="scale-note">G</div>
+      <div class="scale-arrow">W→</div>
+      <div class="scale-note">A</div>
+      <div class="scale-arrow">H→</div>
+      <div class="scale-note flat">B♭</div>
+      <div class="scale-arrow">W→</div>
+      <div class="scale-note">C</div>
+      <div class="scale-arrow">W→</div>
+      <div class="scale-note">D</div>
+      <div class="scale-arrow">W→</div>
+      <div class="scale-note">E</div>
+      <div class="scale-arrow">H→</div>
+      <div class="scale-note root">F</div>
+    </div>
+  </div>
+
+  <p>This time the recipe lands on <strong>B♭</strong> (B-flat) — the black key just to the left of B. F major has one flat: B♭.</p>
+
+  <div class="callout">
+    <strong>Try it now</strong>
+    Play F G A B♭ C D E F. The B♭ is the black key between A and B. If it sounds like the same "happy" pattern as C and G major, you've got it.
+  </div>
+
+  <h2>What is a "key"?</h2>
+  <p>A <strong>key</strong> is just the set of 7 notes your major scale gives you. When a piece is "in G major", it mostly uses the notes G A B C D E F♯ — that's its palette.</p>
+  <p>As a composer, choosing a key is choosing your palette before you paint. You're not locked in — music drifts in and out of keys all the time — but the key gives you a home base, a set of notes that all sound good together.</p>
+
+  <div class="callout">
+    <strong>The composer's insight</strong>
+    Every chord you'll ever use is built from the notes of a scale. Once you know your key, you know which chords belong to it. That's lesson 4. For now, just feel how each key has its own character — G major has a slight brightness from F♯; F major has a slight warmth from B♭.
+  </div>
+
+  <h2>Scale builder — try any key</h2>
+  <p>Pick a root note below. The tool will apply W W H W W W H and show you the resulting scale.</p>
+
+  <div class="builder">
+    <div class="root-picker" id="root-picker"></div>
+    <div id="built-scale" class="built-scale">Pick a root note above</div>
+    <div class="piano-wrap" style="margin-top:1rem;">
+      <div id="piano3" class="piano"></div>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. G major differs from C major because it contains…</p>
+      <div class="options">
+        <button onclick="answer(this, false, 'q1')">One flat: B♭ instead of B</button>
+        <button onclick="answer(this, true,  'q1')">One sharp: F♯ instead of F</button>
+        <button onclick="answer(this, false, 'q1')">Two sharps: F♯ and C♯</button>
+        <button onclick="answer(this, false, 'q1')">No difference from C major</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. The altered note in F major is…</p>
+      <div class="options">
+        <button onclick="answer(this, false, 'q2')">E♭ — E lowered one half step</button>
+        <button onclick="answer(this, false, 'q2')">A♭ — A lowered one half step</button>
+        <button onclick="answer(this, true,  'q2')">B♭ — B lowered one half step</button>
+        <button onclick="answer(this, false, 'q2')">G♯ — G raised one half step</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. What does it mean to compose "in a key"?</p>
+      <div class="options">
+        <button onclick="answer(this, false, 'q3')">Only play notes on white keys</button>
+        <button onclick="answer(this, false, 'q3')">Never use sharps or flats</button>
+        <button onclick="answer(this, true,  'q3')">Use that scale's 7 notes as your palette</button>
+        <button onclick="answer(this, false, 'q3')">Always start and end on middle C</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Pick any one of these three keys and play its major scale up and down from memory, using only the recipe:</p>
+  <ul>
+    <li><strong>D major</strong> — start on D, apply W W H W W W H</li>
+    <li><strong>A major</strong> — start on A, apply W W H W W W H</li>
+    <li><strong>E major</strong> — start on E, apply W W H W W W H</li>
+  </ul>
+  <p>Check your answer with the scale builder above. The notes you land on should match exactly.</p>
+
+  <h2>Primary resource</h2>
+  <p>Watch <a href="https://www.youtube.com/watch?v=kvGYl8SQBJ0" target="_blank">Adam Neely — "Why Does Music Use 12 Notes?"</a> for a deeper look at why the major scale recipe sounds the way it does. (~7 min, highly recommended.)</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Confused about why F major needs a B♭? Not sure how to find D on your keyboard? Type a question in Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0002-half-steps-and-whole-steps.html">← Lesson 2: Half Steps & Whole Steps</a>
+    <span class="spacer"></span>
+    <a href="0004-chords-and-triads.html">Lesson 4: Chords & Triads →</a>
+  </div>
+
+</div>
+
+<style>
+/* Scale builder diagram */
+.scale-build {
+  background: #242424;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  margin: 1.25rem 0;
+  overflow-x: auto;
+}
+.scale-row {
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  min-width: max-content;
+}
+.scale-note {
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: .85rem;
+  font-weight: bold;
+  background: #333;
+  color: var(--ink);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.scale-note.root  { background: #2d6a4f; color: #4ade80; border-color: #4ade80; }
+.scale-note.sharp { background: #3a2a1a; color: #fbbf24; border-color: #fbbf24; }
+.scale-note.flat  { background: #1a2a3a; color: #60a5fa; border-color: #60a5fa; }
+.scale-arrow {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: .72rem;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+/* Root picker */
+.builder { margin: 1.5rem 0 2rem; }
+.root-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin-bottom: 1rem;
+}
+.root-picker button {
+  background: #242424;
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .35rem .7rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: .85rem;
+  cursor: pointer;
+  transition: background .1s, border-color .1s;
+}
+.root-picker button:hover { border-color: var(--accent); background: var(--accent-lt); }
+.root-picker button.active { background: #2d6a4f; border-color: #4ade80; color: #4ade80; }
+
+.built-scale {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.1rem;
+  color: var(--accent);
+  background: #242424;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .75rem 1rem;
+  min-height: 2.8rem;
+  letter-spacing: .05em;
+}
+</style>
+
+<script>
+// ── Music engine ───────────────────────────────────────────
+const CHROMATIC = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+const FLAT_NAMES = {'C♯':'D♭','D♯':'E♭','F♯':'G♭','G♯':'A♭','A♯':'B♭'};
+const MAJOR_STEPS = [2,2,1,2,2,2,1]; // half steps between each degree
+
+// Roots to offer (using flats where conventional)
+const ROOTS = ['C','D♭','D','E♭','E','F','G♭','G','A♭','A','B♭','B'];
+
+function buildScale(root) {
+  // Find index in chromatic
+  let idx = CHROMATIC.indexOf(root);
+  if (idx === -1) {
+    // try flat spelling
+    const sharp = Object.keys(FLAT_NAMES).find(k => FLAT_NAMES[k] === root);
+    idx = CHROMATIC.indexOf(sharp);
+  }
+  const scale = [root];
+  let pos = idx;
+  for (let i = 0; i < MAJOR_STEPS.length - 1; i++) {
+    pos = (pos + MAJOR_STEPS[i]) % 12;
+    let note = CHROMATIC[pos];
+    // Use flats for flat-key conventions
+    if (['F','B♭','E♭','A♭','D♭','G♭'].includes(root) && FLAT_NAMES[note]) {
+      note = FLAT_NAMES[note];
+    }
+    scale.push(note);
+  }
+  return scale;
+}
+
+// ── Root picker ────────────────────────────────────────────
+function buildRootPicker() {
+  const picker = document.getElementById('root-picker');
+  ROOTS.forEach(r => {
+    const btn = document.createElement('button');
+    btn.textContent = r;
+    btn.onclick = () => {
+      picker.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      showScale(r);
+    };
+    picker.appendChild(btn);
+  });
+}
+
+function showScale(root) {
+  const scale = buildScale(root);
+  document.getElementById('built-scale').textContent =
+    root + ' major:   ' + scale.join('  –  ');
+  highlightKeys(scale);
+}
+
+// ── Piano ──────────────────────────────────────────────────
+const NOTES = ['C','D','E','F','G','A','B'];
+const HAS_BLACK = [1,1,0,1,1,1,0];
+let whiteEls = [];
+let blackEls = [];
+
+function buildPiano() {
+  const piano = document.getElementById('piano3');
+  const startOct = 3;
+  const octaves = 2;
+  const whites = [];
+
+  for (let oct = startOct; oct < startOct + octaves; oct++) {
+    NOTES.forEach((note, i) => {
+      const k = document.createElement('div');
+      k.className = 'key-w';
+      k.dataset.note = note;
+      k.innerHTML = `<span>${note}</span>`;
+      piano.appendChild(k);
+      whites.push({ el: k, note, i });
+      whiteEls.push({ el: k, note });
+    });
+  }
+
+  whites.forEach(({ el, note, i }) => {
+    if (HAS_BLACK[i]) {
+      const b = document.createElement('div');
+      b.className = 'key-b';
+      b.style.left = (el.offsetLeft + 36 - 11) + 'px';
+      b.style.top = '0px';
+      // black key name: sharp
+      const sNote = CHROMATIC[CHROMATIC.indexOf(note) + 1];
+      b.dataset.note = sNote;
+      b.dataset.flat = FLAT_NAMES[sNote] || '';
+      piano.appendChild(b);
+      blackEls.push({ el: b, note: sNote, flat: FLAT_NAMES[sNote] || '' });
+    }
+  });
+}
+
+function highlightKeys(scale) {
+  // Reset all
+  whiteEls.forEach(({ el }) => { el.classList.remove('highlight'); });
+  blackEls.forEach(({ el }) => { el.style.background = ''; el.style.borderColor = ''; });
+
+  scale.forEach(note => {
+    // Try white keys
+    whiteEls.forEach(({ el, note: n }) => {
+      if (n === note) el.classList.add('highlight');
+    });
+    // Try black keys (sharp or flat match)
+    blackEls.forEach(({ el, note: n, flat }) => {
+      if (n === note || flat === note) {
+        el.style.background = '#4ade80';
+        el.style.borderColor = '#4ade80';
+      }
+    });
+  });
+}
+
+window.addEventListener('load', () => {
+  buildRootPicker();
+  buildPiano();
+});
+
+// ── Quiz ───────────────────────────────────────────────────
+let scores = {};
+function answer(btn, correct, qid) {
+  const block = document.getElementById(qid);
+  if (block.dataset.done) return;
+  block.dataset.done = 'true';
+  const fb = document.getElementById(qid + '-fb');
+  btn.classList.add(correct ? 'correct' : 'wrong');
+  fb.textContent = correct ? '✓ Correct.' : '✗ Not quite — review the section above.';
+  fb.className = 'feedback ' + (correct ? 'good' : 'bad');
+  scores[qid] = correct ? 1 : 0;
+  const total = Object.keys(scores).length;
+  const right = Object.values(scores).filter(Boolean).length;
+  document.getElementById('score').textContent = `${right} / ${total} correct so far`;
+}
+</script>
+</body>
+</html>

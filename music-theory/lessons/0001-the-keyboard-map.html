@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 1 — The Keyboard Map</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Music Theory & Keyboard</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 1 of ∞ &nbsp;·&nbsp; Keyboard & Music Theory &nbsp;·&nbsp; ~15 min</p>
+  <h1>The Keyboard Map</h1>
+  <p>Before you can compose, you need to know the territory. The keyboard is a map — and once you see its pattern, everything in music theory clicks into place.</p>
+
+  <h2>The 7 natural notes</h2>
+  <p>Western music names its notes with just 7 letters, then repeats: <strong>C D E F G A B</strong>, then back to C. That repetition is called an <em>octave</em>.</p>
+  <p>On the keyboard, these 7 notes are the <strong>white keys</strong>. The black keys fill the gaps between some of them.</p>
+
+  <div class="callout">
+    <strong>The composer's view</strong>
+    These 7 notes are your raw material. Every scale, chord, and melody you'll ever write is built from combinations of them (plus the black keys). Learning their positions is the first act of composition.
+  </div>
+
+  <h2>Find Middle C — your anchor point</h2>
+  <p>Look at your keyboard. You'll notice the black keys come in groups of <strong>2</strong> and groups of <strong>3</strong>, alternating all the way across. This pattern is your landmark.</p>
+  <p><strong>C is always the white key immediately to the LEFT of any group of 2 black keys.</strong></p>
+  <p>Find the group of 2 black keys in the middle of your keyboard. The white key just to their left is <strong>Middle C</strong> — the central reference point for everything.</p>
+
+  <div class="piano-wrap">
+    <div id="piano" class="piano"></div>
+  </div>
+  <p style="text-align:center; font-size:.85rem; color:var(--muted); margin-top:-.5rem;">Click any key to see its name. Highlighted keys are C notes.</p>
+
+  <h2>The pattern of 7</h2>
+  <p>Once you have Middle C, the other natural notes run in alphabetical order to the right: <strong>C → D → E → F → G → A → B → C</strong>. Then the pattern repeats.</p>
+  <p>To the left of Middle C the same notes appear in reverse: <strong>B → A → G → F → E → D → C</strong>.</p>
+
+  <div class="callout">
+    <strong>Try this now</strong>
+    Play Middle C. Then play D, E, F, G, A, B, and the next C above it. You just played a C major scale — the foundation of the most common chords in Western music. It sounds "complete" because your ear has been trained by centuries of music built on this pattern.
+  </div>
+
+  <h2>The black keys</h2>
+  <p>The 5 black keys in each octave are the <em>sharps</em> and <em>flats</em> — they raise or lower a white note by a half step (the smallest distance on the keyboard).</p>
+  <ul>
+    <li>The black key to the <strong>right</strong> of D is called <strong>D♯</strong> (D-sharp)</li>
+    <li>The same key is also called <strong>E♭</strong> (E-flat) — same key, two names, depending on context</li>
+  </ul>
+  <p>You don't need to master sharps and flats yet. For now, just notice that there is <strong>no black key between E and F, and no black key between B and C</strong>. These are the two spots where white keys sit directly next to each other. This asymmetry is why the pattern of 2+3 black keys repeats.</p>
+
+  <h2>Why this matters for composition</h2>
+  <p>The keyboard's layout isn't arbitrary — it's a physical map of pitch relationships. When you understand this map, you can:</p>
+  <ul>
+    <li>Find any note instantly without thinking</li>
+    <li>See visually why some notes sound good together</li>
+    <li>Transpose (shift) a melody to any key just by moving your hand</li>
+  </ul>
+  <p>Every chord progression, every scale, every melody you'll compose has a home on this map. You're learning the geography before you start writing the story.</p>
+
+  <h2>Practice: Locate the C notes</h2>
+  <p>Your keyboard has several C notes (one per octave). Starting from the lowest note, find every C by looking for the white key left of each group of 2 black keys. Play each one. Notice how they all sound like the same note — just higher or lower.</p>
+  <p>Then do the same for <strong>G</strong> (always the white key between the 2nd and 3rd black key in a group of 3).</p>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. How many natural (white-key) notes are there before the pattern repeats?</p>
+      <div class="options">
+        <button onclick="answer(this, false, 'q1')">Five notes total</button>
+        <button onclick="answer(this, true,  'q1')">Seven notes total</button>
+        <button onclick="answer(this, false, 'q1')">Eight notes total</button>
+        <button onclick="answer(this, false, 'q1')">Twelve notes total</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. To find any C on the keyboard, you look for…</p>
+      <div class="options">
+        <button onclick="answer(this, false, 'q2')">Key right of two black keys</button>
+        <button onclick="answer(this, true,  'q2')">Key left of two black keys</button>
+        <button onclick="answer(this, false, 'q2')">Key left of three black keys</button>
+        <button onclick="answer(this, false, 'q2')">Key right of three black keys</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Between which two white keys is there NO black key?</p>
+      <div class="options">
+        <button onclick="answer(this, false, 'q3')">Between D and E only</button>
+        <button onclick="answer(this, false, 'q3')">Between C and D only</button>
+        <button onclick="answer(this, true,  'q3')">Between E and F, and B and C</button>
+        <button onclick="answer(this, false, 'q3')">Between A and B only</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Primary resource</h2>
+  <p>Read <a href="https://www.musictheory.net/lessons/10" target="_blank">musictheory.net — The Staff, Clefs and Ledger Lines</a> after this lesson to see how these notes appear in written music. The keyboard map and staff notation are two views of the same thing.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Type a follow-up in Claude Code if anything here is unclear — why a note has two names, how to find your keyboard's middle C, what an octave sounds like. No question is too small.
+  </div>
+
+  <div class="nav">
+    <span>← Start</span>
+    <span class="spacer"></span>
+    <a href="0002-half-steps-and-whole-steps.html">Lesson 2: Half Steps & Whole Steps →</a>
+  </div>
+
+</div>
+
+<script>
+// ── Piano diagram ──────────────────────────────────────────
+const NOTES = ['C','D','E','F','G','A','B'];
+const BLACK_PATTERN = [1,1,0,1,1,1,0]; // 1 = has black key to right
+
+function buildPiano() {
+  const piano = document.getElementById('piano');
+  const startOctave = 3;
+  const octaves = 2;
+  const whites = [];
+
+  // Build white keys
+  for (let oct = startOctave; oct < startOctave + octaves; oct++) {
+    NOTES.forEach((note, i) => {
+      const k = document.createElement('div');
+      k.className = 'key-w' + (note === 'C' ? ' highlight' : '');
+      k.dataset.name = note + oct;
+      k.dataset.note = note;
+      k.title = note + oct;
+      k.innerHTML = `<span>${note}</span>`;
+      k.onclick = () => flash(k);
+      piano.appendChild(k);
+      whites.push({ el: k, note, oct, idx: i });
+    });
+  }
+
+  // Position black keys absolutely
+  piano.style.position = 'relative';
+  let wIdx = 0;
+  whites.forEach(({ el, note, oct, idx }) => {
+    if (BLACK_PATTERN[idx]) {
+      const b = document.createElement('div');
+      b.className = 'key-b';
+      const left = el.offsetLeft + 36 - 11;
+      b.style.left = left + 'px';
+      b.style.top = '0px';
+      const sharp = note + '♯/' + NOTES[(idx+1)%7] + '♭';
+      b.dataset.name = sharp;
+      b.title = sharp;
+      b.onclick = () => flashB(b);
+      piano.appendChild(b);
+    }
+  });
+}
+
+function flash(k) {
+  document.querySelectorAll('.key-w.active').forEach(e => e.classList.remove('active'));
+  k.classList.add('active');
+  showLabel(k.dataset.name);
+}
+function flashB(k) {
+  document.querySelectorAll('.key-b.active').forEach(e => e.classList.remove('active'));
+  k.classList.add('active');
+  showLabel(k.dataset.name);
+}
+
+let labelEl;
+function showLabel(name) {
+  if (!labelEl) {
+    labelEl = document.querySelector('.piano-wrap + p');
+  }
+  labelEl.textContent = `Key: ${name}`;
+}
+
+window.addEventListener('load', buildPiano);
+
+// ── Quiz ───────────────────────────────────────────────────
+let scores = {};
+
+function answer(btn, correct, qid) {
+  const block = document.getElementById(qid);
+  if (block.dataset.done) return;
+  block.dataset.done = 'true';
+
+  const fb = document.getElementById(qid + '-fb');
+  btn.classList.add(correct ? 'correct' : 'wrong');
+  fb.textContent = correct ? '✓ Correct.' : '✗ Not quite — try to remember the rule.';
+  fb.className = 'feedback ' + (correct ? 'good' : 'bad');
+
+  scores[qid] = correct ? 1 : 0;
+  updateScore();
+}
+
+function updateScore() {
+  const total = Object.keys(scores).length;
+  const right = Object.values(scores).filter(Boolean).length;
+  document.getElementById('score').textContent = `${right} / ${total} correct so far`;
+}
+</script>
+</body>
+</html>

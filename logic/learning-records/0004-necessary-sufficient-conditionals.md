@@ -1,0 +1,5 @@
+# Mastered: Necessary vs Sufficient in Conditional Statements
+
+After the ticket/venue exchange, user fully resolved the "only if" necessary-vs-sufficient conflation independently — correctly diagnosed that their own paraphrase ("the only way you're permitted to enter is if you have a ticket") already encoded `Permitted → Ticket`, and understood why the sold-out-venue counter-example (ticket held, entry denied for an unrelated reason) disproves `Ticket → Permitted` without disproving the original English sentence.
+
+**Implications:** User can now independently apply the falsification test to novel conditional sentences, not just recall the "only if" rule. Combined with [[0003-modal-word-ambiguity]] (catching that "may enter" is a permission claim, not an event claim), this is genuine command of conditional semantics — ahead of where lesson 2 alone would leave most learners. Safe to move at full pace through remaining propositional/predicate lessons; lean on the falsification test as the default explanatory tool rather than re-deriving rules from scratch each time.

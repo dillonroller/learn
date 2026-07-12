@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Learning Hub</title>
+  <style>
+    :root {
+      --ink:     #e8e6e1;
+      --paper:   #1a1a1a;
+      --muted:   #666;
+      --accent:  #4ade80;
+      --border:  #272727;
+      --card-bg: #202020;
+      --radius:  10px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      padding: 3.5rem 1.5rem 6rem;
+    }
+
+    .page { max-width: 900px; margin: 0 auto; }
+
+    header { margin-bottom: 3rem; }
+    header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -.015em;
+      color: var(--ink);
+      margin-bottom: .2rem;
+      display: flex;
+      align-items: center;
+      gap: .55rem;
+    }
+    .hub-dot {
+      display: inline-block;
+      width: 9px; height: 9px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+    header p { color: var(--muted); font-size: .9rem; }
+
+    .section-label {
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: #444;
+      margin-bottom: .9rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.3rem 1.3rem 1.1rem;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: .55rem;
+      transition: border-color .15s, transform .12s;
+    }
+    .card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-icon { font-size: 1.4rem; line-height: 1; }
+    .card-badge {
+      font-size: .72rem;
+      color: var(--accent);
+      background: #1a2e22;
+      border: 1px solid #2d4a38;
+      border-radius: 20px;
+      padding: .15rem .55rem;
+    }
+
+    .card-title {
+      font-size: .98rem;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+
+    .card-desc {
+      font-size: .8rem;
+      color: var(--muted);
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    .card-footer {
+      font-size: .78rem;
+      color: #444;
+      padding-top: .55rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+    }
+    .card:hover .card-footer { color: var(--accent); }
+
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border);
+      font-size: .78rem;
+      color: #3a3a3a;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1><span class="hub-dot"></span> Learning Hub</h1>
+    <p>Pick a topic to continue where you left off.</p>
+  </header>
+
+  <p class="section-label">In progress</p>
+  <div class="grid">
+
+    <a class="card" href="music-theory/index.html">
+      <div class="card-top">
+        <span class="card-icon">🎹</span>
+        <span class="card-badge">3 lessons</span>
+      </div>
+      <div class="card-title">Music Theory & Keyboard</div>
+      <div class="card-desc">Keyboard layout, scales, and music theory — aimed at composition.</div>
+      <div class="card-footer"><span>Up next: Chords & Triads</span><span>→</span></div>
+    </a>
+
+    <a class="card" href="cs-interviews/index.html">
+      <div class="card-top">
+        <span class="card-icon">⚙️</span>
+        <span class="card-badge">1 lesson</span>
+      </div>
+      <div class="card-title">CS Interview Prep</div>
+      <div class="card-desc">Algorithms, data structures, and complexity for Google-tier interviews. Rust / C.</div>
+      <div class="card-footer"><span>Up next: Arrays & Hash Maps</span><span>→</span></div>
+    </a>
+
+    <a class="card" href="logic/index.html">
+      <div class="card-top">
+        <span class="card-icon">🔺</span>
+        <span class="card-badge">6 lessons</span>
+      </div>
+      <div class="card-title">Logic</div>
+      <div class="card-desc">Formal reasoning from the ground up — propositional/predicate logic, proofs, fallacies, modern theory.</div>
+      <div class="card-footer"><span>Up next: Symbolizing Arguments in FOL</span><span>→</span></div>
+    </a>
+
+  </div>
+
+  <p class="section-label">Not started</p>
+  <div class="grid">
+
+    <a class="card" href="ml-frontier/index.html">
+      <div class="card-top">
+        <span class="card-icon">🧠</span>
+        <span class="card-badge">0 lessons</span>
+      </div>
+      <div class="card-title">Frontier Machine Learning</div>
+      <div class="card-desc">Transformers, RLHF, alignment, scaling — deep technical ML for Anthropic / OpenAI roles.</div>
+      <div class="card-footer"><span>Start → Lesson 1</span><span>→</span></div>
+    </a>
+
+    <a class="card" href="philosophy/index.html">
+      <div class="card-top">
+        <span class="card-icon">🏛️</span>
+        <span class="card-badge">0 lessons</span>
+      </div>
+      <div class="card-title">Philosophy</div>
+      <div class="card-desc">Epistemology, ethics, metaphysics, logic — the most important ideas in the Western tradition.</div>
+      <div class="card-footer"><span>Start → Lesson 1</span><span>→</span></div>
+    </a>
+
+    <a class="card" href="mindfulness/index.html">
+      <div class="card-top">
+        <span class="card-icon">🧘</span>
+        <span class="card-badge">0 lessons</span>
+      </div>
+      <div class="card-title">Mindfulness</div>
+      <div class="card-desc">Building a genuine practice — what it is, why it works, and how to integrate it daily.</div>
+      <div class="card-footer"><span>Start → Lesson 1</span><span>→</span></div>
+    </a>
+
+    <a class="card" href="agnosticism/index.html">
+      <div class="card-top">
+        <span class="card-icon">🔭</span>
+        <span class="card-badge">0 lessons</span>
+      </div>
+      <div class="card-title">Agnosticism</div>
+      <div class="card-desc">Agnosticism as a serious epistemological position — its origins, arguments, and why it matters.</div>
+      <div class="card-footer"><span>Start → Lesson 1</span><span>→</span></div>
+    </a>
+
+    <a class="card" href="ai-engineering/index.html">
+      <div class="card-top">
+        <span class="card-icon">🤖</span>
+        <span class="card-badge">0 lessons</span>
+      </div>
+      <div class="card-title">AI Engineering</div>
+      <div class="card-desc">Agents, tools, orchestration, and multi-agent systems — building reliable AI at depth.</div>
+      <div class="card-footer"><span>Start → Lesson 1</span><span>→</span></div>
+    </a>
+
+    <a class="card" href="finance/index.html">
+      <div class="card-top">
+        <span class="card-icon">📈</span>
+        <span class="card-badge">0 lessons</span>
+      </div>
+      <div class="card-title">Finance & Markets</div>
+      <div class="card-desc">How markets, the Fed, and the US economy work — from first principles.</div>
+      <div class="card-footer"><span>Start → Lesson 1</span><span>→</span></div>
+    </a>
+
+    <a class="card" href="frontier-science/index.html">
+      <div class="card-top">
+        <span class="card-icon">⚛️</span>
+        <span class="card-badge">0 lessons</span>
+      </div>
+      <div class="card-title">Frontier Science</div>
+      <div class="card-desc">Quantum mechanics, entanglement, the Standard Model, relativity, string theory.</div>
+      <div class="card-footer"><span>Start → Lesson 1</span><span>→</span></div>
+    </a>
+
+    <a class="card" href="emerging-ai/index.html">
+      <div class="card-top">
+        <span class="card-icon">🌐</span>
+        <span class="card-badge">0 lessons</span>
+      </div>
+      <div class="card-title">Emerging AI Research</div>
+      <div class="card-desc">JEPA, world models, Mamba, diffusion — the ideas shaping what AI becomes next.</div>
+      <div class="card-footer"><span>Start → Lesson 1</span><span>→</span></div>
+    </a>
+
+  </div>
+
+  <footer>11 topics · Add more with <code>/teach I want to learn…</code></footer>
+
+</div>
+<script src="assets/search.js"></script>
+</body>
+</html>
