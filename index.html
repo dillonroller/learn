@@ -4,267 +4,77 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Learning Hub</title>
-  <style>
-    :root {
-      --ink:     #e8e6e1;
-      --paper:   #1a1a1a;
-      --muted:   #666;
-      --accent:  #4ade80;
-      --border:  #272727;
-      --card-bg: #202020;
-      --radius:  10px;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      background: var(--paper);
-      color: var(--ink);
-      min-height: 100vh;
-      padding: 3.5rem 1.5rem 6rem;
-    }
-
-    .page { max-width: 900px; margin: 0 auto; }
-
-    header { margin-bottom: 3rem; }
-    header h1 {
-      font-size: 1.6rem;
-      font-weight: 700;
-      letter-spacing: -.015em;
-      color: var(--ink);
-      margin-bottom: .2rem;
-      display: flex;
-      align-items: center;
-      gap: .55rem;
-    }
-    .hub-dot {
-      display: inline-block;
-      width: 9px; height: 9px;
-      background: var(--accent);
-      border-radius: 50%;
-    }
-    header p { color: var(--muted); font-size: .9rem; }
-
-    .section-label {
-      font-size: .72rem;
-      text-transform: uppercase;
-      letter-spacing: .1em;
-      color: #444;
-      margin-bottom: .9rem;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2.5rem;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.3rem 1.3rem 1.1rem;
-      text-decoration: none;
-      color: inherit;
-      display: flex;
-      flex-direction: column;
-      gap: .55rem;
-      transition: border-color .15s, transform .12s;
-    }
-    .card:hover {
-      border-color: var(--accent);
-      transform: translateY(-2px);
-    }
-
-    .card-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .card-icon { font-size: 1.4rem; line-height: 1; }
-    .card-badge {
-      font-size: .72rem;
-      color: var(--accent);
-      background: #1a2e22;
-      border: 1px solid #2d4a38;
-      border-radius: 20px;
-      padding: .15rem .55rem;
-    }
-
-    .card-title {
-      font-size: .98rem;
-      font-weight: 600;
-      color: var(--ink);
-      line-height: 1.3;
-    }
-
-    .card-desc {
-      font-size: .8rem;
-      color: var(--muted);
-      line-height: 1.5;
-      flex: 1;
-    }
-
-    .card-footer {
-      font-size: .78rem;
-      color: #444;
-      padding-top: .55rem;
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-    }
-    .card:hover .card-footer { color: var(--accent); }
-
-    footer {
-      margin-top: 3rem;
-      padding-top: 1.25rem;
-      border-top: 1px solid var(--border);
-      font-size: .78rem;
-      color: #3a3a3a;
-    }
-  </style>
+  <link rel="stylesheet" href="assets/theme.css">
 </head>
 <body>
-<div class="page">
+<nav class="topnav">
+  <a class="tn-home" href="index.html">Learning Hub</a>
+</nav>
+<div class="page-wide">
 
-  <header>
-    <h1><span class="hub-dot"></span> Learning Hub</h1>
-    <p>Pick a topic to continue where you left off.</p>
-  </header>
+  <div class="hero">
+    <h1>A personal study log.</h1>
+    <p>Five subjects, worked from first principles — formal logic, philosophy, practical rationality, music theory, and CS interview prep. Pick one up where you left off.</p>
+  </div>
 
   <p class="section-label">In progress</p>
-  <div class="grid">
+  <div class="hub-grid">
 
-    <a class="card" href="rationality/index.html">
-      <div class="card-top">
-        <span class="card-icon">🧭</span>
-        <span class="card-badge">3 lessons</span>
+    <a class="hub-card" href="logic/index.html">
+      <div class="hub-card-top">
+        <span class="hub-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><line x1="7" y1="5" x2="7" y2="19"/><line x1="7" y1="12" x2="19" y2="12"/></svg></span>
+        <span class="hub-badge">14 lessons</span>
       </div>
-      <div class="card-title">Rationality</div>
-      <div class="card-desc">Practical reasoning for real life — cognitive biases, Bayesian updating, and charitable interpretation.</div>
-      <div class="card-footer"><span>Topic complete — browse anytime</span><span>→</span></div>
+      <div class="hub-card-title">Logic</div>
+      <div class="hub-card-desc">Formal reasoning from the ground up — propositional/predicate logic, proofs, fallacies, modern theory.</div>
+      <div class="hub-card-footer"><span>Topic complete — browse anytime</span><span>&rarr;</span></div>
     </a>
 
-    <a class="card" href="philosophy/index.html">
-      <div class="card-top">
-        <span class="card-icon">🏛️</span>
-        <span class="card-badge">3 lessons</span>
+    <a class="hub-card" href="philosophy/index.html">
+      <div class="hub-card-top">
+        <span class="hub-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><line x1="5" y1="7" x2="19" y2="7"/><line x1="8" y1="7" x2="8" y2="18"/><line x1="12" y1="7" x2="12" y2="18"/><line x1="16" y1="7" x2="16" y2="18"/><line x1="4" y1="18" x2="20" y2="18"/></svg></span>
+        <span class="hub-badge">3 lessons</span>
       </div>
-      <div class="card-title">Philosophy</div>
-      <div class="card-desc">Epistemology, ethics, metaphysics, logic — the most important ideas in the Western tradition.</div>
-      <div class="card-footer"><span>Up next: What is Philosophy?</span><span>→</span></div>
+      <div class="hub-card-title">Philosophy</div>
+      <div class="hub-card-desc">Epistemology, ethics, metaphysics, logic — the most important ideas in the Western tradition.</div>
+      <div class="hub-card-footer"><span>Up next: What is Philosophy?</span><span>&rarr;</span></div>
     </a>
 
-    <a class="card" href="logic/index.html">
-      <div class="card-top">
-        <span class="card-icon">🔺</span>
-        <span class="card-badge">14 lessons</span>
+    <a class="hub-card" href="rationality/index.html">
+      <div class="hub-card-top">
+        <span class="hub-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="4" x2="12" y2="18"/><line x1="5" y1="7" x2="19" y2="7"/><path d="M5 7 L2.5 12.5 A3 3 0 0 0 7.5 12.5 Z"/><path d="M19 7 L16.5 12.5 A3 3 0 0 0 21.5 12.5 Z"/><line x1="8" y1="19" x2="16" y2="19"/></svg></span>
+        <span class="hub-badge">3 lessons</span>
       </div>
-      <div class="card-title">Logic</div>
-      <div class="card-desc">Formal reasoning from the ground up — propositional/predicate logic, proofs, fallacies, modern theory.</div>
-      <div class="card-footer"><span>Topic complete — browse anytime</span><span>→</span></div>
+      <div class="hub-card-title">Rationality</div>
+      <div class="hub-card-desc">Practical reasoning for real life — cognitive biases, Bayesian updating, and charitable interpretation.</div>
+      <div class="hub-card-footer"><span>Topic complete — browse anytime</span><span>&rarr;</span></div>
     </a>
 
-    <a class="card" href="music-theory/index.html">
-      <div class="card-top">
-        <span class="card-icon">🎹</span>
-        <span class="card-badge">3 lessons</span>
+    <a class="hub-card" href="music-theory/index.html">
+      <div class="hub-card-top">
+        <span class="hub-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="1.5"/><line x1="9.3" y1="5" x2="9.3" y2="19"/><line x1="14.6" y1="5" x2="14.6" y2="19"/><rect x="6.7" y="5" width="2.3" height="8" fill="currentColor" stroke="none"/><rect x="12" y="5" width="2.3" height="8" fill="currentColor" stroke="none"/></svg></span>
+        <span class="hub-badge">3 lessons</span>
       </div>
-      <div class="card-title">Music Theory & Keyboard</div>
-      <div class="card-desc">Keyboard layout, scales, and music theory — aimed at composition.</div>
-      <div class="card-footer"><span>Up next: Chords & Triads</span><span>→</span></div>
+      <div class="hub-card-title">Music Theory &amp; Keyboard</div>
+      <div class="hub-card-desc">Keyboard layout, scales, and music theory — aimed at composition.</div>
+      <div class="hub-card-footer"><span>Up next: Chords &amp; Triads</span><span>&rarr;</span></div>
     </a>
 
-    <a class="card" href="cs-interviews/index.html">
-      <div class="card-top">
-        <span class="card-icon">⚙️</span>
-        <span class="card-badge">1 lesson</span>
+    <a class="hub-card" href="cs-interviews/index.html">
+      <div class="hub-card-top">
+        <span class="hub-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9,6 4,12 9,18"/><polyline points="15,6 20,12 15,18"/></svg></span>
+        <span class="hub-badge">1 lesson</span>
       </div>
-      <div class="card-title">CS Interview Prep</div>
-      <div class="card-desc">Algorithms, data structures, and complexity for Google-tier interviews. Rust / C.</div>
-      <div class="card-footer"><span>Up next: Arrays & Hash Maps</span><span>→</span></div>
-    </a>
-
-  </div>
-
-  <p class="section-label">Not started</p>
-  <div class="grid">
-
-    <a class="card" href="ml-frontier/index.html">
-      <div class="card-top">
-        <span class="card-icon">🧠</span>
-        <span class="card-badge">0 lessons</span>
-      </div>
-      <div class="card-title">Frontier Machine Learning</div>
-      <div class="card-desc">Transformers, RLHF, alignment, scaling — deep technical ML for Anthropic / OpenAI roles.</div>
-      <div class="card-footer"><span>Start → Lesson 1</span><span>→</span></div>
-    </a>
-
-    <a class="card" href="mindfulness/index.html">
-      <div class="card-top">
-        <span class="card-icon">🧘</span>
-        <span class="card-badge">0 lessons</span>
-      </div>
-      <div class="card-title">Mindfulness</div>
-      <div class="card-desc">Building a genuine practice — what it is, why it works, and how to integrate it daily.</div>
-      <div class="card-footer"><span>Start → Lesson 1</span><span>→</span></div>
-    </a>
-
-    <a class="card" href="agnosticism/index.html">
-      <div class="card-top">
-        <span class="card-icon">🔭</span>
-        <span class="card-badge">0 lessons</span>
-      </div>
-      <div class="card-title">Agnosticism</div>
-      <div class="card-desc">Agnosticism as a serious epistemological position — its origins, arguments, and why it matters.</div>
-      <div class="card-footer"><span>Start → Lesson 1</span><span>→</span></div>
-    </a>
-
-    <a class="card" href="ai-engineering/index.html">
-      <div class="card-top">
-        <span class="card-icon">🤖</span>
-        <span class="card-badge">0 lessons</span>
-      </div>
-      <div class="card-title">AI Engineering</div>
-      <div class="card-desc">Agents, tools, orchestration, and multi-agent systems — building reliable AI at depth.</div>
-      <div class="card-footer"><span>Start → Lesson 1</span><span>→</span></div>
-    </a>
-
-    <a class="card" href="finance/index.html">
-      <div class="card-top">
-        <span class="card-icon">📈</span>
-        <span class="card-badge">0 lessons</span>
-      </div>
-      <div class="card-title">Finance & Markets</div>
-      <div class="card-desc">How markets, the Fed, and the US economy work — from first principles.</div>
-      <div class="card-footer"><span>Start → Lesson 1</span><span>→</span></div>
-    </a>
-
-    <a class="card" href="frontier-science/index.html">
-      <div class="card-top">
-        <span class="card-icon">⚛️</span>
-        <span class="card-badge">0 lessons</span>
-      </div>
-      <div class="card-title">Frontier Science</div>
-      <div class="card-desc">Quantum mechanics, entanglement, the Standard Model, relativity, string theory.</div>
-      <div class="card-footer"><span>Start → Lesson 1</span><span>→</span></div>
-    </a>
-
-    <a class="card" href="emerging-ai/index.html">
-      <div class="card-top">
-        <span class="card-icon">🌐</span>
-        <span class="card-badge">0 lessons</span>
-      </div>
-      <div class="card-title">Emerging AI Research</div>
-      <div class="card-desc">JEPA, world models, Mamba, diffusion — the ideas shaping what AI becomes next.</div>
-      <div class="card-footer"><span>Start → Lesson 1</span><span>→</span></div>
+      <div class="hub-card-title">CS Interview Prep</div>
+      <div class="hub-card-desc">Algorithms, data structures, and complexity for Google-tier interviews. Rust / C.</div>
+      <div class="hub-card-footer"><span>Up next: Arrays &amp; Hash Maps</span><span>&rarr;</span></div>
     </a>
 
   </div>
 
-  <footer>12 topics · Add more with <code>/teach I want to learn…</code></footer>
+  <footer class="hub-footer">
+    5 active topics · 7 more scoped and waiting in <a href="TOPICS_BACKLOG.md">TOPICS_BACKLOG.md</a> · add a new one with <code>/teach I want to learn&hellip;</code>
+  </footer>
 
 </div>
 <script src="assets/search.js"></script>
