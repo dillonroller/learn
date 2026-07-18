@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 8 — Proofs in Predicate Logic</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Logic</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 8 of 14 &nbsp;·&nbsp; Logic &nbsp;·&nbsp; ~30 min</p>
+  <h1>Proofs in Predicate Logic</h1>
+  <p>Six lessons ago, the Socrates argument was just prose. Lesson 7 gave it precise symbols. This lesson gives you the four rules that let you actually <em>prove</em> it — moving between "true for everyone" and "true for this one specific thing," rigorously, with the same line-by-line discipline as <a href="0005-natural-deduction.html#core-inference-rules">lesson 5's natural deduction</a>.</p>
+
+  <h2>Quick recall</h2>
+  <p>From <a href="0007-symbolizing-fol.html">lesson 7</a>, the Socrates argument is fully symbolized: <code>∀x (Human(x) → Mortal(x))</code>, <code>Human(Socrates)</code> <a href="0005-natural-deduction.html#turnstile">⊢</a> <code>Mortal(Socrates)</code>. This lesson proves it.</p>
+
+  <h2 id="universal-instantiation">Universal Instantiation (UI)</h2>
+  <p><code>∀x P(x) ⊢ P(a)</code> — if something is true for everyone, it's true for any specific individual <code>a</code> you name. Always safe, no restrictions: universal claims apply to every member of the domain, so picking out any one of them is never a problem.</p>
+
+  <h2 id="existential-generalization">Existential Generalization (EG)</h2>
+  <p><code>P(a) ⊢ ∃x P(x)</code> — if a specific individual has a property, then something has that property. Also always safe: you're not claiming which thing has it beyond what you already showed, just that at least one thing does.</p>
+
+  <h2 id="existential-instantiation">Existential Instantiation (EI)</h2>
+  <p><code>∃x P(x) ⊢ P(c)</code> — if something has property P, give that thing a temporary name <code>c</code> and reason about it. <strong>Restriction: <code>c</code> must be a fresh name</strong> — not already used elsewhere in the proof for something else. <code>∃x P(x)</code> only tells you <em>something</em> satisfies P; it doesn't tell you it's the same thing as whatever you already called Socrates. Reusing an old name would be smuggling in an assumption you haven't earned.</p>
+
+  <h2 id="universal-generalization">Universal Generalization (UG)</h2>
+  <p><code>P(a) ⊢ ∀x P(x)</code> — if you can prove P holds for <code>a</code>, and <code>a</code> was never anything more than an <strong>arbitrary stand-in</strong> for "any member of the domain" — never a specific named individual with special properties, never something obtained via EI — then P holds for everyone.</p>
+
+  <div class="callout warn">
+    <strong>Why UG and EI need restrictions, and UI/EG don't</strong>
+    UI and EG only ever <em>narrow</em> a claim — from "everyone" to "one specific case," or from "one specific case" to "at least one exists." Narrowing is always safe. UG and EI both try to <em>widen</em> a claim — from one case to "everyone," or from "something exists" to "here's a name for it." Widening is exactly where mistakes creep in: without the restriction, you could prove <code>Human(Socrates) ⊢ ∀x Human(x)</code> — "Socrates is human, therefore everyone is human" — which is obviously not licensed by anything you actually established. The restriction is what stops that.
+  </div>
+
+  <h2>Closing the loop: proving the Socrates argument</h2>
+  <p>Given: <code>∀x (Human(x) → Mortal(x))</code>, <code>Human(Socrates)</code>. Prove: <code>Mortal(Socrates)</code>.</p>
+
+  <div class="proof">
+    <div class="proof-line"><span class="ln">1</span><span><code>∀x (Human(x) → Mortal(x))</code></span><span class="just">premise</span></div>
+    <div class="proof-line"><span class="ln">2</span><span><code>Human(Socrates)</code></span><span class="just">premise</span></div>
+    <div class="proof-line"><span class="ln">3</span><span><code>Human(Socrates) → Mortal(Socrates)</code></span><span class="just">1, Universal Instantiation</span></div>
+    <div class="proof-line"><span class="ln">4</span><span><code>Mortal(Socrates)</code></span><span class="just">2, 3, Modus Ponens</span></div>
+  </div>
+
+  <p>That's it — the argument that opened this entire topic, six lessons ago, now proven with total rigor: one quantifier rule (UI) to pull the specific instance out of the universal claim, then <a href="0003-truth-tables.html#modus-ponens">Modus Ponens</a> to finish it, exactly the way it would have worked in pure propositional logic once the universal was instantiated down to a plain conditional.</p>
+
+  <h2>A second worked proof — combining all four rules</h2>
+  <p>Given: <code>∀x (Human(x) → Mortal(x))</code>, <code>∃x Human(x)</code>. Prove: <code>∃x Mortal(x)</code>.</p>
+
+  <div class="proof">
+    <div class="proof-line"><span class="ln">1</span><span><code>∀x (Human(x) → Mortal(x))</code></span><span class="just">premise</span></div>
+    <div class="proof-line"><span class="ln">2</span><span><code>∃x Human(x)</code></span><span class="just">premise</span></div>
+    <div class="proof-line"><span class="ln">3</span><span><code>Human(c)</code></span><span class="just">2, Existential Instantiation (c fresh)</span></div>
+    <div class="proof-line"><span class="ln">4</span><span><code>Human(c) → Mortal(c)</code></span><span class="just">1, Universal Instantiation</span></div>
+    <div class="proof-line"><span class="ln">5</span><span><code>Mortal(c)</code></span><span class="just">3, 4, Modus Ponens</span></div>
+    <div class="proof-line"><span class="ln">6</span><span><code>∃x Mortal(x)</code></span><span class="just">5, Existential Generalization</span></div>
+  </div>
+
+  <p>Notice the pattern: EI first (to get a concrete name to work with), then UI and the propositional rules do the middle work, then EG at the end to generalize back to an existence claim. This EI-early, EG-late shape is extremely common — it's usually the first thing to try when a proof mixes ∀ and ∃ premises.</p>
+
+  <h2>Try it: name the rule</h2>
+  <p>For each proof step, identify which rule licenses it.</p>
+  <div id="rule-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Which rule requires the introduced name to be fresh (not already used)?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','UI just plugs in a name that already exists somewhere — it doesn’t introduce a new one, so freshness isn’t relevant.')">Universal Instantiation</button>
+        <button onclick="quizAnswer(this,false,'q1','EG goes from a specific instance to an existential claim — it doesn’t introduce a name at all, it consumes one you already have.')">Existential Generalization</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — EI names the thing that satisfies an existential claim, and that name must be fresh so it doesn’t accidentally collide with something already assumed about it.')">Existential Instantiation</button>
+        <button onclick="quizAnswer(this,false,'q1','EI does require a fresh name — that’s exactly the restriction covered above.')">None of them</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Universal Generalization is unsafe when…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Domain size (finite or infinite) isn’t the issue — UG’s restriction is about how the individual was obtained, not how big the domain is.')">The domain is infinite</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — UG needs a truly arbitrary individual. If it’s a specific named thing (like Socrates), generalizing to “everything” isn’t justified.')">The individual wasn't actually arbitrary — it was a specific named thing</button>
+        <button onclick="quizAnswer(this,false,'q2','Arity (how many arguments a predicate takes) has nothing to do with UG’s safety — the restriction is about arbitrariness of the individual, not predicate shape.')">The predicate has two arguments</button>
+        <button onclick="quizAnswer(this,false,'q2','It is sometimes unsafe — that’s exactly why UG has a restriction, unlike UI and EG which are always safe.')">It's never unsafe</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Which two rules have no restrictions at all — always safe to apply?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','UG and EI are exactly the two rules WITH restrictions — they widen a claim, which is where the danger lives.')">UG and EI</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — UI and EG only narrow a claim (universal→instance, instance→existential), so neither needs a restriction.')">UI and EG</button>
+        <button onclick="quizAnswer(this,false,'q3','EI does have a restriction (the fresh-name requirement) — only UI is unrestricted in this pair.')">UI and EI</button>
+        <button onclick="quizAnswer(this,false,'q3','UG does have a restriction (arbitrariness) — only EG is unrestricted in this pair.')">UG and EG</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. In the Socrates proof, line 3 (<code>Human(Socrates) → Mortal(Socrates)</code>) follows from line 1 by…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','EI applies to existential premises (∃x...) — line 1 is universal (∀x...), so EI doesn’t fit here.')">Existential Instantiation</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — pulling the specific instance Socrates out of the universal claim ∀x(Human(x)→Mortal(x)) is exactly Universal Instantiation.')">Universal Instantiation</button>
+        <button onclick="quizAnswer(this,false,'q4','Modus Ponens combines a conditional with its antecedent to get the consequent — that’s what happens at line 4, not line 3, which has no antecedent to detach yet.')">Modus Ponens</button>
+        <button onclick="quizAnswer(this,false,'q4','EG concludes an existential claim from a specific instance — line 3 is still a conditional about Socrates specifically, not an ∃ claim.')">Existential Generalization</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Prove <code>∃x Mortal(x)</code> from <code>∀x (Bird(x) → Mortal(x))</code> and <code>∃x Bird(x)</code> — same shape as the second worked example above, different predicates. Then try: given <code>∀x (Student(x) → Studies(x))</code> and <code>∀x (Studies(x) → Passes(x))</code>, prove <code>∀x (Student(x) → Passes(x))</code> — this one needs UI, Hypothetical Syllogism, then UG to close it back up.</p>
+
+  <h2>Primary resource</h2>
+  <p>See the predicate logic natural deduction sections of <a href="https://forallx.openlogicproject.org/" target="_blank">forall x: Calgary</a> for the fully formal statement of the UG/EI restrictions (the "flagging and scoping" rules).</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> The UG/EI restrictions trip up almost everyone at first — bring a proof attempt to Claude Code if something feels off.
+  </div>
+
+  <div class="nav">
+    <a href="0007-symbolizing-fol.html">← Lesson 7: Symbolizing English Arguments in FOL</a>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-09">Lesson 9: Soundness & Completeness →</a>
+  </div>
+
+</div>
+
+<style>
+.proof {
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  font-size: .88rem;
+  background: #141414;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin: 1rem 0;
+}
+.proof-line {
+  display: grid;
+  grid-template-columns: 1.6rem 1fr auto;
+  gap: .75rem;
+  padding: .2rem 0;
+  align-items: baseline;
+}
+.proof-line .ln { color: #555; }
+.proof-line .just {
+  color: var(--muted);
+  font-size: .78rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  white-space: nowrap;
+}
+
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: 1.05rem; margin-bottom: .75rem; letter-spacing: .03em; }
+.mc-formula .en { font-size: .92rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const RULE_ITEMS = [
+  {
+    english: 'From <code>∀x (Bird(x) → Flies(x))</code>, derive <code>Bird(Tweety) → Flies(Tweety)</code>.',
+    options: [
+      { text: 'Universal Instantiation', correct: true, explain: 'Right — pulling a specific individual (Tweety) out of a universal claim is Universal Instantiation, always safe.' },
+      { text: 'Existential Instantiation', explain: 'EI pulls a witness out of an EXISTENTIAL claim (∃x...) — this premise starts with ∀, so EI doesn’t apply here.' },
+      { text: 'Universal Generalization', explain: 'UG goes the other direction — from a specific instance to a universal claim. Here we’re going from ∀ to a specific instance, which is UI.' },
+    ],
+  },
+  {
+    english: 'From <code>∃x Prime(x)</code>, derive <code>Prime(p)</code> for a brand-new name p never used before.',
+    options: [
+      { text: 'Existential Generalization', explain: 'EG goes the other direction — from a specific instance to an existential claim. Here we’re going from ∃ to a specific instance, which is EI.' },
+      { text: 'Existential Instantiation', correct: true, explain: 'Right — naming the thing that satisfies an existential claim is Existential Instantiation, and it requires a fresh name never used before.' },
+      { text: 'Universal Instantiation', explain: 'UI instantiates a UNIVERSAL claim (∀x...) — this premise starts with ∃, so UI doesn’t apply.' },
+    ],
+  },
+  {
+    english: 'From <code>Even(4)</code>, derive <code>∃x Even(x)</code>.',
+    options: [
+      { text: 'Universal Generalization', explain: 'UG concludes a ∀ claim from an arbitrary instance — here the conclusion is ∃x Even(x), an existential, not universal.' },
+      { text: 'Existential Generalization', correct: true, explain: 'Right — one specific example is enough to claim "something" has the property: Existential Generalization, always safe.' },
+      { text: 'Universal Instantiation', explain: 'UI goes from a universal claim to a specific instance — here we’re going the other way, from a specific instance (4) to a general claim.' },
+    ],
+  },
+];
+
+const ruleDiv = document.getElementById('rule-exercise');
+RULE_ITEMS.forEach((item, i) => {
+  const cardId = `rule-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb" id="rule-fb-${i}"></div>
+  `;
+  ruleDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

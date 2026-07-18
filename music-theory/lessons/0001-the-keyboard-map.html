@@ -73,10 +73,10 @@
     <div class="q-block" id="q1">
       <p>1. How many natural (white-key) notes are there before the pattern repeats?</p>
       <div class="options">
-        <button onclick="answer(this, false, 'q1')">Five notes total</button>
-        <button onclick="answer(this, true,  'q1')">Seven notes total</button>
-        <button onclick="answer(this, false, 'q1')">Eight notes total</button>
-        <button onclick="answer(this, false, 'q1')">Twelve notes total</button>
+        <button onclick="quizAnswer(this, false, 'q1', 'Five is the count of black keys per octave, not white — the naturals are C D E F G A B, seven of them.')">Five notes total</button>
+        <button onclick="quizAnswer(this, true,  'q1', 'Right — C D E F G A B, then the pattern repeats starting again at the next C.')">Seven notes total</button>
+        <button onclick="quizAnswer(this, false, 'q1', 'That counts the next C twice — the repeat point starts the same 7-letter pattern over, it doesn’t add an 8th unique letter name.')">Eight notes total</button>
+        <button onclick="quizAnswer(this, false, 'q1', 'Twelve is the total of all keys in an octave (7 white + 5 black) — that’s everything, not just the naturals.')">Twelve notes total</button>
       </div>
       <div class="feedback" id="q1-fb"></div>
     </div>
@@ -84,10 +84,10 @@
     <div class="q-block" id="q2">
       <p>2. To find any C on the keyboard, you look for…</p>
       <div class="options">
-        <button onclick="answer(this, false, 'q2')">Key right of two black keys</button>
-        <button onclick="answer(this, true,  'q2')">Key left of two black keys</button>
-        <button onclick="answer(this, false, 'q2')">Key left of three black keys</button>
-        <button onclick="answer(this, false, 'q2')">Key right of three black keys</button>
+        <button onclick="quizAnswer(this, false, 'q2', 'That’s the opposite side — C sits to the LEFT of a group of two black keys, not the right.')">Key right of two black keys</button>
+        <button onclick="quizAnswer(this, true,  'q2', 'Right — C is always the white key immediately to the left of any group of 2 black keys.')">Key left of two black keys</button>
+        <button onclick="quizAnswer(this, false, 'q2', 'Groups of three black keys are the landmark for G, not C — C uses the group of two.')">Key left of three black keys</button>
+        <button onclick="quizAnswer(this, false, 'q2', 'This mixes up both the group size and the side — C uses the group of two, and sits to its left.')">Key right of three black keys</button>
       </div>
       <div class="feedback" id="q2-fb"></div>
     </div>
@@ -95,10 +95,10 @@
     <div class="q-block" id="q3">
       <p>3. Between which two white keys is there NO black key?</p>
       <div class="options">
-        <button onclick="answer(this, false, 'q3')">Between D and E only</button>
-        <button onclick="answer(this, false, 'q3')">Between C and D only</button>
-        <button onclick="answer(this, true,  'q3')">Between E and F, and B and C</button>
-        <button onclick="answer(this, false, 'q3')">Between A and B only</button>
+        <button onclick="quizAnswer(this, false, 'q3', 'There IS a black key between D and E (D♯/E♭) — this pair isn’t one of the two gapless spots.')">Between D and E only</button>
+        <button onclick="quizAnswer(this, false, 'q3', 'There IS a black key between C and D (C♯/D♭) — this pair isn’t gapless.')">Between C and D only</button>
+        <button onclick="quizAnswer(this, true,  'q3', 'Right — E-F and B-C are the two spots with no black key between them, which is exactly why the black keys fall into groups of 2 and 3.')">Between E and F, and B and C</button>
+        <button onclick="quizAnswer(this, false, 'q3', 'There IS a black key between A and B (A♯/B♭) — this pair isn’t gapless either.')">Between A and B only</button>
       </div>
       <div class="feedback" id="q3-fb"></div>
     </div>
@@ -187,28 +187,7 @@ function showLabel(name) {
 
 window.addEventListener('load', buildPiano);
 
-// ── Quiz ───────────────────────────────────────────────────
-let scores = {};
-
-function answer(btn, correct, qid) {
-  const block = document.getElementById(qid);
-  if (block.dataset.done) return;
-  block.dataset.done = 'true';
-
-  const fb = document.getElementById(qid + '-fb');
-  btn.classList.add(correct ? 'correct' : 'wrong');
-  fb.textContent = correct ? '✓ Correct.' : '✗ Not quite — try to remember the rule.';
-  fb.className = 'feedback ' + (correct ? 'good' : 'bad');
-
-  scores[qid] = correct ? 1 : 0;
-  updateScore();
-}
-
-function updateScore() {
-  const total = Object.keys(scores).length;
-  const right = Object.values(scores).filter(Boolean).length;
-  document.getElementById('score').textContent = `${right} / ${total} correct so far`;
-}
 </script>
+<script src="../../assets/quiz.js"></script>
 </body>
 </html>

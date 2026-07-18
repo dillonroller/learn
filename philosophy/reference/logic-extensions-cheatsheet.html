@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reference — Logic Extensions Cheat Sheet</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    body { font-size: 16px; }
+    .page { max-width: 780px; }
+    h2 { margin-top: 2rem; }
+    .ref-table {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: .82rem;
+      margin: .75rem 0 1.25rem;
+    }
+    .ref-row {
+      display: grid;
+      grid-template-columns: .7fr 1.9fr;
+      padding: .45rem .8rem;
+      border-bottom: 1px solid var(--border);
+      gap: .5rem;
+      align-items: center;
+    }
+    .ref-row:last-child { border-bottom: none; }
+    .ref-row.header { background: #111; color: var(--muted); text-transform: uppercase; font-size: .7rem; letter-spacing: .05em; }
+    .ref-row:not(.header):nth-child(even) { background: #1e1e1e; }
+    @media print {
+      body { background: #fff; color: #000; padding-top: 1rem; }
+      .topnav, .teacher-tip { display: none; }
+    }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Philosophy</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Reference &nbsp;·&nbsp; Philosophy &nbsp;·&nbsp; Covers lessons 10–12</p>
+  <h1>Logic Extensions Cheat Sheet</h1>
+  <p style="color:var(--muted);">Deontic, epistemic, and transcendental — three ways of pushing formal reasoning past what classical propositional/predicate logic covers.</p>
+
+  <h2><a href="../lessons/0010-deontic-logic.html#deontic-operators">Deontic logic — obligation &amp; permission</a></h2>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Operator</span><span>Meaning</span></div>
+    <div class="ref-row"><span><a href="../lessons/0010-deontic-logic.html#deontic-o">Op</a></span><span>Obligatory — true in every deontically ideal world. (≈ □p, normative reading)</span></div>
+    <div class="ref-row"><span><a href="../lessons/0010-deontic-logic.html#deontic-p">Pp</a></span><span>Permissible — true in some deontically ideal world. (≈ ◇p, normative reading)</span></div>
+    <div class="ref-row"><span><a href="../lessons/0010-deontic-logic.html#deontic-f">Fp</a></span><span>Forbidden — defined as O¬p.</span></div>
+    <div class="ref-row"><span><a href="../lessons/0010-deontic-logic.html#deontic-duality">Duality</a></span><span>Pp ≡ ¬O¬p &nbsp;·&nbsp; Op → Pp (obligatory ⟹ permissible)</span></div>
+  </div>
+  <div class="callout warn" style="margin:0 0 1rem;">
+    <strong><a href="../lessons/0010-deontic-logic.html#is-ought-gap">The is-ought gap</a></strong>
+    No purely descriptive ("is") premises validly entail a prescriptive ("ought") conclusion — a normative premise must bridge the two, or the argument is missing an implicit premise.
+  </div>
+
+  <h2><a href="../lessons/0011-epistemic-logic.html#epistemic-operators">Epistemic logic — knowledge &amp; belief</a></h2>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Operator</span><span>Meaning</span></div>
+    <div class="ref-row"><span><a href="../lessons/0011-epistemic-logic.html#epistemic-k">Kp</a></span><span>Knows that p — true in every world consistent with what's known. Factive: <strong>Kp → p</strong>.</span></div>
+    <div class="ref-row"><span><a href="../lessons/0011-epistemic-logic.html#epistemic-b">Bp</a></span><span>Believes that p — same structure as K, but not factive (Bp → p is invalid).</span></div>
+    <div class="ref-row"><span><a href="../lessons/0011-epistemic-logic.html#introspection-axioms">Introspection</a></span><span>Positive: Kp → KKp. Negative: ¬Kp → K¬Kp. Both stronger, more contested than factivity.</span></div>
+  </div>
+
+  <h2><a href="../lessons/0012-transcendental-arguments.html#transcendental-argument-form">Transcendental arguments</a></h2>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Piece</span><span>Role</span></div>
+    <div class="ref-row"><span>Y</span><span>The undeniable starting fact (e.g. "we have coherent experience of an objective world")</span></div>
+    <div class="ref-row"><span>X</span><span>The claimed necessary precondition for Y being possible at all (e.g. causality)</span></div>
+    <div class="ref-row"><span><a href="../lessons/0012-transcendental-arguments.html#uniqueness-objection">Uniqueness objection</a></span><span>Is X really the ONLY precondition for Y, or could a rival X′ also explain it?</span></div>
+  </div>
+
+  <p style="margin-top:2rem; font-size:.8rem; color:#444;">From <a href="../index.html">Philosophy</a> — <a href="../lessons/0010-deontic-logic.html">lesson 10</a>, <a href="../lessons/0011-epistemic-logic.html">lesson 11</a>, <a href="../lessons/0012-transcendental-arguments.html">lesson 12</a>. See also <a href="../../logic/index.html">Logic</a>, which these lessons extend. Primary sources: <a href="https://plato.stanford.edu/entries/logic-deontic/" target="_blank">SEP — Deontic Logic</a>, <a href="https://plato.stanford.edu/entries/logic-epistemic/" target="_blank">SEP — Epistemic Logic</a>, <a href="https://plato.stanford.edu/entries/transcendental-arguments/" target="_blank">SEP — Transcendental Arguments</a>.</p>
+
+</div>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

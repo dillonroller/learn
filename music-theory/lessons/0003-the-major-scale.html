@@ -113,10 +113,10 @@
     <div class="q-block" id="q1">
       <p>1. G major differs from C major because it contains…</p>
       <div class="options">
-        <button onclick="answer(this, false, 'q1')">One flat: B♭ instead of B</button>
-        <button onclick="answer(this, true,  'q1')">One sharp: F♯ instead of F</button>
-        <button onclick="answer(this, false, 'q1')">Two sharps: F♯ and C♯</button>
-        <button onclick="answer(this, false, 'q1')">No difference from C major</button>
+        <button onclick="quizAnswer(this, false, 'q1', 'That’s F major’s alteration, not G major’s — G major’s altered note is a sharp, not a flat.')">One flat: B♭ instead of B</button>
+        <button onclick="quizAnswer(this, true,  'q1', 'Right — applying W W H W W W H from G lands the 7th step on F♯, not F.')">One sharp: F♯ instead of F</button>
+        <button onclick="quizAnswer(this, false, 'q1', 'G major has exactly one altered note, F♯ — C♯ doesn’t appear anywhere in the G major scale built above.')">Two sharps: F♯ and C♯</button>
+        <button onclick="quizAnswer(this, false, 'q1', 'There is a difference — the recipe applied from G forces the 7th step onto F♯ instead of F, as shown in the scale-build diagram above.')">No difference from C major</button>
       </div>
       <div class="feedback" id="q1-fb"></div>
     </div>
@@ -124,10 +124,10 @@
     <div class="q-block" id="q2">
       <p>2. The altered note in F major is…</p>
       <div class="options">
-        <button onclick="answer(this, false, 'q2')">E♭ — E lowered one half step</button>
-        <button onclick="answer(this, false, 'q2')">A♭ — A lowered one half step</button>
-        <button onclick="answer(this, true,  'q2')">B♭ — B lowered one half step</button>
-        <button onclick="answer(this, false, 'q2')">G♯ — G raised one half step</button>
+        <button onclick="quizAnswer(this, false, 'q2', 'E isn’t altered in F major — E stays natural; it’s the 4th degree, B, that gets lowered instead.')">E♭ — E lowered one half step</button>
+        <button onclick="quizAnswer(this, false, 'q2', 'A isn’t altered either — A stays natural in F major; the recipe lowers B to B♭, not A.')">A♭ — A lowered one half step</button>
+        <button onclick="quizAnswer(this, true,  'q2', 'Right — applying the recipe from F lands the 4th step on B♭ instead of B.')">B♭ — B lowered one half step</button>
+        <button onclick="quizAnswer(this, false, 'q2', 'F major’s alteration is a flat (B♭), not a sharp, and it’s B that’s altered, not G.')">G♯ — G raised one half step</button>
       </div>
       <div class="feedback" id="q2-fb"></div>
     </div>
@@ -135,10 +135,10 @@
     <div class="q-block" id="q3">
       <p>3. What does it mean to compose "in a key"?</p>
       <div class="options">
-        <button onclick="answer(this, false, 'q3')">Only play notes on white keys</button>
-        <button onclick="answer(this, false, 'q3')">Never use sharps or flats</button>
-        <button onclick="answer(this, true,  'q3')">Use that scale's 7 notes as your palette</button>
-        <button onclick="answer(this, false, 'q3')">Always start and end on middle C</button>
+        <button onclick="quizAnswer(this, false, 'q3', 'That’s only true for C major specifically — G major and F major both use a black key (F♯ or B♭) as part of their 7-note palette.')">Only play notes on white keys</button>
+        <button onclick="quizAnswer(this, false, 'q3', 'Most keys DO include a sharp or flat among their 7 notes — G major uses F♯, F major uses B♭. Only C major happens to avoid them.')">Never use sharps or flats</button>
+        <button onclick="quizAnswer(this, true,  'q3', 'Right — a key is just the 7-note palette its major scale gives you; composing "in" that key means drawing mostly from those notes.')">Use that scale's 7 notes as your palette</button>
+        <button onclick="quizAnswer(this, false, 'q3', 'A key isn’t tied to a specific octave or starting pitch — G major can be played starting from any G on the keyboard, not just near middle C.')">Always start and end on middle C</button>
       </div>
       <div class="feedback" id="q3-fb"></div>
     </div>
@@ -364,21 +364,7 @@ window.addEventListener('load', () => {
   buildPiano();
 });
 
-// ── Quiz ───────────────────────────────────────────────────
-let scores = {};
-function answer(btn, correct, qid) {
-  const block = document.getElementById(qid);
-  if (block.dataset.done) return;
-  block.dataset.done = 'true';
-  const fb = document.getElementById(qid + '-fb');
-  btn.classList.add(correct ? 'correct' : 'wrong');
-  fb.textContent = correct ? '✓ Correct.' : '✗ Not quite — review the section above.';
-  fb.className = 'feedback ' + (correct ? 'good' : 'bad');
-  scores[qid] = correct ? 1 : 0;
-  const total = Object.keys(scores).length;
-  const right = Object.values(scores).filter(Boolean).length;
-  document.getElementById('score').textContent = `${right} / ${total} correct so far`;
-}
 </script>
+<script src="../../assets/quiz.js"></script>
 </body>
 </html>

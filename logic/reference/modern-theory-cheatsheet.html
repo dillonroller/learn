@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reference — Modern Theory Cheat Sheet</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    body { font-size: 16px; }
+    .page { max-width: 780px; }
+    h2 { margin-top: 2rem; }
+    .ref-table {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: .82rem;
+      margin: .75rem 0 1.25rem;
+    }
+    .ref-row {
+      display: grid;
+      grid-template-columns: 1.1fr 1.5fr;
+      padding: .45rem .8rem;
+      border-bottom: 1px solid var(--border);
+      gap: .5rem;
+      align-items: center;
+    }
+    .ref-row.wide { grid-template-columns: 1fr 1.6fr; }
+    .ref-row:last-child { border-bottom: none; }
+    .ref-row.header { background: #111; color: var(--muted); text-transform: uppercase; font-size: .7rem; letter-spacing: .05em; }
+    .ref-row:not(.header):nth-child(even) { background: #1e1e1e; }
+    @media print {
+      body { background: #fff; color: #000; padding-top: 1rem; }
+      .topnav, .teacher-tip { display: none; }
+    }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Logic</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Reference &nbsp;·&nbsp; Logic &nbsp;·&nbsp; Covers lessons 9–11</p>
+  <h1>Modern Theory Cheat Sheet</h1>
+  <p style="color:var(--muted);">The compressed version of lessons 9–11. See also the <a href="propositional-logic-cheatsheet.html">Propositional Logic</a>, <a href="rules-of-inference-cheatsheet.html">Rules of Inference</a>, and <a href="predicate-logic-cheatsheet.html">Predicate Logic</a> cheat sheets.</p>
+
+  <h2><a href="../lessons/0009-soundness-completeness.html#semantic-entailment">Syntax vs. semantics</a></h2>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Symbol</span><span>Meaning</span></div>
+    <div class="ref-row"><span><code>⊢</code></span><span>"Proves" — a proof exists using the rules (syntactic)</span></div>
+    <div class="ref-row"><span><code>⊨</code></span><span>"Entails" — true in every model / no counterexample row (semantic)</span></div>
+  </div>
+
+  <h2><a href="../lessons/0009-soundness-completeness.html#proof-system-soundness">Soundness &amp; completeness (of a system)</a></h2>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Property</span><span>Definition</span></div>
+    <div class="ref-row"><span>Soundness</span><span><code>⊢ → ⊨</code> — everything provable is actually valid</span></div>
+    <div class="ref-row"><span><a href="../lessons/0009-soundness-completeness.html#completeness">Completeness</a></span><span><code>⊨ → ⊢</code> — everything valid is actually provable</span></div>
+  </div>
+  <div class="callout warn" style="margin:0 0 1rem;">
+    <strong>Not the same "sound" as lesson 1</strong>
+    Lesson 1's soundness = one argument, valid + true premises. This soundness = a whole proof system, its rules never derive an invalid argument. Same word, different level.
+  </div>
+
+  <h2><a href="../lessons/0009-soundness-completeness.html#decidability">Decidability</a></h2>
+  <p style="font-size:.85rem;">Propositional logic: decidable (truth tables always terminate). Full FOL: complete but <strong>not</strong> decidable — a proof is guaranteed to exist for every valid argument, but no algorithm always terminates to tell you valid vs. invalid.</p>
+
+  <h2><a href="../lessons/0010-modal-logic.html#necessity">Modal operators</a></h2>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Symbol</span><span>Meaning</span></div>
+    <div class="ref-row"><span><code>□P</code></span><span>"necessarily P" — true in every possible world</span></div>
+    <div class="ref-row"><span><a href="../lessons/0010-modal-logic.html#possibility">◇P</a></span><span>"possibly P" — true in at least one possible world</span></div>
+  </div>
+
+  <h2><a href="../lessons/0010-modal-logic.html#modal-duality">Modal duality</a></h2>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Original</span><span>Equivalent</span></div>
+    <div class="ref-row"><span><code>¬□P</code></span><span><code>◇¬P</code></span></div>
+    <div class="ref-row"><span><code>¬◇P</code></span><span><code>□¬P</code></span></div>
+  </div>
+
+  <div class="callout warn" style="margin:0 0 1rem;">
+    <strong><a href="../lessons/0010-modal-logic.html#modal-scope-fallacy">The modal scope fallacy</a></strong>
+    <code>□(P → Q)</code> ("the conditional is necessarily true") ≠ <code>P → □Q</code> ("P being true forces Q to be necessary"). Proof they differ: <code>□(Rain→Rain)</code> is true (tautology), but <code>Rain→□Rain</code> is false (raining is contingent, not necessary).
+  </div>
+
+  <h2><a href="../lessons/0011-godels-incompleteness-theorems.html#first-incompleteness-theorem">Gödel's theorems</a></h2>
+  <div class="ref-table">
+    <div class="ref-row wide header"><span>Theorem</span><span>Says</span></div>
+    <div class="ref-row wide"><span>Completeness (1929)</span><span>First-order logic itself: every valid argument (⊨) is provable (⊢). About logic in general.</span></div>
+    <div class="ref-row wide"><span><a href="../lessons/0011-godels-incompleteness-theorems.html#first-incompleteness-theorem">1st Incompleteness (1931)</a></span><span>Any consistent system strong enough for arithmetic has true statements it can't prove.</span></div>
+    <div class="ref-row wide"><span><a href="../lessons/0011-godels-incompleteness-theorems.html#second-incompleteness-theorem">2nd Incompleteness (1931)</a></span><span>Such a system can't prove its own consistency from within.</span></div>
+  </div>
+
+  <div class="callout warn" style="margin:0;">
+    <strong><a href="../lessons/0011-godels-incompleteness-theorems.html#incompleteness-misuse">Before citing Gödel outside mathematics</a></strong>
+    Ask: which formal system, which statement, what exactly is claimed unprovable? No answer means it's rhetoric, not the actual theorem at work. The 1929 and 1931 results are not contradictory — they're about different objects (logic in general vs. a specific rich theory).
+  </div>
+
+  <p style="margin-top:2rem; font-size:.8rem; color:#444;">From <a href="../index.html">Logic</a> — <a href="../lessons/0009-soundness-completeness.html">lesson 9</a>, <a href="../lessons/0010-modal-logic.html">lesson 10</a>, <a href="../lessons/0011-godels-incompleteness-theorems.html">lesson 11</a>. Primary sources: <a href="https://plato.stanford.edu/entries/logic-classical/" target="_blank">SEP — Classical Logic</a>, <a href="https://plato.stanford.edu/entries/logic-modal/" target="_blank">SEP — Modal Logic</a>, <a href="https://plato.stanford.edu/entries/goedel-incompleteness/" target="_blank">SEP — Gödel's Incompleteness Theorems</a>.</p>
+
+</div>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

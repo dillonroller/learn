@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rationality — Lessons</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    .topic-header { margin-bottom: 2.5rem; }
+    .topic-header h1 { font-size: 1.9rem; margin-bottom: .3rem; }
+    .topic-header p { color: var(--muted); font-size: .95rem; max-width: 560px; line-height: 1.6; }
+    .section-label { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .75rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin: 1.5rem 0 .6rem; }
+    .lesson-list { display: flex; flex-direction: column; gap: .75rem; margin-bottom: 1.5rem; }
+    .lesson-card { display: flex; align-items: center; gap: 1.1rem; background: #212121; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; text-decoration: none; color: inherit; transition: border-color .15s, transform .1s; }
+    .lesson-card:hover { border-color: var(--accent); transform: translateX(3px); }
+    .lesson-card.locked { opacity: .4; pointer-events: none; }
+    .lesson-num { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .78rem; font-weight: 700; color: var(--accent); background: var(--accent-lt); border: 1px solid #2d4a38; border-radius: 4px; padding: .25rem .55rem; flex-shrink: 0; letter-spacing: .04em; }
+    .lesson-info { flex: 1; min-width: 0; }
+    .lesson-title { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 1rem; font-weight: 600; color: var(--ink); margin-bottom: .15rem; }
+    .lesson-desc { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .82rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lesson-arrow { color: #444; font-size: .9rem; flex-shrink: 0; }
+    .lesson-card:hover .lesson-arrow { color: var(--accent); }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <span class="tn-topic">Rationality</span>
+</nav>
+<div class="page">
+  <div class="topic-header">
+    <p class="lesson-meta" style="margin-bottom:.6rem;">Topic overview</p>
+    <h1>Rationality</h1>
+    <p>Practical reasoning for real life — catching your own cognitive biases while they're happening, reasoning about uncertainty with actual probability instead of gut feeling, and disagreeing productively with people you're close to. Where <a href="../logic/index.html">Logic</a> evaluates an argument's structure, this topic is about reasoning better in the moment, especially in relationships.</p>
+  </div>
+
+  <p class="section-label">Reference</p>
+  <div class="lesson-list">
+    <a class="lesson-card" id="reference-practical-rationality" href="reference/practical-rationality-cheatsheet.html"><span class="lesson-num">REF</span><div class="lesson-info"><div class="lesson-title">Practical Rationality Cheat Sheet</div><div class="lesson-desc">Compressed reference covering lessons 1–3 — biases, Bayesian updating, steelmanning</div></div><span class="lesson-arrow">→</span></a>
+  </div>
+
+  <p class="section-label">Foundations</p>
+  <div class="lesson-list">
+    <a class="lesson-card" id="lesson-01" href="lessons/0001-cognitive-biases.html"><span class="lesson-num">01</span><div class="lesson-info"><div class="lesson-title">Cognitive Biases — Catching Your Own Mind</div><div class="lesson-desc">Confirmation bias, motivated reasoning, and the shortcuts derailing your own arguments</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="lesson-02" href="lessons/0002-probabilistic-bayesian-reasoning.html"><span class="lesson-num">02</span><div class="lesson-info"><div class="lesson-title">Probabilistic & Bayesian Reasoning</div><div class="lesson-desc">Base rates, updating on evidence, and why confidence should come in degrees</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="lesson-03" href="lessons/0003-charitable-interpretation-steelmanning.html"><span class="lesson-num">03</span><div class="lesson-info"><div class="lesson-title">Charitable Interpretation & Steelmanning</div><div class="lesson-desc">Responding to the strongest version of what someone means, not the weakest</div></div><span class="lesson-arrow">→</span></a>
+  </div>
+</div>
+<script src="../assets/search.js"></script>
+</body>
+</html>

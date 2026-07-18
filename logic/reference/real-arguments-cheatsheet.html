@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reference — Real Arguments Cheat Sheet</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    body { font-size: 16px; }
+    .page { max-width: 780px; }
+    h2 { margin-top: 2rem; }
+    .ref-table {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: .82rem;
+      margin: .75rem 0 1.25rem;
+    }
+    .ref-row {
+      display: grid;
+      grid-template-columns: 1.1fr 1.5fr;
+      padding: .45rem .8rem;
+      border-bottom: 1px solid var(--border);
+      gap: .5rem;
+      align-items: center;
+    }
+    .ref-row.wide { grid-template-columns: 1fr 1.7fr; }
+    .ref-row:last-child { border-bottom: none; }
+    .ref-row.header { background: #111; color: var(--muted); text-transform: uppercase; font-size: .7rem; letter-spacing: .05em; }
+    .ref-row:not(.header):nth-child(even) { background: #1e1e1e; }
+    .steps { display: flex; flex-direction: column; gap: .5rem; margin: .75rem 0 1.25rem; }
+    .step-card {
+      display: flex; align-items: flex-start; gap: .8rem;
+      background: #1e1e1e; border: 1px solid var(--border); border-radius: var(--radius);
+      padding: .55rem .9rem; font-size: .85rem; line-height: 1.5;
+    }
+    .step-num {
+      flex-shrink: 0; width: 1.5rem; height: 1.5rem; border-radius: 50%;
+      background: #2d6a4f; color: var(--accent); border: 1px solid var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 700; font-size: .75rem;
+    }
+    @media print {
+      body { background: #fff; color: #000; padding-top: 1rem; }
+      .topnav, .teacher-tip { display: none; }
+    }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Logic</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Reference &nbsp;·&nbsp; Logic &nbsp;·&nbsp; Covers lessons 12–14</p>
+  <h1>Real Arguments Cheat Sheet</h1>
+  <p style="color:var(--muted);">The compressed version of lessons 12–14 — arguably the most useful page in this whole topic for evaluating an argument live. See also the <a href="propositional-logic-cheatsheet.html">Propositional Logic</a>, <a href="rules-of-inference-cheatsheet.html">Rules of Inference</a>, <a href="predicate-logic-cheatsheet.html">Predicate Logic</a>, and <a href="modern-theory-cheatsheet.html">Modern Theory</a> cheat sheets.</p>
+
+  <h2><a href="../lessons/0012-informal-fallacies.html#formal-vs-informal">Informal fallacy catalog</a></h2>
+  <div class="ref-table">
+    <div class="ref-row wide header"><span>Fallacy</span><span>Pattern</span></div>
+    <div class="ref-row wide"><span><a href="../lessons/0012-informal-fallacies.html#ad-hominem">Ad Hominem</a></span><span>Attacking the arguer instead of the argument</span></div>
+    <div class="ref-row wide"><span><a href="../lessons/0012-informal-fallacies.html#straw-man">Straw Man</a></span><span>Refuting a misrepresented version of the position</span></div>
+    <div class="ref-row wide"><span><a href="../lessons/0012-informal-fallacies.html#appeal-to-authority">Appeal to (Illegitimate) Authority</a></span><span>Citing irrelevant fame/status instead of relevant expertise</span></div>
+    <div class="ref-row wide"><span><a href="../lessons/0012-informal-fallacies.html#appeal-to-popularity">Appeal to Popularity</a></span><span>"Many people believe it" as if that made it true</span></div>
+    <div class="ref-row wide"><span><a href="../lessons/0012-informal-fallacies.html#false-dilemma">False Dilemma</a></span><span>Presenting two options as the only ones when more exist</span></div>
+    <div class="ref-row wide"><span><a href="../lessons/0012-informal-fallacies.html#slippery-slope">Slippery Slope</a></span><span>Chaining conditionals to an extreme, without supporting each link</span></div>
+    <div class="ref-row wide"><span><a href="../lessons/0012-informal-fallacies.html#circular-reasoning">Circular Reasoning</a></span><span>The conclusion is quietly smuggled into a premise</span></div>
+    <div class="ref-row wide"><span><a href="../lessons/0012-informal-fallacies.html#hasty-generalization">Hasty Generalization</a></span><span>A universal claim (∀x) from far too small a sample</span></div>
+  </div>
+  <div class="callout warn" style="margin:0 0 1rem;">
+    <strong>Not ad hominem</strong>
+    Flagging a real conflict of interest to weigh <em>testimony</em> is legitimate inductive reasoning. Attacking the person to dismiss the <em>argument's logical content</em> is the fallacy.
+  </div>
+
+  <h2><a href="../lessons/0013-argument-mapping-reconstruction.html#conclusion-indicators">Reconstruction procedure</a></h2>
+  <div class="steps">
+    <div class="step-card"><span class="step-num">1</span><span>Find the <strong>conclusion</strong> first — what is this person trying to get you to believe or do? Not always last.</span></div>
+    <div class="step-card"><span class="step-num">2</span><span>Find the <strong>premises</strong> — everything offered in support, indicator word or not.</span></div>
+    <div class="step-card"><span class="step-num">3</span><span>Surface any <a href="../lessons/0013-argument-mapping-reconstruction.html#implicit-premises"><strong>implicit premise</strong></a> — what addition makes the conclusion actually follow?</span></div>
+    <div class="step-card"><span class="step-num">4</span><span>Note <a href="../lessons/0013-argument-mapping-reconstruction.html#linked-convergent-premises"><strong>linked vs. convergent</strong></a> — does one rebuttal sink everything, or just one leg?</span></div>
+  </div>
+
+  <h2><a href="../lessons/0014-evaluating-real-debates.html#five-step-process">The five-step evaluation process</a></h2>
+  <div class="steps">
+    <div class="step-card"><span class="step-num">1</span><span><strong>Reconstruct</strong> — conclusion, premises, implicit premises, linked/convergent.</span></div>
+    <div class="step-card"><span class="step-num">2</span><span><strong>Check structural validity</strong> — symbolize, check formal fallacies, run the validity test.</span></div>
+    <div class="step-card"><span class="step-num">3</span><span><strong>Check informal fallacies</strong> — relevance, presumption, weak evidence.</span></div>
+    <div class="step-card"><span class="step-num">4</span><span><strong>Assess premise truth</strong> — empirical, not logical. What evidence would confirm or deny each one?</span></div>
+    <div class="step-card"><span class="step-num">5</span><span><strong>Verdict, in two separate parts</strong> — is the structure valid? Are the premises supported? Never blend the two.</span></div>
+  </div>
+
+  <p style="margin-top:2rem; font-size:.8rem; color:#444;">From <a href="../index.html">Logic</a> — <a href="../lessons/0012-informal-fallacies.html">lesson 12</a>, <a href="../lessons/0013-argument-mapping-reconstruction.html">lesson 13</a>, <a href="../lessons/0014-evaluating-real-debates.html">lesson 14</a>. Primary sources: <a href="https://plato.stanford.edu/entries/fallacies/" target="_blank">SEP — Fallacies</a>, <a href="https://plato.stanford.edu/entries/argument/" target="_blank">SEP — Argument and Argumentation</a>, <a href="https://plato.stanford.edu/entries/critical-thinking/" target="_blank">SEP — Critical Thinking</a>.</p>
+
+</div>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

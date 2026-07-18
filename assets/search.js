@@ -75,12 +75,116 @@
     { term: 'Existential Quantifier (∃)', kind: 'Definition', topic: 'Logic', file: 'logic/lessons/0006-predicate-logic-quantifiers.html', anchor: 'existential-quantifier', desc: '"There exists an x" — pairs with ∧, not →.', keywords: ['exists', 'there exists'] },
     { term: 'Negating Quantifiers', kind: 'Rule', topic: 'Logic', file: 'logic/lessons/0006-predicate-logic-quantifiers.html', anchor: 'quantifier-negation', desc: '¬∀x P(x) ≡ ∃x ¬P(x), and the mirror. De Morgan for quantifiers.' },
 
+    // ── Logic: term definitions (lesson 7) ──
+    { term: 'Symbolizing English Arguments in FOL', kind: 'Lesson 7', topic: 'Logic', file: 'logic/lessons/0007-symbolizing-fol.html', desc: 'Turning real sentences into precise first-order logic.' },
+    { term: 'Multi-Place Predicates', kind: 'Definition', topic: 'Logic', file: 'logic/lessons/0007-symbolizing-fol.html', anchor: 'multi-place-predicates', desc: 'Relations like Loves(x,y) — argument order matters.', keywords: ['relations'] },
+    { term: 'Quantifier Order', kind: 'Technique', topic: 'Logic', file: 'logic/lessons/0007-symbolizing-fol.html', anchor: 'quantifier-order', desc: '∀x∃y ≠ ∃y∀x — swapping order changes the claim entirely.' },
+
+    // ── Logic: term definitions (lesson 8) ──
+    { term: 'Proofs in Predicate Logic', kind: 'Lesson 8', topic: 'Logic', file: 'logic/lessons/0008-proofs-in-predicate-logic.html', desc: 'Universal/existential instantiation and generalization rules.' },
+    { term: 'Universal Instantiation (UI)', kind: 'Rule', topic: 'Logic', file: 'logic/lessons/0008-proofs-in-predicate-logic.html', anchor: 'universal-instantiation', desc: '∀x P(x) ⊢ P(a). Always safe — no restrictions.' },
+    { term: 'Existential Generalization (EG)', kind: 'Rule', topic: 'Logic', file: 'logic/lessons/0008-proofs-in-predicate-logic.html', anchor: 'existential-generalization', desc: 'P(a) ⊢ ∃x P(x). Always safe — no restrictions.' },
+    { term: 'Existential Instantiation (EI)', kind: 'Rule', topic: 'Logic', file: 'logic/lessons/0008-proofs-in-predicate-logic.html', anchor: 'existential-instantiation', desc: '∃x P(x) ⊢ P(c). Requires c to be a fresh name.' },
+    { term: 'Universal Generalization (UG)', kind: 'Rule', topic: 'Logic', file: 'logic/lessons/0008-proofs-in-predicate-logic.html', anchor: 'universal-generalization', desc: 'P(a) ⊢ ∀x P(x). Requires a to be truly arbitrary.' },
+
+    // ── Logic: term definitions (lesson 9) ──
+    { term: 'Soundness & Completeness', kind: 'Lesson 9', topic: 'Logic', file: 'logic/lessons/0009-soundness-completeness.html', desc: 'What a formal system actually guarantees you — and what it can\'t.' },
+    { term: 'Semantic Entailment (⊨)', kind: 'Definition', topic: 'Logic', file: 'logic/lessons/0009-soundness-completeness.html', anchor: 'semantic-entailment', desc: '"Entails" — true in every model, no counterexample row.', keywords: ['models'] },
+    { term: 'Soundness (of a proof system)', kind: 'Definition', topic: 'Logic', file: 'logic/lessons/0009-soundness-completeness.html', anchor: 'proof-system-soundness', desc: '⊢ → ⊨. Not the same as lesson 1\'s argument-level soundness.' },
+    { term: 'Completeness (of a proof system)', kind: 'Definition', topic: 'Logic', file: 'logic/lessons/0009-soundness-completeness.html', anchor: 'completeness', desc: '⊨ → ⊢. Every valid argument has a proof, guaranteed to exist.' },
+    { term: 'Decidability', kind: 'Definition', topic: 'Logic', file: 'logic/lessons/0009-soundness-completeness.html', anchor: 'decidability', desc: 'Propositional logic is decidable; full FOL is complete but not decidable.' },
+
+    // ── Logic: term definitions (lesson 10) ──
+    { term: 'Modal Logic — Necessity & Possibility', kind: 'Lesson 10', topic: 'Logic', file: 'logic/lessons/0010-modal-logic.html', desc: '□ and ◇ — reasoning about what must be true vs what could be true.' },
+    { term: 'Necessity (□)', kind: 'Definition', topic: 'Logic', file: 'logic/lessons/0010-modal-logic.html', anchor: 'necessity', desc: '□P — true in every possible world.', keywords: ['must', 'necessarily'] },
+    { term: 'Possibility (◇)', kind: 'Definition', topic: 'Logic', file: 'logic/lessons/0010-modal-logic.html', anchor: 'possibility', desc: '◇P — true in at least one possible world.', keywords: ['may', 'can', 'might'] },
+    { term: 'Possible Worlds Semantics', kind: 'Definition', topic: 'Logic', file: 'logic/lessons/0010-modal-logic.html', anchor: 'possible-worlds-semantics', desc: 'A possible world is a complete, self-consistent way things could be.' },
+    { term: 'Modal Duality', kind: 'Technique', topic: 'Logic', file: 'logic/lessons/0010-modal-logic.html', anchor: 'modal-duality', desc: '¬□P ≡ ◇¬P and ¬◇P ≡ □¬P — mirrors quantifier negation.' },
+    { term: 'Modal Scope Fallacy', kind: 'Fallacy', topic: 'Logic', file: 'logic/lessons/0010-modal-logic.html', anchor: 'modal-scope-fallacy', desc: '□(P→Q) ≠ P→□Q. Confusing a necessary conditional with a necessary consequent.' },
+
+    // ── Logic: term definitions (lesson 11) ──
+    { term: 'Gödel\'s Incompleteness Theorems', kind: 'Lesson 11', topic: 'Logic', file: 'logic/lessons/0011-godels-incompleteness-theorems.html', desc: 'What they actually say, and the popular claims that misuse them.', keywords: ['godel'] },
+    { term: 'Hilbert\'s Program', kind: 'Definition', topic: 'Logic', file: 'logic/lessons/0011-godels-incompleteness-theorems.html', anchor: 'hilberts-program', desc: 'The early-1900s dream of a consistent, complete, decidable system for all of math.' },
+    { term: 'First Incompleteness Theorem', kind: 'Theorem', topic: 'Logic', file: 'logic/lessons/0011-godels-incompleteness-theorems.html', anchor: 'first-incompleteness-theorem', desc: 'Any consistent system strong enough for arithmetic has true statements it can\'t prove.', keywords: ['godel'] },
+    { term: 'Second Incompleteness Theorem', kind: 'Theorem', topic: 'Logic', file: 'logic/lessons/0011-godels-incompleteness-theorems.html', anchor: 'second-incompleteness-theorem', desc: 'Such a system can\'t prove its own consistency from within itself.', keywords: ['godel'] },
+    { term: 'Gödel Theorem Misuse', kind: 'Technique', topic: 'Logic', file: 'logic/lessons/0011-godels-incompleteness-theorems.html', anchor: 'incompleteness-misuse', desc: 'Before citing Gödel outside math: which system, which statement, what\'s unprovable?', keywords: ['godel'] },
+
+    // ── Logic: term definitions (lesson 12) ──
+    { term: 'Informal Fallacies', kind: 'Lesson 12', topic: 'Logic', file: 'logic/lessons/0012-informal-fallacies.html', desc: 'Ad hominem, strawman, slippery slope — where real debates actually break.' },
+    { term: 'Formal vs. Informal Fallacies', kind: 'Definition', topic: 'Logic', file: 'logic/lessons/0012-informal-fallacies.html', anchor: 'formal-vs-informal', desc: 'Formal errors break structure regardless of content; informal errors are content-dependent.' },
+    { term: 'Ad Hominem', kind: 'Fallacy', topic: 'Logic', file: 'logic/lessons/0012-informal-fallacies.html', anchor: 'ad-hominem', desc: 'Attacking the arguer instead of the argument.' },
+    { term: 'Straw Man', kind: 'Fallacy', topic: 'Logic', file: 'logic/lessons/0012-informal-fallacies.html', anchor: 'straw-man', desc: 'Refuting a misrepresented version of the actual position.' },
+    { term: 'Appeal to Authority', kind: 'Fallacy', topic: 'Logic', file: 'logic/lessons/0012-informal-fallacies.html', anchor: 'appeal-to-authority', desc: 'Citing irrelevant fame/status instead of relevant expertise.' },
+    { term: 'Appeal to Popularity', kind: 'Fallacy', topic: 'Logic', file: 'logic/lessons/0012-informal-fallacies.html', anchor: 'appeal-to-popularity', desc: '"Many people believe it" as if that made it true.', keywords: ['ad populum'] },
+    { term: 'False Dilemma', kind: 'Fallacy', topic: 'Logic', file: 'logic/lessons/0012-informal-fallacies.html', anchor: 'false-dilemma', desc: 'Presenting two options as the only ones when more exist.', keywords: ['false dichotomy'] },
+    { term: 'Slippery Slope', kind: 'Fallacy', topic: 'Logic', file: 'logic/lessons/0012-informal-fallacies.html', anchor: 'slippery-slope', desc: 'Chaining conditionals to an extreme outcome without supporting each link.' },
+    { term: 'Circular Reasoning', kind: 'Fallacy', topic: 'Logic', file: 'logic/lessons/0012-informal-fallacies.html', anchor: 'circular-reasoning', desc: 'The conclusion is quietly planted as a premise.', keywords: ['begging the question'] },
+    { term: 'Hasty Generalization', kind: 'Fallacy', topic: 'Logic', file: 'logic/lessons/0012-informal-fallacies.html', anchor: 'hasty-generalization', desc: 'A universal claim from far too small a sample.' },
+
+    // ── Logic: term definitions (lesson 13) ──
+    { term: 'Argument Mapping & Reconstruction', kind: 'Lesson 13', topic: 'Logic', file: 'logic/lessons/0013-argument-mapping-reconstruction.html', desc: 'Turning a spoken argument you just heard into premises and a conclusion.' },
+    { term: 'Conclusion Indicator Words', kind: 'Technique', topic: 'Logic', file: 'logic/lessons/0013-argument-mapping-reconstruction.html', anchor: 'conclusion-indicators', desc: 'therefore, thus, so, hence, this shows — and the conclusion isn\'t always last.' },
+    { term: 'Premise Indicator Words', kind: 'Technique', topic: 'Logic', file: 'logic/lessons/0013-argument-mapping-reconstruction.html', anchor: 'premise-indicators', desc: 'because, since, given that — but not every premise gets one.' },
+    { term: 'Enthymeme (Implicit Premise)', kind: 'Definition', topic: 'Logic', file: 'logic/lessons/0013-argument-mapping-reconstruction.html', anchor: 'implicit-premises', desc: 'An unstated premise the argument needs to actually be valid.' },
+    { term: 'Standard Form', kind: 'Technique', topic: 'Logic', file: 'logic/lessons/0013-argument-mapping-reconstruction.html', anchor: 'standard-form', desc: 'Numbered premises and conclusion, with implicit premises marked.' },
+    { term: 'Linked vs. Convergent Premises', kind: 'Technique', topic: 'Logic', file: 'logic/lessons/0013-argument-mapping-reconstruction.html', anchor: 'linked-convergent-premises', desc: 'Linked premises only work together; convergent premises each independently support the conclusion.' },
+    { term: 'Chained Arguments', kind: 'Technique', topic: 'Logic', file: 'logic/lessons/0013-argument-mapping-reconstruction.html', anchor: 'chained-arguments', desc: 'A sub-conclusion becomes a premise for the next stage of the argument.' },
+
+    // ── Logic: term definitions (lesson 14) ──
+    { term: 'Evaluating Real Debates', kind: 'Lesson 14', topic: 'Logic', file: 'logic/lessons/0014-evaluating-real-debates.html', desc: 'Putting it all together — applying the full toolkit live.' },
+    { term: 'Five-Step Evaluation Process', kind: 'Technique', topic: 'Logic', file: 'logic/lessons/0014-evaluating-real-debates.html', anchor: 'five-step-process', desc: 'Reconstruct, check structure, check informal fallacies, assess premise truth, verdict.' },
+    { term: 'Full Worked Example — Remote Work Argument', kind: 'Example', topic: 'Logic', file: 'logic/lessons/0014-evaluating-real-debates.html', anchor: 'worked-example', desc: 'A complete five-step walkthrough on a real-style argument, start to finish.' },
+
     // ── Logic: reference docs ──
     { term: 'Propositional Logic Cheat Sheet', kind: 'Reference doc', topic: 'Logic', file: 'logic/reference/propositional-logic-cheatsheet.html', desc: 'Compressed summary of lessons 1–4.' },
     { term: 'Rules of Inference Cheat Sheet', kind: 'Reference doc', topic: 'Logic', file: 'logic/reference/rules-of-inference-cheatsheet.html', desc: 'Compressed summary of lesson 5.' },
+    { term: 'Predicate Logic Cheat Sheet', kind: 'Reference doc', topic: 'Logic', file: 'logic/reference/predicate-logic-cheatsheet.html', desc: 'Compressed summary of lessons 6–8.' },
+    { term: 'Modern Theory Cheat Sheet', kind: 'Reference doc', topic: 'Logic', file: 'logic/reference/modern-theory-cheatsheet.html', desc: 'Compressed summary of lessons 9–11 — soundness/completeness, modal logic, Gödel.' },
+    { term: 'Real Arguments Cheat Sheet', kind: 'Reference doc', topic: 'Logic', file: 'logic/reference/real-arguments-cheatsheet.html', desc: 'Compressed summary of lessons 12–14 — fallacy catalog, reconstruction, evaluation checklist.' },
+
+    // ── Philosophy: lesson-level entries ──
+    { term: 'Deontic Logic — Obligation & Permission', kind: 'Lesson 10', topic: 'Philosophy', file: 'philosophy/lessons/0010-deontic-logic.html', desc: 'O, P, F operators, the is-ought gap, and why "should" needs its own logic.' },
+    { term: 'Epistemic Logic — Knowledge & Belief', kind: 'Lesson 11', topic: 'Philosophy', file: 'philosophy/lessons/0011-epistemic-logic.html', desc: 'K and B operators, factivity, and what separates knowing from believing.' },
+    { term: 'Transcendental Arguments', kind: 'Lesson 12', topic: 'Philosophy', file: 'philosophy/lessons/0012-transcendental-arguments.html', desc: "Kant's third argument form — arguing from what's undeniable to its preconditions." },
+
+    // ── Philosophy: term definitions ──
+    { term: 'Is-Ought Gap', kind: 'Definition', topic: 'Philosophy', file: 'philosophy/lessons/0010-deontic-logic.html', anchor: 'is-ought-gap', desc: "Hume's point: no purely descriptive premises validly entail a prescriptive conclusion." },
+    { term: 'Deontic Operators (O, P, F)', kind: 'Definition', topic: 'Philosophy', file: 'philosophy/lessons/0010-deontic-logic.html', anchor: 'deontic-operators', desc: 'Obligatory, permissible, forbidden — modal logic reread normatively.' },
+    { term: 'Deontic Duality', kind: 'Definition', topic: 'Philosophy', file: 'philosophy/lessons/0010-deontic-logic.html', anchor: 'deontic-duality', desc: 'Pp ≡ ¬O¬p — mirrors ◇p ≡ ¬□¬p from modal logic.' },
+    { term: 'Good Samaritan Paradox', kind: 'Example', topic: 'Philosophy', file: 'philosophy/lessons/0010-deontic-logic.html', anchor: 'good-samaritan-paradox', desc: 'A famous open problem in standard deontic logic.' },
+    { term: 'Epistemic Operators (K, B)', kind: 'Definition', topic: 'Philosophy', file: 'philosophy/lessons/0011-epistemic-logic.html', anchor: 'epistemic-operators', desc: 'Knowledge and belief, formalized with worlds consistent with what is known/believed.' },
+    { term: 'Factivity of Knowledge', kind: 'Definition', topic: 'Philosophy', file: 'philosophy/lessons/0011-epistemic-logic.html', anchor: 'factivity', desc: 'Kp → p — you cannot know something false; belief carries no such guarantee.' },
+    { term: 'Introspection Axioms', kind: 'Definition', topic: 'Philosophy', file: 'philosophy/lessons/0011-epistemic-logic.html', anchor: 'introspection-axioms', desc: 'Positive (Kp → KKp) and negative (¬Kp → K¬Kp) introspection.' },
+    { term: 'Transcendental Argument Form', kind: 'Definition', topic: 'Philosophy', file: 'philosophy/lessons/0012-transcendental-arguments.html', anchor: 'transcendental-argument-form', desc: 'Arguing from an undeniable Y to a necessary precondition X.' },
+    { term: 'Uniqueness Objection', kind: 'Definition', topic: 'Philosophy', file: 'philosophy/lessons/0012-transcendental-arguments.html', anchor: 'uniqueness-objection', desc: 'Is X really the only precondition for Y, or could a rival X′ also explain it?' },
+
+    // ── Philosophy: reference docs ──
+    { term: 'Logic Extensions Cheat Sheet', kind: 'Reference doc', topic: 'Philosophy', file: 'philosophy/reference/logic-extensions-cheatsheet.html', desc: 'Compressed summary of lessons 10–12 — deontic, epistemic, transcendental.' },
+
+    // ── Rationality: lesson-level entries ──
+    { term: 'Cognitive Biases — Catching Your Own Mind', kind: 'Lesson 1', topic: 'Rationality', file: 'rationality/lessons/0001-cognitive-biases.html', desc: 'Confirmation bias, motivated reasoning, and the shortcuts derailing your own arguments.' },
+    { term: 'Probabilistic & Bayesian Reasoning', kind: 'Lesson 2', topic: 'Rationality', file: 'rationality/lessons/0002-probabilistic-bayesian-reasoning.html', desc: 'Base rates, updating on evidence, and why confidence should come in degrees.' },
+    { term: 'Charitable Interpretation & Steelmanning', kind: 'Lesson 3', topic: 'Rationality', file: 'rationality/lessons/0003-charitable-interpretation-steelmanning.html', desc: 'Responding to the strongest version of what someone means, not the weakest.' },
+
+    // ── Rationality: term definitions ──
+    { term: 'Confirmation Bias', kind: 'Definition', topic: 'Rationality', file: 'rationality/lessons/0001-cognitive-biases.html', anchor: 'confirmation-bias', desc: 'Noticing evidence that fits existing beliefs, missing what doesn’t.' },
+    { term: 'Motivated Reasoning', kind: 'Definition', topic: 'Rationality', file: 'rationality/lessons/0001-cognitive-biases.html', anchor: 'motivated-reasoning', desc: 'Working backward from a conclusion you want to be true.' },
+    { term: 'Fundamental Attribution Error', kind: 'Definition', topic: 'Rationality', file: 'rationality/lessons/0001-cognitive-biases.html', anchor: 'fundamental-attribution-error', desc: 'Character for their behavior, circumstance for your own.' },
+    { term: 'Availability Heuristic', kind: 'Definition', topic: 'Rationality', file: 'rationality/lessons/0001-cognitive-biases.html', anchor: 'availability-heuristic', desc: 'Vivid, memorable examples feel more frequent than they really are.' },
+    { term: "Bayes' Theorem", kind: 'Definition', topic: 'Rationality', file: 'rationality/lessons/0002-probabilistic-bayesian-reasoning.html', anchor: 'bayes-theorem', desc: 'P(H|E) = P(E|H) × P(H) / P(E) — updating belief by evidence and prior.' },
+    { term: 'Base Rate Neglect', kind: 'Definition', topic: 'Rationality', file: 'rationality/lessons/0002-probabilistic-bayesian-reasoning.html', anchor: 'base-rate-neglect', desc: 'Ignoring how rare something was beforehand; the classic test-accuracy trap.' },
+    { term: 'Calibration', kind: 'Definition', topic: 'Rationality', file: 'rationality/lessons/0002-probabilistic-bayesian-reasoning.html', anchor: 'calibration', desc: '"80% sure" should be right about 80% of the time.' },
+    { term: 'Principle of Charity', kind: 'Definition', topic: 'Rationality', file: 'rationality/lessons/0003-charitable-interpretation-steelmanning.html', anchor: 'principle-of-charity', desc: 'Interpret ambiguous statements in their strongest, most defensible form.' },
+    { term: 'Steelmanning', kind: 'Definition', topic: 'Rationality', file: 'rationality/lessons/0003-charitable-interpretation-steelmanning.html', anchor: 'steelmanning', desc: 'The deliberate opposite of a straw man.' },
+    { term: 'Facts vs. Values', kind: 'Definition', topic: 'Rationality', file: 'rationality/lessons/0003-charitable-interpretation-steelmanning.html', anchor: 'facts-vs-values', desc: "Facts are resolvable with evidence; values/feelings aren't." },
+
+    // ── Rationality: reference docs ──
+    { term: 'Practical Rationality Cheat Sheet', kind: 'Reference doc', topic: 'Rationality', file: 'rationality/reference/practical-rationality-cheatsheet.html', desc: 'Compressed summary of lessons 1–3 — biases, Bayesian updating, steelmanning.' },
 
     // ── Topic indexes ──
     { term: 'Logic (topic home)', kind: 'Topic', topic: 'Logic', file: 'logic/index.html', desc: 'All Logic lessons and reference docs.' },
+    { term: 'Philosophy (topic home)', kind: 'Topic', topic: 'Philosophy', file: 'philosophy/index.html', desc: 'All Philosophy lessons and reference docs.' },
+    { term: 'Rationality (topic home)', kind: 'Topic', topic: 'Rationality', file: 'rationality/index.html', desc: 'All Rationality lessons and reference docs.' },
     { term: 'Music Theory & Keyboard (topic home)', kind: 'Topic', topic: 'Music Theory', file: 'music-theory/index.html', desc: 'All Music Theory lessons.' },
     { term: 'CS Interview Prep (topic home)', kind: 'Topic', topic: 'CS Interviews', file: 'cs-interviews/index.html', desc: 'All CS Interview Prep lessons.' },
     { term: 'Learning Hub (home)', kind: 'Home', topic: '', file: 'index.html', desc: 'All topics.' },

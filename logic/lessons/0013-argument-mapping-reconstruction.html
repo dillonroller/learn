@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 13 — Argument Mapping & Reconstruction</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Logic</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 13 of 14 &nbsp;·&nbsp; Logic &nbsp;·&nbsp; ~30 min</p>
+  <h1>Argument Mapping & Reconstruction</h1>
+  <p>Every argument in this topic so far has arrived pre-packaged: "Premise 1... Premise 2... Therefore..." Real arguments — spoken in a meeting, buried in an op-ed, thrown out mid-debate — never look like that. They're compressed, reordered, and missing pieces everyone's expected to fill in silently. This lesson is the actual skill of turning that mess back into the clean form lesson 1 started with.</p>
+
+  <h2>Quick recall</h2>
+  <p>From <a href="0001-arguments-validity-soundness.html#argument">lesson 1</a>: an argument is one or more premises leading to a conclusion. Everything below is just a disciplined procedure for finding those pieces when nobody hands them to you labeled.</p>
+
+  <h2 id="conclusion-indicators">Step 1: find the conclusion first</h2>
+  <p>Counterintuitively, hunt for the conclusion before the premises — it anchors everything else. Ask: <strong>what is this person ultimately trying to get me to believe or do?</strong> That's the conclusion, no matter where it physically sits in the paragraph.</p>
+
+  <div class="conn-table">
+    <div class="conn-row header"><span>Conclusion indicator words</span><span>Example</span></div>
+    <div class="conn-row"><span>therefore, thus, so, hence</span><span>"...so we should switch vendors."</span></div>
+    <div class="conn-row"><span>this shows / this means / which proves</span><span>"...which shows the plan won't work."</span></div>
+    <div class="conn-row"><span>consequently, it follows that</span><span>"Consequently, demand will fall."</span></div>
+  </div>
+
+  <div class="callout warn">
+    <strong>The conclusion is not always last</strong>
+    "We should ban the additive. After all, three independent studies link it to health risks, and the manufacturer has never disputed those findings." The conclusion ("we should ban the additive") is stated <em>first</em> here, with the premises trailing after "after all." Position in the paragraph tells you nothing — only the "what are they trying to convince me of" test does.
+  </div>
+
+  <h2 id="premise-indicators">Step 2: find the premises</h2>
+  <p>Once you have the conclusion, everything offered <em>in support of it</em> is a premise.</p>
+
+  <div class="conn-table">
+    <div class="conn-row header"><span>Premise indicator words</span><span>Example</span></div>
+    <div class="conn-row"><span>because, since</span><span>"...because the data doesn't support it."</span></div>
+    <div class="conn-row"><span>given that, for the reason that</span><span>"Given that costs rose 12%..."</span></div>
+    <div class="conn-row"><span>after all</span><span>"After all, no one else does this."</span></div>
+  </div>
+
+  <p>Not every premise gets an indicator word — plenty are just asserted flatly, with the support relationship left implicit. That's normal; you have to infer that a sentence is functioning as a premise from context, not just from vocabulary.</p>
+
+  <h2 id="implicit-premises">Step 3: surface the unstated premise (enthymemes)</h2>
+  <p>Almost every real argument skips at least one "obvious" step. An argument with a missing premise has a name: an <strong>enthymeme</strong>. Lesson 1's very first example was already one, compressed:</p>
+
+  <div class="callout">
+    <strong>"Socrates is human, so Socrates is mortal."</strong>
+    As stated, this doesn't even mention the connection between humanity and mortality — that link is <code>∀x(Human(x)→Mortal(x))</code>, "all humans are mortal," and it's completely unstated here. Nobody actually talks in fully spelled-out syllogisms; the missing premise is assumed common ground.
+  </div>
+
+  <div class="callout warn">
+    <strong>The technique: ask what premise would make it valid</strong>
+    Whenever an argument feels like it's missing a step, ask directly: <em>what additional premise, if added, would make the conclusion actually follow?</em> Add the minimal thing that closes the gap. This does one of two things, and both are useful: (1) the missing premise turns out obviously true, and the argument was fine all along, just compressed for efficiency — or (2) the missing premise turns out shaky, unsupported, or false, and <em>that's</em> now your precise target, instead of a vague feeling that "something's off." This is the real antidote to <a href="0012-informal-fallacies.html#slippery-slope">lesson 12's slippery slope</a>: each unjustified "link" in the chain is exactly an implicit premise nobody defended.
+  </div>
+
+  <h2 id="standard-form">Standard form, with implicit premises marked</h2>
+  <p>Once you've got everything, write it out the way lesson 1 always has — numbered, one claim per line — but flag anything you added yourself:</p>
+
+  <div class="proof">
+    <div class="proof-line"><span class="ln">1</span><span>Socrates is human.</span><span class="just">stated</span></div>
+    <div class="proof-line"><span class="ln">2</span><span>All humans are mortal.</span><span class="just">implicit</span></div>
+    <div class="proof-line"><span class="ln">3</span><span>Therefore, Socrates is mortal.</span><span class="just">conclusion</span></div>
+  </div>
+
+  <p>Marking a premise "implicit" isn't cheating — it's honesty about what the arguer actually committed to out loud versus what you had to supply to make the reasoning hang together. If they'd object to the implicit premise once it's spelled out, you've found the real disagreement.</p>
+
+  <h2 id="linked-convergent-premises">Linked vs. convergent premises</h2>
+  <p>Multiple premises can support a conclusion two structurally different ways, and telling them apart matters for how you respond to a rebuttal.</p>
+
+  <div class="callout">
+    <strong id="linked-premises">Linked — the premises only work together</strong>
+    "All humans are mortal. Socrates is human. Therefore Socrates is mortal." Delete either premise and the argument doesn't just weaken — it completely falls apart. Neither premise supports the conclusion on its own.
+  </div>
+  <div class="callout">
+    <strong id="convergent-premises">Convergent — each premise supports the conclusion independently</strong>
+    "This candidate has 20 years of relevant experience. She also has the strongest policy platform. She's also endorsed by leading economists in the field." Each sentence is a separate, self-sufficient reason. Knock one out and the other two still stand, undiminished.
+  </div>
+
+  <div class="callout warn">
+    <strong>Why the distinction matters in a live debate</strong>
+    If premises are <strong>linked</strong>, one solid rebuttal to a single premise sinks the entire argument. If premises are <strong>convergent</strong>, a rebuttal to one premise only costs the arguer that one leg — the conclusion may still stand on the others. Knowing which structure you're facing tells you whether a single counterpoint should end the discussion or just narrow it.
+  </div>
+
+  <h2 id="chained-arguments">Chained arguments: sub-conclusions become premises</h2>
+  <p>Just like <a href="0005-natural-deduction.html">lesson 5's multi-step proofs</a>, real arguments often stack: a small argument establishes a sub-conclusion, and that sub-conclusion becomes a premise for the next stage. "Sales dropped every quarter this year (premise) → so the product isn't meeting demand (sub-conclusion) → so the redesign should be prioritized (final conclusion)." Reconstructing arguments like this means mapping each stage separately — the same discipline as checking a proof one line at a time, rather than trying to swallow the whole thing at once.</p>
+
+  <h2>Try it: reconstruct the argument</h2>
+  <p>For each messy excerpt, pick the correctly reconstructed piece.</p>
+  <div id="map-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. In "We should ban the additive — three studies link it to health risks," the conclusion is…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true, 'q1','Right — the conclusion is what the arguer is trying to convince you of. Here it’s stated first, with the premise trailing after the dash.')">"We should ban the additive" — stated first, before the premise</button>
+        <button onclick="quizAnswer(this,false,'q1','That sentence is the premise (the supporting reason), not the conclusion — the arguer isn’t trying to convince you studies exist, they’re trying to convince you to ban the additive.')">"Three studies link it to health risks" — it comes last</button>
+        <button onclick="quizAnswer(this,false,'q1','Conclusions aren’t identified by sentence position — this argument’s conclusion actually comes first, not last.')">Whichever sentence appears last in the paragraph</button>
+        <button onclick="quizAnswer(this,false,'q1','There’s a clear conclusion here: the arguer wants you to believe the additive should be banned, supported by a specific reason.')">There is no conclusion, only a premise</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. "Socrates is human, so Socrates is mortal" is missing the premise…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Socrates being human is already stated explicitly — that’s not what’s missing.')">Socrates is a philosopher</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — this is the unstated link connecting "human" to "mortal." Without it, "Socrates is human" alone doesn’t get you to "Socrates is mortal."')">All humans are mortal</button>
+        <button onclick="quizAnswer(this,false,'q2','This isn’t needed to make the argument valid, and it’s not what’s missing from the stated premises.')">Mortality is undesirable</button>
+        <button onclick="quizAnswer(this,false,'q2','This is circular — it just restates the conclusion itself rather than supplying the missing link between the stated premise and the conclusion.')">Socrates is mortal</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. "All humans are mortal. Socrates is human. Therefore Socrates is mortal." These two premises are…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','Convergent premises would each independently support the conclusion on their own — removing either one here completely breaks the argument, which is the opposite.')">Convergent — each independently supports the conclusion</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — delete either premise and the argument falls apart entirely. Neither one supports "Socrates is mortal" without the other.')">Linked — they only work together</button>
+        <button onclick="quizAnswer(this,false,'q3','They’re not unrelated — together they form the exact structure that makes the conclusion follow (Universal Instantiation + Modus Ponens, from lesson 8).')">Unrelated to each other</button>
+        <button onclick="quizAnswer(this,false,'q3','Neither premise restates the conclusion as a premise — this is a legitimate, non-circular argument.')">Circular, since one restates the other</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Why does it matter whether premises are linked or convergent?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','It matters a great deal for how a rebuttal lands — knocking out one linked premise destroys the whole argument, while knocking out one convergent premise barely dents it.')">It doesn't — both structures behave identically in a rebuttal</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — a rebuttal to one linked premise collapses the whole argument, while a rebuttal to one convergent premise only removes that single leg of support, leaving the others standing.')">It tells you whether refuting one premise sinks the whole argument or just weakens it</button>
+        <button onclick="quizAnswer(this,false,'q4','This distinction is squarely about structure — it doesn’t determine whether the premises are true, which is a separate, empirical question.')">It determines whether the premises are true or false</button>
+        <button onclick="quizAnswer(this,false,'q4','Linked/convergent is a genuine structural distinction with real consequences for how an argument responds to rebuttal — it’s not just stylistic.')">It's purely stylistic and has no real effect on evaluating the argument</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Take the fallacy example you found for <a href="0012-informal-fallacies.html">lesson 12's</a> practice task, or find a fresh short argument from a real source. Reconstruct it fully: find the conclusion, list every premise (marking any implicit ones), and note whether the premises are linked or convergent. Keep this reconstruction — <a href="0014-evaluating-real-debates.html">lesson 14</a> uses exactly this output as its starting point.</p>
+
+  <h2>Primary resource</h2>
+  <p>See the <a href="https://plato.stanford.edu/entries/argument/" target="_blank">Stanford Encyclopedia of Philosophy — Argument and Argumentation</a> for a deeper treatment of enthymemes, argument reconstruction, and the linked/convergent distinction (sometimes called "serial" vs. "independent" support).</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Got a real argument you're struggling to reconstruct — can't find the conclusion, or not sure what's implicit? Bring the exact text to Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0012-informal-fallacies.html">← Lesson 12: Informal Fallacies</a>
+    <span class="spacer"></span>
+    <a href="0014-evaluating-real-debates.html">Lesson 14: Evaluating Real Debates →</a>
+  </div>
+
+</div>
+
+<style>
+.conn-table {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin: 1.25rem 0;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: .85rem;
+}
+.conn-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1.3fr;
+  padding: .55rem 1rem;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  gap: .5rem;
+}
+.conn-row:last-child { border-bottom: none; }
+.conn-row.header { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; background: #111; }
+.conn-row:not(.header):nth-child(even) { background: #1e1e1e; }
+
+.proof {
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  font-size: .88rem;
+  background: #141414;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin: 1rem 0;
+}
+.proof-line {
+  display: grid;
+  grid-template-columns: 1.6rem 1fr auto;
+  gap: .75rem;
+  padding: .2rem 0;
+  align-items: baseline;
+}
+.proof-line .ln { color: #555; }
+.proof-line .just {
+  color: var(--muted);
+  font-size: .78rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  white-space: nowrap;
+}
+
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .95rem; margin-bottom: .75rem; line-height: 1.55; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const MAP_ITEMS = [
+  {
+    english: '"This laptop is the right choice — it has the longest battery life, and it\'s also the lightest in its class." What kind of premises are these?',
+    options: [
+      { text: 'Linked', explain: 'Delete either premise here and the other still stands as a complete, independent reason to choose the laptop — that’s not how linked premises behave.' },
+      { text: 'Convergent', correct: true, explain: 'Right — battery life and weight are each a separate, self-sufficient reason. Losing one still leaves the other supporting the conclusion.' },
+    ],
+  },
+  {
+    english: '"Every certified electrician passed a licensing exam. Maria is a certified electrician. So Maria passed a licensing exam." What kind of premises are these?',
+    options: [
+      { text: 'Linked', correct: true, explain: 'Right — remove either premise and the conclusion no longer follows at all. They only work as a pair, exactly like the Socrates argument.' },
+      { text: 'Convergent', explain: 'Convergent premises would each independently support the conclusion — but neither of these two does anything alone; they need each other.' },
+    ],
+  },
+  {
+    english: '"Sales dropped every quarter this year — the product clearly isn\'t meeting demand." What premise is missing to make this fully explicit?',
+    options: [
+      { text: '"Sales dropping indicates a product isn\'t meeting demand"', correct: true, explain: 'Right — this is the unstated link between the stated fact (sales dropped) and the conclusion (not meeting demand). Once stated, you can ask directly whether it’s actually true (maybe sales dropped due to a pricing change, not demand).' },
+      { text: '"The product has poor reviews online"', explain: 'This isn’t mentioned or needed anywhere in the original argument — it’s not the gap between the stated premise and the conclusion.' },
+    ],
+  },
+];
+
+const mapDiv = document.getElementById('map-exercise');
+MAP_ITEMS.forEach((item, i) => {
+  const cardId = `map-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  mapDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

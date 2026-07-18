@@ -106,10 +106,10 @@
     <div class="q-block" id="q1">
       <p>1. De Morgan's law says <code>¬(P ∧ Q)</code> is equivalent to…</p>
       <div class="options">
-        <button onclick="answer(this,false,'q1')">¬P ∧ ¬Q</button>
-        <button onclick="answer(this,true, 'q1')">¬P ∨ ¬Q</button>
-        <button onclick="answer(this,false,'q1')">P ∨ Q</button>
-        <button onclick="answer(this,false,'q1')">P ∧ Q</button>
+        <button onclick="quizAnswer(this,false,'q1','That drops the negation flip — De Morgan turns ∧ into ∨ when the ¬ moves inside, not into another ∧.')">¬P ∧ ¬Q</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — negating a conjunction flips it to a disjunction of negations, exactly like !(a && b) == (!a || !b) in Rust/C.')">¬P ∨ ¬Q</button>
+        <button onclick="quizAnswer(this,false,'q1','This drops the negations entirely — ¬(P∧Q) is about what happens when the conjunction is false, not the conjunction itself.')">P ∨ Q</button>
+        <button onclick="quizAnswer(this,false,'q1','This is just the original conjunction with the ¬ removed — it ignores the negation completely.')">P ∧ Q</button>
       </div>
       <div class="feedback" id="q1-fb"></div>
     </div>
@@ -117,10 +117,10 @@
     <div class="q-block" id="q2">
       <p>2. Contraposition says <code>P → Q</code> is equivalent to…</p>
       <div class="options">
-        <button onclick="answer(this,false,'q2')">Q → P</button>
-        <button onclick="answer(this,false,'q2')">¬P → ¬Q</button>
-        <button onclick="answer(this,true, 'q2')">¬Q → ¬P</button>
-        <button onclick="answer(this,false,'q2')">¬P ∧ ¬Q</button>
+        <button onclick="quizAnswer(this,false,'q2','That’s the converse, not the contrapositive — Q → P is not generally equivalent to P → Q (that’s the “P if Q” reversal trap from lesson 2).')">Q → P</button>
+        <button onclick="quizAnswer(this,false,'q2','That’s the inverse — negating both sides without swapping their order isn’t equivalent to the original either.')">¬P → ¬Q</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — contraposition negates both sides AND swaps their order: P → Q ≡ ¬Q → ¬P.')">¬Q → ¬P</button>
+        <button onclick="quizAnswer(this,false,'q2','That drops the conditional structure entirely, turning it into a conjunction — a different formula altogether.')">¬P ∧ ¬Q</button>
       </div>
       <div class="feedback" id="q2-fb"></div>
     </div>
@@ -128,10 +128,10 @@
     <div class="q-block" id="q3">
       <p>3. Conjunctive Normal Form is best described as…</p>
       <div class="options">
-        <button onclick="answer(this,false,'q3')">An OR of AND-clauses</button>
-        <button onclick="answer(this,true, 'q3')">An AND of OR-clauses</button>
-        <button onclick="answer(this,false,'q3')">Only negated literals allowed</button>
-        <button onclick="answer(this,false,'q3')">No connectives at all</button>
+        <button onclick="quizAnswer(this,false,'q3','That’s DNF (Disjunctive Normal Form) — CNF is the mirror image of this.')">An OR of AND-clauses</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — CNF is a conjunction of clauses, each clause a disjunction of literals: (l₁∨l₂∨...) ∧ (l₃∨l₄∨...) ∧ ...')">An AND of OR-clauses</button>
+        <button onclick="quizAnswer(this,false,'q3','CNF clauses can mix positive and negative literals freely — the restriction is on the connectives used (only ∧ and ∨), not on negation.')">Only negated literals allowed</button>
+        <button onclick="quizAnswer(this,false,'q3','CNF is built entirely from literals joined by ∧ and ∨ — it has plenty of connectives, just restricted to those two kinds.')">No connectives at all</button>
       </div>
       <div class="feedback" id="q3-fb"></div>
     </div>
@@ -139,10 +139,10 @@
     <div class="q-block" id="q4">
       <p>4. Why do SAT solvers require formulas in CNF?</p>
       <div class="options">
-        <button onclick="answer(this,false,'q4')">CNF is the only valid form</button>
-        <button onclick="answer(this,false,'q4')">CNF formulas are always true</button>
-        <button onclick="answer(this,true, 'q4')">A standard shape is easier to process algorithmically</button>
-        <button onclick="answer(this,false,'q4')">CNF has no atomic propositions</button>
+        <button onclick="quizAnswer(this,false,'q4','CNF isn’t the only valid form — DNF and arbitrary nested formulas are equally valid. CNF is a convenience for algorithms, not a requirement of logic itself.')">CNF is the only valid form</button>
+        <button onclick="quizAnswer(this,false,'q4','CNF formulas can be false — e.g. (P) ∧ (¬P) is valid CNF and a contradiction. CNF is a shape, not a guarantee of truth.')">CNF formulas are always true</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — a standardized shape (clauses of literals) lets algorithms like DPLL/CDCL process any formula uniformly, exactly as the callout above explains.')">A standard shape is easier to process algorithmically</button>
+        <button onclick="quizAnswer(this,false,'q4','CNF is built entirely out of atomic propositions (as literals) — it has plenty of them, just no connectives besides ∧, ∨, and ¬.')">CNF has no atomic propositions</button>
       </div>
       <div class="feedback" id="q4-fb"></div>
     </div>
@@ -369,22 +369,8 @@ window.addEventListener('load', () => {
   picker.querySelector('button').click();
 });
 
-// ── Quiz ───────────────────────────────────────────────────
-let scores = {};
-function answer(btn, correct, qid) {
-  const block = document.getElementById(qid);
-  if (block.dataset.done) return;
-  block.dataset.done = 'true';
-  const fb = document.getElementById(qid + '-fb');
-  btn.classList.add(correct ? 'correct' : 'wrong');
-  fb.textContent = correct ? '✓ Correct.' : '✗ Not quite — review the section above.';
-  fb.className = 'feedback ' + (correct ? 'good' : 'bad');
-  scores[qid] = correct ? 1 : 0;
-  const total = Object.keys(scores).length;
-  const right = Object.values(scores).filter(Boolean).length;
-  document.getElementById('score').textContent = `${right} / ${total} correct so far`;
-}
 </script>
+<script src="../../assets/quiz.js"></script>
 <script src="../../assets/search.js"></script>
 </body>
 </html>

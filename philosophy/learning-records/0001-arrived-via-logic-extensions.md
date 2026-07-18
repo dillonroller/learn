@@ -1,0 +1,3 @@
+# Philosophy topic entered via Logic's "should" question, not lesson 1
+
+The user didn't start this topic at "What is Philosophy?" — they arrived by asking what "should" means logically inside a Logic lesson 13 example, which surfaced Hume's is-ought gap. From there they explicitly asked for deontic logic, epistemic logic, and transcendental arguments, plus said "eventually" for non-classical logics. This sets the actual zone of proximal development: formal-logic-adjacent topics first, broad epistemology/ethics/metaphysics placeholders later. It also means the user already has the deductive/inductive distinction and validity/soundness solid from Logic — no need to re-teach those foundations here, just link back to them.

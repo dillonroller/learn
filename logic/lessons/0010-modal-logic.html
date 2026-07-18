@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 10 — Modal Logic: Necessity & Possibility</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Logic</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 10 of 14 &nbsp;·&nbsp; Logic &nbsp;·&nbsp; ~25 min</p>
+  <h1>Modal Logic: Necessity & Possibility</h1>
+  <p>Back in <a href="0002-propositional-logic-syntax.html#modal-words">lesson 2</a>, "may," "can," and "must" got flagged as landmines and set aside for later — plain propositional logic has no way to represent them honestly. This is that lesson. Modal logic adds exactly two new symbols on top of everything you already know, and they turn out to follow the same duality pattern you already learned for quantifiers.</p>
+
+  <h2>Quick recall</h2>
+  <p>From memory:</p>
+  <ul>
+    <li>What's the negation of <code>∀x P(x)</code>?</li>
+    <li>What's the negation of <code>∃x P(x)</code>?</li>
+  </ul>
+  <p style="color:var(--muted); font-size:.9rem;">Answers: ¬∀x P(x) ≡ ∃x ¬P(x) · ¬∃x P(x) ≡ ∀x ¬P(x) — keep this pattern in mind, it's about to reappear.</p>
+
+  <h2 id="necessity">Two new operators: □ and ◇</h2>
+  <p>Modal logic adds two symbols to everything from lessons 1–9:</p>
+
+  <div class="conn-table">
+    <div class="conn-row header"><span>Symbol</span><span>Read as</span><span>Meaning</span></div>
+    <div class="conn-row"><span><code>□P</code></span><span>"necessarily P" / "must be P"</span><span>P is true no matter how things could have turned out</span></div>
+    <div class="conn-row" id="possibility"><span><code>◇P</code></span><span>"possibly P" / "could be P"</span><span>P is true in at least one way things could have turned out</span></div>
+  </div>
+
+  <div class="callout">
+    <strong>The quantifier analogy — this is the whole trick</strong>
+    <code>□</code> and <code>◇</code> behave exactly like <code>∀</code> and <code>∃</code>, just quantifying over something different. <code>∀x P(x)</code> quantifies over <em>things in a domain</em>; <code>□P</code> quantifies over <em>ways things could have been</em> — usually called <strong id="possible-worlds-semantics">possible worlds</strong>. "<code>□P</code>" says P holds in <em>every</em> possible world; "<code>◇P</code>" says P holds in <em>at least one</em>. Same all/some structure, new domain.
+  </div>
+
+  <p>A <strong>possible world</strong> isn't a sci-fi concept — it's just a complete, self-consistent way things could be, including the actual world as one member of the set. "It's raining" is true in the actual world but false in plenty of others (ones where it didn't rain today). "2 + 2 = 4" is true in <em>every</em> possible world — there's no consistent way to imagine it false. That difference is exactly what <code>□</code> and <code>◇</code> are built to express: <code>□(2+2=4)</code> is true; <code>□Raining</code> is false, even on a day when it happens to be raining, because <code>◇¬Raining</code> is also true — it could easily not have been.</p>
+
+  <h2 id="modal-duality">Duality: □ and ◇ mirror ∀ and ∃ exactly</h2>
+  <p>The negation pattern from lesson 6 carries over unchanged:</p>
+
+  <div class="conn-table">
+    <div class="conn-row header"><span>Original</span><span>Equivalent</span></div>
+    <div class="conn-row"><span><code>¬□P</code></span><span><code>◇¬P</code></span></div>
+    <div class="conn-row"><span><code>¬◇P</code></span><span><code>□¬P</code></span></div>
+  </div>
+
+  <div class="callout">
+    <strong>Read it in English and it's obvious</strong>
+    "It's not necessary that P" means exactly "it's possible that not-P" — if P weren't guaranteed, there must be some way things could go where P fails. "It's not possible that P" means exactly "it's necessary that not-P" — if P can't happen anywhere, then not-P holds everywhere. Same shape as <a href="0006-predicate-logic-quantifiers.html#quantifier-negation">lesson 6's quantifier negation</a>: swap "some individual" for "some possible world" and the logic is identical.
+  </div>
+
+  <h2>Symbolizing "must," "can," and "might"</h2>
+  <p>This is the payoff lesson 2 promised. Recall the ticket example: "you may enter only if you have a ticket" needed <code>Admitted</code> to mean <em>permission</em>, not the physical act — because plain propositional logic had no separate symbol for "may." Now it does.</p>
+
+  <div class="conn-table">
+    <div class="conn-row header"><span>English</span><span>Modal logic</span></div>
+    <div class="conn-row"><span>"You must have a ticket to enter"</span><span><code>□(Enter → Ticket)</code></span></div>
+    <div class="conn-row"><span>"You might already know this"</span><span><code>◇Know(you, this)</code></span></div>
+    <div class="conn-row"><span>"It can't be raining and not raining"</span><span><code>□¬(Rain ∧ ¬Rain)</code></span></div>
+  </div>
+
+  <h2 id="modal-scope-fallacy">The modal scope fallacy — where debates actually break</h2>
+  <p>Modal operators interact with <code>→</code> in a way that's extremely easy to slide past unnoticed. Compare these two formulas carefully — they look almost identical, but they claim very different things:</p>
+
+  <div class="conn-table">
+    <div class="conn-row header"><span>Formula</span><span>What it actually claims</span></div>
+    <div class="conn-row"><span><code>□(P → Q)</code></span><span>The conditional itself is a necessary truth — true in every possible world, whatever P and Q happen to be there</span></div>
+    <div class="conn-row"><span><code>P → □Q</code></span><span>If P is actually true, then Q is necessarily true — a much stronger claim about Q specifically</span></div>
+  </div>
+
+  <div class="callout warn">
+    <strong>They are not equivalent — a clean example proves it</strong>
+    Take P = "It's raining" and Q = "It's raining" (so P and Q are the same proposition). <code>□(P → P)</code> is true — <em>any</em> conditional of the form "if X then X" is a tautology, true no matter what, so it's necessarily true. But <code>P → □P</code> is false on a day when it's actually raining: raining today is a contingent fact, not a necessary one — it easily could have gone the other way. Same letters, same connectives, wildly different scope, wildly different truth value.
+  </div>
+
+  <div class="callout">
+    <strong>Why this matters for evaluating real arguments</strong>
+    This exact slide shows up constantly: someone establishes that a conditional is logically guaranteed — "if X, then X follows" is trivially true — and then talks as if that guarantee transfers onto the consequent by itself, as though X were now certain rather than merely conditionally implied. Spotting <code>□(P→Q)</code> quietly turning into <code>P→□Q</code> partway through an argument is one of the sharpest, most underused tools you now have. It's the modal-logic sibling of <a href="0002-propositional-logic-syntax.html#affirming-the-consequent">affirming the consequent</a> — a scope error that "sounds" valid because the individual pieces are each true somewhere.
+  </div>
+
+  <h2>Try it: which formula matches?</h2>
+  <p>For each English sentence, pick the correctly-scoped formula.</p>
+  <div id="modal-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. <code>□P</code> is true exactly when…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','That’s ◇P, possibility — true in at least one possible world is a much weaker claim than true in every one.')">P is true in at least one possible world</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — □P (“necessarily P”) requires P to hold in every possible world, with no exceptions.')">P is true in every possible world</button>
+        <button onclick="quizAnswer(this,false,'q1','□ doesn’t care about the actual world specifically — it requires truth across every possible world, actual and otherwise.')">P is true in the actual world only</button>
+        <button onclick="quizAnswer(this,false,'q1','□P being false doesn’t mean P is false everywhere — it just means P fails in at least one possible world. P could still be actually true.')">P is false in every possible world</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. <code>¬□P</code> is equivalent to…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','That keeps the same operator (□) with just P negated — but negating the whole statement has to flip the operator itself, from □ to ◇, exactly like ¬∀ flips to ∃.')">□¬P</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — ¬□P ≡ ◇¬P: if P isn’t guaranteed in every world, then not-P must hold in at least one.')">◇¬P</button>
+        <button onclick="quizAnswer(this,false,'q2','That’s just the un-negated original claim — negating ¬□P doesn’t just cancel back to P by itself.')">□P</button>
+        <button onclick="quizAnswer(this,false,'q2','That’s the negation of a different statement, ◇P, not of □P.')">¬◇P</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. "You must have a ticket to enter" is best symbolized as…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true, 'q3','Right — the whole conditional (entering requires a ticket) is what’s necessary, matching the modal-words distinction from lesson 2.')">□(Enter → Ticket)</button>
+        <button onclick="quizAnswer(this,false,'q3','This claims entering necessarily follows from having a ticket — backwards, and it drops the necessity from where it actually belongs (on the requirement itself).')">Enter → □Ticket</button>
+        <button onclick="quizAnswer(this,false,'q3','This drops the necessity/modal claim entirely — it’s just the plain lesson-2 conditional, with no □ at all.')">Enter → Ticket</button>
+        <button onclick="quizAnswer(this,false,'q3','◇ would say entering-with-a-ticket is merely POSSIBLE, not required — "must" is a necessity claim, not a mere possibility.')">◇(Enter ∧ Ticket)</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Why are <code>□(P → Q)</code> and <code>P → □Q</code> different claims?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','They can’t both be renamed the same conditional — the raining example above shows □(P→P) is true while P→□P is false for the exact same P, so they diverge.')">They're actually the same, just written differently</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — the first says the whole conditional is necessarily true; the second says P being actually true forces Q to be necessarily true, a much stronger and different claim about Q.')">The first says the conditional itself is necessary; the second says P’s truth forces Q to be necessary</button>
+        <button onclick="quizAnswer(this,false,'q4','Both formulas are perfectly legal, well-formed modal formulas — the issue is that they mean different things, not that one is malformed.')">One of them isn't a valid formula</button>
+        <button onclick="quizAnswer(this,false,'q4','Both use → exactly once — the difference is where □ is placed relative to it (wrapping the whole conditional vs. just the consequent), not how many times → appears.')">They use → a different number of times</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Symbolize: "It's possible that the meeting gets rescheduled." "A bachelor is necessarily unmarried." "If the code is correct, it doesn't necessarily mean it's fast" (careful with scope on this last one — where does the negation of necessity actually attach?).</p>
+
+  <h2>Primary resource</h2>
+  <p>See the <a href="https://plato.stanford.edu/entries/logic-modal/" target="_blank">Stanford Encyclopedia of Philosophy — Modal Logic</a> for the full possible-worlds (Kripke) semantics, including how different accessibility-relation properties produce the different modal systems (K, T, S4, S5) — this lesson only needed the shared basics common to all of them.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Modal scope errors are genuinely subtle — bring a real argument you suspect is sliding between □(P→Q) and P→□Q, and we'll pin down exactly where.
+  </div>
+
+  <div class="nav">
+    <a href="0009-soundness-completeness.html">← Lesson 9: Soundness & Completeness</a>
+    <span class="spacer"></span>
+    <a href="0011-godels-incompleteness-theorems.html">Lesson 11: Gödel's Incompleteness Theorems →</a>
+  </div>
+
+</div>
+
+<style>
+.conn-table {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin: 1.25rem 0;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: .85rem;
+}
+.conn-row {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  padding: .55rem 1rem;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  gap: .5rem;
+}
+.conn-row:last-child { border-bottom: none; }
+.conn-row.header { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; background: #111; }
+.conn-row:not(.header):nth-child(even) { background: #1e1e1e; }
+
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: 1rem; margin-bottom: .75rem; letter-spacing: .01em; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); font-style: italic; margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const MODAL_ITEMS = [
+  {
+    english: '"A triangle necessarily has three sides."',
+    options: [
+      { text: '□Triangle(x) → □ThreeSides(x)', explain: 'This is about one specific object x having a necessary property conditionally — the English sentence is a general truth about triangles as such, better captured with the whole conditional inside □.' },
+      { text: '□(Triangle(x) → ThreeSides(x))', correct: true, explain: 'Right — it’s the whole conditional, "if it’s a triangle, it has three sides," that holds necessarily, true in every possible world, for any x.' },
+      { text: 'Triangle(x) → □ThreeSides(x)', explain: 'This claims that merely being an actual triangle forces three-sidedness to be necessary in some separate sense — close, but it misplaces the □, which belongs on the whole conditional, not just the consequent.' },
+    ],
+  },
+  {
+    english: '"It\'s raining, but it didn\'t have to be."',
+    options: [
+      { text: 'Rain ∧ ◇¬Rain', correct: true, explain: 'Right — it actually is raining (Rain), and it’s possible for it not to be (◇¬Rain, since rain is a contingent fact, not a necessary one).' },
+      { text: 'Rain ∧ □¬Rain', explain: '□¬Rain would claim it’s NECESSARILY not raining everywhere — directly contradicting the first half of the sentence, which says it IS raining.' },
+      { text: '□Rain ∧ ¬Rain', explain: 'This claims raining is necessary (true in every possible world) while also currently false — a direct contradiction, and backwards from the intended meaning.' },
+    ],
+  },
+  {
+    english: '"If the code compiles, that doesn\'t mean it\'s necessarily correct."',
+    options: [
+      { text: '¬(Compiles → □Correct)', correct: true, explain: 'Right — this denies that compiling forces correctness to be necessary, exactly matching "that doesn’t mean it’s necessarily correct."' },
+      { text: '¬□(Compiles → Correct)', explain: 'This denies that the CONDITIONAL itself is a necessary truth — a subtly different claim from denying that compiling forces necessary correctness in the consequent.' },
+      { text: 'Compiles → ¬Correct', explain: 'This drops the modal claim entirely and asserts compiling code is actually never correct — far stronger, and not what the English sentence says.' },
+    ],
+  },
+];
+
+const modalDiv = document.getElementById('modal-exercise');
+MODAL_ITEMS.forEach((item, i) => {
+  const cardId = `modal-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  modalDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

@@ -90,10 +90,10 @@
     <div class="q-block" id="q1">
       <p>1. An argument with a false premise but airtight structure is…</p>
       <div class="options">
-        <button onclick="answer(this,false,'q1')">Invalid and unsound both</button>
-        <button onclick="answer(this,true, 'q1')">Valid but unsound</button>
-        <button onclick="answer(this,false,'q1')">Sound but invalid</button>
-        <button onclick="answer(this,false,'q1')">Both valid and sound</button>
+        <button onclick="quizAnswer(this,false,'q1','Airtight structure means it IS valid — this option wrongly calls it invalid.')">Invalid and unsound both</button>
+        <button onclick="quizAnswer(this,true, 'q1','Airtight structure = valid. A false premise = unsound. That combination is exactly the penguin example above.')">Valid but unsound</button>
+        <button onclick="quizAnswer(this,false,'q1','Soundness requires valid structure as a precondition, so “sound but invalid” is a contradiction in terms — and a false premise rules out sound anyway.')">Sound but invalid</button>
+        <button onclick="quizAnswer(this,false,'q1','Sound requires every premise to be true. This argument has a false premise, so it cannot be sound.')">Both valid and sound</button>
       </div>
       <div class="feedback" id="q1-fb"></div>
     </div>
@@ -101,10 +101,10 @@
     <div class="q-block" id="q2">
       <p>2. Soundness requires…</p>
       <div class="options">
-        <button onclick="answer(this,false,'q2')">True premises alone</button>
-        <button onclick="answer(this,false,'q2')">Valid structure alone</button>
-        <button onclick="answer(this,true, 'q2')">Valid structure AND true premises</button>
-        <button onclick="answer(this,false,'q2')">A popular conclusion</button>
+        <button onclick="quizAnswer(this,false,'q2','True premises with a broken structure still isn’t sound — soundness needs the structure to be valid too.')">True premises alone</button>
+        <button onclick="quizAnswer(this,false,'q2','A valid structure with a false premise (like the penguin argument) is unsound — soundness needs true premises too.')">Valid structure alone</button>
+        <button onclick="quizAnswer(this,true, 'q2','Exactly the definition: sound = valid structure + all premises actually true.')">Valid structure AND true premises</button>
+        <button onclick="quizAnswer(this,false,'q2','Popularity has nothing to do with soundness — that’s an appeal to popularity, not a structural or factual check.')">A popular conclusion</button>
       </div>
       <div class="feedback" id="q2-fb"></div>
     </div>
@@ -112,10 +112,10 @@
     <div class="q-block" id="q3">
       <p>3. "The sun has always risen, so it will rise tomorrow" is best classified as…</p>
       <div class="options">
-        <button onclick="answer(this,false,'q3')">A valid deductive argument</button>
-        <button onclick="answer(this,false,'q3')">A sound deductive argument</button>
-        <button onclick="answer(this,true, 'q3')">A strong inductive argument</button>
-        <button onclick="answer(this,false,'q3')">Not an argument at all</button>
+        <button onclick="quizAnswer(this,false,'q3','Past risings make tomorrow’s rising probable, not certain — a valid deductive argument would need the conclusion to be guaranteed.')">A valid deductive argument</button>
+        <button onclick="quizAnswer(this,false,'q3','It isn’t even valid deductively, so it can’t be sound either — soundness requires validity first.')">A sound deductive argument</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — the premises make the conclusion likely, not certain. That’s the inductive/deductive line from this section.')">A strong inductive argument</button>
+        <button onclick="quizAnswer(this,false,'q3','It has a premise and a conclusion, so it is an argument — just an inductive one, not a deductive one.')">Not an argument at all</button>
       </div>
       <div class="feedback" id="q3-fb"></div>
     </div>
@@ -123,10 +123,10 @@
     <div class="q-block" id="q4">
       <p>4. If someone's premises are all true but their conclusion doesn't actually follow from them, the argument is…</p>
       <div class="options">
-        <button onclick="answer(this,true, 'q4')">Invalid — and therefore unsound</button>
-        <button onclick="answer(this,false,'q4')">Valid and sound regardless</button>
-        <button onclick="answer(this,false,'q4')">Sound but not valid</button>
-        <button onclick="answer(this,false,'q4')">Impossible — true premises guarantee validity</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — validity is about whether the conclusion follows, regardless of premise truth. If it doesn’t follow, it’s invalid, and invalid always means unsound.')">Invalid — and therefore unsound</button>
+        <button onclick="quizAnswer(this,false,'q4','Validity is about the conclusion following from the premises, not about whether the premises are true — true premises don’t rescue a broken structure.')">Valid and sound regardless</button>
+        <button onclick="quizAnswer(this,false,'q4','Soundness requires validity as a precondition, so “sound but not valid” is a contradiction in terms.')">Sound but not valid</button>
+        <button onclick="quizAnswer(this,false,'q4','False — the dolphin example above had a true premise (“dolphins live in water”) and still an invalid argument. True premises never guarantee validity.')">Impossible — true premises guarantee validity</button>
       </div>
       <div class="feedback" id="q4-fb"></div>
     </div>
@@ -262,22 +262,8 @@ function reveal(i) {
   document.getElementById(`cl-reveal-${i}`).classList.add('shown');
 }
 
-// ── Quiz ───────────────────────────────────────────────────
-let scores = {};
-function answer(btn, correct, qid) {
-  const block = document.getElementById(qid);
-  if (block.dataset.done) return;
-  block.dataset.done = 'true';
-  const fb = document.getElementById(qid + '-fb');
-  btn.classList.add(correct ? 'correct' : 'wrong');
-  fb.textContent = correct ? '✓ Correct.' : '✗ Not quite — review the section above.';
-  fb.className = 'feedback ' + (correct ? 'good' : 'bad');
-  scores[qid] = correct ? 1 : 0;
-  const total = Object.keys(scores).length;
-  const right = Object.values(scores).filter(Boolean).length;
-  document.getElementById('score').textContent = `${right} / ${total} correct so far`;
-}
 </script>
+<script src="../../assets/quiz.js"></script>
 <script src="../../assets/search.js"></script>
 </body>
 </html>

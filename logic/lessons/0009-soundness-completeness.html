@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 9 — Soundness & Completeness</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Logic</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 9 of 14 &nbsp;·&nbsp; Logic &nbsp;·&nbsp; ~25 min</p>
+  <h1>Soundness & Completeness</h1>
+  <p>You now have two completely different ways to establish that an argument works. <a href="0003-truth-tables.html#validity-test">Lesson 3</a> checks every possible truth-value assignment — a purely semantic method, about what's <em>true</em>. <a href="0005-natural-deduction.html#core-inference-rules">Lesson 5</a> chains inference rules into a proof — a purely syntactic method, about what's <em>derivable</em>. This lesson asks the question that's been quietly sitting underneath both: do these two methods always agree with each other? The answer has a name — actually two names — and they're the whole reason you can trust the rules you've been using.</p>
+
+  <h2>Quick recall</h2>
+  <p>From memory:</p>
+  <ul>
+    <li>What does <a href="0005-natural-deduction.html#turnstile">⊢</a> mean?</li>
+    <li>What does it mean for an argument to be <a href="0003-truth-tables.html#validity-test">valid</a>, by the truth-table method?</li>
+  </ul>
+  <p style="color:var(--muted); font-size:.9rem;">Answers: ⊢ means "derivable from the premises using the proof rules" · valid means no row of the truth table makes the premises true and the conclusion false</p>
+
+  <h2 id="semantic-entailment">Two symbols for two different questions</h2>
+  <p>Lesson 5 gave <code>⊢</code> its own name — the turnstile, read "proves" or "derives." Validity, as lesson 3 defined it, deserves a matching symbol: <strong>⊨</strong>, read "entails" or "models."</p>
+
+  <div class="conn-table">
+    <div class="conn-row header"><span>Symbol</span><span>Question it answers</span><span>Method</span></div>
+    <div class="conn-row"><span><code>Premises ⊢ Conclusion</code></span><span>Can you build a proof, one licensed step at a time?</span><span>Syntactic — apply inference rules (lesson 5)</span></div>
+    <div class="conn-row"><span><code>Premises ⊨ Conclusion</code></span><span>Is there any way to make the premises true and the conclusion false?</span><span>Semantic — check every truth-value assignment (lesson 3)</span></div>
+  </div>
+
+  <div class="callout">
+    <strong>⊢ and ⊨ are two different tools aimed at the same target</strong>
+    Both symbols are trying to answer "does the conclusion really follow?" — but <code>⊢</code> answers it by building something (a proof), while <code>⊨</code> answers it by checking everything (every row of a truth table). They could, in principle, disagree: a system's rules might be too weak to prove something that's actually valid, or — worse — too permissive, letting you prove something that isn't actually valid at all. Whether they agree is exactly what this lesson is about.
+  </div>
+
+  <h2 id="proof-system-soundness">Soundness: the rules don't lie to you</h2>
+  <p>A proof system is <strong>sound</strong> when everything it can prove is actually true-preserving:</p>
+
+  <div class="callout warn">
+    <strong>Soundness (of a system)</strong>
+    If <code>Premises ⊢ Conclusion</code>, then <code>Premises ⊨ Conclusion</code>. In words: whenever a proof exists, the argument really is valid. A sound system never lets you derive a semantically invalid argument — the rules can't be tricked into manufacturing a false conclusion from true premises.
+  </div>
+
+  <div class="callout warn">
+    <strong>Wait — didn't lesson 1 already define "sound"?</strong>
+    Yes, and this is a genuinely different use of the same English word, not a special case of it. <a href="0001-arguments-validity-soundness.html#soundness">Lesson 1's soundness</a> is a property of one specific <strong>argument</strong>: valid structure plus true premises. <em>This</em> soundness is a property of an entire <strong>proof system</strong> — the whole rulebook of MP, MT, HS, DS, and friends. One is about whether a particular argument's premises happen to be true; the other is about whether the rulebook itself can ever be fooled. Logicians overload the word constantly — context is what disambiguates "a sound argument" from "a sound proof system," and now you have both senses on file.
+  </div>
+
+  <h2 id="completeness">Completeness: the rules are powerful enough</h2>
+  <p>Soundness only protects you in one direction. The other direction has its own name:</p>
+
+  <div class="callout warn">
+    <strong>Completeness (of a system)</strong>
+    If <code>Premises ⊨ Conclusion</code>, then <code>Premises ⊢ Conclusion</code>. In words: whenever an argument really is valid, a proof exists using the rules. A complete system never leaves a truly valid argument unprovable — nothing true slips through the cracks.
+  </div>
+
+  <div class="callout">
+    <strong>Put together: ⊢ and ⊨ coincide exactly</strong>
+    Soundness gives you <code>⊢ → ⊨</code>. Completeness gives you <code>⊨ → ⊢</code>. A system with both gives you <code>⊢ if and only if ⊨</code> — provability and validity become two different roads to the exact same destination. This is not automatic for every conceivable rulebook; it has to be proven for a specific system.
+  </div>
+
+  <h2>The system from lessons 5 and 8 has both</h2>
+  <p>The natural deduction system you've been using — Modus Ponens, Modus Tollens, Universal Instantiation, Existential Generalization, and the rest — is not just a convenient toolkit. It was proven, rigorously, to be both sound and complete for first-order logic. That proof is Kurt Gödel's <strong>completeness theorem</strong>, from 1929 — two years before the far more famous result that gets his name attached to a very different kind of theorem, which is exactly where <a href="../index.html#lesson-11">lesson 11</a> is headed. Don't let the shared name merge them in your head; they answer different questions, and this lesson's result is the reassuring one.</p>
+
+  <div class="callout">
+    <strong>What this buys you, practically</strong>
+    Because the system is <strong>sound</strong>: every proof you build in lessons 5 and 8 is a guarantee, not a suggestion — if you followed the rules correctly, the conclusion really is warranted by the premises. Because the system is <strong>complete</strong>: whenever an argument is genuinely valid, a proof exists, full stop — completeness is an <em>existence</em> guarantee, not a "here's how to find it" guarantee. If you're stuck constructing a proof for something you're confident is valid, the problem is your search, not a hole in the rulebook.
+  </div>
+
+  <h2 id="decidability">A related but separate question: decidability</h2>
+  <p>Completeness says a proof exists. It says nothing about how long it takes to find one, or whether you can always even tell.</p>
+
+  <div class="callout warn">
+    <strong>Decidable vs. complete — not the same thing</strong>
+    <strong>Propositional logic is decidable</strong>: the truth-table method from lesson 3 is a mechanical procedure that is <em>guaranteed to terminate</em> — for n atoms, exactly 2ⁿ rows, then you're done, valid or not. <strong>Full first-order logic is complete but not decidable</strong>: there is no general algorithm guaranteed to always terminate and tell you, for an arbitrary FOL argument, whether it's valid or not (a result due to Church and Turing, 1936). If the argument is valid, completeness guarantees a proof exists and a systematic search will eventually find it. If it's <em>not</em> valid, that same search may simply never terminate — there's no guaranteed way to know you should give up.
+  </div>
+
+  <h2>Try it: soundness or completeness?</h2>
+  <p>For each description, decide which property it's describing.</p>
+  <div id="sc-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. A proof system is sound when…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true, 'q1','Right — soundness is ⊢ → ⊨: every derivable argument is also semantically valid. The rules can’t manufacture a false conclusion from true premises.')">Every derivable argument (⊢) is also semantically valid (⊨)</button>
+        <button onclick="quizAnswer(this,false,'q1','That’s completeness, the reverse direction (⊨ → ⊢) — every valid argument has a proof, not the other way around.')">Every semantically valid argument (⊨) is derivable (⊢)</button>
+        <button onclick="quizAnswer(this,false,'q1','That’s lesson 1’s argument-level soundness (valid structure + true premises) — a different, unrelated-by-definition use of the same word covered in the callout above.')">Its premises are all actually true</button>
+        <button onclick="quizAnswer(this,false,'q1','That’s foreshadowing lesson 11’s incompleteness, not this lesson’s completeness — a different theorem about a different kind of system entirely.')">It has no true statements that are unprovable</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. A proof system is complete when…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','That’s soundness, the reverse direction (⊢ → ⊨) — every derivable argument is valid, not the other way around.')">Every derivable argument (⊢) is also semantically valid (⊨)</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — completeness is ⊨ → ⊢: every genuinely valid argument has a proof using the system’s rules, guaranteed to exist.')">Every semantically valid argument (⊨) is derivable (⊢)</button>
+        <button onclick="quizAnswer(this,false,'q2','Decidability is about a guaranteed-to-terminate procedure for checking validity — completeness only guarantees a proof exists, not that you can always find out in finite time whether one does.')">There's a guaranteed procedure that always terminates</button>
+        <button onclick="quizAnswer(this,false,'q2','That describes consistency (the system never proves both a statement and its negation) — a related but separate property from completeness.')">It never proves both a statement and its negation</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. When a logician says "this proof system is sound," in context they almost certainly mean…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','That’s the argument-level sense from lesson 1 — about one specific argument’s premises, not about a rulebook.')">This particular argument has true premises</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — in the context of discussing a proof system (a rulebook), "sound" means the rules never derive a semantically invalid argument.')">The system's rules never derive an invalid argument</button>
+        <button onclick="quizAnswer(this,false,'q3','That’s decidability — a claim about a terminating procedure, not about whether the rules preserve validity.')">Every question about validity can be answered mechanically</button>
+        <button onclick="quizAnswer(this,false,'q3','That’s completeness — the reverse guarantee, that every valid argument is provable, not that the rules avoid proving invalid ones.')">Every valid argument is provable in the system</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. "Full first-order logic is complete but not decidable." This means…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true, 'q4','Right — completeness guarantees existence of a proof for every valid argument; undecidability just means there’s no algorithm guaranteed to always terminate and report valid-or-not for an arbitrary argument.')">Every valid argument has a proof, but no algorithm is guaranteed to always determine validity in finite time</button>
+        <button onclick="quizAnswer(this,false,'q4','Completeness is the opposite of this — it guarantees that valid arguments DO have proofs, not that they lack them.')">No valid arguments have proofs</button>
+        <button onclick="quizAnswer(this,false,'q4','Propositional logic is decidable — the truth-table method always terminates, as covered above. It’s full FOL, with quantifiers over unbounded domains, that loses decidability.')">Propositional logic is also undecidable</button>
+        <button onclick="quizAnswer(this,false,'q4','They’re different properties — completeness is about proofs existing; decidability is about a terminating check. FOL has one without the other.')">Completeness and decidability mean the same thing</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Go back to one of the proofs you built or read in <a href="0005-natural-deduction.html">lesson 5</a> or <a href="0008-proofs-in-predicate-logic.html">lesson 8</a>. That proof, by itself, is direct evidence that <code>⊢</code> holds. Now notice: because the system is <em>sound</em>, you get <code>⊨</code> for free — you already know the argument is valid without building a single truth-table row. Soundness is what lets a proof stand in for a truth table.</p>
+
+  <h2>Primary resource</h2>
+  <p>See the <a href="https://plato.stanford.edu/entries/logic-classical/" target="_blank">Stanford Encyclopedia of Philosophy — Classical Logic</a> for the formal statement of soundness and completeness for first-order logic, including the shape of Gödel's 1929 completeness proof.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Curious what a completeness proof actually looks like, or why decidability fails for FOL specifically? Bring it to Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0008-proofs-in-predicate-logic.html">← Lesson 8: Proofs in Predicate Logic</a>
+    <span class="spacer"></span>
+    <a href="0010-modal-logic.html">Lesson 10: Modal Logic — Necessity & Possibility →</a>
+  </div>
+
+</div>
+
+<style>
+.conn-table {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin: 1.25rem 0;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: .85rem;
+}
+.conn-row {
+  display: grid;
+  grid-template-columns: 1.1fr 1.6fr 1.3fr;
+  padding: .55rem 1rem;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  gap: .5rem;
+}
+.conn-row:last-child { border-bottom: none; }
+.conn-row.header { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; background: #111; }
+.conn-row:not(.header):nth-child(even) { background: #1e1e1e; }
+
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: 1.02rem; margin-bottom: .75rem; letter-spacing: .01em; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const SC_ITEMS = [
+  {
+    english: '"If a proof of the conclusion exists using the rules, the argument really is valid."',
+    options: [
+      { text: 'Soundness', correct: true, explain: 'Right — this is ⊢ → ⊨: a proof existing (⊢) guarantees genuine validity (⊨). That’s the definition of soundness.' },
+      { text: 'Completeness', explain: 'Completeness is the reverse direction (⊨ → ⊢) — starting from validity and guaranteeing a proof, not starting from a proof and guaranteeing validity.' },
+    ],
+  },
+  {
+    english: '"If an argument is genuinely valid, a proof using the rules is guaranteed to exist."',
+    options: [
+      { text: 'Soundness', explain: 'Soundness is the reverse direction (⊢ → ⊨) — starting from a proof and guaranteeing validity, not starting from validity and guaranteeing a proof.' },
+      { text: 'Completeness', correct: true, explain: 'Right — this is ⊨ → ⊢: genuine validity (⊨) guarantees a proof exists (⊢). That’s the definition of completeness.' },
+    ],
+  },
+  {
+    english: '"The rules never let you derive a false conclusion from true premises."',
+    options: [
+      { text: 'Soundness', correct: true, explain: 'Right — this is soundness in its safety-guarantee framing: the rules can’t be tricked into producing an invalid argument.' },
+      { text: 'Completeness', explain: 'Completeness is about not missing valid arguments, not about avoiding invalid ones — this description is about the rules never lying, which is soundness.' },
+    ],
+  },
+  {
+    english: '"Every truth-table-valid argument can eventually be proven using Modus Ponens, Modus Tollens, and the rest."',
+    options: [
+      { text: 'Soundness', explain: 'Soundness protects proofs from being wrong — this description is about valid arguments always being provable, which is the completeness direction.' },
+      { text: 'Completeness', correct: true, explain: 'Right — guaranteeing that every truth-table-valid (⊨) argument has a derivation (⊢) is exactly completeness.' },
+    ],
+  },
+];
+
+const scDiv = document.getElementById('sc-exercise');
+SC_ITEMS.forEach((item, i) => {
+  const cardId = `sc-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  scDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

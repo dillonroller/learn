@@ -181,7 +181,7 @@
 
   <div class="callout warn" id="modal-words">
     <strong>Pin down what your atomic proposition actually means</strong>
-    Watch for modal words like "may," "can," "must," "should" — they change what the proposition is claiming. "You may enter only if you have a ticket" is a statement about <em>permission</em>, not about whether you physically walked through the door. If you sloppily let <code>Enter</code> mean "you actually entered," the sentence "you may enter <em>if</em> you have a ticket" would wrongly symbolize as <code>Ticket → Entered</code> — claiming a ticket <em>guarantees</em> you enter, which is false; you could have a ticket and simply not go in. The proposition has to mean "you are <strong>permitted</strong> to enter" for the conditional to hold at all. Before symbolizing any sentence, state in your own words exactly what each atomic proposition claims — a sloppily-defined proposition produces a wrong formula even when you pick the right connective. This is exactly why <a href="../index.html#lesson-10">lesson 10 (Modal Logic)</a> gives "may" and "must" their own dedicated symbols instead of folding them into plain propositions.
+    Watch for modal words like "may," "can," "must," "should" — they change what the proposition is claiming. "You may enter only if you have a ticket" is a statement about <em>permission</em>, not about whether you physically walked through the door. If you sloppily let <code>Enter</code> mean "you actually entered," the sentence "you may enter <em>if</em> you have a ticket" would wrongly symbolize as <code>Ticket → Entered</code> — claiming a ticket <em>guarantees</em> you enter, which is false; you could have a ticket and simply not go in. The proposition has to mean "you are <strong>permitted</strong> to enter" for the conditional to hold at all. Before symbolizing any sentence, state in your own words exactly what each atomic proposition claims — a sloppily-defined proposition produces a wrong formula even when you pick the right connective. This is exactly why <a href="0010-modal-logic.html#necessity">lesson 10 (Modal Logic)</a> gives "may" and "must" their own dedicated symbols instead of folding them into plain propositions.
   </div>
 
   <div class="callout" id="necessary-sufficient">
@@ -202,10 +202,10 @@
     <div class="q-block" id="q1">
       <p>1. "P ∨ Q" is true when…</p>
       <div class="options">
-        <button onclick="answer(this,false,'q1')">Only P is true, not Q</button>
-        <button onclick="answer(this,false,'q1')">Only Q is true, not P</button>
-        <button onclick="answer(this,true, 'q1')">P, Q, or both are true</button>
-        <button onclick="answer(this,false,'q1')">Both must be true together</button>
+        <button onclick="quizAnswer(this,false,'q1','∨ isn’t satisfied by only one side needing to be true and the other required false — it’s satisfied any time at least one side is true, including both.')">Only P is true, not Q</button>
+        <button onclick="quizAnswer(this,false,'q1','Same issue reversed — ∨ doesn’t require the other side to be false.')">Only Q is true, not P</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — ∨ is inclusive or, matching Rust/C’s ||. True whenever at least one side is true, including both.')">P, Q, or both are true</button>
+        <button onclick="quizAnswer(this,false,'q1','That describes ∧, not ∨. ∨ only needs at least one side true, not both.')">Both must be true together</button>
       </div>
       <div class="feedback" id="q1-fb"></div>
     </div>
@@ -213,10 +213,10 @@
     <div class="q-block" id="q2">
       <p>2. In <code>(P ∨ Q) ∧ R</code>, the main connective is…</p>
       <div class="options">
-        <button onclick="answer(this,false,'q2')">The ∨ inside the parens</button>
-        <button onclick="answer(this,true, 'q2')">The ∧ outside the parens</button>
-        <button onclick="answer(this,false,'q2')">There are two main connectives</button>
-        <button onclick="answer(this,false,'q2')">R has no connective attached</button>
+        <button onclick="quizAnswer(this,false,'q2','The ∨ is buried inside the parentheses — it was applied before the ∧, not last.')">The ∨ inside the parens</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — ∧ was applied last, joining the whole (P∨Q) block to R.')">The ∧ outside the parens</button>
+        <button onclick="quizAnswer(this,false,'q2','Every non-atomic WFF has exactly one main connective — the one applied last when the formula was built.')">There are two main connectives</button>
+        <button onclick="quizAnswer(this,false,'q2','R is one of the two things ∧ joins — the connective attached to it is the outer ∧ itself.')">R has no connective attached</button>
       </div>
       <div class="feedback" id="q2-fb"></div>
     </div>
@@ -224,10 +224,10 @@
     <div class="q-block" id="q3">
       <p>3. If P is false, then "P → Q" is…</p>
       <div class="options">
-        <button onclick="answer(this,false,'q3')">Always false</button>
-        <button onclick="answer(this,true, 'q3')">Always true, regardless of Q</button>
-        <button onclick="answer(this,false,'q3')">Undefined — need to know Q</button>
-        <button onclick="answer(this,false,'q3')">Equal to Q's truth value</button>
+        <button onclick="quizAnswer(this,false,'q3','A false antecedent makes the conditional vacuously TRUE, not false — that’s the counterintuitive part of this lesson.')">Always false</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — !p || q evaluates to true whenever p is false, no matter what q is. A false antecedent makes it vacuously true.')">Always true, regardless of Q</button>
+        <button onclick="quizAnswer(this,false,'q3','The material conditional is always defined — P → Q is a WFF with a fixed truth value for every combination of P and Q, including P false.')">Undefined — need to know Q</button>
+        <button onclick="quizAnswer(this,false,'q3','That would make P → Q behave like ↔ — but with P false it’s true regardless of Q’s value, not matched to it.')">Equal to Q's truth value</button>
       </div>
       <div class="feedback" id="q3-fb"></div>
     </div>
@@ -235,10 +235,10 @@
     <div class="q-block" id="q4">
       <p>4. "You may enter only if you have a ticket" — let <code>Admitted</code> = "you are permitted to enter" — symbolizes as…</p>
       <div class="options">
-        <button onclick="answer(this,false,'q4')">Ticket → Admitted</button>
-        <button onclick="answer(this,true, 'q4')">Admitted → Ticket</button>
-        <button onclick="answer(this,false,'q4')">Admitted ↔ Ticket</button>
-        <button onclick="answer(this,false,'q4')">Admitted ∨ Ticket</button>
+        <button onclick="quizAnswer(this,false,'q4','That reverses the necessary condition — it would claim having a ticket guarantees admission, which "only if" never promised.')">Ticket → Admitted</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — the falsification test: the only scenario that breaks the sentence is being admitted without a ticket. That’s exactly Admitted → Ticket.')">Admitted → Ticket</button>
+        <button onclick="quizAnswer(this,false,'q4','↔ would additionally claim having a ticket guarantees admission — "only if" states a necessary condition, not a sufficient one.')">Admitted ↔ Ticket</button>
+        <button onclick="quizAnswer(this,false,'q4','∨ would claim at least one of the two holds — that loses the conditional relationship entirely.')">Admitted ∨ Ticket</button>
       </div>
       <div class="feedback" id="q4-fb"></div>
     </div>
@@ -307,6 +307,8 @@
 .mc-options button:hover { border-color: var(--accent); }
 .mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
 .mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
 .mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
 .mc-fb.good { color: var(--accent); }
 .mc-fb.bad { color: var(--err); }
@@ -342,112 +344,89 @@
 const MC_ITEMS = [
   {
     formula: '(P ∧ Q) → R',
-    options: ['∧', '→'],
-    correct: '→',
-    note: 'The → was applied last: it joins the whole (P ∧ Q) block to R.'
+    options: [
+      { symbol: '∧', explain: '∧ only joins P and Q inside the antecedent — it isn’t applied last. → wraps the whole formula, joining (P∧Q) to R.' },
+      { symbol: '→', correct: true, explain: 'Right — → was applied last: it joins the whole (P∧Q) block to R.' },
+    ],
   },
   {
     formula: '¬(P ∨ Q)',
-    options: ['¬', '∨'],
-    correct: '¬',
-    note: 'The ¬ wraps the entire (P ∨ Q), so it was applied last — ¬ is the main connective.'
+    options: [
+      { symbol: '¬', correct: true, explain: 'Right — ¬ wraps the entire (P∨Q), so it was applied last.' },
+      { symbol: '∨', explain: '∨ only joins P and Q inside the parentheses — ¬ is applied afterward, to the whole (P∨Q) block.' },
+    ],
   },
   {
     formula: '(P → Q) ↔ (¬Q → ¬P)',
-    options: ['→', '↔', '¬'],
-    correct: '↔',
-    note: 'Two conditionals are joined by ↔ at the top level — that\'s the main connective, applied last.'
+    options: [
+      { symbol: '→', explain: '→ appears twice, but each one only joins the pieces inside its own parentheses — neither is applied last.' },
+      { symbol: '↔', correct: true, explain: 'Right — ↔ joins the two conditional blocks at the top level, applied last.' },
+      { symbol: '¬', explain: '¬ only negates single letters (Q and P) deep inside the formula — it’s among the first things applied, not the last.' },
+    ],
   },
 ];
 
 const mcDiv = document.getElementById('main-conn-exercise');
 MC_ITEMS.forEach((item, i) => {
+  const cardId = `mc-card-${i}`;
   const card = document.createElement('div');
   card.className = 'mc-card';
+  card.id = cardId;
   card.innerHTML = `
     <div class="mc-formula"><code>${item.formula}</code></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,'${o}','${item.correct}',${i})">${o}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.symbol}</button>`).join('')}
     </div>
     <div class="mc-fb" id="mc-fb-${i}"></div>
   `;
   mcDiv.appendChild(card);
 });
 
-function mcAnswer(btn, chosen, correct, i) {
-  const card = btn.closest('.mc-card');
-  if (card.dataset.done) return;
-  card.dataset.done = 'true';
-  const isRight = chosen === correct;
-  btn.classList.add(isRight ? 'correct' : 'wrong');
-  const fb = document.getElementById(`mc-fb-${i}`);
-  fb.textContent = (isRight ? '✓ ' : `✗ Main connective is ${correct}. `) + MC_ITEMS[i].note;
-  fb.className = 'mc-fb ' + (isRight ? 'good' : 'bad');
-}
-
 // ── Symbolization exercise ────────────────────────────────
 const SYM_ITEMS = [
   {
     english: '"The alarm will sound unless the code is entered."',
-    options: ['Sound ∨ Code', 'Sound → Code', 'Sound ∧ Code'],
-    correct: 'Sound ∨ Code',
-    note: '"unless" translates to ∨: either the alarm sounds, or the code is entered (or both, though realistically not).'
+    options: [
+      { symbol: 'Sound ∨ Code', correct: true, explain: 'Right — "unless" translates to ∨: either the alarm sounds, or the code is entered (or, if the code fails to stop it, both).' },
+      { symbol: 'Sound → Code', explain: '→ would mean sounding guarantees the code was entered — backwards. "Unless" means "or," not "implies."' },
+      { symbol: 'Sound ∧ Code', explain: '∧ would claim both things happen together — but "unless" means at least one does, not necessarily both.' },
+    ],
   },
   {
     english: '"You get a refund only if you keep the receipt."',
-    options: ['Refund → Receipt', 'Receipt → Refund', 'Refund ↔ Receipt'],
-    correct: 'Refund → Receipt',
-    note: '"only if" — the first clause implies the second: getting a refund guarantees you kept the receipt.'
+    options: [
+      { symbol: 'Refund → Receipt', correct: true, explain: 'Right — "only if" means the first clause implies the second: getting a refund guarantees you kept the receipt.' },
+      { symbol: 'Receipt → Refund', explain: 'That reverses it — it would claim keeping the receipt guarantees a refund, a much stronger promise than "only if" makes.' },
+      { symbol: 'Refund ↔ Receipt', explain: '↔ would also claim keeping the receipt guarantees a refund — "only if" only makes the receipt necessary, not sufficient.' },
+    ],
   },
   {
     english: '"Neither the witness nor the suspect was lying."',
-    options: ['¬Witness ∨ ¬Suspect', '¬Witness ∧ ¬Suspect', 'Witness ∧ Suspect'],
-    correct: '¬Witness ∧ ¬Suspect',
-    note: '"neither...nor" means both are false: ¬Witness AND ¬Suspect.'
+    options: [
+      { symbol: '¬Witness ∨ ¬Suspect', explain: '∨ would only guarantee at least one of them wasn’t lying — but "neither...nor" rules out both lying, which needs ∧, not ∨.' },
+      { symbol: '¬Witness ∧ ¬Suspect', correct: true, explain: 'Right — "neither...nor" means both are false: ¬Witness AND ¬Suspect.' },
+      { symbol: 'Witness ∧ Suspect', explain: 'This drops the negations — it would claim both WERE lying, the opposite of what "neither...nor" means.' },
+    ],
   },
 ];
 
 const symDiv = document.getElementById('symbolize-exercise');
 SYM_ITEMS.forEach((item, i) => {
+  const cardId = `sym-card-${i}`;
   const card = document.createElement('div');
   card.className = 'mc-card';
+  card.id = cardId;
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="symAnswer(this,'${o}','${item.correct}',${i})">${o}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.symbol}</button>`).join('')}
     </div>
     <div class="mc-fb" id="sym-fb-${i}"></div>
   `;
   symDiv.appendChild(card);
 });
-
-function symAnswer(btn, chosen, correct, i) {
-  const card = btn.closest('.mc-card');
-  if (card.dataset.done) return;
-  card.dataset.done = 'true';
-  const isRight = chosen === correct;
-  btn.classList.add(isRight ? 'correct' : 'wrong');
-  const fb = document.getElementById(`sym-fb-${i}`);
-  fb.textContent = (isRight ? '✓ ' : `✗ Correct answer: ${correct}. `) + SYM_ITEMS[i].note;
-  fb.className = 'mc-fb ' + (isRight ? 'good' : 'bad');
-}
-
-// ── Quiz ───────────────────────────────────────────────────
-let scores = {};
-function answer(btn, correct, qid) {
-  const block = document.getElementById(qid);
-  if (block.dataset.done) return;
-  block.dataset.done = 'true';
-  const fb = document.getElementById(qid + '-fb');
-  btn.classList.add(correct ? 'correct' : 'wrong');
-  fb.textContent = correct ? '✓ Correct.' : '✗ Not quite — review the section above.';
-  fb.className = 'feedback ' + (correct ? 'good' : 'bad');
-  scores[qid] = correct ? 1 : 0;
-  const total = Object.keys(scores).length;
-  const right = Object.values(scores).filter(Boolean).length;
-  document.getElementById('score').textContent = `${right} / ${total} correct so far`;
-}
 </script>
+<script src="../../assets/quiz.js"></script>
 <script src="../../assets/search.js"></script>
 </body>
 </html>

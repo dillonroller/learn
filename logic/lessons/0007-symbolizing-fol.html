@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 7 — Symbolizing English Arguments in FOL</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Logic</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 7 of 14 &nbsp;·&nbsp; Logic &nbsp;·&nbsp; ~30 min</p>
+  <h1>Symbolizing English Arguments in FOL</h1>
+  <p>Lesson 6 gave you one predicate and one quantifier at a time. Real arguments rarely stay that simple — they involve relationships between multiple things, and multiple quantifiers stacked on top of each other. This lesson covers the two skills that make that manageable: predicates with more than one slot, and getting quantifier <em>order</em> right — which turns out to matter enormously.</p>
+
+  <h2>Quick recall</h2>
+  <p>From <a href="0006-predicate-logic-quantifiers.html#universal-quantifier">lesson 6</a>: <code>∀</code> pairs with <code>→</code>, <code>∃</code> pairs with <code>∧</code>. Getting this backwards produces either an absurdly strong claim or an almost-vacuous one.</p>
+
+  <h2 id="multi-place-predicates">Multi-place predicates: relations</h2>
+  <p>So far every predicate has taken one slot: <code>Mortal(x)</code>. A <strong>relation</strong> is a predicate with two or more slots, describing how things relate to each other: <code>Loves(x, y)</code>, <code>Taller(x, y)</code>, <code>Between(x, y, z)</code>.</p>
+
+  <div class="callout">
+    <strong>The Rust translation</strong>
+    Same idea as lesson 6's predicate-as-function analogy, just more arguments: <code>fn loves(x: Person, y: Person) -> bool</code>. <code>Loves(x, y)</code> isn't the same claim as <code>Loves(y, x)</code> — argument order matters exactly the way it does in a function call. "Alice loves Bob" is <code>Loves(Alice, Bob)</code>, and swapping the arguments changes the meaning entirely.
+  </div>
+
+  <h2 id="quantifier-order">Quantifier order matters — a lot</h2>
+  <p>This is the single biggest trap in predicate logic. Compare these two formulas, which use the exact same predicate and the exact same two quantifiers, in a different order:</p>
+
+  <div class="conn-table">
+    <div class="conn-row header"><span>Formula</span><span>English</span></div>
+    <div class="conn-row"><span><code>∀x ∃y Loves(x, y)</code></span><span>"Everyone loves someone" — each person has <em>somebody</em> they love, possibly a different somebody for each person</span></div>
+    <div class="conn-row"><span><code>∃y ∀x Loves(x, y)</code></span><span>"There's someone whom everyone loves" — one specific person, loved by literally everybody</span></div>
+  </div>
+
+  <p>These are wildly different claims, and the second is much stronger. Here's a concrete scenario that makes the difference undeniable — a "love triangle" among three people, Alice, Bob, and Carol:</p>
+
+  <div class="rel-table">
+    <div class="rel-row header"><span>x</span><span>loves y</span></div>
+    <div class="rel-row"><span>Alice</span><span>Bob</span></div>
+    <div class="rel-row"><span>Bob</span><span>Carol</span></div>
+    <div class="rel-row"><span>Carol</span><span>Alice</span></div>
+  </div>
+
+  <p>Check <code>∀x ∃y Loves(x, y)</code>: does Alice love someone? Yes, Bob. Does Bob love someone? Yes, Carol. Does Carol love someone? Yes, Alice. <strong>True</strong> — everyone has somebody.</p>
+  <p>Now check <code>∃y ∀x Loves(x, y)</code>: is there one single person loved by all three? Try y = Bob: does Bob love Bob? No (Bob loves Carol) — fails. Try y = Carol: does Alice love Carol? No (Alice loves Bob) — fails. Try y = Alice: does Bob love Alice? No — fails. <strong>False</strong> — no single person is loved by everyone.</p>
+
+  <div class="callout warn">
+    <strong>Same predicate, same quantifiers, opposite truth values</strong>
+    In this exact scenario, <code>∀x∃y Loves(x,y)</code> is true and <code>∃y∀x Loves(x,y)</code> is false — proof by concrete example that swapping quantifier order changes the claim. As a rule of thumb: <code>∃</code> placed <em>before</em> a <code>∀</code> is claiming one fixed thing works for everyone; <code>∃</code> placed <em>after</em> a <code>∀</code> allows a different thing for each case. Read left to right, and don't casually swap the order when translating.
+  </div>
+
+  <h2>Common English patterns</h2>
+  <div class="conn-table">
+    <div class="conn-row header"><span>English</span><span>FOL</span><span>Note</span></div>
+    <div class="conn-row"><span>"Everyone who is X is Y"</span><span><code>∀x (X(x) → Y(x))</code></span><span>same ∀/→ pairing, just with "who" spelled out</span></div>
+    <div class="conn-row"><span>"Someone who is X is Y"</span><span><code>∃x (X(x) ∧ Y(x))</code></span><span>same ∃/∧ pairing</span></div>
+    <div class="conn-row"><span>"Only X are Y"</span><span><code>∀x (Y(x) → X(x))</code></span><span>necessary condition — reversed, like lesson 2's "only if"</span></div>
+    <div class="conn-row"><span>"No X is Y"</span><span><code>∀x (X(x) → ¬Y(x))</code></span><span>from lesson 6 — the negated consequent</span></div>
+  </div>
+
+  <div class="callout">
+    <strong>"Only" strikes again</strong>
+    "Only citizens can vote" doesn't mean "if you're a citizen, you can vote" (that's backwards — plenty of citizens can't vote, e.g. minors). It means <strong>voting requires citizenship</strong>: <code>∀x (CanVote(x) → Citizen(x))</code>. This is exactly the <a href="0002-propositional-logic-syntax.html#necessary-sufficient">necessary-vs-sufficient trap from lesson 2</a>, wearing a quantifier now instead of a bare conditional.
+  </div>
+
+  <h2>Full circle: symbolizing the Socrates argument</h2>
+  <p>Back in <a href="0001-arguments-validity-soundness.html#argument">lesson 1</a>, "all humans are mortal, Socrates is a human, therefore Socrates is mortal" could only be gestured at in prose. Now it's precise:</p>
+
+  <div class="callout">
+    <strong>The Socrates argument, fully formalized</strong>
+    Premise 1: <code>∀x (Human(x) → Mortal(x))</code><br>
+    Premise 2: <code>Human(Socrates)</code><br>
+    Conclusion: <code>Mortal(Socrates)</code>
+  </div>
+
+  <p>Notice <code>Socrates</code> is an <strong>individual constant</strong>, not a variable — it refers to one specific, fixed thing in the domain directly. Contrast this with <code>x</code> in <code>Human(x)</code>: <code>x</code> is a placeholder that only gets meaning once a quantifier binds it (<code>∀x</code> or <code>∃x</code>); <code>Socrates</code> needs no quantifier because it already picks out exactly one thing on its own. We have everything needed to state this argument with total precision. Proving it formally — showing step by step why <code>Mortal(Socrates)</code> really does follow — is exactly what <a href="../index.html#lesson-08">lesson 8</a> does.</p>
+
+  <h2>Try it: symbolize these sentences</h2>
+  <div id="symbolize-exercise" class="mc-exercise"></div>
+
+  <h2>Try it: pick the correct quantifier order</h2>
+  <div id="order-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. <code>Taller(x, y)</code> and <code>Taller(y, x)</code> are…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Argument order changes the meaning, just like function call arguments — Taller(Alice,Bob) and Taller(Bob,Alice) claim opposite things.')">Always the same claim</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — exactly like a function call, swapping the arguments to a relation changes which thing is being said to be taller than which.')">Different claims — argument order matters</button>
+        <button onclick="quizAnswer(this,false,'q1','They can’t both always be false — in any scenario where one person is taller than another, exactly one of Taller(x,y)/Taller(y,x) comes out true.')">Both always false</button>
+        <button onclick="quizAnswer(this,false,'q1','Both are perfectly valid two-place predicates — this lesson’s whole point is that relations like this are legal and common.')">Not valid predicates</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. "There is one person everyone trusts" symbolizes as…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','That’s the weaker claim “everyone trusts somebody” — each x could have a different y. “One person everyone trusts” needs a single fixed y, so ∃y must come first.')">∀x ∃y Trusts(x, y)</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — one fixed y (∃y) that works for every x (∀x): the single-witness reading from the quantifier-order section above.')">∃y ∀x Trusts(x, y)</button>
+        <button onclick="quizAnswer(this,false,'q2','Two universals would claim every person trusts every other person — far stronger than there being just one trusted person.')">∀x ∀y Trusts(x, y)</button>
+        <button onclick="quizAnswer(this,false,'q2','Two existentials only claim some person trusts some person — it loses the “everyone” part entirely.')">∃x ∃y Trusts(x, y)</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. "Only mammals are warm-blooded" symbolizes as…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','That says the opposite direction — it would claim being a mammal guarantees warm-bloodedness, but “only” makes mammalhood necessary for warm-bloodedness, not the reverse.')">∀x (Mammal(x) → WarmBlooded(x))</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — “only X are Y” reverses the conditional: being warm-blooded requires being a mammal, exactly like the “only citizens can vote” example above.')">∀x (WarmBlooded(x) → Mammal(x))</button>
+        <button onclick="quizAnswer(this,false,'q3','This only claims one mammal-and-warm-blooded thing exists — far weaker than the universal claim “only” makes.')">∃x (Mammal(x) ∧ WarmBlooded(x))</button>
+        <button onclick="quizAnswer(this,false,'q3','This would claim everything in the domain is both a mammal and warm-blooded — much too strong.')">∀x (Mammal(x) ∧ WarmBlooded(x))</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. In the Socrates argument, why does <code>Socrates</code> appear as a bare, unquantified name?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','Not a typo — Socrates is deliberately a constant, not a variable. Swapping it for x would leave x unbound and meaningless without a quantifier.')">It's a typo — it should be a variable</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — Socrates refers to exactly one fixed thing in the domain, so unlike a variable, it needs no quantifier to have meaning.')">It names one specific individual, not a range of things</button>
+        <button onclick="quizAnswer(this,false,'q4','Names aren’t true or false at all — only complete propositions like Human(Socrates) have a truth value; the bare name doesn’t.')">Names are always false</button>
+        <button onclick="quizAnswer(this,false,'q4','That’s true of variables like x, but not of constants — Socrates already refers to something specific, so binding it to a quantifier would be redundant, not required.')">It must be bound by a quantifier like any other symbol</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Symbolize: "Every student who studies passes." "Only citizens can vote." "There is a number that every other number is divisible by" (hint: this is false for most domains — symbolize it anyway and think about why). Pay close attention to quantifier order on the last one.</p>
+
+  <h2>Primary resource</h2>
+  <p>See the FOL symbolization sections of <a href="https://forallx.openlogicproject.org/" target="_blank">forall x: Calgary</a>, which covers multi-place predicates and quantifier scope in full rigor.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Multi-quantifier sentences are genuinely hard to get right the first few times — bring any sentence you're stuck on to Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0006-predicate-logic-quantifiers.html">← Lesson 6: Predicate Logic — Quantifiers & Predicates</a>
+    <span class="spacer"></span>
+    <a href="0008-proofs-in-predicate-logic.html">Lesson 8: Proofs in Predicate Logic →</a>
+  </div>
+
+</div>
+
+<style>
+.conn-table {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin: 1.25rem 0;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: .85rem;
+}
+.conn-row {
+  display: grid;
+  grid-template-columns: 1.1fr 1.4fr 1.4fr;
+  padding: .55rem 1rem;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  gap: .5rem;
+}
+.conn-row:last-child { border-bottom: none; }
+.conn-row.header { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; background: #111; }
+.conn-row:not(.header):nth-child(even) { background: #1e1e1e; }
+
+.rel-table {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin: 1rem 0;
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  font-size: .88rem;
+  max-width: 320px;
+}
+.rel-row { display: grid; grid-template-columns: 1fr 1fr; padding: .45rem .9rem; border-bottom: 1px solid var(--border); }
+.rel-row:last-child { border-bottom: none; }
+.rel-row.header { background: #111; color: var(--muted); font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; }
+.rel-row:not(.header):nth-child(even) { background: #1e1e1e; }
+
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: 1.1rem; margin-bottom: .75rem; letter-spacing: .03em; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); font-style: italic; margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const SYM_ITEMS = [
+  {
+    english: '"Alice trusts everyone Bob trusts."',
+    options: [
+      { text: '∀x (Trusts(Bob, x) → Trusts(Alice, x))', correct: true, explain: 'Right — "everyone Bob trusts" restricts x to Bob’s trust-list; for each such x, Alice trusts them too.' },
+      { text: '∀x (Trusts(Alice, x) → Trusts(Bob, x))', explain: 'This reverses who trusts whom — it claims Bob trusts everyone Alice trusts, backwards from the English sentence.' },
+      { text: '∃x (Trusts(Bob, x) ∧ Trusts(Alice, x))', explain: 'This only claims one shared trusted person exists — far weaker than "everyone Bob trusts," which needs ∀, not ∃.' },
+    ],
+  },
+  {
+    english: '"Some student admires every teacher."',
+    options: [
+      { text: '∃x ∀y (Teacher(y) → Admires(x, y))', correct: true, explain: 'Right — one student (∃x) admires every teacher (∀y, →); ∃ before ∀ locks in a single fixed student.' },
+      { text: '∀x ∃y (Teacher(y) → Admires(x, y))', explain: 'This reverses the quantifier order — it would claim every student admires SOME teacher (possibly a different one each), not that one student admires ALL of them.' },
+      { text: '∃x ∃y (Teacher(y) ∧ Admires(x, y))', explain: 'Two existentials only claim one student admires one teacher — far weaker than admiring EVERY teacher, which needs ∀y.' },
+    ],
+  },
+];
+
+const symDiv = document.getElementById('symbolize-exercise');
+SYM_ITEMS.forEach((item, i) => {
+  const cardId = `sym-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb" id="sym-fb-${i}"></div>
+  `;
+  symDiv.appendChild(card);
+});
+
+const ORDER_ITEMS = [
+  {
+    english: '"Every dish on the menu has some ingredient it\'s known for."',
+    options: [
+      { text: '∀x ∃y Known(x, y)', correct: true, explain: 'Right — each dish (x) has its own ingredient (y), which can differ per dish, so ∀ comes first and ∃ is free to vary.' },
+      { text: '∃y ∀x Known(x, y)', explain: 'This claims one single ingredient is shared by every dish on the menu — a much stronger claim than each dish just having its own signature ingredient.' },
+    ],
+  },
+  {
+    english: '"There is one ingredient every dish on the menu contains."',
+    options: [
+      { text: '∀x ∃y Contains(x, y)', explain: 'This only claims each dish contains SOME ingredient, possibly a different one per dish — it loses the "one shared ingredient" claim entirely.' },
+      { text: '∃y ∀x Contains(x, y)', correct: true, explain: 'Right — one fixed ingredient (∃y) works for every dish (∀x); ∃ must come first to lock it to a single value shared by all.' },
+    ],
+  },
+];
+
+const orderDiv = document.getElementById('order-exercise');
+ORDER_ITEMS.forEach((item, i) => {
+  const cardId = `order-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb" id="order-fb-${i}"></div>
+  `;
+  orderDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

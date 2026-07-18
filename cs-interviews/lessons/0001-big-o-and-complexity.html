@@ -126,10 +126,10 @@
     <div class="q-block" id="q1">
       <p>1. An algorithm has two nested loops, each running n times. Its time complexity is…</p>
       <div class="options">
-        <button onclick="answer(this,false,'q1')">O(n) — linear growth</button>
-        <button onclick="answer(this,false,'q1')">O(2n) — doubled linear</button>
-        <button onclick="answer(this,true, 'q1')">O(n²) — quadratic growth</button>
-        <button onclick="answer(this,false,'q1')">O(log n) — logarithmic</button>
+        <button onclick="quizAnswer(this,false,'q1','O(n) describes a single pass — nested loops multiply, not add, the iteration counts, giving n×n operations.')">O(n) — linear growth</button>
+        <button onclick="quizAnswer(this,false,'q1','That would be the complexity of two separate, sequential loops each running n times — nested loops multiply rather than add.')">O(2n) — doubled linear</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — the outer loop runs n times, and for each of those the inner loop runs n times too: n × n = n² total operations.')">O(n²) — quadratic growth</button>
+        <button onclick="quizAnswer(this,false,'q1','Logarithmic growth comes from halving the problem each step (like binary search) — nested loops over the full input do the opposite, they multiply.')">O(log n) — logarithmic</button>
       </div>
       <div class="feedback" id="q1-fb"></div>
     </div>
@@ -137,10 +137,10 @@
     <div class="q-block" id="q2">
       <p>2. Binary search on a sorted array of 1 million elements takes at most…</p>
       <div class="options">
-        <button onclick="answer(this,false,'q2')">1,000,000 comparisons</button>
-        <button onclick="answer(this,false,'q2')">1,000 comparisons roughly</button>
-        <button onclick="answer(this,true, 'q2')">~20 comparisons roughly</button>
-        <button onclick="answer(this,false,'q2')">Exactly 500,000 comparisons</button>
+        <button onclick="quizAnswer(this,false,'q2','That’s the cost of a linear scan (O(n)), checking every element — binary search is much faster because it halves the search space each step.')">1,000,000 comparisons</button>
+        <button onclick="quizAnswer(this,false,'q2','Binary search is O(log n), which for 1M elements is close to 20 — far fewer comparisons than 1,000.')">1,000 comparisons roughly</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — log₂(1,000,000) ≈ 20, matching the table above: halving the search space about 20 times gets you from 1M down to 1.')">~20 comparisons roughly</button>
+        <button onclick="quizAnswer(this,false,'q2','Binary search halves the remaining SEARCH SPACE each comparison, not the count of comparisons made — it doesn’t check half the array one element at a time.')">Exactly 500,000 comparisons</button>
       </div>
       <div class="feedback" id="q2-fb"></div>
     </div>
@@ -148,10 +148,10 @@
     <div class="q-block" id="q3">
       <p>3. You allocate a Vec of size n inside your function. The space complexity is…</p>
       <div class="options">
-        <button onclick="answer(this,false,'q3')">O(1) — constants are dropped</button>
-        <button onclick="answer(this,true, 'q3')">O(n) — extra memory scales with input</button>
-        <button onclick="answer(this,false,'q3')">O(n²) — nested allocation</button>
-        <button onclick="answer(this,false,'q3')">O(log n) — halved each step</button>
+        <button onclick="quizAnswer(this,false,'q3','Constants get dropped, but this isn’t a constant — the Vec’s size scales directly with the input n, so it can’t be O(1).')">O(1) — constants are dropped</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — extra memory that scales linearly with input size is O(n) space, exactly the trap called out in the callout above.')">O(n) — extra memory scales with input</button>
+        <button onclick="quizAnswer(this,false,'q3','Nothing here is nested or squared — you allocate one Vec whose size is proportional to n, not n².')">O(n²) — nested allocation</button>
+        <button onclick="quizAnswer(this,false,'q3','Log n space would mean the extra memory shrinks as you halve some search space — here you’re allocating a full Vec of size n, which is linear, not logarithmic.')">O(log n) — halved each step</button>
       </div>
       <div class="feedback" id="q3-fb"></div>
     </div>
@@ -159,10 +159,10 @@
     <div class="q-block" id="q4">
       <p>4. O(n + n²) simplifies to…</p>
       <div class="options">
-        <button onclick="answer(this,false,'q4')">O(2n²) — add the terms</button>
-        <button onclick="answer(this,true, 'q4')">O(n²) — drop the lower term</button>
-        <button onclick="answer(this,false,'q4')">O(n) — n dominates</button>
-        <button onclick="answer(this,false,'q4')">O(n³) — multiply the terms</button>
+        <button onclick="quizAnswer(this,false,'q4','You don’t combine the terms that way — you drop the lower-order term (n) entirely and keep the dominant one (n²) as-is, no doubling.')">O(2n²) — add the terms</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — at large scale the n² term dominates and the lower-order n term becomes negligible, so it gets dropped entirely.')">O(n²) — drop the lower term</button>
+        <button onclick="quizAnswer(this,false,'q4','n² grows faster than n, so n² is the dominant term at scale, not n — this has the dominance backwards.')">O(n) — n dominates</button>
+        <button onclick="quizAnswer(this,false,'q4','Adding two terms doesn’t multiply their degrees — n + n² has no n³ component anywhere.')">O(n³) — multiply the terms</button>
       </div>
       <div class="feedback" id="q4-fb"></div>
     </div>
@@ -295,21 +295,7 @@ function render(n) {
 slider.addEventListener('input', () => render(+slider.value));
 render(10);
 
-// ── Quiz ───────────────────────────────────────────────────
-let scores = {};
-function answer(btn, correct, qid) {
-  const block = document.getElementById(qid);
-  if (block.dataset.done) return;
-  block.dataset.done = 'true';
-  const fb = document.getElementById(qid + '-fb');
-  btn.classList.add(correct ? 'correct' : 'wrong');
-  fb.textContent = correct ? '✓ Correct.' : '✗ Not quite — review the section above.';
-  fb.className = 'feedback ' + (correct ? 'good' : 'bad');
-  scores[qid] = correct ? 1 : 0;
-  const total = Object.keys(scores).length;
-  const right = Object.values(scores).filter(Boolean).length;
-  document.getElementById('score').textContent = `${right} / ${total} correct so far`;
-}
 </script>
+<script src="../../assets/quiz.js"></script>
 </body>
 </html>

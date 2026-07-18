@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 11 — Gödel's Incompleteness Theorems</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Logic</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 11 of 14 &nbsp;·&nbsp; Logic &nbsp;·&nbsp; ~30 min</p>
+  <h1>Gödel's Incompleteness Theorems</h1>
+  <p>This is probably the single most misquoted result in all of logic — invoked constantly to support conclusions it never established. By the end of this lesson you'll know what Gödel actually proved, and you'll have a sharp eye for the exact move people make when they stretch it far past where it applies.</p>
+
+  <h2>Quick recall — and a crucial disambiguation</h2>
+  <p><a href="0009-soundness-completeness.html#completeness">Lesson 9</a> told you first-order logic <em>itself</em> is complete — Gödel proved that in 1929. This lesson covers a different theorem, from 1931, by the same person, with a name that sounds like the exact opposite. It is not a contradiction. It's about a different target entirely, and untangling that difference is most of this lesson's value.</p>
+
+  <div class="callout warn">
+    <strong>Completeness (1929) vs. Incompleteness (1931) — not opposites, different subjects</strong>
+    Gödel's <strong>completeness theorem</strong> says: the proof system of first-order logic itself — the rules from lessons 5 and 8 — can derive every argument that's genuinely semantically valid. That's a fact about <em>logic in general</em>, for any premises whatsoever.<br><br>
+    Gödel's <strong>incompleteness theorems</strong> say something about a specific, much richer kind of thing: a particular mathematical <em>theory</em> — first-order logic <em>plus</em> a set of axioms about numbers (like Peano Arithmetic). That combination turns out to be unable to prove every true statement about numbers, no matter which consistent axioms you pick. The underlying logic engine isn't broken; arithmetic itself turns out to be rich enough to build sentences that talk about their own provability, and that richness is precisely what breaks completeness for it.
+  </div>
+
+  <h2 id="hilberts-program">Hilbert's program: the dream Gödel ended</h2>
+  <p>In the early 1900s, David Hilbert proposed a program to put all of mathematics on unshakeable footing: find a formal system for arithmetic that is simultaneously <strong>consistent</strong> (never proves a contradiction), <strong>complete</strong> (proves every true statement about numbers), and <strong>decidable</strong> (has a mechanical procedure to settle any statement). Gödel's 1931 paper showed the first two can't coexist for any system powerful enough to matter — and along the way, doomed the third as well.</p>
+
+  <h2 id="first-incompleteness-theorem">The First Incompleteness Theorem</h2>
+  <div class="callout warn">
+    <strong>Gödel's First Incompleteness Theorem (1931)</strong>
+    Any consistent formal system powerful enough to express basic arithmetic contains a true statement about numbers that the system can neither prove nor disprove.
+  </div>
+
+  <p>The mechanism, at the level this lesson needs (the full formal construction is genuinely intricate — see the primary resource below for the real thing):</p>
+  <ul>
+    <li><strong>Gödel numbering.</strong> Every formula, and every proof, can be encoded as a specific number. This means a statement <em>about numbers</em> can end up secretly encoding a statement <em>about the system's own proofs</em> — arithmetic becomes rich enough to talk about itself.</li>
+    <li><strong>Self-reference.</strong> Using that encoding, Gödel constructed a specific sentence <code>G</code> that, when decoded, says <strong>"G is not provable in this system."</strong> It's a formalized, rigorous cousin of the old Liar Paradox ("this sentence is false") — except built so precisely that it's a genuine, meaningful arithmetic claim, not a paradox.</li>
+    <li><strong>The trap closes.</strong> Suppose the system could prove <code>G</code>. Then it has proven something that says of itself "I am unprovable" — meaning the system proved something false, which breaks consistency. So a consistent system can't prove <code>G</code>. But that's exactly what <code>G</code> claims is true! So <code>G</code> <em>is</em> true — and the system can't prove it. A true statement, forever out of reach of its own proof system.</li>
+  </ul>
+
+  <div class="callout">
+    <strong>A familiar cousin</strong>
+    If this self-reference trick feels reminiscent of <a href="0009-soundness-completeness.html#decidability">lesson 9's mention of Turing and Church</a>, that's not a coincidence — the halting problem's proof (no program can always correctly predict whether an arbitrary program halts) uses the same diagonalization move: construct an object specifically engineered to contradict whatever answer a hypothetical solver gives about it.
+  </div>
+
+  <h2 id="second-incompleteness-theorem">The Second Incompleteness Theorem</h2>
+  <div class="callout warn">
+    <strong>Gödel's Second Incompleteness Theorem (1931)</strong>
+    Such a system cannot prove its own consistency, using only its own rules and axioms.
+  </div>
+  <p>This falls out of the first almost for free: if the system <em>could</em> prove "I am consistent," that proof could be mechanically converted into a proof of <code>G</code> — which the first theorem already ruled out for a consistent system. So proving your own consistency turns out to be exactly as unreachable as proving <code>G</code> directly. To vouch for a system's consistency, you always need to step outside it into a strictly stronger system — which then has precisely the same problem about itself, one level up. There's no final system that certifies itself.</p>
+
+  <h2 id="incompleteness-misuse">What these theorems do <em>not</em> say</h2>
+  <p>Because the name sounds so sweeping, "incompleteness" gets dragged into arguments about almost anything. Here's what it actually does not license:</p>
+
+  <div class="callout warn">
+    <strong>"Gödel proved you can't know anything for certain"</strong> — No. The theorems are a precise result about formal axiomatic systems strong enough to encode arithmetic. They say nothing about everyday empirical knowledge, perception, or certainty in general. Stretching a narrow technical result about number theory into a universal claim about human knowledge is not something the proof does — it's an equivocation on the word "certain."
+  </div>
+  <div class="callout warn">
+    <strong>"Gödel proved math (or science) is broken or unreliable"</strong> — No. Incompleteness is not inconsistency. Ordinary arithmetic is still believed fully consistent; it simply can't prove <em>every</em> true statement about itself using only its own axioms. The unprovable-but-true statements are specially engineered self-referential constructions — virtually none of the mathematics anyone actually uses is affected in practice.
+  </div>
+  <div class="callout warn">
+    <strong>"Gödel proved [some claim far outside mathematics]"</strong> — Whenever "Gödel's theorem" gets cited outside formal systems, ask precisely: which formal system, which specific statement, and what exactly is being claimed unprovable? If there's no answer to that, the term is functioning as a rhetorical trump card, not a premise doing real logical work — the same move as citing "quantum mechanics" to justify an unrelated claim about free will. A technical result only supports what it actually, formally established.
+  </div>
+
+  <h2>Try it: accurate or a common misuse?</h2>
+  <p>For each claim, decide whether it accurately reflects the incompleteness theorems or misuses them.</p>
+  <div id="godel-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. The First Incompleteness Theorem applies to…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','That’s lesson 9’s completeness theorem — a different, 1929 result about first-order logic as a logic engine, applying to any set of premises whatsoever.')">Any argument in first-order logic, regardless of subject</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — the theorem specifically requires the system to be powerful enough to express basic arithmetic; that richness is what makes the self-referential construction possible.')">Consistent formal systems powerful enough to express basic arithmetic</button>
+        <button onclick="quizAnswer(this,false,'q1','The theorem is about formal axiomatic systems capable of arithmetic specifically — it has no special content about scientific claims broadly.')">All scientific claims, not just mathematical ones</button>
+        <button onclick="quizAnswer(this,false,'q1','The theorem requires consistency as a precondition — it doesn’t apply to inconsistent systems (which, absurdly, can prove everything, true and false alike).')">Only inconsistent systems</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Gödel's 1929 completeness theorem and 1931 incompleteness theorems are…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','They’re not a contradiction — they’re about different objects: first-order logic itself (1929) vs. a specific rich theory like arithmetic built on top of it (1931).')">Contradictory — Gödel disproved his own earlier result</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — completeness is about first-order logic as a general proof system; incompleteness is about specific theories (like arithmetic) strong enough to encode self-reference. Different subjects, both true.')">Compatible — about different subjects (logic in general vs. a specific rich theory)</button>
+        <button onclick="quizAnswer(this,false,'q2','They’re not the same result under different names — one concerns FOL’s general proof power, the other concerns arithmetic’s specific self-referential limits.')">The same result, just described two different ways</button>
+        <button onclick="quizAnswer(this,false,'q2','Both results are real, well-established theorems, not competing hypotheses where a later one could win out.')">Unrelated — one is right and the more recent one is considered more authoritative</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. The Second Incompleteness Theorem says a consistent system powerful enough for arithmetic…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','That’s backwards — the theorem is about a limit on self-certification, not a guarantee. Such systems specifically cannot prove their own consistency.')">Can always prove its own consistency</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — proving its own consistency would let you construct a proof of G, which the first theorem already rules out for a consistent system.')">Cannot prove its own consistency using only its own rules</button>
+        <button onclick="quizAnswer(this,false,'q3','The theorem doesn’t claim the system actually is inconsistent — it only says the system can’t establish its own consistency from within, which is a different, weaker claim.')">Is actually always inconsistent</button>
+        <button onclick="quizAnswer(this,false,'q3','Decidability (lesson 9) is a separate property about a terminating check-everything procedure — the second theorem is specifically about self-certifying consistency, not decidability.')">Has nothing to do with consistency, only decidability</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Someone argues: "Gödel proved formal systems have limits, therefore human certainty about anything is impossible." This is best described as…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','That’s exactly backwards — this is a textbook case of stretching a narrow technical result past its actual scope, not a faithful application of it.')">A correct and faithful application of the theorem</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — this equivocates on "certainty," sliding from a precise claim about formal systems that encode arithmetic to a sweeping claim about human knowledge in general, which the theorem never addresses.')">An equivocation — stretching a narrow technical result to a domain it never covered</button>
+        <button onclick="quizAnswer(this,false,'q4','The theorem is a proven mathematical result, not an unproven conjecture — the problem here isn’t that Gödel’s work is shaky, it’s how far this argument drags it.')">Correct, because the theorem itself is only a conjecture</button>
+        <button onclick="quizAnswer(this,false,'q4','The theorem does have real, specific, narrow content (about consistent systems that encode arithmetic) — the flaw is the leap to an unrelated domain, not that the theorem says nothing at all.')">Irrelevant, since the theorem doesn't actually say anything meaningful</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Next time you encounter "Gödel's theorem proves X" outside of mathematics — in an article, a debate, a podcast — apply the test from the callout above: which formal system, which statement, what exactly is claimed unprovable? Write down whether the argument can actually answer that, or whether "Gödel" is doing rhetorical work the theorem never licensed. This is your first real rehearsal for <a href="../index.html#lesson-12">lesson 12 (Informal Fallacies)</a>, which formalizes exactly this kind of misstep.</p>
+
+  <h2>Primary resource</h2>
+  <p>See the <a href="https://plato.stanford.edu/entries/goedel-incompleteness/" target="_blank">Stanford Encyclopedia of Philosophy — Gödel's Incompleteness Theorems</a> for the full formal construction, including the actual Gödel numbering scheme and a careful accounting of what the theorems do and don't imply philosophically.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Heard a claim citing Gödel that you want stress-tested? Bring the exact quote to Claude Code and we'll trace whether it holds up.
+  </div>
+
+  <div class="nav">
+    <a href="0010-modal-logic.html">← Lesson 10: Modal Logic — Necessity & Possibility</a>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-12">Lesson 12: Informal Fallacies →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const GODEL_ITEMS = [
+  {
+    english: '"Any consistent formal system strong enough for arithmetic has true statements it cannot prove."',
+    options: [
+      { text: 'Accurate', correct: true, explain: 'Right — this is a faithful, precise statement of the First Incompleteness Theorem.' },
+      { text: 'Common misuse', explain: 'This one is actually the accurate core claim, stated precisely — the misuse cases are the ones that generalize far beyond formal systems that encode arithmetic.' },
+    ],
+  },
+  {
+    english: '"Gödel showed that no one can ever be completely certain of anything."',
+    options: [
+      { text: 'Accurate', explain: 'The theorem says nothing about human certainty in general — it’s a narrow technical claim about consistent formal systems that can express arithmetic.' },
+      { text: 'Common misuse', correct: true, explain: 'Right — this equivocates on "certain," stretching a precise result about formal systems into a sweeping claim about knowledge the theorem never addressed.' },
+    ],
+  },
+  {
+    english: '"A consistent formal system capable of arithmetic cannot prove its own consistency from within itself."',
+    options: [
+      { text: 'Accurate', correct: true, explain: 'Right — this is a faithful statement of the Second Incompleteness Theorem.' },
+      { text: 'Common misuse', explain: 'This one is the accurate, narrow claim — misuse would be treating this as proof that the system actually IS inconsistent, or that consistency is unknowable by any means whatsoever.' },
+    ],
+  },
+  {
+    english: '"Since even mathematics has undecidable truths, all belief systems are equally (un)justified."',
+    options: [
+      { text: 'Accurate', explain: 'This drags a narrow, technical mathematical result into an unrelated claim about belief systems in general — exactly the kind of leap the theorem doesn’t license.' },
+      { text: 'Common misuse', correct: true, explain: 'Right — this is a leap from a specific mathematical result to an unrelated epistemological claim, with no formal system, statement, or proof connecting the two.' },
+    ],
+  },
+];
+
+const godelDiv = document.getElementById('godel-exercise');
+GODEL_ITEMS.forEach((item, i) => {
+  const cardId = `godel-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  godelDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

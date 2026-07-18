@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reference — Practical Rationality Cheat Sheet</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    body { font-size: 16px; }
+    .page { max-width: 780px; }
+    h2 { margin-top: 2rem; }
+    .ref-table {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: .82rem;
+      margin: .75rem 0 1.25rem;
+    }
+    .ref-row {
+      display: grid;
+      grid-template-columns: 1fr 1.7fr;
+      padding: .45rem .8rem;
+      border-bottom: 1px solid var(--border);
+      gap: .5rem;
+      align-items: center;
+    }
+    .ref-row:last-child { border-bottom: none; }
+    .ref-row.header { background: #111; color: var(--muted); text-transform: uppercase; font-size: .7rem; letter-spacing: .05em; }
+    .ref-row:not(.header):nth-child(even) { background: #1e1e1e; }
+    @media print {
+      body { background: #fff; color: #000; padding-top: 1rem; }
+      .topnav, .teacher-tip { display: none; }
+    }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Rationality</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Reference &nbsp;·&nbsp; Rationality &nbsp;·&nbsp; Covers lessons 1–3</p>
+  <h1>Practical Rationality Cheat Sheet</h1>
+  <p style="color:var(--muted);">The compressed version of the whole Rationality topic — the one to reread right before a disagreement, not just after.</p>
+
+  <h2><a href="../lessons/0001-cognitive-biases.html">Cognitive biases catalog</a></h2>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Bias</span><span>Pattern</span></div>
+    <div class="ref-row"><span><a href="../lessons/0001-cognitive-biases.html#confirmation-bias">Confirmation bias</a></span><span>Noticing evidence that fits what you already believe, missing what doesn't</span></div>
+    <div class="ref-row"><span><a href="../lessons/0001-cognitive-biases.html#motivated-reasoning">Motivated reasoning</a></span><span>Working backward from a conclusion you want to be true</span></div>
+    <div class="ref-row"><span><a href="../lessons/0001-cognitive-biases.html#fundamental-attribution-error">Fundamental attribution error</a></span><span>Character for their behavior, circumstance for your own</span></div>
+    <div class="ref-row"><span><a href="../lessons/0001-cognitive-biases.html#availability-heuristic">Availability heuristic</a></span><span>Vivid, memorable examples feel more frequent than they really are</span></div>
+  </div>
+
+  <h2><a href="../lessons/0002-probabilistic-bayesian-reasoning.html#bayes-theorem">Probabilistic reasoning</a></h2>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Concept</span><span>Takeaway</span></div>
+    <div class="ref-row"><span>Bayes' theorem</span><span><code>P(H|E) = P(E|H) × P(H) / P(E)</code> — update belief by evidence AND prior, not evidence alone</span></div>
+    <div class="ref-row"><span><a href="../lessons/0002-probabilistic-bayesian-reasoning.html#base-rate-neglect">Base rate neglect</a></span><span>Ignoring how rare something was beforehand; the classic test-accuracy trap</span></div>
+    <div class="ref-row"><span><a href="../lessons/0002-probabilistic-bayesian-reasoning.html#proportional-updating">Proportional updating</a></span><span>Shift confidence by an amount matched to the evidence's real strength — never snap to 0% or 100%</span></div>
+    <div class="ref-row"><span><a href="../lessons/0002-probabilistic-bayesian-reasoning.html#calibration">Calibration</a></span><span>"80% sure" should be right ~80% of the time — check your own track record</span></div>
+  </div>
+
+  <h2><a href="../lessons/0003-charitable-interpretation-steelmanning.html">Charitable interpretation</a></h2>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Concept</span><span>Takeaway</span></div>
+    <div class="ref-row"><span><a href="../lessons/0003-charitable-interpretation-steelmanning.html#principle-of-charity">Principle of charity</a></span><span>Interpret ambiguous statements in their strongest, most defensible form</span></div>
+    <div class="ref-row"><span><a href="../lessons/0003-charitable-interpretation-steelmanning.html#steelmanning">Steelmanning</a></span><span>The deliberate opposite of a <a href="../../logic/lessons/0012-informal-fallacies.html#straw-man">straw man</a> — strengthen a position before responding to it</span></div>
+    <div class="ref-row"><span><a href="../lessons/0003-charitable-interpretation-steelmanning.html#facts-vs-values">Facts vs. values</a></span><span>Facts are resolvable with evidence; values/feelings aren't — know which fight you're in</span></div>
+  </div>
+  <div class="callout" style="margin:1rem 0 0;">
+    <strong>The one-line technique</strong>
+    "So what I'm hearing is [steelmanned version] — is that right?" — before responding to anything charged.
+  </div>
+
+  <p style="margin-top:2rem; font-size:.8rem; color:#444;">From <a href="../index.html">Rationality</a> — <a href="../lessons/0001-cognitive-biases.html">lesson 1</a>, <a href="../lessons/0002-probabilistic-bayesian-reasoning.html">lesson 2</a>, <a href="../lessons/0003-charitable-interpretation-steelmanning.html">lesson 3</a>. See also <a href="../../logic/index.html">Logic</a>. Primary sources: <a href="https://en.wikipedia.org/wiki/Thinking,_Fast_and_Slow" target="_blank">Kahneman — Thinking, Fast and Slow</a>, <a href="https://plato.stanford.edu/entries/epistemology-bayesian/" target="_blank">SEP — Bayesian Epistemology</a>, <a href="https://juliagalef.com/scout-mindset/" target="_blank">Galef — The Scout Mindset</a>.</p>
+
+</div>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

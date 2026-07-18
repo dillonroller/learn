@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 11 — Epistemic Logic</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Philosophy</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 11 of 12 &nbsp;·&nbsp; Philosophy &nbsp;·&nbsp; ~25 min</p>
+  <h1>Epistemic Logic — Knowledge &amp; Belief</h1>
+  <p><a href="0010-deontic-logic.html">Last lesson</a> took modal logic's <code>□</code>/<code>◇</code> and reread them normatively, as obligation and permission. This lesson takes the same move in a different direction: rereading them as <strong>knowledge</strong> and <strong>belief</strong>. "I know that p" and "I believe that p" sound similar in English but behave completely differently once you formalize them — and the gap between them is exactly what makes knowledge worth having.</p>
+
+  <h2 id="epistemic-operators">K and B — reusing the pattern again</h2>
+  <p>Same trick as deontic logic: instead of "true in every possible world" or "true in every ideal world," epistemic logic restricts to worlds <strong>consistent with what the agent knows</strong> — every way things could be, given everything they currently know.</p>
+  <div class="callout">
+    <strong id="epistemic-k">K — Knowledge</strong>
+    <code>Kp</code> ("the agent knows that p") means p holds in every world consistent with their knowledge. If there's even one world consistent with what they know where p is false, they don't know p — they might believe it, hope it, or guess it, but not know it.
+  </div>
+  <div class="callout">
+    <strong id="epistemic-b">B — Belief</strong>
+    <code>Bp</code> ("the agent believes that p") means p holds in every world consistent with what they believe. Structurally identical to K — but belief-worlds and knowledge-worlds are not the same set, which is exactly where the two operators pull apart.
+  </div>
+
+  <h2 id="factivity">Factivity — the axiom that separates knowledge from belief</h2>
+  <div class="callout warn">
+    <strong><code>Kp → p</code> — Knowledge is factive</strong>
+    If you know p, then p is actually true. You cannot know something false — "I knew it would rain, but it didn't" is a contradiction in terms; what you actually had was a false <em>belief</em>. Crucially, <strong>belief has no such axiom</strong>: <code>Bp → p</code> is <em>not</em> valid. You can believe all kinds of false things. This single axiom is the entire formal difference between the two operators — everything else about their structure is identical.
+  </div>
+  <p>This connects directly to the classical analysis of knowledge as <strong>justified true belief</strong> (JTB): true is doing the work of the factivity axiom above, and justified is what's supposed to rule out lucky-guess true beliefs from counting as knowledge. It doesn't fully succeed — Edmund Gettier's famous 1963 counterexamples show cases of justified true belief that still don't feel like knowledge — but that's a deeper rabbit hole for the dedicated <a href="../index.html#lesson-02">Epistemology lesson</a> later in this topic. For now: factivity is the one formal property knowledge has that belief doesn't.</p>
+
+  <h2 id="introspection-axioms">Do you know what you know?</h2>
+  <p>Two further axioms show up often in epistemic logic, and both are more controversial than factivity:</p>
+  <div class="callout">
+    <strong>Positive introspection — <code>Kp → KKp</code></strong>
+    If you know p, you know that you know it. Sounds obvious, but it's a strong claim — it says your access to your own knowledge is perfect, with no room for cases where you actually know something but aren't sure you do.
+  </div>
+  <div class="callout">
+    <strong>Negative introspection — <code>¬Kp → K¬Kp</code></strong>
+    If you don't know p, you know that you don't know it. Even stronger, and more contested — real people are frequently unaware of their own ignorance (they neither know p, nor know that they fail to know it).
+  </div>
+  <p>Whether to include these axioms is exactly the kind of open modeling choice <a href="../../logic/lessons/0009-soundness-completeness.html">Logic lesson 9</a> flagged for formal systems generally: different epistemic logics (S4 includes positive introspection, S5 includes both) make different bets about how self-aware an idealized reasoner is, and the "right" choice depends on what you're modeling.</p>
+
+  <h2 id="knowledge-vs-belief">Duality, one more time</h2>
+  <p>Same pattern as lessons 9 and 10: <code>¬K¬p</code> reads as "not known to be false" — call it "epistemically possible." Just like <code>◇p ≡ ¬□¬p</code> and <code>Pp ≡ ¬O¬p</code>, an epistemically possible claim is simply one your knowledge doesn't rule out — which is a much weaker thing than a claim you actually know to be true.</p>
+
+  <h2>Try it: knowledge or belief?</h2>
+  <p>For each sentence, pick the operator that correctly captures it.</p>
+  <div id="epistemic-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Why is <code>Kp → p</code> valid but <code>Bp → p</code> is not?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true, 'q1','Right — factivity is specifically a property of knowledge: you can’t know something false. Belief carries no such guarantee, since people can and do believe false things.')">Knowledge is factive — you can't know something false — but belief carries no truth guarantee</button>
+        <button onclick="quizAnswer(this,false,'q1','K and B have the identical structural form (both quantify over a set of worlds) — the difference is exactly the added factivity axiom, not their basic shape.')">K and B have entirely different logical structures, unrelated to each other</button>
+        <button onclick="quizAnswer(this,false,'q1','Belief absolutely can be false — "Bp → p" specifically fails as an axiom because false beliefs are common and unremarkable.')">Bp → p is actually valid too — belief also guarantees truth</button>
+        <button onclick="quizAnswer(this,false,'q1','This isn’t about frequency of use — it’s a structural axiom that holds for K and provably fails for B.')">It's arbitrary — logicians just picked K to have this property</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. "I knew it would rain, but it didn't end up raining" is best described as…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Because Kp → p is valid, this sentence is actually contradictory as stated — "knew" plus "didn’t happen" can’t both be true.')">A perfectly consistent epistemic logic sentence</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — since knowledge is factive (Kp → p), if it didn’t actually rain, the speaker never knew it would; they had a false belief, not knowledge.')">A contradiction — if it didn't rain, the speaker had a false belief, not knowledge</button>
+        <button onclick="quizAnswer(this,false,'q2','Positive introspection is about knowing that you know something — it has nothing to do with whether the underlying prediction was true.')">An example of positive introspection failing</button>
+        <button onclick="quizAnswer(this,false,'q2','This isn’t a permission/obligation claim at all — there’s no deontic operator involved here.')">A deontic paradox, similar to the Good Samaritan case</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. What does negative introspection (<code>¬Kp → K¬Kp</code>) claim, and why is it controversial?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true, 'q3','Right — it claims perfect self-awareness of your own ignorance, which is a strong idealization; real reasoners are often unaware of what they don’t know.')">That if you don't know something, you always know that you don't — an idealization real reasoners often fail</button>
+        <button onclick="quizAnswer(this,false,'q3','This is exactly the opposite of what negative introspection claims — it says the reasoner IS aware of their own gaps, not unaware.')">That you're never aware of your own ignorance</button>
+        <button onclick="quizAnswer(this,false,'q3','It’s about knowing you don’t know something, not about whether that something is true or false.')">That every false belief must eventually be corrected</button>
+        <button onclick="quizAnswer(this,false,'q3','This is a claim specifically about self-knowledge of ignorance, unrelated to whether an obligation exists.')">That whatever isn't known is automatically forbidden</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Justified true belief (JTB) as an analysis of knowledge is challenged by…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','Hume’s target was the is-ought gap and the problem of induction, not the JTB analysis of knowledge specifically.')">Hume's is-ought gap</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — Gettier’s 1963 counterexamples present justified true beliefs that still don’t intuitively count as knowledge, showing JTB isn’t sufficient.')">Gettier's counterexamples, which show justified true belief isn't always enough for knowledge</button>
+        <button onclick="quizAnswer(this,false,'q4','The Good Samaritan paradox is a deontic logic puzzle about obligation, unrelated to the analysis of knowledge.')">The Good Samaritan paradox</button>
+        <button onclick="quizAnswer(this,false,'q4','Gödel’s theorems concern provability in formal arithmetic systems, not the philosophical analysis of knowledge.')">Gödel's incompleteness theorems</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Primary resource</h2>
+  <p>See the <a href="https://plato.stanford.edu/entries/logic-epistemic/" target="_blank">Stanford Encyclopedia of Philosophy — Epistemic Logic</a> for the full axiom systems (S4, S5) and multi-agent extensions (common knowledge, distributed knowledge).</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Unsure whether a claim you're making is really knowledge or just strongly-held belief? Bring it to Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0010-deontic-logic.html">← Lesson 10: Deontic Logic</a>
+    <span class="spacer"></span>
+    <a href="0012-transcendental-arguments.html">Lesson 12: Transcendental Arguments →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const EPISTEMIC_ITEMS = [
+  {
+    english: '"She was certain it was Tuesday, but she was wrong — it was Wednesday."',
+    options: [
+      { text: 'K(Tuesday)', explain: 'Kp → p is valid — if it wasn’t actually Tuesday, she never knew it was, regardless of how certain she felt.' },
+      { text: 'B(Tuesday)', correct: true, explain: 'Right — since the claim was false, this can only be a (mistaken) belief, not knowledge. Certainty is not the same as knowledge.' },
+      { text: 'O(Tuesday)', explain: 'Nothing here is about obligation — this is a claim about her mental state and its accuracy, not about duty.' },
+    ],
+  },
+  {
+    english: '"The bridge held, exactly as the engineer\'s calculations showed it would."',
+    options: [
+      { text: 'B(BridgeHolds)', explain: 'Since the outcome matched a justified, true calculation, this is a strong candidate for knowledge, not mere possibly-false belief.' },
+      { text: 'K(BridgeHolds)', correct: true, explain: 'Right — true, and (per the calculations) justified — factivity is satisfied, so this is the knowledge operator, not just belief.' },
+      { text: 'F(BridgeHolds)', explain: 'F is the deontic "forbidden" operator — this sentence isn’t about obligation or permission at all.' },
+    ],
+  },
+  {
+    english: '"Nothing you know rules out the coin having landed heads — for all you know, it might have."',
+    options: [
+      { text: 'K(Heads)', explain: 'This sentence explicitly denies knowing it landed heads — it only says heads isn’t ruled out, which is weaker than knowing it.' },
+      { text: '¬K¬(Heads)', correct: true, explain: 'Right — "for all you know, it might have" is exactly the epistemic-possibility reading: not known to be false, the dual of K, mirroring ◇p ≡ ¬□¬p.' },
+      { text: 'O(Heads)', explain: 'There’s no obligation here — a coin landing heads isn’t something anyone is required to bring about.' },
+    ],
+  },
+];
+
+const epistemicDiv = document.getElementById('epistemic-exercise');
+EPISTEMIC_ITEMS.forEach((item, i) => {
+  const cardId = `epistemic-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  epistemicDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

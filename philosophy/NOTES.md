@@ -1,0 +1,8 @@
+# Teaching Notes
+
+- This topic's scaffold (MISSION.md, index.html placeholders 01–09) predates this session — it was set up as a broad "epistemology, ethics, metaphysics, key thinkers" umbrella but never actually taught.
+- The user's first real request into this topic came sideways, from a question in the Logic curriculum (lesson 13's "we should ban the additive" example) about what "should" means logically and whether that was covered. That opened onto deontic logic, then epistemic logic and transcendental arguments as a natural cluster of "logic extensions classical logic doesn't cover."
+- Decision: build a new "Logic Extensions" section (lessons 10–12) ahead of the original placeholders 01–09, since that's the actual entry point the user arrived through. The placeholders (What is Philosophy, Epistemology, Ethics, Metaphysics, Existentialism, etc.) remain queued for later — don't renumber them, just add after.
+- Keep the same secular constraint carried over from Logic: don't center examples on religion. The transcendental arguments lesson uses Kant's own causality/experience example as primary; the "transcendental argument for God" (TAG) is mentioned only as a known application, not the focus.
+- User has just finished the full 14-lesson Logic curriculum, so: don't re-explain propositional/predicate logic, validity/soundness, or the deductive/inductive distinction from scratch — link back to Logic's anchors instead ([[../logic/lessons/0001-arguments-validity-soundness.html]], etc.).
+- Follows the split with [[../rationality/NOTES.md]] — Philosophy houses the more formal/theoretical extensions of logic; Rationality houses the practical, everyday-life-and-relationships reasoning (biases, probability, charitable interpretation).

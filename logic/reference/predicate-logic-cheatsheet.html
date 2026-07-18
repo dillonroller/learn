@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reference — Predicate Logic Cheat Sheet</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    body { font-size: 16px; }
+    .page { max-width: 780px; }
+    h2 { margin-top: 2rem; }
+    .ref-table {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: .82rem;
+      margin: .75rem 0 1.25rem;
+    }
+    .ref-row {
+      display: grid;
+      grid-template-columns: 1.1fr 1.5fr;
+      padding: .45rem .8rem;
+      border-bottom: 1px solid var(--border);
+      gap: .5rem;
+      align-items: center;
+    }
+    .ref-row.wide { grid-template-columns: 1fr 1.4fr 1.4fr; }
+    .ref-row:last-child { border-bottom: none; }
+    .ref-row.header { background: #111; color: var(--muted); text-transform: uppercase; font-size: .7rem; letter-spacing: .05em; }
+    .ref-row:not(.header):nth-child(even) { background: #1e1e1e; }
+    .proof {
+      font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+      font-size: .85rem;
+      background: #141414;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: .9rem 1.1rem;
+      margin: .75rem 0;
+    }
+    .proof-line { display: grid; grid-template-columns: 1.5rem 1fr auto; gap: .6rem; padding: .15rem 0; }
+    .proof-line .ln { color: #555; }
+    .proof-line .just { color: var(--muted); font-size: .75rem; font-family: 'Helvetica Neue', Arial, sans-serif; white-space: nowrap; }
+    @media print {
+      body { background: #fff; color: #000; padding-top: 1rem; }
+      .topnav, .teacher-tip { display: none; }
+    }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Logic</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Reference &nbsp;·&nbsp; Logic &nbsp;·&nbsp; Covers lessons 6–8</p>
+  <h1>Predicate Logic Cheat Sheet</h1>
+  <p style="color:var(--muted);">The compressed version of lessons 6–8. See also the <a href="propositional-logic-cheatsheet.html">Propositional Logic</a> and <a href="rules-of-inference-cheatsheet.html">Rules of Inference</a> cheat sheets.</p>
+
+  <h2><a href="../lessons/0006-predicate-logic-quantifiers.html#predicate">Predicates & quantifiers</a></h2>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Term</span><span>Meaning</span></div>
+    <div class="ref-row"><span><a href="../lessons/0006-predicate-logic-quantifiers.html#predicate">Predicate</a></span><span><code>P(x)</code> — a property; not a proposition until applied to something</span></div>
+    <div class="ref-row"><span><a href="../lessons/0007-symbolizing-fol.html#multi-place-predicates">Relation</a></span><span><code>P(x,y)</code> — predicate with 2+ slots; argument order matters</span></div>
+    <div class="ref-row"><span><a href="../lessons/0006-predicate-logic-quantifiers.html#domain-of-discourse">Domain of discourse</a></span><span>The set of things being quantified over</span></div>
+    <div class="ref-row"><span><a href="../lessons/0006-predicate-logic-quantifiers.html#universal-quantifier">∀ (universal)</a></span><span>"for all x" — pairs with →</span></div>
+    <div class="ref-row"><span><a href="../lessons/0006-predicate-logic-quantifiers.html#existential-quantifier">∃ (existential)</a></span><span>"there exists an x" — pairs with ∧</span></div>
+  </div>
+
+  <div class="callout warn">
+    <strong>The pairing rule</strong>
+    <code>∀x (P(x) → Q(x))</code> — "everything that's P is also Q." <code>∃x (P(x) ∧ Q(x))</code> — "something is both P and Q." Swap the connectives and you get either an absurdly strong claim or a nearly-vacuous one.
+  </div>
+
+  <h2><a href="../lessons/0007-symbolizing-fol.html#quantifier-order">Quantifier order</a></h2>
+  <p style="font-size:.85rem;"><code>∀x ∃y P(x,y)</code> ≠ <code>∃y ∀x P(x,y)</code>. <code>∃</code> before <code>∀</code> means one fixed thing works for everyone; <code>∃</code> after <code>∀</code> allows a different thing per case. Never swap casually.</p>
+
+  <h2>English patterns</h2>
+  <div class="ref-table">
+    <div class="ref-row wide header"><span>English</span><span>FOL</span><span>Note</span></div>
+    <div class="ref-row wide"><span>"Everyone who X is Y"</span><span><code>∀x(X(x)→Y(x))</code></span><span>∀/→</span></div>
+    <div class="ref-row wide"><span>"Someone who X is Y"</span><span><code>∃x(X(x)∧Y(x))</code></span><span>∃/∧</span></div>
+    <div class="ref-row wide"><span>"Only X are Y"</span><span><code>∀x(Y(x)→X(x))</code></span><span>reversed — necessary condition</span></div>
+    <div class="ref-row wide"><span>"No X is Y"</span><span><code>∀x(X(x)→¬Y(x))</code></span><span>negated consequent</span></div>
+  </div>
+
+  <h2><a href="../lessons/0006-predicate-logic-quantifiers.html#quantifier-negation">Negating quantifiers</a></h2>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Original</span><span>Equivalent</span></div>
+    <div class="ref-row"><span><code>¬∀x P(x)</code></span><span><code>∃x ¬P(x)</code></span></div>
+    <div class="ref-row"><span><code>¬∃x P(x)</code></span><span><code>∀x ¬P(x)</code></span></div>
+  </div>
+
+  <h2>Proof rules</h2>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Rule</span><span>Pattern &amp; restriction</span></div>
+    <div class="ref-row"><span><a href="../lessons/0008-proofs-in-predicate-logic.html#universal-instantiation">Universal Instantiation</a></span><span><code>∀x P(x) ⊢ P(a)</code> — always safe</span></div>
+    <div class="ref-row"><span><a href="../lessons/0008-proofs-in-predicate-logic.html#existential-generalization">Existential Generalization</a></span><span><code>P(a) ⊢ ∃x P(x)</code> — always safe</span></div>
+    <div class="ref-row"><span><a href="../lessons/0008-proofs-in-predicate-logic.html#existential-instantiation">Existential Instantiation</a></span><span><code>∃x P(x) ⊢ P(c)</code> — c must be fresh</span></div>
+    <div class="ref-row"><span><a href="../lessons/0008-proofs-in-predicate-logic.html#universal-generalization">Universal Generalization</a></span><span><code>P(a) ⊢ ∀x P(x)</code> — a must be truly arbitrary</span></div>
+  </div>
+  <p style="font-size:.85rem; color:var(--muted);">UI and EG only narrow a claim — always safe. UG and EI widen a claim — that's exactly where the restrictions live.</p>
+
+  <h2>The Socrates argument, fully proven</h2>
+  <p style="font-size:.85rem; color:var(--muted);">Given <code>∀x(Human(x)→Mortal(x))</code>, <code>Human(Socrates)</code>, prove <code>Mortal(Socrates)</code>:</p>
+  <div class="proof">
+    <div class="proof-line"><span class="ln">1</span><span><code>∀x (Human(x) → Mortal(x))</code></span><span class="just">premise</span></div>
+    <div class="proof-line"><span class="ln">2</span><span><code>Human(Socrates)</code></span><span class="just">premise</span></div>
+    <div class="proof-line"><span class="ln">3</span><span><code>Human(Socrates) → Mortal(Socrates)</code></span><span class="just">1, UI</span></div>
+    <div class="proof-line"><span class="ln">4</span><span><code>Mortal(Socrates)</code></span><span class="just">2,3, MP</span></div>
+  </div>
+
+  <p style="margin-top:2rem; font-size:.8rem; color:#444;">From <a href="../index.html">Logic</a> — <a href="../lessons/0006-predicate-logic-quantifiers.html">lesson 6</a>, <a href="../lessons/0007-symbolizing-fol.html">lesson 7</a>, <a href="../lessons/0008-proofs-in-predicate-logic.html">lesson 8</a>. Primary source: <a href="https://forallx.openlogicproject.org/" target="_blank">forall x: Calgary</a>.</p>
+
+</div>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

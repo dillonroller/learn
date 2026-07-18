@@ -116,10 +116,10 @@
     <div class="q-block" id="q1">
       <p>1. Modus Tollens has the pattern…</p>
       <div class="options">
-        <button onclick="answer(this,false,'q1')">P→Q, P ⊢ Q</button>
-        <button onclick="answer(this,true, 'q1')">P→Q, ¬Q ⊢ ¬P</button>
-        <button onclick="answer(this,false,'q1')">P→Q, ¬P ⊢ ¬Q</button>
-        <button onclick="answer(this,false,'q1')">P∨Q, ¬P ⊢ Q</button>
+        <button onclick="quizAnswer(this,false,'q1','That’s Modus Ponens — a different rule that concludes Q, not ¬P.')">P→Q, P ⊢ Q</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — denying the consequent (¬Q) licenses denying the antecedent (¬P), verified by truth table above.')">P→Q, ¬Q ⊢ ¬P</button>
+        <button onclick="quizAnswer(this,false,'q1','That’s the invalid look-alike, denying the antecedent — it starts from ¬P instead of ¬Q, and has a counterexample.')">P→Q, ¬P ⊢ ¬Q</button>
+        <button onclick="quizAnswer(this,false,'q1','That’s Disjunctive Syllogism — it starts from a disjunction (∨), not a conditional (→).')">P∨Q, ¬P ⊢ Q</button>
       </div>
       <div class="feedback" id="q1-fb"></div>
     </div>
@@ -127,10 +127,10 @@
     <div class="q-block" id="q2">
       <p>2. A proof line can be justified by…</p>
       <div class="options">
-        <button onclick="answer(this,false,'q2')">Being popularly believed true</button>
-        <button onclick="answer(this,true, 'q2')">Being a premise or following a rule from earlier lines</button>
-        <button onclick="answer(this,false,'q2')">Matching the desired conclusion</button>
-        <button onclick="answer(this,false,'q2')">Sounding intuitively correct</button>
+        <button onclick="quizAnswer(this,false,'q2','Popularity is irrelevant to a proof — every line needs a specific rule or premise justification, not a vote.')">Being popularly believed true</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — every line in a Fitch-style proof is either a stated premise or the output of a valid rule applied to earlier lines.')">Being a premise or following a rule from earlier lines</button>
+        <button onclick="quizAnswer(this,false,'q2','Working backward from the desired conclusion isn’t a justification — that’s circular. Every line must follow forward from what’s already established.')">Matching the desired conclusion</button>
+        <button onclick="quizAnswer(this,false,'q2','Intuition isn’t a rule — the whole point of natural deduction is that every step is mechanically checkable, not just plausible-sounding.')">Sounding intuitively correct</button>
       </div>
       <div class="feedback" id="q2-fb"></div>
     </div>
@@ -138,10 +138,10 @@
     <div class="q-block" id="q3">
       <p>3. Reductio ad absurdum works by…</p>
       <div class="options">
-        <button onclick="answer(this,false,'q3')">Proving the conclusion directly</button>
-        <button onclick="answer(this,true, 'q3')">Assuming the opposite and deriving a contradiction</button>
-        <button onclick="answer(this,false,'q3')">Citing an authority on the topic</button>
-        <button onclick="answer(this,false,'q3')">Testing every row of a truth table</button>
+        <button onclick="quizAnswer(this,false,'q3','That’s direct proof — reductio is indirect: it proves ¬A by showing A leads somewhere impossible, not by proving ¬A head-on.')">Proving the conclusion directly</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — assume A, derive both B and ¬B from it, and since B∧¬B is impossible, reject the assumption: ¬A.')">Assuming the opposite and deriving a contradiction</button>
+        <button onclick="quizAnswer(this,false,'q3','Reductio is a purely structural technique — it needs no outside authority, just a derived contradiction.')">Citing an authority on the topic</button>
+        <button onclick="quizAnswer(this,false,'q3','That’s the truth-table method from lesson 3 — reductio is a proof technique, not exhaustive row-checking.')">Testing every row of a truth table</button>
       </div>
       <div class="feedback" id="q3-fb"></div>
     </div>
@@ -149,10 +149,10 @@
     <div class="q-block" id="q4">
       <p>4. Compared to truth tables, natural deduction proofs are mainly better because they…</p>
       <div class="options">
-        <button onclick="answer(this,false,'q4')">Are always shorter, no exceptions</button>
-        <button onclick="answer(this,false,'q4')">Don't require valid logic</button>
-        <button onclick="answer(this,true, 'q4')">Scale better and show the reasoning explicitly</button>
-        <button onclick="answer(this,false,'q4')">Work on invalid arguments too</button>
+        <button onclick="quizAnswer(this,false,'q4','Not always — a 2-atom argument might be just as short either way. The real advantage shows up as the number of atoms grows.')">Are always shorter, no exceptions</button>
+        <button onclick="quizAnswer(this,false,'q4','Every rule used still has to be independently valid — natural deduction doesn’t relax the logic, it just organizes valid steps differently.')">Don't require valid logic</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — a truth table for 6 atoms needs 64 rows regardless, while a proof stays short and each step explains the reasoning explicitly.')">Scale better and show the reasoning explicitly</button>
+        <button onclick="quizAnswer(this,false,'q4','Natural deduction proves valid arguments — an invalid argument simply has no proof to construct, the same as a truth table would show a counterexample.')">Work on invalid arguments too</button>
       </div>
       <div class="feedback" id="q4-fb"></div>
     </div>
@@ -424,22 +424,8 @@ window.addEventListener('load', () => {
   picker.querySelector('button').click();
 });
 
-// ── Quiz ───────────────────────────────────────────────────
-let scores = {};
-function answer(btn, correct, qid) {
-  const block = document.getElementById(qid);
-  if (block.dataset.done) return;
-  block.dataset.done = 'true';
-  const fb = document.getElementById(qid + '-fb');
-  btn.classList.add(correct ? 'correct' : 'wrong');
-  fb.textContent = correct ? '✓ Correct.' : '✗ Not quite — review the section above.';
-  fb.className = 'feedback ' + (correct ? 'good' : 'bad');
-  scores[qid] = correct ? 1 : 0;
-  const total = Object.keys(scores).length;
-  const right = Object.values(scores).filter(Boolean).length;
-  document.getElementById('score').textContent = `${right} / ${total} correct so far`;
-}
 </script>
+<script src="../../assets/quiz.js"></script>
 <script src="../../assets/search.js"></script>
 </body>
 </html>

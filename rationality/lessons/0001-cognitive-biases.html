@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 1 — Cognitive Biases</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Rationality</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 1 of 3 &nbsp;·&nbsp; Rationality &nbsp;·&nbsp; ~25 min</p>
+  <h1>Cognitive Biases — Catching Your Own Mind</h1>
+  <p><a href="../../logic/lessons/0012-informal-fallacies.html">Logic lesson 12</a> was a catalog for spotting broken reasoning in <em>someone else's</em> argument. This lesson is the harder, more useful version: a catalog for spotting your own mind quietly cutting corners, in the moment, before you've said anything out loud. Most of the reasoning that goes wrong in an actual disagreement with someone you're close to isn't a formal fallacy at all — it's one of these four biases running underneath, unnoticed.</p>
+
+  <div class="callout" id="confirmation-bias">
+    <strong>Confirmation bias — noticing what agrees with you, missing what doesn't</strong>
+    You already believe your partner doesn't listen when you talk. So tonight, when they check their phone mid-conversation, it lands hard — proof. The three times this week they put the phone down and listened closely? Those didn't register as evidence of anything; they were just "normal," not worth counting. Confirmation bias isn't lying to yourself — it's an asymmetry in what gets <em>noticed</em> and <em>remembered</em> as evidence at all.
+  </div>
+
+  <div class="callout" id="motivated-reasoning">
+    <strong>Motivated reasoning — working backward from the conclusion you want</strong>
+    You want to believe the expensive thing you just bought was a good decision, so you find yourself listing reasons it was smart, and quietly not looking too hard at the reasons it wasn't. This is subtly different from confirmation bias: confirmation bias is about how you weigh <em>evidence you already believe</em>; motivated reasoning is reasoning driven by wanting a specific conclusion to be true, then reverse-engineering the justification. It's the mechanism behind most self-serving rationalizations.
+  </div>
+
+  <div class="callout" id="fundamental-attribution-error">
+    <strong>Fundamental attribution error — character for them, circumstance for you</strong>
+    They're 20 minutes late: "They're inconsiderate, they don't respect my time." You're 20 minutes late: "Traffic was awful, there was nothing I could do." Same action, opposite explanations — their behavior gets attributed to a fixed trait of <em>character</em>, yours gets attributed to <em>circumstance</em>. This one specific asymmetry is behind an enormous share of relationship arguments that escalate past the original issue.
+  </div>
+
+  <div class="callout" id="availability-heuristic">
+    <strong>Availability heuristic — vivid examples feel more likely than they are</strong>
+    One dramatic argument three months ago is easy to recall in full detail — the exact words, where you were standing. A hundred ordinary, uneventful evenings since then don't come to mind nearly as easily, because nothing about them was memorable. If you judge "how often do we fight?" by how <em>easily examples come to mind</em> rather than actually counting, the vivid, rare event will feel far more representative than it is. This is exactly the setup for <a href="0002-probabilistic-bayesian-reasoning.html#base-rate-neglect">lesson 2's base rate problem</a>.
+  </div>
+
+  <h2>Where these connect back to Logic</h2>
+  <p>Biases and fallacies aren't the same thing, but they're closely related: a bias is a psychological tendency happening inside one mind; a fallacy is a flaw in an argument's content once it's spoken aloud. Confirmation bias is often what's underneath a <a href="../../logic/lessons/0012-informal-fallacies.html#hasty-generalization">hasty generalization</a> — you generalize confidently because the confirming cases are the ones you noticed. Motivated reasoning frequently produces <a href="../../logic/lessons/0012-informal-fallacies.html#circular-reasoning">circular reasoning</a> — assuming the conclusion you wanted all along, then finding it "confirmed." Knowing the bias behind a fallacy tells you something the fallacy name alone doesn't: <em>why</em> a specific person made that specific mistake right now.</p>
+
+  <h2>Try it: name the bias</h2>
+  <p>For each scenario, pick the bias most clearly at work.</p>
+  <div id="bias-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. What's the key difference between confirmation bias and motivated reasoning?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','They aren’t interchangeable names for the same thing — they describe different mechanisms, even though they often show up together.')">They're the same bias with two different names</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — confirmation bias is a skew in noticing/weighing evidence relative to what you already believe; motivated reasoning works backward from a conclusion you want, then builds the justification.')">Confirmation bias skews which evidence you notice; motivated reasoning works backward from a desired conclusion</button>
+        <button onclick="quizAnswer(this,false,'q1','Both are about the reasoner’s own thinking process, not specifically about disagreements with other people.')">Confirmation bias is about other people's arguments; motivated reasoning is about your own</button>
+        <button onclick="quizAnswer(this,false,'q1','Neither bias is about vividness of examples — that’s specifically the availability heuristic.')">Confirmation bias is about vivid examples; motivated reasoning is about dull ones</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. "I was late because of traffic, but they're late because they don't respect my time" is a textbook case of…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Availability heuristic is about vividness/ease of recall skewing perceived frequency — this is instead about attributing behavior differently based on who did it.')">Availability heuristic</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — the same behavior (lateness) gets a circumstantial excuse for yourself and a character-based explanation for someone else, the defining asymmetry of the fundamental attribution error.')">Fundamental attribution error</button>
+        <button onclick="quizAnswer(this,false,'q2','Confirmation bias is about weighing existing beliefs against new evidence — this is a same-behavior, different-explanation asymmetry, not a pattern of selectively noticed evidence.')">Confirmation bias</button>
+        <button onclick="quizAnswer(this,false,'q2','No conclusion is being reasoned backward from here — this is a difference in how the SAME behavior gets explained depending on who did it.')">Motivated reasoning</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Why does the availability heuristic make one dramatic argument feel more representative of a relationship than it is?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','This isn’t about wanting a particular conclusion to be true — it’s about how easily an event comes to mind, independent of any desired outcome.')">Because people want to believe their relationships are worse than they are</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — ease of recall (vividness) gets mistaken for actual frequency, so a rare but memorable event outweighs many unremarkable ordinary ones in how "typical" it feels.')">Because ease of recall gets mistaken for actual frequency — vivid, rare events are easier to remember than an unremarkable ordinary evening</button>
+        <button onclick="quizAnswer(this,false,'q3','This bias isn’t about attributing behavior to character vs. circumstance — that’s the fundamental attribution error, a different bias.')">Because people attribute their partner's calm evenings to good character</button>
+        <button onclick="quizAnswer(this,false,'q3','Nothing here is being reverse-engineered from a desired conclusion — it’s a memorability/frequency mismatch, not motivated reasoning.')">Because it confirms a conclusion they already wanted to reach</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. How does confirmation bias typically show up as a Logic-lesson-12 fallacy once spoken aloud?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true, 'q4','Right — noticing only the confirming cases and generalizing from them produces exactly a hasty generalization once the reasoning becomes a spoken argument.')">As a hasty generalization — confidently generalizing from the confirming cases that got noticed</button>
+        <button onclick="quizAnswer(this,false,'q4','Ad hominem attacks the arguer rather than engaging their evidence — confirmation bias is instead about which evidence gets noticed and weighted in the first place.')">As an ad hominem attack on whoever disagrees</button>
+        <button onclick="quizAnswer(this,false,'q4','A false dilemma limits options to two extremes — that’s not the typical downstream fallacy from selectively noticing confirming evidence.')">As a false dilemma between only two options</button>
+        <button onclick="quizAnswer(this,false,'q4','Slippery slope chains unsupported conditionals to an extreme outcome — that’s a different failure mode from noticing only confirming evidence.')">As a slippery slope toward an extreme outcome</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Pick one real disagreement from the last week — with anyone. Write down which of these four biases was most likely running underneath it, for you specifically (not the other person). Being able to name your own bias in the moment is the actual skill; naming someone else's is just a party trick.</p>
+
+  <h2>Primary resource</h2>
+  <p>See <a href="https://en.wikipedia.org/wiki/Thinking,_Fast_and_Slow" target="_blank">Daniel Kahneman's <em>Thinking, Fast and Slow</em></a> for the full research program behind these four biases, and dozens more.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Not sure which bias was at play in something that happened to you? Describe it to Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="../index.html">← Rationality home</a>
+    <span class="spacer"></span>
+    <a href="0002-probabilistic-bayesian-reasoning.html">Lesson 2: Probabilistic & Bayesian Reasoning →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const BIAS_ITEMS = [
+  {
+    english: '"I just know we argue constantly" — said after one loud argument three weeks ago, and a stretch of otherwise ordinary, uneventful weeks since.',
+    options: [
+      { text: 'Availability heuristic', correct: true, explain: 'Right — the one vivid, memorable argument is far easier to recall than a string of unremarkable ordinary days, so it dominates the felt sense of "how often we argue."' },
+      { text: 'Fundamental attribution error', explain: 'This isn’t about explaining someone’s behavior by character vs. circumstance — it’s about a vivid event skewing a sense of frequency.' },
+      { text: 'Motivated reasoning', explain: 'There’s no desired conclusion being reasoned toward here — just a memorable event distorting a frequency estimate.' },
+    ],
+  },
+  {
+    english: '"I forgot to text back because work was insane today. She forgot to text back because she doesn\'t care."',
+    options: [
+      { text: 'Confirmation bias', explain: 'This isn’t about selectively noticing evidence that fits an existing belief — it’s the same behavior getting two different kinds of explanation depending on who did it.' },
+      { text: 'Fundamental attribution error', correct: true, explain: 'Right — identical behavior (not texting back) gets a circumstantial excuse for the self and a character-based explanation for someone else.' },
+      { text: 'Availability heuristic', explain: 'No vivid, memorable example is driving a frequency judgment here — it’s an asymmetry in how the SAME action gets explained.' },
+    ],
+  },
+  {
+    english: '"I already decided this new job is the right move, so I keep finding reasons it makes sense and not looking too hard at the reasons it might not."',
+    options: [
+      { text: 'Motivated reasoning', correct: true, explain: 'Right — the conclusion (this job is right) came first, and the reasoning is being built backward to support it, while contrary evidence goes unexamined.' },
+      { text: 'Fundamental attribution error', explain: 'No one else’s behavior is being explained here — this is entirely about justifying one’s own already-made decision.' },
+      { text: 'Availability heuristic', explain: 'This isn’t about vivid examples being easy to recall — it’s about reasoning working backward from a desired conclusion.' },
+    ],
+  },
+];
+
+const biasDiv = document.getElementById('bias-exercise');
+BIAS_ITEMS.forEach((item, i) => {
+  const cardId = `bias-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  biasDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

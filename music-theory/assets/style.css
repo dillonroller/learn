@@ -92,7 +92,7 @@ a:hover { opacity: .75; }
   margin: 1.5rem 0;
   font-size: .95rem;
 }
-.callout strong { display: block; margin-bottom: .2rem; }
+.callout > strong:first-child { display: block; margin-bottom: .2rem; }
 
 /* Piano diagram */
 .piano-wrap {
@@ -172,6 +172,10 @@ a:hover { opacity: .75; }
 .options button:hover { border-color: var(--accent); background: var(--accent-lt); }
 .options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
 .options button.wrong   { background: #2e1a1a; border-color: #e74c3c; color: #e74c3c; }
+.options button:disabled { cursor: default; }
+.options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.options button:disabled:hover { border-color: var(--border); background: #2a2a2a; }
+.options button.correct:disabled:hover, .options button.wrong:disabled:hover { background: inherit; border-color: inherit; }
 
 .feedback { font-size: .9rem; margin-top: .5rem; min-height: 1.2em; }
 .feedback.good { color: var(--accent); }

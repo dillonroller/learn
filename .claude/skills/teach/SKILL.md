@@ -82,6 +82,8 @@ A shared stylesheet is the first component every workspace earns: every lesson l
 
 **Each topic has an index page** at `<topic>/index.html` listing all lessons. When a new lesson is created, add it as a new `.lesson-card` entry in that index page (remove the `locked` class if it was a placeholder), and update the placeholder for the next lesson. Also update the lesson count on `../../index.html`.
 
+**The home page's "In progress" section is ordered by recency, most-recent-first.** Whenever a session does lesson work in a topic (new lesson, quiz edits, any substantive touch), move that topic's `.card` to the *first* position in the `In progress` grid on `../../index.html`, ahead of every other topic. The grid is left-to-right, so the most recently worked-on topic should be the leftmost/first card. Don't reorder topics that weren't touched this session relative to each other — only the touched topic needs to jump to the front.
+
 **All lessons must include a fixed top navigation bar** that stays visible when scrolling. Place it immediately after `<body>`, before `.page`. It should link back to `../../index.html` (Learning Hub) and show the current topic name. Use the `.topnav` / `.tn-home` / `.tn-sep` / `.tn-topic` classes defined in `assets/style.css`.
 
 ## The Mission
@@ -124,6 +126,8 @@ For skill acquisition, difficulty is the tool. Effortful retrieval is what build
 Each of these should be based on a **feedback loop**, where the user receives feedback on their performance. This feedback loop should be as tight as possible, giving feedback immediately - and ideally automatically.
 
 For quizzes, each answer should be exactly the same number of words (and characters, if possible). Don't give the user any clues about the answer through formatting.
+
+**Quizzes must allow retries and explain wrong answers.** A wrong click is itself a learning signal — don't waste it with a generic "not quite." Use the shared engine at `/assets/quiz.js` (`quizAnswer()` for static `.q-block` quizzes, `mcAnswer()` for JS-array-driven `mc-exercise`/`mc-card` blocks): a wrong click disables only that option and shows a specific explanation of *why that option* is wrong, while the remaining options stay clickable so the user can try again; a correct click locks the whole question and explains why it's right. Write a real explanation string for every option, right or wrong — never leave the engine to fall back on its generic default text. Include `<script src="../../assets/quiz.js"></script>` (path depth adjusted per page) instead of writing a per-lesson `answer()`/custom handler function.
 
 ## Acquiring Wisdom
 

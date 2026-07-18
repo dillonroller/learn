@@ -110,10 +110,10 @@
     <div class="q-block" id="q1">
       <p>1. A truth table for a formula with 4 distinct atomic propositions needs…</p>
       <div class="options">
-        <button onclick="answer(this,false,'q1')">4 rows total</button>
-        <button onclick="answer(this,false,'q1')">8 rows total</button>
-        <button onclick="answer(this,true, 'q1')">16 rows total</button>
-        <button onclick="answer(this,false,'q1')">32 rows total</button>
+        <button onclick="quizAnswer(this,false,'q1','4 would be right for 2 atoms (2²), not 4. Rows grow exponentially with the number of atoms, not linearly.')">4 rows total</button>
+        <button onclick="quizAnswer(this,false,'q1','8 rows is 2³ — the right count for 3 atoms, one short of the 4 this question asks about.')">8 rows total</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — 2ⁿ with n=4 gives 2⁴ = 16 rows, one for every combination of truth values across the 4 atoms.')">16 rows total</button>
+        <button onclick="quizAnswer(this,false,'q1','32 is 2⁵ — that would be the count for 5 atoms, one more than this question asks about.')">32 rows total</button>
       </div>
       <div class="feedback" id="q1-fb"></div>
     </div>
@@ -121,10 +121,10 @@
     <div class="q-block" id="q2">
       <p>2. A formula that's true in every row of its truth table is called a…</p>
       <div class="options">
-        <button onclick="answer(this,false,'q2')">Contradiction, always false</button>
-        <button onclick="answer(this,false,'q2')">Contingency, sometimes true</button>
-        <button onclick="answer(this,true, 'q2')">Tautology, always true</button>
-        <button onclick="answer(this,false,'q2')">Antecedent, the if-part</button>
+        <button onclick="quizAnswer(this,false,'q2','A contradiction is false in every row — the opposite of what this question describes.')">Contradiction, always false</button>
+        <button onclick="quizAnswer(this,false,'q2','A contingency varies row to row — true sometimes, false other times. This formula is true in every row, with no variation.')">Contingency, sometimes true</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — true in every row, no matter what, is exactly the definition of a tautology.')">Tautology, always true</button>
+        <button onclick="quizAnswer(this,false,'q2','Antecedent is the “if” part of a conditional (P in P→Q) — a completely different concept from a formula’s truth-table pattern.')">Antecedent, the if-part</button>
       </div>
       <div class="feedback" id="q2-fb"></div>
     </div>
@@ -132,10 +132,10 @@
     <div class="q-block" id="q3">
       <p>3. By the truth-table method, an argument is valid exactly when…</p>
       <div class="options">
-        <button onclick="answer(this,false,'q3')">Every premise is a tautology</button>
-        <button onclick="answer(this,true, 'q3')">No row makes premises true, conclusion false</button>
-        <button onclick="answer(this,false,'q3')">The conclusion is a tautology</button>
-        <button onclick="answer(this,false,'q3')">Most rows favor the conclusion</button>
+        <button onclick="quizAnswer(this,false,'q3','Modus Ponens is valid even though its premises (P, P→Q) aren’t tautologies — validity is about the premise-conclusion relationship, not about any single premise being a tautology.')">Every premise is a tautology</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — this is the validity test from the callout above: no counterexample row means valid, full stop.')">No row makes premises true, conclusion false</button>
+        <button onclick="quizAnswer(this,false,'q3','The conclusion Q in Modus Ponens isn’t a tautology (it’s false in some rows) — the argument is still valid, so this can’t be the criterion.')">The conclusion is a tautology</button>
+        <button onclick="quizAnswer(this,false,'q3','Validity is all-or-nothing — one counterexample row invalidates the whole argument, no matter how many rows “favor” the conclusion.')">Most rows favor the conclusion</button>
       </div>
       <div class="feedback" id="q3-fb"></div>
     </div>
@@ -143,10 +143,10 @@
     <div class="q-block" id="q4">
       <p>4. Two formulas are logically equivalent exactly when…</p>
       <div class="options">
-        <button onclick="answer(this,false,'q4')">They use the same connectives</button>
-        <button onclick="answer(this,false,'q4')">They have the same atoms</button>
-        <button onclick="answer(this,true, 'q4')">Their truth tables match every row</button>
-        <button onclick="answer(this,false,'q4')">Both are tautologies always</button>
+        <button onclick="quizAnswer(this,false,'q4','P → Q and ¬P ∨ Q use different connectives entirely and are still equivalent — shared connectives are neither required nor sufficient.')">They use the same connectives</button>
+        <button onclick="quizAnswer(this,false,'q4','Sharing atoms is necessary but not sufficient — P ∧ Q and P ∨ Q share the same atoms and are not equivalent.')">They have the same atoms</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — exactly matching truth values on every row is the definition, demonstrated above with P → Q and ¬P ∨ Q.')">Their truth tables match every row</button>
+        <button onclick="quizAnswer(this,false,'q4','Two contradictions (always false) also count as equivalent — equivalence just needs matching columns, not tautology status.')">Both are tautologies always</button>
       </div>
       <div class="feedback" id="q4-fb"></div>
     </div>
@@ -392,22 +392,8 @@ window.addEventListener('load', () => {
   setVerdict('tt-equiv-verdict', 'equivalent', 'Both columns match on all 4 rows — confirmed equivalent, exactly as derived earlier by hand.');
 });
 
-// ── Quiz ───────────────────────────────────────────────────
-let scores = {};
-function answer(btn, correct, qid) {
-  const block = document.getElementById(qid);
-  if (block.dataset.done) return;
-  block.dataset.done = 'true';
-  const fb = document.getElementById(qid + '-fb');
-  btn.classList.add(correct ? 'correct' : 'wrong');
-  fb.textContent = correct ? '✓ Correct.' : '✗ Not quite — review the section above.';
-  fb.className = 'feedback ' + (correct ? 'good' : 'bad');
-  scores[qid] = correct ? 1 : 0;
-  const total = Object.keys(scores).length;
-  const right = Object.values(scores).filter(Boolean).length;
-  document.getElementById('score').textContent = `${right} / ${total} correct so far`;
-}
 </script>
+<script src="../../assets/quiz.js"></script>
 <script src="../../assets/search.js"></script>
 </body>
 </html>

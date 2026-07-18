@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 10 — Deontic Logic</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Philosophy</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 10 of 12 &nbsp;·&nbsp; Philosophy &nbsp;·&nbsp; ~25 min</p>
+  <h1>Deontic Logic — Obligation &amp; Permission</h1>
+  <p>This lesson exists because of a single word: <strong>should</strong>. Back in <a href="../../logic/lessons/0013-argument-mapping-reconstruction.html">Logic lesson 13</a>, the example argument was "We should ban the additive — three studies link it to health risks." That "should" is doing something no tool from the Logic curriculum can formally handle. This lesson gives it one.</p>
+
+  <h2 id="is-ought-gap">The is-ought gap</h2>
+  <p>Every formula you built in Logic — <code>P</code>, <code>Rude(a)</code>, <code>∀x Trust(x)</code> — describes what <em>is</em> the case. "Should," "ought," "obligatory," "permissible" describe something different: what <em>ought</em> to be the case. David Hume pointed out in 1739 that you cannot validly get from pure "is" premises to an "ought" conclusion — the two are different kinds of claim, and no amount of stacking descriptive facts logically forces a prescriptive one.</p>
+  <div class="callout warn">
+    <strong>Look at the additive argument again</strong>
+    P1: Three studies link the additive to health risks. <em>(is)</em><br>
+    P2: The manufacturer hasn't disputed this. <em>(is)</em><br>
+    C: We should ban it. <em>(ought)</em><br>
+    As written, this is <a href="../../logic/lessons/0013-argument-mapping-reconstruction.html#implicit-premises">missing an implicit premise</a> — something like "anything shown to pose health risks ought to be banned." Without a normative premise somewhere, no normative conclusion can validly follow. This is Hume's is-ought gap, and it's not a quirk of this one example — it's a hole in <em>every</em> argument that ends in a "should" unless a normative premise bridges it.
+  </div>
+
+  <h2 id="deontic-operators">Reusing modal logic, with a different reading</h2>
+  <p>Recall <a href="../../logic/lessons/0010-modal-logic.html#necessity">Logic lesson 10</a>: <code>□p</code> meant "p is true in every possible world," and <code>◇p</code> meant "p is true in at least one possible world." Deontic logic doesn't invent new machinery — it takes the exact same box/diamond structure and narrows the worlds under consideration to <strong>deontically ideal worlds</strong>: the worlds where everyone does what they ought to do.</p>
+  <div class="callout">
+    <strong id="deontic-o">O — Obligatory</strong>
+    <code>Op</code> ("it is obligatory that p") means p holds in every deontically ideal world — every way things <em>ought</em> to go. Compare directly to <code>□p</code>: same shape, normative reading instead of alethic (necessity) reading.
+  </div>
+  <div class="callout">
+    <strong id="deontic-p">P — Permissible</strong>
+    <code>Pp</code> ("it is permissible that p") means p holds in at least one deontically ideal world — some way things could go while everyone still does their duty. Compare to <code>◇p</code>.
+  </div>
+  <div class="callout">
+    <strong id="deontic-f">F — Forbidden</strong>
+    <code>Fp</code> ("it is forbidden that p") is defined as <code>O¬p</code> — obligatory that p <em>not</em> happen. If lying is forbidden, then not-lying is obligatory in every ideal world.
+  </div>
+
+  <h2 id="deontic-duality">Duality — the same pattern as lesson 10</h2>
+  <p>Logic lesson 10 showed <code>◇p ≡ ¬□¬p</code> ("possible" = "not necessarily not"). Deontic logic has the exact same duality: <code>Pp ≡ ¬O¬p</code> — "permissible" means "not obligatory that it doesn't happen." If you're not required to refrain from something, you're permitted to do it. And symmetrically: <code>Op ≡ ¬P¬p</code> — if p is obligatory, then not-p is not permissible.</p>
+  <div class="callout warn">
+    <strong>One axiom that has no alethic parallel</strong>
+    Standard deontic logic adds <code>Op → Pp</code>: whatever is obligatory is also permissible. This rules out anything being simultaneously obligatory and forbidden — a system can't require you to do the very thing it forbids. Alethic modal logic has no equivalent axiom, because "necessary" and "impossible" aren't in the same kind of tension "obligatory" and "forbidden" are — this axiom is specifically about consistent <em>duty</em>, not consistent <em>fact</em>.
+  </div>
+
+  <h2 id="good-samaritan-paradox">A paradox worth knowing about</h2>
+  <p>Deontic logic isn't fully settled — the field has a famous list of puzzles where the formalism produces conclusions that sound wrong. The best-known is the <strong>Good Samaritan Paradox</strong>: "It ought to be that Jones helps the man he robbed" seems to logically entail "It ought to be that Jones robbed the man" (you can't help someone you didn't rob), which is absurd — nothing ought to involve Jones robbing anyone. The paradox arises from how naturally standard deontic logic lets obligations "leak" through logical entailment. No single fix is universally accepted; it's flagged here so you know the field has open problems, the same honest caveat <a href="../../logic/lessons/0009-soundness-completeness.html">Logic lesson 9</a> gave about formal systems generally.</p>
+
+  <h2>Try it: symbolize the obligation</h2>
+  <p>For each English sentence, pick the correct deontic formula.</p>
+  <div id="deontic-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. "Three studies link the additive to health risks, therefore we should ban it" is missing what, formally?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','The premises given are true claims about study findings — the problem isn’t their truth, it’s a missing kind of premise entirely.')">A true premise — the studies might be wrong</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — an is-premise alone can never validly license an ought-conclusion. A bridging normative premise (something like "health risks ought to be banned") is required.')">A normative (ought) premise bridging the is-premises to the ought-conclusion</button>
+        <button onclick="quizAnswer(this,false,'q1','This isn’t a quantifier scope issue — it’s that every premise given is descriptive (is) while the conclusion is prescriptive (ought).')">A universal quantifier over all additives</button>
+        <button onclick="quizAnswer(this,false,'q1','Nothing here is self-referential or circular — the gap is between descriptive premises and a prescriptive conclusion.')">Nothing — the argument is already valid as stated</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. If lying is forbidden (<code>F(Lying)</code>), what does that make refraining from lying?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true, 'q2','Right — F is defined as O¬. F(Lying) = O(¬Lying): not-lying is obligatory in every deontically ideal world.')">Obligatory — F(Lying) is defined as O(¬Lying)</button>
+        <button onclick="quizAnswer(this,false,'q2','Forbidden means the opposite is required, not merely allowed — "permissible" is far too weak here.')">Merely permissible — P(¬Lying)</button>
+        <button onclick="quizAnswer(this,false,'q2','Forbidding lying says nothing about lying’s necessity — it’s a definitional relationship between F and O, not between F and □.')">Necessarily true in every possible world, not just ideal ones</button>
+        <button onclick="quizAnswer(this,false,'q2','F(Lying) fixes the status of not-lying directly by definition — it doesn’t leave it undefined.')">Undefined — forbidding an act says nothing about its negation</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. How does deontic <code>O</code>/<code>P</code> relate to modal <code>□</code>/<code>◇</code> from Logic lesson 10?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','They’re not unrelated notations for different logics — deontic logic reuses modal logic’s exact structure with a different reading of the worlds.')">They're unrelated — deontic logic invents entirely new machinery</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — same box/diamond duality, just restricted to "deontically ideal" worlds (where duties are fulfilled) instead of all possible worlds.')">Same structure as □/◇, restricted to deontically ideal worlds instead of all possible worlds</button>
+        <button onclick="quizAnswer(this,false,'q3','O and P aren’t about necessity/possibility of truth at all — they’re about obligation/permission, a normative reading, not an alethic one.')">O means necessarily true and P means possibly true, exactly like □ and ◇</button>
+        <button onclick="quizAnswer(this,false,'q3','Deontic logic still has a duality — Pp ≡ ¬O¬p mirrors ◇p ≡ ¬□¬p exactly.')">Deontic logic has no duality relationship, unlike modal logic</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. What makes the Good Samaritan Paradox a genuine open problem, rather than just a confusing sentence?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','The paradox isn’t about ambiguous English — it’s that standard deontic logic’s formal entailment rules produce an absurd conclusion from a reasonable one.')">It's just an ambiguous English sentence with no real formal content</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — standard deontic logic’s own entailment rules let "ought to help the man he robbed" formally imply "ought to have robbed him," which is absurd, and there’s no universally accepted fix.')">Standard deontic logic's own inference rules let obligations "leak" into absurd conclusions, with no agreed fix</button>
+        <button onclick="quizAnswer(this,false,'q4','The paradox is specifically a problem for standard deontic logic’s formal system — it isn’t about Jones’s specific moral character.')">It shows Jones is a bad person, which is a moral question, not a logical one</button>
+        <button onclick="quizAnswer(this,false,'q4','This paradox is a well-known, actively discussed open problem in deontic logic, not a solved textbook exercise.')">It was fully resolved decades ago and is only taught historically</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Primary resource</h2>
+  <p>See the <a href="https://plato.stanford.edu/entries/logic-deontic/" target="_blank">Stanford Encyclopedia of Philosophy — Deontic Logic</a> for the full axiom system and the complete catalog of paradoxes.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Heard someone say "should" or "ought" in an argument and want to know if there's a hidden normative premise? Bring the exact wording to Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="../index.html">← Philosophy home</a>
+    <span class="spacer"></span>
+    <a href="0011-epistemic-logic.html">Lesson 11: Epistemic Logic →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const DEONTIC_ITEMS = [
+  {
+    english: '"Employees must wear a hard hat on the construction floor."',
+    options: [
+      { text: 'O(HardHat)', correct: true, explain: 'Right — "must" expresses obligation: wearing a hard hat holds in every deontically ideal world here.' },
+      { text: 'P(HardHat)', explain: '"Must" is stronger than mere permission — P would only say hard hats are allowed, not required.' },
+      { text: 'F(HardHat)', explain: 'F would mean hard hats are forbidden — the opposite of what "must wear" says.' },
+    ],
+  },
+  {
+    english: '"Visitors are allowed to park in the north lot, but don\'t have to."',
+    options: [
+      { text: 'O(ParkNorth)', explain: 'O would mean parking there is required — but this sentence explicitly says it isn’t required, just allowed.' },
+      { text: 'P(ParkNorth)', correct: true, explain: 'Right — "allowed but don’t have to" is exactly permissible-but-not-obligatory: true in some ideal world, not necessarily all of them.' },
+      { text: 'F(ParkNorth)', explain: 'Forbidden would mean parking there is disallowed entirely — the opposite of "allowed."' },
+    ],
+  },
+  {
+    english: '"Smoking is not allowed anywhere on the premises."',
+    options: [
+      { text: 'P(Smoking)', explain: 'P would say smoking is permitted somewhere — this sentence says the opposite, that it’s disallowed everywhere.' },
+      { text: 'O(Smoking)', explain: 'O would mean smoking is required — this sentence forbids it, not requires it.' },
+      { text: 'F(Smoking)', correct: true, explain: 'Right — "not allowed anywhere" is forbidden: O(¬Smoking), which is exactly what F(Smoking) is defined as.' },
+    ],
+  },
+];
+
+const deonticDiv = document.getElementById('deontic-exercise');
+DEONTIC_ITEMS.forEach((item, i) => {
+  const cardId = `deontic-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  deonticDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

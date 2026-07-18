@@ -87,10 +87,10 @@
     <div class="q-block" id="q1">
       <p>1. A half step is…</p>
       <div class="options">
-        <button onclick="answer(this, false, 'q1')">Two keys apart, skipping one</button>
-        <button onclick="answer(this, true,  'q1')">The very next key, white or black</button>
-        <button onclick="answer(this, false, 'q1')">Any white key to white key move</button>
-        <button onclick="answer(this, false, 'q1')">Any black key to black key move</button>
+        <button onclick="quizAnswer(this, false, 'q1', 'That’s a whole step (two half steps) — a half step is the smallest possible distance, with nothing skipped.')">Two keys apart, skipping one</button>
+        <button onclick="quizAnswer(this, true,  'q1', 'Right — a half step is always the very next key, whether that neighbor is white or black.')">The very next key, white or black</button>
+        <button onclick="quizAnswer(this, false, 'q1', 'Not all white-to-white moves are half steps — C to D is white-to-white but it’s a whole step, since C♯ sits between them. Only E→F and B→C are white-to-white half steps.')">Any white key to white key move</button>
+        <button onclick="quizAnswer(this, false, 'q1', 'Black keys are never adjacent to each other — there’s always at least one white key between any two black keys, so this move doesn’t occur.')">Any black key to black key move</button>
       </div>
       <div class="feedback" id="q1-fb"></div>
     </div>
@@ -98,10 +98,10 @@
     <div class="q-block" id="q2">
       <p>2. How many half steps are in a whole step?</p>
       <div class="options">
-        <button onclick="answer(this, false, 'q2')">One half step total</button>
-        <button onclick="answer(this, true,  'q2')">Two half steps total</button>
-        <button onclick="answer(this, false, 'q2')">Three half steps total</button>
-        <button onclick="answer(this, false, 'q2')">Four half steps total</button>
+        <button onclick="quizAnswer(this, false, 'q2', 'One half step is just a half step — a whole step is two of them stacked together.')">One half step total</button>
+        <button onclick="quizAnswer(this, true,  'q2', 'Right — a whole step is exactly two half steps, e.g. C to C♯ to D.')">Two half steps total</button>
+        <button onclick="quizAnswer(this, false, 'q2', 'Three half steps would be a step and a half — larger than a whole step.')">Three half steps total</button>
+        <button onclick="quizAnswer(this, false, 'q2', 'Four half steps is two whole steps — twice the size of a single whole step.')">Four half steps total</button>
       </div>
       <div class="feedback" id="q2-fb"></div>
     </div>
@@ -109,10 +109,10 @@
     <div class="q-block" id="q3">
       <p>3. The major scale recipe is…</p>
       <div class="options">
-        <button onclick="answer(this, false, 'q3')">H H W H H H W pattern</button>
-        <button onclick="answer(this, false, 'q3')">W H W W H W W pattern</button>
-        <button onclick="answer(this, true,  'q3')">W W H W W W H pattern</button>
-        <button onclick="answer(this, false, 'q3')">W W W H W W H pattern</button>
+        <button onclick="quizAnswer(this, false, 'q3', 'This flips halves and wholes relative to the real recipe — it has H where the major scale has W, and vice versa.')">H H W H H H W pattern</button>
+        <button onclick="quizAnswer(this, false, 'q3', 'This is a different pattern entirely — the major scale’s half steps land after the 3rd and 7th notes, not in these positions.')">W H W W H W W pattern</button>
+        <button onclick="quizAnswer(this, true,  'q3', 'Right — W W H W W W H, with the two half steps landing after the 3rd note (E→F) and the 7th note (B→C).')">W W H W W W H pattern</button>
+        <button onclick="quizAnswer(this, false, 'q3', 'This puts the first half step one position too late — the major scale’s first half step comes after the 3rd note (E→F), not the 4th.')">W W W H W W H pattern</button>
       </div>
       <div class="feedback" id="q3-fb"></div>
     </div>
@@ -120,10 +120,10 @@
     <div class="q-block" id="q4">
       <p>4. How many notes are in the chromatic scale?</p>
       <div class="options">
-        <button onclick="answer(this, false, 'q4')">Seven notes per octave</button>
-        <button onclick="answer(this, false, 'q4')">Eight notes per octave</button>
-        <button onclick="answer(this, false, 'q4')">Ten notes per octave</button>
-        <button onclick="answer(this, true,  'q4')">Twelve notes per octave</button>
+        <button onclick="quizAnswer(this, false, 'q4', 'Seven is the count of natural (white-key) notes only — the chromatic scale includes the black keys too.')">Seven notes per octave</button>
+        <button onclick="quizAnswer(this, false, 'q4', 'Eight doesn’t match either the 7 naturals or the full chromatic scale — it’s not the right count for either.')">Eight notes per octave</button>
+        <button onclick="quizAnswer(this, false, 'q4', 'Ten is short by two — the chromatic scale includes all 12 keys (7 white + 5 black) in an octave.')">Ten notes per octave</button>
+        <button onclick="quizAnswer(this, true,  'q4', 'Right — playing every key, white and black, from one C to the next C gives 12 half steps: the full chromatic scale.')">Twelve notes per octave</button>
       </div>
       <div class="feedback" id="q4-fb"></div>
     </div>
@@ -269,26 +269,7 @@ function selectKey(el, midi, label) {
 
 window.addEventListener('load', buildPiano);
 
-// ── Quiz ───────────────────────────────────────────────────
-let scores = {};
-
-function answer(btn, correct, qid) {
-  const block = document.getElementById(qid);
-  if (block.dataset.done) return;
-  block.dataset.done = 'true';
-  const fb = document.getElementById(qid + '-fb');
-  btn.classList.add(correct ? 'correct' : 'wrong');
-  fb.textContent = correct ? '✓ Correct.' : '✗ Not quite — review the section above.';
-  fb.className = 'feedback ' + (correct ? 'good' : 'bad');
-  scores[qid] = correct ? 1 : 0;
-  updateScore();
-}
-
-function updateScore() {
-  const total = Object.keys(scores).length;
-  const right = Object.values(scores).filter(Boolean).length;
-  document.getElementById('score').textContent = `${right} / ${total} correct so far`;
-}
 </script>
+<script src="../../assets/quiz.js"></script>
 </body>
 </html>

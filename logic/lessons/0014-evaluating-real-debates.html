@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 14 — Evaluating Real Debates</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Logic</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 14 of 14 &nbsp;·&nbsp; Logic &nbsp;·&nbsp; ~35 min</p>
+  <h1>Evaluating Real Debates</h1>
+  <p>This is what all thirteen lessons were for. Every tool is now in your hands — validity, soundness, symbolization, quantifiers, proof, the system's own guarantees, modal traps, formal and informal fallacies, and how to reconstruct a messy real argument into something checkable. This lesson is one repeatable process, and one full walkthrough, start to finish, on an argument nobody has pre-cleaned for you.</p>
+
+  <h2>Your toolkit, assembled</h2>
+  <ul>
+    <li><a href="0001-arguments-validity-soundness.html">Validity & soundness</a> — the two-question test that started everything</li>
+    <li><a href="0002-propositional-logic-syntax.html">Connectives</a> and <a href="0006-predicate-logic-quantifiers.html">quantifiers</a> — precise symbolization</li>
+    <li><a href="0003-truth-tables.html">Truth tables</a> and <a href="0004-logical-equivalence-normal-forms.html">equivalence</a> — mechanical structural checks</li>
+    <li><a href="0005-natural-deduction.html">Proof</a> — building a justified chain instead of asserting</li>
+    <li><a href="0009-soundness-completeness.html">Soundness & completeness</a> — why the rules themselves can be trusted</li>
+    <li><a href="0010-modal-logic.html">Modal logic</a> — catching necessity/possibility scope errors</li>
+    <li><a href="0011-godels-incompleteness-theorems.html">Gödel's theorems</a> — knowing the limits of a formal system, and refusing to let others overstate them</li>
+    <li><a href="0012-informal-fallacies.html">Informal fallacies</a> — catching content-level failures a truth table can't see</li>
+    <li><a href="0013-argument-mapping-reconstruction.html">Argument reconstruction</a> — turning real speech into checkable structure</li>
+  </ul>
+
+  <h2 id="five-step-process">The five-step process</h2>
+  <div class="steps">
+    <div class="step-card"><span class="step-num">1</span><div><strong>Reconstruct.</strong> Find the conclusion, list every premise, surface anything implicit, note linked vs. convergent (lesson 13).</div></div>
+    <div class="step-card"><span class="step-num">2</span><div><strong>Check structural validity.</strong> Symbolize if it helps. Look for formal fallacies (affirming the consequent, denying the antecedent, modal scope). Run the validity test if the structure is precise enough (lessons 1–11).</div></div>
+    <div class="step-card"><span class="step-num">3</span><div><strong>Check for informal fallacies.</strong> Relevance, presumption, weak evidence (lesson 12).</div></div>
+    <div class="step-card"><span class="step-num">4</span><div><strong>Assess premise truth — separately.</strong> This is empirical, not logical. For each premise, ask: what evidence would actually confirm or deny this?</div></div>
+    <div class="step-card"><span class="step-num">5</span><div><strong>Write the verdict</strong> as two separate answers, never blended: is the <em>structure</em> valid? Are the <em>premises</em> well-supported? This is lesson 1's two-question test, now fully operational.</div></div>
+  </div>
+
+  <h2 id="worked-example">Full walkthrough: an argument nobody cleaned up for you</h2>
+  <div class="callout">
+    <strong>The argument, as actually spoken</strong>
+    "Our office should end remote work entirely. Every major product breakthrough we've ever had happened during in-person brainstorming sessions. If we let people keep working from home, we'll never get another breakthrough like that again, and we'll fall behind our competitors."
+  </div>
+
+  <h3>Step 1 — Reconstruct</h3>
+  <div class="proof">
+    <div class="proof-line"><span class="ln">1</span><span>Every past breakthrough happened during in-person brainstorming.</span><span class="just">stated</span></div>
+    <div class="proof-line"><span class="ln">2</span><span>In-person brainstorming is necessary for any breakthrough.</span><span class="just">implicit</span></div>
+    <div class="proof-line"><span class="ln">3</span><span>If we keep remote work, we'll never brainstorm in person again.</span><span class="just">stated</span></div>
+    <div class="proof-line"><span class="ln">4</span><span>No more breakthroughs → falling behind competitors.</span><span class="just">stated (unsupported link)</span></div>
+    <div class="proof-line"><span class="ln">5</span><span>Therefore, we should end remote work entirely.</span><span class="just">conclusion</span></div>
+  </div>
+  <p>Line 2 is the load-bearing implicit premise — the argument never actually says "in-person is <em>necessary</em>," it only reports a historical pattern (line 1). Without line 2, lines 3–4 don't connect to line 1 at all.</p>
+
+  <h3>Step 2 — Check structural validity</h3>
+  <p>Symbolize the core move: let <code>B</code> = "a breakthrough occurs," <code>I</code> = "in-person brainstorming happens." Line 2, once made explicit, is <code>□(B → I)</code> — "in-person is necessary for a breakthrough." The argument then reasons: no in-person (<code>¬I</code>) means no breakthrough (<code>¬B</code>) — which is exactly <a href="0003-truth-tables.html#modus-ponens">Modus Tollens</a> applied to line 2. <strong>Given the implicit premise, the core structure is actually valid.</strong> That's an important, easy-to-miss result — this argument is not a formal fallacy. The trouble is entirely somewhere else.</p>
+
+  <h3>Step 3 — Check for informal fallacies</h3>
+  <div class="callout warn">
+    <strong>Hasty Generalization on line 2</strong>
+    "Every breakthrough we've had happened in-person" is one company's limited history — that supports "in-person <em>correlated</em> with our past breakthroughs," not "in-person is <em>necessary</em> for breakthroughs in general." Jumping from a small, single-company sample to a universal necessity claim is exactly <a href="0012-informal-fallacies.html#hasty-generalization">lesson 12's hasty generalization</a>.
+  </div>
+  <div class="callout warn">
+    <strong>Slippery Slope on line 4</strong>
+    "No more breakthroughs" sliding into "we'll fall behind our competitors" skips every link in between: are competitors having breakthroughs either? Do breakthroughs alone determine competitiveness? This chain is asserted, not supported — <a href="0012-informal-fallacies.html#slippery-slope">lesson 12's slippery slope</a>, precisely.
+  </div>
+
+  <h3>Step 4 — Assess premise truth (empirical, not logical)</h3>
+  <p>Logic can't settle this part — but it tells you exactly what to go check. Line 1 needs actual company data (is it really true every breakthrough was in-person, or does that overlook some?). Line 2 needs outside evidence beyond this one company — research on remote vs. in-person ideation, or comparisons with other companies' remote breakthroughs. Line 4 needs competitive analysis, not assertion.</p>
+
+  <h3>Step 5 — Verdict</h3>
+  <div class="callout">
+    <strong>Two separate answers, not one blended feeling</strong>
+    <strong>Structure:</strong> valid, given the implicit premise — this is genuine Modus Tollens, not a formal fallacy. <strong>Premises:</strong> not well-supported — the necessity claim in line 2 is a hasty generalization from a small sample, and line 4 adds an unsupported leap on top. The argument doesn't succeed as given, but not because the reasoning is broken — because two specific, nameable claims need real evidence nobody has offered yet. That's a far more useful conclusion than "I disagree" — it tells the other person exactly what would change your mind.
+  </div>
+
+  <h2>Try it: which step catches it?</h2>
+  <p>For each flaw, pick which step of the five-step process is designed to catch it.</p>
+  <div id="debate-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. In the worked example, once the implicit premise is made explicit, the core structure is…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','The core move (¬I → ¬B, given □(B→I)) is exactly Modus Tollens — a genuinely valid pattern, not a formal fallacy.')">Invalid — it commits a formal fallacy</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — given the implicit necessity premise, the reasoning is Modus Tollens, a valid pattern. The argument’s real problems are elsewhere.')">Valid — the flaw is not in the structure</button>
+        <button onclick="quizAnswer(this,false,'q1','The lesson deliberately shows the opposite — the structure is fine; the weakness is in whether the premises are actually well-supported.')">Impossible to evaluate without a truth table</button>
+        <button onclick="quizAnswer(this,false,'q1','It’s not undecidable — Modus Tollens is a simple, checkable pattern with a definite verdict (valid), as lesson 3 already established.')">Undecidable, like the systems in lesson 9</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Why does it matter that the argument's structure is valid, even though the argument still fails?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','It matters a lot — knowing the structure is fine tells you exactly where to direct your pushback (the premises), instead of vaguely re-litigating the logic itself.')">It doesn't matter — a failed argument is a failed argument either way</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — this is lesson 1’s two-question test in action: knowing the structure holds means your entire objection can focus precisely on the unsupported premises, not the reasoning.')">It tells you the disagreement is entirely about premise support, not reasoning — sharpening exactly what to challenge</button>
+        <button onclick="quizAnswer(this,false,'q2','Valid structure with unsupported premises is precisely lesson 1’s "valid but unsound" case — not a contradiction, and not something that makes the argument automatically correct.')">It means the conclusion must be accepted regardless of the premises</button>
+        <button onclick="quizAnswer(this,false,'q2','This case is a clean instance of lesson 1’s valid/unsound distinction, not some special exception to it.')">It's a special exception to lesson 1's validity/soundness distinction</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Which step of the five-step process is responsible for asking "what evidence would actually confirm this premise?"</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','Step 2 checks structural validity — a purely logical question, not an evidence question.')">Step 2 — structural validity</button>
+        <button onclick="quizAnswer(this,false,'q3','Step 3 checks for informal fallacies (relevance, presumption, weak evidence patterns) — a different question from asking what evidence would settle a premise.')">Step 3 — informal fallacies</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — step 4 is explicitly the empirical step: for each premise, what would actually confirm or deny it. Logic hands off to evidence here.')">Step 4 — assess premise truth</button>
+        <button onclick="quizAnswer(this,false,'q3','Step 1 is reconstruction — finding the conclusion and premises, not yet evaluating whether they’re true.')">Step 1 — reconstruction</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. The final verdict in step 5 should always…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','Blending them is exactly what step 5 is designed to avoid — a single up/down verdict hides whether the real problem is structural or evidential.')">Blend structure and premise-truth into a single up-or-down verdict</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — this is lesson 1’s two-question test operationalized: report the structural verdict and the premise-support verdict separately, since they’re answered by completely different methods.')">Report the structural verdict and the premise-support verdict separately</button>
+        <button onclick="quizAnswer(this,false,'q4','A structural check is always possible and worthwhile even when premises are contested — the two questions are independent, not conditional on each other.')">Only evaluate structure if you already know the premises are true</button>
+        <button onclick="quizAnswer(this,false,'q4','Popularity has never been part of this process — soundness and validity, all the way back to lesson 1, have nothing to do with how many people agree.')">Defer entirely to how many people find the conclusion persuasive</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice — the real thing</h2>
+  <p>Take the argument you reconstructed for <a href="0013-argument-mapping-reconstruction.html">lesson 13's</a> practice task and run the full five-step process on it: structural check, fallacy check, premise-evidence check, two-part verdict. This is no longer practice for a future lesson — this is the actual skill, on an actual argument, done the actual way.</p>
+
+  <h2>Primary resource</h2>
+  <p>See the <a href="https://plato.stanford.edu/entries/critical-thinking/" target="_blank">Stanford Encyclopedia of Philosophy — Critical Thinking</a> for how this process connects to the broader critical thinking literature beyond formal logic alone.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Have a real argument you want to run through the full five-step process together? Bring it to Claude Code, any time — this is what the whole topic was built for.
+  </div>
+
+  <div class="nav">
+    <a href="0013-argument-mapping-reconstruction.html">← Lesson 13: Argument Mapping & Reconstruction</a>
+    <span class="spacer"></span>
+    <a href="../index.html">Logic: All Lessons →</a>
+  </div>
+
+</div>
+
+<style>
+.steps { display: flex; flex-direction: column; gap: .75rem; margin: 1.25rem 0 1.75rem; }
+.step-card {
+  display: flex; align-items: flex-start; gap: 1rem;
+  background: #242424; border: 1px solid var(--border); border-radius: var(--radius);
+  padding: .9rem 1.1rem; font-size: .92rem; line-height: 1.55;
+}
+.step-num {
+  flex-shrink: 0; width: 1.9rem; height: 1.9rem; border-radius: 50%;
+  background: #2d6a4f; color: var(--accent); border: 1px solid var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 700; font-size: .85rem;
+}
+
+.proof {
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  font-size: .85rem;
+  background: #141414;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin: 1rem 0;
+}
+.proof-line {
+  display: grid;
+  grid-template-columns: 1.6rem 1fr auto;
+  gap: .75rem;
+  padding: .2rem 0;
+  align-items: baseline;
+}
+.proof-line .ln { color: #555; }
+.proof-line .just {
+  color: var(--muted);
+  font-size: .76rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  white-space: nowrap;
+}
+
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .95rem; margin-bottom: .75rem; line-height: 1.55; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const DEBATE_ITEMS = [
+  {
+    english: '"He\'s wrong about the merger because he got fired from his last job." Which step catches the flaw?',
+    options: [
+      { text: 'Step 2 — structural validity', explain: 'This isn’t a broken logical structure — the words form a coherent-sounding argument. The problem is what kind of premise it uses.' },
+      { text: 'Step 3 — informal fallacies', correct: true, explain: 'Right — this is an ad hominem (lesson 12), attacking the arguer instead of the argument. Step 3 is exactly where content-level fallacies like this get caught.' },
+      { text: 'Step 4 — assess premise truth', explain: 'Whether he really got fired might be true or false, but that’s not the issue — even if it’s true, it’s irrelevant to whether his merger argument is correct.' },
+    ],
+  },
+  {
+    english: '"Studies show remote workers report high satisfaction — but do those studies control for job type, or just survey whoever responded?" Which step does this represent?',
+    options: [
+      { text: 'Step 2 — structural validity', explain: 'This question isn’t about whether a conclusion follows from premises — it’s about whether a specific premise is actually well-supported.' },
+      { text: 'Step 4 — assess premise truth', correct: true, explain: 'Right — this is exactly step 4: asking what evidence would actually confirm or challenge a premise, an empirical question outside logic itself.' },
+      { text: 'Step 1 — reconstruction', explain: 'Reconstruction is about identifying the premises and conclusion in the first place — this question comes after that, questioning a premise’s actual support.' },
+    ],
+  },
+];
+
+const debateDiv = document.getElementById('debate-exercise');
+DEBATE_ITEMS.forEach((item, i) => {
+  const cardId = `debate-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  debateDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

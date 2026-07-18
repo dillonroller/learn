@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 2 — Probabilistic & Bayesian Reasoning</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Rationality</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 2 of 3 &nbsp;·&nbsp; Rationality &nbsp;·&nbsp; ~30 min</p>
+  <h1>Probabilistic &amp; Bayesian Reasoning</h1>
+  <p><a href="../../logic/index.html">Logic</a> asked one question: is this argument valid, yes or no? Real life almost never hands you a clean yes/no — it hands you evidence, and asks how confident you should be. This lesson is about updating confidence <em>correctly</em>, in proportion to the evidence, instead of swinging between "certain it's fine" and "certain it's a disaster" based on whatever happened most recently — exactly the trap <a href="0001-cognitive-biases.html#availability-heuristic">lesson 1's availability heuristic</a> sets.</p>
+
+  <h2 id="bayes-theorem">Bayes' theorem, in plain terms</h2>
+  <p>Bayes' theorem is a rule for updating a belief when new evidence comes in. In symbols:</p>
+  <pre><code>P(H|E) = P(E|H) × P(H) / P(E)</code></pre>
+  <p>In words: your <strong>updated belief</strong> in a hypothesis H, given evidence E, depends on three things — how <strong>likely the evidence is if H is true</strong>, how <strong>likely H was before you saw the evidence</strong> (the prior), and how <strong>likely the evidence was at all</strong>, regardless of H. The part people consistently skip is the prior — and skipping it is the single most common way probabilistic reasoning goes wrong.</p>
+
+  <h2 id="base-rate-neglect">Base rate neglect — the classic failure</h2>
+  <div class="callout warn">
+    <strong>The test-accuracy problem</strong>
+    A disease affects 1 in 1,000 people. A test for it is 90% accurate — meaning it correctly flags 90% of people who have it, and correctly clears 90% of people who don't. You test positive. How likely is it you actually have the disease?<br><br>
+    Most people's gut answer is "around 90%." The real answer is closer to <strong>1%</strong>. Out of 1,000 people, roughly 1 actually has the disease and tests positive (0.9 people). But of the 999 who don't have it, 10% still test positive by error — that's about 100 false positives. So out of ~101 positive results, only about 1 is a true case. The test result is real evidence and should shift your belief upward — from 1-in-1,000 to roughly 1-in-100 — just nowhere near as far as gut instinct says, because the <strong>base rate</strong> (how rare the disease is to begin with) matters just as much as the test's accuracy.
+  </div>
+  <p>This exact structure shows up constantly outside medicine. A friend mentions your partner was seen having lunch with an ex (the "positive test"). If cheating is genuinely rare in your relationship's actual track record (a low base rate), one ambiguous data point should move your belief a little — not flip it to certainty. Ignoring the base rate and reacting as if the evidence alone determines the answer is base rate neglect, and it's one of the most consistent gaps between formal probability and gut-level confidence.</p>
+
+  <h2 id="proportional-updating">Updating proportionally, not flipping a switch</h2>
+  <p>The practical takeaway isn't the formula — it's the habit: treat new evidence as something that should shift your confidence by a proportionate amount, not snap it to 0% or 100%. "They forgot to text back once" is real evidence about reliability, but it's weak evidence, so it should nudge a strong prior (months of reliable behavior) only slightly. "They've forgotten to text back the last six times in a row" is much stronger evidence, and deserves a much bigger shift. The size of the update should track the strength of the evidence and how surprising it is given what you already knew — not the emotional intensity of the moment it arrived in.</p>
+
+  <h2 id="calibration">Calibration — confidence should track being right</h2>
+  <p>A well-calibrated reasoner who says "I'm 80% sure" should turn out to be right about 8 times out of 10 when they say that — not nearly always, and not barely more than half the time. Most people are systematically <strong>overconfident</strong>: their "I'm certain" moments turn out wrong more often than 0% of the time. Treating your own gut confidence as informative, but not infallible, and asking "how often am I right when I feel this sure?" is the practical, ongoing version of Bayesian updating — done without ever writing down a formula.</p>
+
+  <h2>Try it: update the belief</h2>
+  <p>For each scenario, pick the reasoning that correctly accounts for the base rate.</p>
+  <div id="bayes-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. In the disease-test example, why isn't a positive result 90% likely to mean you have the disease?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','The test really is 90% accurate as stated — the issue isn’t the test’s accuracy, it’s how rare the disease is to begin with.')">Because the test isn't actually 90% accurate</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — because the disease is rare (low base rate), the much larger pool of healthy people generates more false positives in absolute terms than the small pool of sick people generates true positives.')">Because the disease's low base rate means false positives from the large healthy population outnumber true positives from the small sick population</button>
+        <button onclick="quizAnswer(this,false,'q1','This isn’t an availability heuristic case — it’s a straightforward base-rate calculation problem with concrete numbers.')">Because of the availability heuristic distorting the test result</button>
+        <button onclick="quizAnswer(this,false,'q1','A 90%-accurate test is still real, meaningful evidence — it should shift your belief upward, just not all the way to 90%.')">Because test results provide no real evidence at all</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. What is base rate neglect?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true, 'q2','Right — ignoring how common or rare something was BEFORE the new evidence, and judging almost entirely by the evidence in isolation, is exactly base rate neglect.')">Ignoring how rare or common something was before new evidence arrived, and judging almost entirely by the new evidence alone</button>
+        <button onclick="quizAnswer(this,false,'q2','This describes attributing behavior to character vs. circumstance — the fundamental attribution error, a different concept from lesson 1.')">Explaining someone else's behavior by their character instead of their circumstances</button>
+        <button onclick="quizAnswer(this,false,'q2','Base rate neglect is about underweighting a prior probability, not about the vividness or memorability of examples.')">Recalling vivid examples more easily than dull, ordinary ones</button>
+        <button onclick="quizAnswer(this,false,'q2','It’s not about wanting a particular conclusion — it’s specifically about a mathematical error in weighing prior probability against new evidence.')">Reasoning backward from a conclusion you want to be true</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. "They forgot to text back once, after months of being reliable" should, correctly reasoned, do what to your confidence in their reliability?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','A single weak data point shouldn’t override months of prior evidence — treating it as decisive is exactly the error this lesson is warning against.')">Flip it entirely — one miss proves they're actually unreliable</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — one instance is real but weak evidence against a strong prior (months of reliability), so it should shift confidence down only slightly, proportionate to how surprising and how strong the evidence actually is.')">Nudge it down slightly — proportionate to how weak a single data point is against a strong prior</button>
+        <button onclick="quizAnswer(this,false,'q3','New relevant evidence should update belief by some amount — ignoring it entirely isn’t correct updating either.')">Leave it completely unchanged — one data point is never evidence</button>
+        <button onclick="quizAnswer(this,false,'q3','Confidence in reliability should move down given evidence of unreliability, not up — this evidence points the other direction.')">Increase it — missing once shows they usually remember</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. What does it mean for someone's confidence to be "well-calibrated"?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','Calibration isn’t about maximizing how often "certain" gets said — an overconfident person could say "certain" constantly and still be wrong a lot.')">They say "I'm certain" as often as possible</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — calibration means stated confidence tracks actual accuracy: someone who says "80% sure" should turn out right about 80% of the time they say it.')">When they say "80% sure," they turn out to be right about 80% of the time they say that</button>
+        <button onclick="quizAnswer(this,false,'q4','Calibration is specifically about the match between stated confidence and actual outcomes, not about updating speed.')">They update their beliefs as fast as possible whenever new evidence appears</button>
+        <button onclick="quizAnswer(this,false,'q4','This describes never changing your mind, which is the opposite of good calibration — a well-calibrated reasoner does update on evidence.')">They never change their estimate once they've made it</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Next time you feel suddenly, strongly certain about something involving another person's intentions, pause and ask: what's the base rate here (how often has this actually happened before), and how strong is this one piece of evidence really, on its own? Write down your before-and-after confidence as two numbers, even rough ones — the act of naming them is the whole exercise.</p>
+
+  <h2>Primary resource</h2>
+  <p>See <a href="https://betterexplained.com/articles/an-intuitive-and-short-explanation-of-bayes-theorem/" target="_blank">BetterExplained's intuitive walkthrough of Bayes' theorem</a>, or the <a href="https://plato.stanford.edu/entries/epistemology-bayesian/" target="_blank">Stanford Encyclopedia of Philosophy — Bayesian Epistemology</a> for the full formal treatment.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Have a real situation where you're not sure how much a piece of evidence should move your confidence? Walk through the numbers with Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0001-cognitive-biases.html">← Lesson 1: Cognitive Biases</a>
+    <span class="spacer"></span>
+    <a href="0003-charitable-interpretation-steelmanning.html">Lesson 3: Charitable Interpretation & Steelmanning →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const BAYES_ITEMS = [
+  {
+    english: '"My coworker has never once missed a deadline in three years. Today she\'s an hour late on one. She must be completely unreliable now."',
+    options: [
+      { text: 'Correct — one miss fully determines reliability', explain: 'A three-year track record is a very strong prior; one late instance is real but weak evidence and shouldn’t override it entirely.' },
+      { text: 'Base rate neglect — ignoring three years of prior evidence in favor of one data point', correct: true, explain: 'Right — a strong, long prior should only be nudged, not overturned, by one instance. Treating the single miss as fully determinative ignores the base rate.' },
+      { text: 'Fundamental attribution error', explain: 'This isn’t comparing an explanation for her behavior against an explanation for your own — it’s a base-rate/prior-neglect issue.' },
+    ],
+  },
+  {
+    english: '"I\'ve heard this specific rumor about my friend twice now, from two unrelated people who don\'t know each other. I\'m updating my belief up, but not to certainty yet."',
+    options: [
+      { text: 'Correctly proportional updating', correct: true, explain: 'Right — two independent corroborating sources is meaningfully stronger evidence than one, so a real (but not total) upward update is the calibrated response.' },
+      { text: 'Base rate neglect', explain: 'This response actually accounts for the strength of the evidence without flipping to certainty — the opposite of neglecting the base rate.' },
+      { text: 'Availability heuristic', explain: 'This isn’t about vivid recall distorting frequency — it’s a reasoned response to two independent corroborating reports.' },
+    ],
+  },
+  {
+    english: '"A rare medical condition affects 1 in 10,000 people. A screening test is 99% accurate. I tested positive, so I must be one of the rare cases."',
+    options: [
+      { text: 'Correct reasoning — 99% accuracy means 99% chance of having it', explain: 'This ignores the base rate — with a condition this rare, false positives from the enormous healthy population will still vastly outnumber true positives.' },
+      { text: 'Base rate neglect — the disease\'s rarity means most positives are still false positives', correct: true, explain: 'Right — just like the lesson’s worked example, an extremely low base rate means even a 99%-accurate test produces mostly false positives among those who test positive.' },
+      { text: 'Motivated reasoning', explain: 'There’s no desired conclusion being reasoned toward here — this is a straightforward numerical base-rate error, not a self-serving justification.' },
+    ],
+  },
+];
+
+const bayesDiv = document.getElementById('bayes-exercise');
+BAYES_ITEMS.forEach((item, i) => {
+  const cardId = `bayes-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  bayesDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

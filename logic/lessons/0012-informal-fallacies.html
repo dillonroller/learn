@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lesson 12 — Informal Fallacies</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Logic</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 12 of 14 &nbsp;·&nbsp; Logic &nbsp;·&nbsp; ~30 min</p>
+  <h1>Informal Fallacies</h1>
+  <p>Everything through lesson 11 catches broken <strong>structure</strong> — a truth table or a proof checker doesn't care what P and Q actually mean. Most bad arguments you'll actually hear in the wild aren't like that. Their structure is often fine; the problem is something about the <em>content</em> — an irrelevant attack, a misrepresented position, a chain of claims nobody actually supported. This lesson is the catalog for spotting those.</p>
+
+  <h2>Quick recall</h2>
+  <p>You've already met three fallacies with broken <em>structure</em> — pure formal fallacies, catchable regardless of subject matter:</p>
+  <ul>
+    <li><a href="0002-propositional-logic-syntax.html#affirming-the-consequent">Affirming the consequent</a> (lesson 2)</li>
+    <li><a href="0002-propositional-logic-syntax.html#denying-the-antecedent">Denying the antecedent</a> (lesson 5)</li>
+    <li><a href="0010-modal-logic.html#modal-scope-fallacy">The modal scope fallacy</a> (lesson 10)</li>
+  </ul>
+
+  <h2 id="formal-vs-informal">Formal vs. informal fallacies</h2>
+  <div class="callout warn">
+    <strong>The dividing line</strong>
+    A <strong>formal</strong> fallacy is a structural error — swap in any P and Q whatsoever and it's still broken, exactly like lesson 3's truth tables showed. An <strong>informal</strong> fallacy can have perfectly valid-looking structure; the failure is in the content — a premise that's irrelevant, ambiguous, unsupported, or a misrepresentation of what's actually being argued. You can't catch these with a truth table. You have to actually understand what's being claimed.
+  </div>
+
+  <h2 id="fallacies-of-relevance">Fallacies of relevance</h2>
+  <p>Each of these offers a premise that's <em>true</em>, maybe even interesting — but doesn't actually bear on whether the conclusion is true.</p>
+
+  <div class="callout" id="ad-hominem">
+    <strong>Ad Hominem — attacking the arguer, not the argument</strong>
+    "You can't trust his argument for raising the speed limit — he got a speeding ticket last year." His driving record has no bearing on whether his <em>premises and logic</em> are correct. Attack the argument, not the person making it.
+  </div>
+  <div class="callout warn">
+    <strong>Careful — not every mention of a person is ad hominem</strong>
+    "This safety report was funded entirely by the company whose product it evaluates" is <strong>not</strong> a fallacy — it's a legitimate reason to weigh a piece of <em>testimony</em> more skeptically (inductive evidence, exactly like lesson 1's inductive/deductive split). The line: attacking someone's character or circumstances to dismiss their <em>argument's logical content</em> is fallacious; flagging a real conflict of interest to calibrate how much weight to give their <em>testimony as evidence</em> is not.
+  </div>
+
+  <div class="callout" id="straw-man">
+    <strong>Straw Man — attacking a misrepresented version</strong>
+    "My opponent wants to trim the defense budget by 5%. He must want to leave the country defenseless!" A modest, specific proposal gets inflated into an extreme one, the extreme version gets knocked down, and the arguer acts as though they've defeated the original. They haven't — they never engaged with it.
+  </div>
+
+  <div class="callout" id="appeal-to-authority">
+    <strong>Appeal to (Illegitimate) Authority</strong>
+    "This celebrity says this diet works, so it must." Compare: "A peer-reviewed meta-analysis by nutrition researchers found this diet works." Expertise in the <em>relevant</em> field is real, legitimate inductive evidence — celebrity status on an unrelated subject is not. Even legitimate expert testimony is evidence, not proof; it just happens to actually be relevant, unlike fame.
+  </div>
+
+  <div class="callout" id="appeal-to-popularity">
+    <strong>Appeal to Popularity (ad populum)</strong>
+    "Millions of people use this app, so it must be the best one." This is exactly the wrong answer flagged all the way back in <a href="0001-arguments-validity-soundness.html#soundness">lesson 1's quiz</a> — popularity was never one of the two things soundness actually requires (valid structure, true premises). How many people believe something has no bearing on whether it's true.
+  </div>
+
+  <h2 id="fallacies-of-presumption">Fallacies of presumption</h2>
+  <p>These smuggle in an assumption the argument needed to earn, but never actually did.</p>
+
+  <div class="callout" id="false-dilemma">
+    <strong>False Dilemma (False Dichotomy)</strong>
+    "Either we cut the budget entirely, or the company goes bankrupt." This presents two options as if they're the only ones — ignoring partial cuts, new revenue, restructuring, and everything else in between. It's the rhetorical equivalent of asserting <code>P ∨ Q</code> as if it were forced and exhaustive, when the real situation might have a dozen live options, not two.
+  </div>
+
+  <div class="callout" id="slippery-slope">
+    <strong>Slippery Slope</strong>
+    "If we let employees work from home one day a week, soon no one will ever come in, and the company will collapse." Notice the shape: it's chaining conditionals exactly like <a href="0005-natural-deduction.html#hypothetical-syllogism">Hypothetical Syllogism</a> — <code>WFH1Day → WFH More</code>, <code>WFH More → NoOneComesIn</code>, <code>NoOneComesIn → Collapse</code>, therefore <code>WFH1Day → Collapse</code>. HS itself is a perfectly valid rule. The fallacy isn't in the chaining — it's that each individual link is asserted, not actually supported. A slippery slope <em>can</em> be a legitimate argument if every link genuinely holds; it's a fallacy exactly when the links are just assumed.
+  </div>
+
+  <div class="callout" id="circular-reasoning">
+    <strong>Circular Reasoning (Begging the Question)</strong>
+    "We know the policy is fair because it treats everyone equally, and we know it treats everyone equally because it's fair." The conclusion has been quietly planted as a premise. Recall <a href="0005-natural-deduction.html#reductio">lesson 5's reductio</a>: a real proof needs premises that are independent of what you're trying to establish. If your premise already assumes the conclusion, you haven't derived anything — you've just restated it in a circle.
+  </div>
+
+  <h2 id="fallacies-of-weak-evidence">Fallacies of weak evidence</h2>
+
+  <div class="callout" id="hasty-generalization">
+    <strong>Hasty Generalization</strong>
+    "I met two rude people from that city, so everyone from there must be rude." In the language of <a href="0006-predicate-logic-quantifiers.html#universal-quantifier">lesson 6</a>, this is illegitimately jumping from <code>Rude(a) ∧ Rude(b)</code> straight to <code>∀x Rude(x)</code> — a universal claim from a sample size that couldn't possibly support it. This is exactly the inductive-strength question from <a href="0001-arguments-validity-soundness.html#deductive-inductive">lesson 1</a>: a strong inductive generalization needs a large, representative sample; two people you happened to meet is neither.
+  </div>
+
+  <h2>Try it: name the fallacy</h2>
+  <p>For each argument, pick the fallacy it commits.</p>
+  <div id="fallacy-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. "This researcher's funding source should make us weigh her claims more skeptically" — is this ad hominem?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Ad hominem specifically attacks the arguer to dismiss the argument’s logical content. This instead calibrates how much weight to give a piece of testimony as evidence — a legitimate, separate move.')">Yes — any mention of who's arguing is ad hominem</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — flagging a real conflict of interest to weigh testimony is legitimate; ad hominem is attacking the person specifically to dismiss the argument itself, which this isn’t doing.')">No — this legitimately calibrates how much weight to give testimony</button>
+        <button onclick="quizAnswer(this,false,'q1','Funding source doesn’t affect whether her logic is structurally valid — it affects how much you should trust her factual premises as testimony, a different, still-legitimate question.')">Yes — funding always invalidates an argument's logic</button>
+        <button onclick="quizAnswer(this,false,'q1','It’s not irrelevant — a real conflict of interest is a legitimate reason to weigh testimony more skeptically, exactly the inductive-evidence question from lesson 1.')">No — funding sources are always irrelevant to trustworthiness</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. "You either back this exact bill word-for-word, or you don't care about the issue at all" commits…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Straw man misrepresents someone’s actual position — this instead limits the options on the table, without touching what anyone has argued.')">Straw man</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — this forces a choice between two extremes while ignoring every middle position (partial support, amendments, alternative bills), the hallmark of a false dilemma.')">False dilemma</button>
+        <button onclick="quizAnswer(this,false,'q2','Slippery slope chains conditionals toward an extreme consequence — this instead just presents two options as if they were the only ones, with no chain at all.')">Slippery slope</button>
+        <button onclick="quizAnswer(this,false,'q2','Circular reasoning smuggles the conclusion into a premise — nothing here restates a conclusion as a premise.')">Circular reasoning</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Why isn't chaining conditionals (like Hypothetical Syllogism) itself the problem in a slippery slope argument?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','HS is a genuinely valid rule (lesson 5) — chaining conditionals isn’t the flaw at all.')">Hypothetical Syllogism is actually an invalid rule</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — HS is valid; the fallacy is that each individual conditional link is just asserted, not actually supported. If every link genuinely held, the argument would be legitimate.')">HS is valid; the fallacy is that the individual links are unsupported, not the chaining itself</button>
+        <button onclick="quizAnswer(this,false,'q3','Slippery slope arguments use ordinary conditionals, not modal operators — this isn’t a scope issue like lesson 10’s fallacy.')">Chaining conditionals always requires modal logic</button>
+        <button onclick="quizAnswer(this,false,'q3','A slippery slope can, in principle, be legitimate if every link is genuinely supported — the fallacy is specifically about unsupported links, not an inherent flaw in every long chain.')">Any argument with more than two premises is automatically fallacious</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. "I met two rude people from that city, so everyone there must be rude" is best diagnosed as…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','Circular reasoning restates the conclusion as a premise — this instead generalizes from too small a sample, a different problem entirely.')">Circular reasoning</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — jumping from two individuals to a universal claim (∀x Rude(x)) is exactly a hasty generalization: nowhere near enough sample to support that inductive leap.')">Hasty generalization</button>
+        <button onclick="quizAnswer(this,false,'q4','Ad hominem attacks a person to dismiss their argument — this isn’t targeting an arguer at all, it’s a generalization from a small sample.')">Ad hominem</button>
+        <button onclick="quizAnswer(this,false,'q4','Appeal to popularity leans on how many people believe something — this argument doesn’t cite popularity, it cites a tiny personal sample.')">Appeal to popularity</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Find a real comment thread, op-ed, or recorded debate. Spot one fallacy from this lesson's catalog in the wild, and write down: what's the actual (unfair) move being made, and what would the arguer have needed to say instead to make a legitimate case? Keep it — you'll use it again in <a href="0014-evaluating-real-debates.html">lesson 14</a>.</p>
+
+  <h2>Primary resource</h2>
+  <p>See the <a href="https://plato.stanford.edu/entries/fallacies/" target="_blank">Stanford Encyclopedia of Philosophy — Fallacies</a> for the full taxonomy, including fallacies of ambiguity this lesson didn't have room for.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Heard an argument you suspect commits one of these but aren't sure which? Bring the exact wording to Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0011-godels-incompleteness-theorems.html">← Lesson 11: Gödel's Incompleteness Theorems</a>
+    <span class="spacer"></span>
+    <a href="0013-argument-mapping-reconstruction.html">Lesson 13: Argument Mapping & Reconstruction →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const FALLACY_ITEMS = [
+  {
+    english: '"Don\'t listen to her argument for the new zoning law — she\'s not even a homeowner."',
+    options: [
+      { text: 'Ad Hominem', correct: true, explain: 'Right — her housing status has nothing to do with whether her argument’s premises and logic are correct. It attacks her instead of the argument.' },
+      { text: 'False Dilemma', explain: 'No forced either/or choice is being presented here — this is dismissing an arguer based on an irrelevant personal trait.' },
+      { text: 'Hasty Generalization', explain: 'No general claim is being drawn from a small sample here — this is a direct personal attack replacing engagement with the argument.' },
+    ],
+  },
+  {
+    english: '"If we let freshmen pick their own class schedules, soon there\'ll be no structure left in the school at all."',
+    options: [
+      { text: 'Circular Reasoning', explain: 'The conclusion isn’t being restated as a premise here — this is a chain of asserted-but-unsupported conditionals leading to an extreme outcome.' },
+      { text: 'Slippery Slope', correct: true, explain: 'Right — a small, specific change (schedule choice) is chained through unsupported steps to an extreme outcome (no structure at all), with none of the links actually justified.' },
+      { text: 'Appeal to Authority', explain: 'No one’s expertise or credentials are being invoked here — this is an unsupported chain of consequences.' },
+    ],
+  },
+  {
+    english: '"The manual is accurate because it was written by the manual\'s official author, and we trust the author because the manual says he\'s reliable."',
+    options: [
+      { text: 'Straw Man', explain: 'Nothing is being misrepresented here — there’s no opposing position being attacked at all, just a self-referential loop of justification.' },
+      { text: 'Appeal to Popularity', explain: 'No claim about how many people believe this is being made — the flaw is that the justification loops back on itself.' },
+      { text: 'Circular Reasoning', correct: true, explain: 'Right — the manual’s accuracy is justified by the author’s reliability, which is justified by the manual itself. The conclusion ends up supporting itself.' },
+    ],
+  },
+];
+
+const fallacyDiv = document.getElementById('fallacy-exercise');
+FALLACY_ITEMS.forEach((item, i) => {
+  const cardId = `fallacy-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  fallacyDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>
