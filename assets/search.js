@@ -181,10 +181,21 @@
     // ── Rationality: reference docs ──
     { term: 'Practical Rationality Cheat Sheet', kind: 'Reference doc', topic: 'Rationality', file: 'rationality/reference/practical-rationality-cheatsheet.html', desc: 'Compressed summary of lessons 1–3 — biases, Bayesian updating, steelmanning.' },
 
+    // ── Psychology: lesson-level entries ──
+    { term: 'Dual-Process Theory — Why Logic Isn\'t How We Actually Think', kind: 'Lesson 1', topic: 'Psychology', file: 'psychology/lessons/0001-dual-process-theory.html', desc: 'System 1 vs. System 2, the Wason selection task, and why content changes whether people reason correctly.' },
+
+    // ── Psychology: term definitions ──
+    { term: 'Dual-Process Theory', kind: 'Definition', topic: 'Psychology', file: 'psychology/lessons/0001-dual-process-theory.html', anchor: 'dual-process-theory', desc: 'Kahneman\'s split of thought into fast System 1 and slow System 2.' },
+    { term: 'System 1', kind: 'Definition', topic: 'Psychology', file: 'psychology/lessons/0001-dual-process-theory.html', anchor: 'system-1', desc: 'Fast, automatic, effortless — pattern-matches without checking formal rules.' },
+    { term: 'System 2', kind: 'Definition', topic: 'Psychology', file: 'psychology/lessons/0001-dual-process-theory.html', anchor: 'system-2', desc: 'Slow, deliberate, effortful — capable of applying logical rules, but lazy.' },
+    { term: 'Wason Selection Task', kind: 'Definition', topic: 'Psychology', file: 'psychology/lessons/0001-dual-process-theory.html', anchor: 'wason-selection-task', desc: 'The four-card experiment testing conditional reasoning; ~10% solve the abstract version.' },
+    { term: 'Content Effect (Social Contract Effect)', kind: 'Definition', topic: 'Psychology', file: 'psychology/lessons/0001-dual-process-theory.html', anchor: 'social-contract-effect', desc: 'Same logical structure, ~75% success when framed as a familiar social rule instead of abstract letters/numbers.' },
+
     // ── Topic indexes ──
     { term: 'Logic (topic home)', kind: 'Topic', topic: 'Logic', file: 'logic/index.html', desc: 'All Logic lessons and reference docs.' },
     { term: 'Philosophy (topic home)', kind: 'Topic', topic: 'Philosophy', file: 'philosophy/index.html', desc: 'All Philosophy lessons and reference docs.' },
     { term: 'Rationality (topic home)', kind: 'Topic', topic: 'Rationality', file: 'rationality/index.html', desc: 'All Rationality lessons and reference docs.' },
+    { term: 'Psychology (topic home)', kind: 'Topic', topic: 'Psychology', file: 'psychology/index.html', desc: 'All Psychology lessons and reference docs.' },
     { term: 'Music Theory & Keyboard (topic home)', kind: 'Topic', topic: 'Music Theory', file: 'music-theory/index.html', desc: 'All Music Theory lessons.' },
     { term: 'CS Interview Prep (topic home)', kind: 'Topic', topic: 'CS Interviews', file: 'cs-interviews/index.html', desc: 'All CS Interview Prep lessons.' },
     { term: 'Learning Hub (home)', kind: 'Home', topic: '', file: 'index.html', desc: 'All topics.' },
