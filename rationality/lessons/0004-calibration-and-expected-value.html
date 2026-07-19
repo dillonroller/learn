@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 4 — Calibration &amp; Expected Value</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Rationality</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 4 of 3+ &nbsp;·&nbsp; Rationality &nbsp;·&nbsp; Mastery phase &nbsp;·&nbsp; ~30 min</p>
+  <h1>Calibration &amp; Expected Value</h1>
+  <p><a href="0002-probabilistic-bayesian-reasoning.html#calibration">Lesson 2</a> ended with one paragraph on calibration — "80% sure should be right 80% of the time" — and left it there. This lesson turns that sentence into something you can actually compute: a number for how good your confidence is, and a number for whether a decision is worth making at all.</p>
+
+  <h2 id="expected-value">Expected value — putting a number on a bet</h2>
+  <p><strong>Expected value (EV)</strong> is the average outcome you'd get if you could replay a decision many times, weighted by how likely each outcome is:</p>
+  <pre><code>EV = Σ  p(outcome) × value(outcome)</code></pre>
+  <p>Worked example: a friend offers you a side gig that pays $2,000 if it works out, and costs you $500 in wasted time if it doesn't. You genuinely believe it has a 30% chance of working.</p>
+  <pre><code>EV = (0.30 × $2,000) + (0.70 × −$500)
+   = $600 − $350
+   = +$250</code></pre>
+  <p>Positive EV doesn't mean it <em>will</em> work out — 70% of the time it still won't, and you'll be out $500 that specific time. It means that if decisions like this come up repeatedly, saying yes to the positive-EV ones and no to the negative-EV ones wins on average. EV is a tool for <a href="0001-cognitive-biases.html#availability-heuristic">not</a> being ruled by whichever single outcome feels most vivid in the moment.</p>
+
+  <h2 id="expected-utility">One correction: value isn't always dollars</h2>
+  <div class="callout">
+    <strong>Why $500 lost doesn't always equal $500 gained</strong>
+    Plain EV silently assumes each dollar is worth the same regardless of who has it or how many they already have. That's often false: $500 lost when it's your rent money hurts far more than $500 gained as a bonus helps. Formal decision theory handles this with <strong>expected utility</strong> — replacing raw dollar amounts with how much each outcome is actually <em>worth to you</em> before averaging. This lesson won't build the full utility-theory machinery (that's genuinely a semester of its own), but keep the correction in your pocket: before trusting a plain-dollar EV calculation, ask whether the loss and the gain are actually symmetric in how much they'd matter to you. If they're not, weight the worse outcome harder than the raw number suggests.
+  </div>
+
+  <h2 id="calibration-curve">Calibration, quantitatively</h2>
+  <p>Lesson 2 defined calibration in words. Here's the actual check: collect every prediction you made at a given confidence level, and see how many came true.</p>
+  <div class="callout warn">
+    <strong>A calibration curve, worked</strong>
+    Say over the last few months you made 10 predictions where you felt "70% sure," and 20 where you felt "90% sure." If you're well-calibrated, about 7 of the first group and about 18 of the second group should have come true — not exactly, but close. If all 20 of your "90% sure" predictions came true, you're not extremely accurate — you're <strong>underconfident</strong>: your gut is quietly more certain than "90%" and you should be saying "99%." If only 12 of the 20 came true, you're <strong>overconfident</strong>: your gut says "90%" for things that are really more like a coin flip with a thumb on the scale.
+  </div>
+  <p>The habit this builds on: most people never check. They remember the dramatic misses and forget the routine hits (or vice versa), which is <a href="0001-cognitive-biases.html#confirmation-bias">confirmation bias</a> operating on your own track record. Writing predictions down with a number, before you know the outcome, is what makes an honest check possible at all.</p>
+
+  <h2 id="brier-score">The Brier score — scoring calibration, not just being right</h2>
+  <div class="callout warn">
+    <strong>Brier Score</strong>
+    For a set of N predictions, where <code>p</code> is your stated probability (0 to 1) and <code>o</code> is the actual outcome (1 if it happened, 0 if it didn't):
+    <pre style="margin:.6rem 0 0;"><code>Brier = (1/N) × Σ (p − o)²</code></pre>
+    Lower is better. 0 is a perfect forecaster; 0.25 is what you get by always guessing 50%; 1 is maximally, confidently wrong every time.
+  </div>
+  <p>Why square the difference instead of just averaging "was I right": squaring <strong>punishes overconfidence specifically</strong>. Saying "99% sure" and being wrong costs you <code>(0.99−0)² ≈ 0.98</code> — nearly the maximum possible penalty — while saying "60% sure" and being wrong only costs <code>(0.60−0)² = 0.36</code>. A scoring rule that did this makes honesty the optimal strategy: you can't game a low Brier score by just always claiming near-certainty, because being confidently wrong is punished far harder than being modestly wrong. This is also why a well-calibrated "I don't know, maybe 55%" is a genuinely better answer than a false "I'm sure" — not just more honest, but literally scored better over time.</p>
+
+  <h2 id="when-to-formalize">When this toolkit is actually worth reaching for</h2>
+  <p>Not every decision deserves a spreadsheet. The boundary that matters:</p>
+  <ul>
+    <li><strong>Reach for EV/calibration when:</strong> the decision repeats (so "on average" is a meaningful frame), the stakes are large enough that being systematically wrong compounds, or you notice your gut has been swinging between "certain it's fine" and "certain it's a disaster" — exactly lesson 2's original trap. Writing down a number forces the swing into the open.</li>
+    <li><strong>Skip it when:</strong> the question is really about <a href="0003-charitable-interpretation-steelmanning.html#facts-vs-values">values, not facts</a> (lesson 3) — EV can't tell you whether to prioritize a friend's feelings over being technically right, because that's not a probability question. It's also overkill for genuinely trivial, one-off, low-stakes calls, where the time spent computing costs more than the calculation could ever save you.</li>
+  </ul>
+  <p>The skill isn't "always calculate EV." It's noticing, in the moment, which kind of decision you're in — the same diagnostic move lesson 3 taught for facts vs. values, now extended to "does this even call for a number."</p>
+
+  <h2>Try it: EV or gut call?</h2>
+  <p>For each scenario, decide whether formalizing with expected value actually helps, or whether it's the wrong tool.</p>
+  <div id="ev-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. A decision has a +$250 expected value. What does that actually guarantee?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','EV is an average over many repetitions, not a guarantee about any single instance — a positive-EV bet can absolutely lose the one time you actually take it.')">That this specific decision will turn out well this time</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — EV tells you the average outcome over many repetitions of similar decisions, not what happens on any one instance. Consistently choosing positive-EV options wins on average, even though individual outcomes vary.')">That choosing this way consistently, across many similar decisions, wins on average</button>
+        <button onclick="quizAnswer(this,false,'q1','A positive expected value doesn’t mean the probability of success exceeds 50% — a low-probability, high-payoff bet can have positive EV too.')">That the probability of success is over 50%</button>
+        <button onclick="quizAnswer(this,false,'q1','EV compares options by their averaged outcome — it doesn’t claim there’s no risk involved in any individual instance.')">That there is no real risk involved</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Why does expected utility sometimes replace plain expected value?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','It’s the opposite issue — plain EV treats a dollar as worth the same to everyone; expected utility is the correction that accounts for how a dollar’s value actually depends on context.')">Because plain EV assumes money is worth different amounts to different people, which is wrong</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — plain EV silently treats every dollar as equally valuable regardless of context; expected utility corrects for cases like rent money mattering more than an equivalent bonus.')">Because plain EV treats every dollar as equally valuable, which breaks down when a loss (e.g. rent money) matters more than an equivalent gain</button>
+        <button onclick="quizAnswer(this,false,'q2','Expected utility isn’t primarily about probability estimation being hard — both EV and expected utility still require probabilities. The correction is about how outcomes are valued, not how probabilities are estimated.')">Because probabilities are always too hard to estimate accurately</button>
+        <button onclick="quizAnswer(this,false,'q2','Expected utility doesn’t remove the need for probabilities — it still weights outcomes by likelihood, just with utility instead of raw dollar values.')">Because it removes the need to estimate probabilities at all</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. All 20 times you said "90% sure," the prediction came true. What does this suggest?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','A well-calibrated "90% sure" forecaster should be wrong about 1 in 10 times — being right all 20 times suggests your stated number was too low for how certain you actually were, not confirmation that 90% was accurate.')">You are perfectly calibrated at the 90% level</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — if literally all your "90% sure" calls came true, your gut confidence was actually higher than 90%; you were underconfident in the number you stated, even though your underlying judgment was good.')">You are likely underconfident — your actual certainty was higher than the 90% you stated</button>
+        <button onclick="quizAnswer(this,false,'q3','This pattern indicates the opposite of overconfidence — overconfidence would show up as your "90% sure" predictions coming true noticeably less than 90% of the time.')">You are overconfident and should lower your stated numbers</button>
+        <button onclick="quizAnswer(this,false,'q3','This is a real, checkable signal about your calibration — a full track record of "90% sure" predictions all coming true isn’t just random noise to ignore.')">This tells you nothing — 20 predictions is too small a sample to mean anything</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Why does the Brier score square the difference between stated probability and outcome, instead of just checking "was I right"?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','It’s not primarily about ease of computation — squaring is a deliberate scoring-rule design choice with a specific incentive effect.')">Squaring makes the math easier to compute by hand</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — squaring penalizes confidently-wrong predictions much harder than modestly-wrong ones, which makes honest, well-calibrated confidence the actual optimal strategy rather than always claiming near-certainty.')">Squaring punishes confident wrongness far more than modest wrongness, making honest calibration the optimal strategy</button>
+        <button onclick="quizAnswer(this,false,'q4','The Brier score is specifically designed to be sensitive to the stated confidence level, not to ignore it — that’s the whole point of using probabilities instead of yes/no guesses.')">Squaring removes the need to state a probability at all, just a yes/no guess</button>
+        <button onclick="quizAnswer(this,false,'q4','A lower Brier score is better, not higher — 0 is the best possible score (a perfect forecaster), and 1 is the worst.')">Squaring makes higher scores better, matching how test grades work</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Over the next two weeks, write down five predictions you're genuinely uncertain about — an outcome at work, whether a plan falls through, anything with a real answer coming later — each with a number attached ("70% this happens"). When the outcomes land, check them against what you predicted. You're not looking for a perfect Brier score on five data points; you're building the habit lesson 2 asked for but never made concrete: naming your confidence before you know the answer.</p>
+
+  <h2>Primary resource</h2>
+  <p>See <a href="https://en.wikipedia.org/wiki/Brier_score" target="_blank">Wikipedia — Brier Score</a> for the scoring rule's full properties, and the <a href="https://plato.stanford.edu/entries/decision-theory/" target="_blank">Stanford Encyclopedia of Philosophy — Decision Theory</a> for where expected utility sits in the broader formal picture this lesson deliberately kept light.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Have a real decision in front of you right now? Bring the actual numbers — probabilities, payoffs, stakes — to Claude Code and we'll run the expected value together.
+  </div>
+
+  <div class="nav">
+    <a href="0003-charitable-interpretation-steelmanning.html">← Lesson 3: Charitable Interpretation &amp; Steelmanning</a>
+    <span class="spacer"></span>
+    <a href="../index.html">Rationality: All Lessons →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const EV_ITEMS = [
+  {
+    english: '"Should I take a job offer with a 40% chance of a $30k raise vs. staying put, when I\'ll face a decision like this a few more times in my career?"',
+    options: [
+      { text: 'EV helps here', correct: true, explain: 'Right — this is exactly the case for formalizing: a repeatable class of decision, high stakes, and a clean probability/payoff structure to compute against.' },
+      { text: 'Wrong tool — skip it', explain: 'This is precisely the kind of decision EV is built for: repeatable, high-stakes, and cleanly stated in terms of probability and payoff.' },
+    ],
+  },
+  {
+    english: '"Should I tell my partner their haircut looks bad because they specifically asked for my honest opinion?"',
+    options: [
+      { text: 'EV helps here', explain: 'There’s no meaningful probability or payoff structure here — this is a values/relationship judgment call, not a repeatable bet with quantifiable outcomes.' },
+      { text: 'Wrong tool — skip it', correct: true, explain: 'Right — this is a values question (how to be honest and kind at once), not a probability question. EV can’t tell you what to prioritize here.' },
+    ],
+  },
+  {
+    english: '"Should I buy the $2 extra warranty on a $15 phone case?"',
+    options: [
+      { text: 'EV helps here', explain: 'Technically you could compute an EV, but the stakes are so low that the minute spent calculating costs more than any possible error — this is the "not worth it" case, not the "EV helps" case.' },
+      { text: 'Wrong tool — skip it', correct: true, explain: 'Right — stakes this low aren’t worth formalizing. A gut call costs nothing extra and the calculation can’t save you more than a couple dollars either way.' },
+    ],
+  },
+];
+
+const evDiv = document.getElementById('ev-exercise');
+EV_ITEMS.forEach((item, i) => {
+  const cardId = `ev-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  evDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

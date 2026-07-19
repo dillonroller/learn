@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 15 — Proving Gödel: Arithmetization &amp; the Diagonal Lemma</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Logic</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 15 of 14+ &nbsp;·&nbsp; Logic &nbsp;·&nbsp; Mastery phase &nbsp;·&nbsp; ~40 min</p>
+  <h1>Proving Gödel: Arithmetization &amp; the Diagonal Lemma</h1>
+  <p><a href="0011-godels-incompleteness-theorems.html">Lesson 11</a> gave you the <em>shape</em> of the proof and left the actual machinery as "genuinely intricate — see the primary resource." This lesson is that machinery. By the end you'll be able to build the sentence <code>G</code> yourself instead of taking its existence on faith, and you'll see that the trick isn't really about logic at all — it's the same move as a quine.</p>
+
+  <div class="callout">
+    <strong>The promise, kept literally</strong>
+    Lesson 11 said <code>G</code> is "a sentence that, when decoded, says 'G is not provable in this system.'" This lesson answers the question a careful reader should have asked back then: <em>how do you actually build a sentence that refers to itself?</em> Two ingredients do all the work — <a href="#godel-numbering">Gödel numbering</a> and the <a href="#diagonal-lemma">diagonal lemma</a>.
+  </div>
+
+  <h2 id="godel-numbering">Ingredient 1 — Gödel numbering: syntax becomes arithmetic</h2>
+  <p>The core move is to assign every symbol, formula, and proof in the system a unique natural number — a <strong>Gödel number</strong>. One standard scheme: fix a number for each basic symbol (say <code>¬</code>→1, <code>∧</code>→2, <code>∀</code>→3, <code>(</code>→4, variables →5,6,7…), then encode a sequence of symbols <code>s₁s₂s₃…sₙ</code> as</p>
+  <pre><code>2^s₁ × 3^s₂ × 5^s₃ × 7^s₄ × … × pₙ^sₙ</code></pre>
+  <p>using successive primes. Because prime factorization is unique, this number can always be decoded back into the exact original symbol sequence — no information is lost. A <em>proof</em> (a sequence of formulas) gets the same treatment one level up: encode the sequence of the formulas' own Gödel numbers.</p>
+
+  <div class="callout warn">
+    <strong>Why this is the whole ballgame</strong>
+    Once every formula <code>φ</code> has a number, write <code>⌜φ⌝</code> for "the numeral naming φ's Gödel number." A sentence about numbers can now <em>also</em> be a sentence about formulas and proofs — because a formula's number, a proof's number, and an ordinary number like 7 are all just... numbers. Arithmetic becomes expressive enough to talk about its own syntax. This is the entire reason incompleteness happens to arithmetic and not, say, to a theory of unrelated objects with no way to encode formulas as elements of that theory.
+  </div>
+
+  <h2 id="representability">Ingredient 1.5 — representability (the part we'll take as given)</h2>
+  <p>Gödel's real technical labor — the part this lesson won't reproduce, because it's a slog of tedious-but-routine coding, not a conceptual leap — is showing that syntactic relations like <em>"x is the Gödel number of a valid proof of the formula numbered y"</em> are <strong>representable</strong>: there's an actual formula <code>Proof(x, y)</code> in the language of arithmetic that is true exactly when x really does code a proof of y. This works for the same reason the <a href="0009-soundness-completeness.html#decidability">Church–Turing</a> material in lesson 9 should make plausible: checking a proof is a finite, mechanical, terminating procedure, and every such procedure turns out to be capturable by a formula of arithmetic. Given <code>Proof(x, y)</code>, define the <strong>provability predicate</strong>:</p>
+  <pre><code>Prov(y)  :=  ∃x. Proof(x, y)</code></pre>
+  <p>In words: "some x codes a proof of the formula numbered y" — i.e., "y is provable." This is an ordinary arithmetic formula with one free variable, y. Nothing mystical yet — just a very elaborate way of asking a number-theoretic question that happens to mean something about proofs.</p>
+
+  <h2 id="diagonal-lemma">Ingredient 2 — the Diagonal Lemma (fixed-point theorem)</h2>
+  <div class="callout warn">
+    <strong>The Diagonal Lemma</strong>
+    For any formula ψ(x) with one free variable, there exists a sentence φ such that the system proves <code>φ ↔ ψ(⌜φ⌝)</code>.
+  </div>
+  <p>Read that twice — it's saying something wild: <strong>for any property ψ you can state, you can build a sentence φ that asserts "ψ is true of me."</strong> φ is a fixed point of ψ under the encoding. This is the actual self-reference engine; everything about <code>G</code> falls out of plugging the right ψ in.</p>
+
+  <div class="callout">
+    <strong>The quine analogy — this is the intuition to keep</strong>
+    You've written, or at least seen, a <a href="https://en.wikipedia.org/wiki/Quine_(computing)" target="_blank">quine</a> — a program whose output is its own source code. A quine works by a two-step trick: it contains a piece of data representing "print my own text with the following template," then applies that template <em>to itself</em>. The diagonal lemma's proof is that exact trick, done in arithmetic instead of a programming language. Define a function <code>diag(n)</code>: "take the formula numbered n, call it θ(x), and return the Gödel number of θ(⌜θ⌝)" — θ applied to <em>its own</em> code, exactly like a quine's template applied to itself. Now let φ be the formula <code>ψ(diag(x))</code> evaluated at x = ⌜ψ(diag(x))⌝ — i.e., apply diag to ψ(diag(x))'s own number. Unwinding that substitution mechanically produces exactly <code>φ ↔ ψ(⌜φ⌝)</code>. Nothing paradoxical happened; it's arithmetic substitution, done to itself, same as a quine printing itself.
+  </div>
+
+  <h2 id="constructing-g">Building G, for real this time</h2>
+  <p>Apply the diagonal lemma to <code>ψ(x) := ¬Prov(x)</code> — "x is not provable." The lemma guarantees a sentence <code>G</code> such that the system proves:</p>
+  <pre><code>G  ↔  ¬Prov(⌜G⌝)</code></pre>
+  <p>That's it — that's the sentence lesson 11 described in prose ("G says of itself: I am not provable"), now actually constructed rather than asserted. From here the argument is exactly lesson 11's trap, but now every step is backed by something real instead of an appeal to intuition:</p>
+  <ul>
+    <li>Suppose the system proves <code>G</code>. Provability is representable, so the system also proves <code>Prov(⌜G⌝)</code>. But it proved <code>G</code>, which is equivalent to <code>¬Prov(⌜G⌝)</code> — so it proves both <code>Prov(⌜G⌝)</code> and its negation. Contradiction, so a <em>consistent</em> system cannot prove <code>G</code>.</li>
+    <li>Since the system can't prove <code>G</code>, <code>Prov(⌜G⌝)</code> is false — which is exactly what <code>G</code> asserts. So <code>G</code> is true, and unprovable. First Incompleteness Theorem, constructed rather than described.</li>
+  </ul>
+
+  <h2 id="why-arithmetization-matters">What this buys you that lesson 11 couldn't</h2>
+  <p>With the machinery in hand, three things that had to be taken on faith before are now checkable claims:</p>
+  <ul>
+    <li><strong>Why arithmetic specifically?</strong> Because Gödel numbering needs a theory rich enough to encode sequences and do the substitution <code>diag</code> requires — basic arithmetic (Peano-style) is the minimal, natural setting where that's available. A theory too weak to encode its own syntax is simply immune to this argument (and correspondingly too weak to be interesting).</li>
+    <li><strong>Why can't you just "add G as an axiom" and fix it?</strong> You can — and the new, stronger system has its <em>own</em> Gödel numbering, its own <code>Prov'</code>, and the diagonal lemma builds a new <code>G'</code> for it, unprovable in the new system. The construction is a machine that runs on any system meeting the preconditions, including ones patched to include the previous G.</li>
+    <li><strong>The Second Theorem, sharpened.</strong> "The system proves its own consistency" formalizes to <code>¬Prov(⌜⊥⌝)</code> (the contradiction symbol is never provable). Formalizing the first theorem's argument itself — which requires nothing beyond what the system can already express — shows <code>¬Prov(⌜⊥⌝) → G</code> is provable. So if the system could prove <code>¬Prov(⌜⊥⌝)</code>, it could prove <code>G</code>, which the first theorem already rules out.</li>
+  </ul>
+
+  <h2>Try it: name the ingredient</h2>
+  <p>Match each description to the piece of machinery it describes.</p>
+  <div id="proof-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. What does Gödel numbering actually accomplish?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Gödel numbering assigns numbers to formulas and proofs — it doesn’t change the truth of any arithmetic claims, just the encoding used to talk about syntax.')">It makes some previously-false arithmetic statements true</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — by giving every formula and proof a unique number, statements about numbers can simultaneously be statements about the system’s own syntax and proofs.')">It lets statements about numbers double as statements about the system's own formulas and proofs</button>
+        <button onclick="quizAnswer(this,false,'q1','Gödel numbering is a specific, non-random prime-power encoding scheme chosen precisely so it’s uniquely decodable — not a random assignment.')">It randomly assigns numbers to symbols with no further structure</button>
+        <button onclick="quizAnswer(this,false,'q1','Representability (a separate ingredient) is what lets provability be captured by a formula — numbering itself is just the encoding step underneath that.')">It proves that provability is decidable</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. The diagonal lemma's proof is analogous to which programming concept?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Recursion (a function calling itself during execution) isn’t quite the mechanism — the lemma is about a piece of syntax that encodes and refers to its own code, not a runtime call stack.')">Recursion — a function calling itself</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — a quine applies its own template to itself to produce its own source; diag(n) applies a formula’s own code to itself the same way, which is exactly the self-reference the diagonal lemma manufactures.')">A quine — a program that outputs its own source code</button>
+        <button onclick="quizAnswer(this,false,'q2','Memoization caches previously computed results for reuse — it has nothing to do with a formula referring to its own Gödel number.')">Memoization — caching previously computed results</button>
+        <button onclick="quizAnswer(this,false,'q2','Polymorphism is about one interface behaving differently per type — unrelated to a formula encoding and quoting itself.')">Polymorphism — one interface, multiple implementations</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Why is representability (that <code>Proof(x, y)</code> exists as an arithmetic formula) taken as given rather than proven in this lesson?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','It’s a real, established, provable fact — not an unresolved conjecture. It’s skipped here for a different reason.')">Because it's actually an open problem in mathematics</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — representability is real and fully provable, but the proof is a long, mechanical case-by-case coding exercise, not a conceptual insight, so this lesson takes it as given and focuses on the diagonal lemma, which is the genuinely surprising part.')">Because proving it is a long, routine coding exercise, not a conceptually new idea, while the diagonal lemma is where the real insight lives</button>
+        <button onclick="quizAnswer(this,false,'q3','It’s a completely general fact about representable relations, not specific to the number 1,000,000 or any single example.')">Because it's only true for formulas smaller than a fixed size</button>
+        <button onclick="quizAnswer(this,false,'q3','Representability is exactly what makes Prov(y) meaningful — it isn’t a simplifying assumption that changes the theorem’s content, it’s a genuine (if tedious) piece of the real proof.')">Because it isn't actually needed for the final result</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. If you added <code>G</code> as a new axiom to "fix" the incompleteness, what happens?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','Adding G doesn’t exhaust the construction — the new system gets its own Gödel numbering and its own diagonal-lemma sentence, so the same gap reopens one level up.')">The new system is complete — there's nothing left the diagonal lemma can construct</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — the diagonal-lemma construction is a general machine that runs on any system meeting the preconditions. The patched system gets a new provability predicate and a new unprovable G′, forever.')">The new, stronger system has its own provability predicate and its own new unprovable sentence G′ — the gap reopens one level up</button>
+        <button onclick="quizAnswer(this,false,'q4','It doesn’t become inconsistent just by adding a true, previously-unprovable sentence as an axiom — consistency isn’t threatened by that move.')">The system becomes inconsistent</button>
+        <button onclick="quizAnswer(this,false,'q4','Adding an axiom doesn’t make the system undo its ability to encode arithmetic — the theory is still strong enough for the same construction to apply again.')">The system stops being able to encode arithmetic at all</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Pick a tiny toy alphabet (say, just <code>{¬, P}</code> with ¬→1, P→2, and use base-10 digit concatenation instead of prime powers to keep the arithmetic light — encode a symbol sequence <code>s₁s₂…sₙ</code> as the number formed by writing the digits in order). Gödel-number the formula <code>¬P</code> and the formula <code>¬¬P</code> by hand. Then write, in plain English, what <code>diag</code> would have to do to a formula like <code>¬P(x)</code> to produce a sentence about "the formula obtained by substituting my own code for x." You don't need to compute the actual number — the goal is to feel the substitution step in your hands once, the way lesson 5 had you feel a proof step by step instead of just reading about proofs.</p>
+
+  <h2>Primary resource</h2>
+  <p>See <a href="https://www.logicmatters.net/resources/pdfs/godelbook/GodelBookLC.pdf" target="_blank">Peter Smith — <em>Gödel Without (Too Many) Tears</em></a> for the full, rigorous construction (Gödel numbering, the representability theorem actually proved, and the diagonal lemma in complete formal detail) written specifically for readers with a technical background and no prior logic. It's the natural next step from this lesson.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Want to actually compute a Gödel number for a real formula, or trace through <code>diag</code> symbol-by-symbol on paper together? Bring it to Claude Code and we'll do the arithmetic live.
+  </div>
+
+  <div class="nav">
+    <a href="0011-godels-incompleteness-theorems.html">← Lesson 11: Gödel's Incompleteness Theorems</a>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-16">Lesson 16: A Non-Classical Logic, In Depth →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const PROOF_ITEMS = [
+  {
+    english: '"Assigns a unique natural number to every symbol, formula, and proof, via prime-power encoding."',
+    options: [
+      { text: 'Gödel numbering', correct: true, explain: 'Right — this is exactly the arithmetization step: encoding syntax as numbers so arithmetic can talk about it.' },
+      { text: 'The diagonal lemma', explain: 'The diagonal lemma builds a self-referential sentence — it presupposes numbering already exists, it doesn’t define the numbering itself.' },
+      { text: 'Representability', explain: 'Representability is about capturing a relation (like "codes a proof") as a formula — a separate, later step from assigning the numbers themselves.' },
+    ],
+  },
+  {
+    english: '"For any property ψ, produces a sentence φ that asserts ψ is true of φ itself."',
+    options: [
+      { text: 'Gödel numbering', explain: 'Numbering alone just encodes syntax as numbers — it doesn’t by itself construct a self-referential sentence for an arbitrary property.' },
+      { text: 'The diagonal lemma', correct: true, explain: 'Right — this is precisely the diagonal (fixed-point) lemma’s statement: φ ↔ ψ(⌜φ⌝) for any ψ.' },
+      { text: 'The provability predicate Prov(y)', explain: 'Prov(y) is one specific formula ("y is provable") — the diagonal lemma is the general machine that can be applied to Prov, or to any other property.' },
+    ],
+  },
+  {
+    english: '"An arithmetic formula that is true exactly when x really does code a valid proof of the formula numbered y."',
+    options: [
+      { text: 'Gödel numbering', explain: 'Numbering is the encoding of symbols/formulas as numbers — this description is about a formula that checks a relation between two already-encoded numbers.' },
+      { text: 'The diagonal lemma', explain: 'The diagonal lemma is about self-reference for an arbitrary property — this description is specifically about representing the proof-checking relation.' },
+      { text: 'Representability (Proof(x, y))', correct: true, explain: 'Right — this is the representability result: a mechanical, checkable syntactic relation captured as an arithmetic formula.' },
+    ],
+  },
+];
+
+const proofDiv = document.getElementById('proof-exercise');
+PROOF_ITEMS.forEach((item, i) => {
+  const cardId = `proof-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  proofDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

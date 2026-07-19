@@ -43,7 +43,7 @@
 </nav>
 <div class="page">
 
-  <p class="lesson-meta">Reference &nbsp;·&nbsp; Logic &nbsp;·&nbsp; Covers lessons 9–11</p>
+  <p class="lesson-meta">Reference &nbsp;·&nbsp; Logic &nbsp;·&nbsp; Covers lessons 9–11, 15</p>
   <h1>Modern Theory Cheat Sheet</h1>
   <p style="color:var(--muted);">The compressed version of lessons 9–11. See also the <a href="propositional-logic-cheatsheet.html">Propositional Logic</a>, <a href="rules-of-inference-cheatsheet.html">Rules of Inference</a>, and <a href="predicate-logic-cheatsheet.html">Predicate Logic</a> cheat sheets.</p>
 
@@ -95,12 +95,21 @@
     <div class="ref-row wide"><span><a href="../lessons/0011-godels-incompleteness-theorems.html#second-incompleteness-theorem">2nd Incompleteness (1931)</a></span><span>Such a system can't prove its own consistency from within.</span></div>
   </div>
 
-  <div class="callout warn" style="margin:0;">
+  <div class="callout warn" style="margin:0 0 1rem;">
     <strong><a href="../lessons/0011-godels-incompleteness-theorems.html#incompleteness-misuse">Before citing Gödel outside mathematics</a></strong>
     Ask: which formal system, which statement, what exactly is claimed unprovable? No answer means it's rhetoric, not the actual theorem at work. The 1929 and 1931 results are not contradictory — they're about different objects (logic in general vs. a specific rich theory).
   </div>
 
-  <p style="margin-top:2rem; font-size:.8rem; color:#444;">From <a href="../index.html">Logic</a> — <a href="../lessons/0009-soundness-completeness.html">lesson 9</a>, <a href="../lessons/0010-modal-logic.html">lesson 10</a>, <a href="../lessons/0011-godels-incompleteness-theorems.html">lesson 11</a>. Primary sources: <a href="https://plato.stanford.edu/entries/logic-classical/" target="_blank">SEP — Classical Logic</a>, <a href="https://plato.stanford.edu/entries/logic-modal/" target="_blank">SEP — Modal Logic</a>, <a href="https://plato.stanford.edu/entries/goedel-incompleteness/" target="_blank">SEP — Gödel's Incompleteness Theorems</a>.</p>
+  <h2><a href="../lessons/0015-godel-proof-diagonalization.html#diagonal-lemma">The proof machinery (mastery phase)</a></h2>
+  <div class="ref-table">
+    <div class="ref-row wide header"><span>Piece</span><span>What it does</span></div>
+    <div class="ref-row wide"><span><a href="../lessons/0015-godel-proof-diagonalization.html#godel-numbering">Gödel numbering</a></span><span>Encodes every symbol/formula/proof as a unique natural number (prime-power scheme) — syntax becomes arithmetic</span></div>
+    <div class="ref-row wide"><span><a href="../lessons/0015-godel-proof-diagonalization.html#representability">Prov(y)</a></span><span><code>∃x. Proof(x, y)</code> — "y is provable," an ordinary arithmetic formula, taken via representability</span></div>
+    <div class="ref-row wide"><span><a href="../lessons/0015-godel-proof-diagonalization.html#diagonal-lemma">Diagonal lemma</a></span><span>For any ψ(x), builds a sentence φ with <code>⊢ φ ↔ ψ(⌜φ⌝)</code> — the quine-like self-reference engine</span></div>
+    <div class="ref-row wide"><span><a href="../lessons/0015-godel-proof-diagonalization.html#constructing-g">G</a></span><span>Diagonal lemma applied to ψ(x) = ¬Prov(x): <code>G ↔ ¬Prov(⌜G⌝)</code> — "I am not provable," built, not asserted</span></div>
+  </div>
+
+  <p style="margin-top:2rem; font-size:.8rem; color:#444;">From <a href="../index.html">Logic</a> — <a href="../lessons/0009-soundness-completeness.html">lesson 9</a>, <a href="../lessons/0010-modal-logic.html">lesson 10</a>, <a href="../lessons/0011-godels-incompleteness-theorems.html">lesson 11</a>, <a href="../lessons/0015-godel-proof-diagonalization.html">lesson 15</a>. Primary sources: <a href="https://plato.stanford.edu/entries/logic-classical/" target="_blank">SEP — Classical Logic</a>, <a href="https://plato.stanford.edu/entries/logic-modal/" target="_blank">SEP — Modal Logic</a>, <a href="https://plato.stanford.edu/entries/goedel-incompleteness/" target="_blank">SEP — Gödel's Incompleteness Theorems</a>, <a href="https://www.logicmatters.net/resources/pdfs/godelbook/GodelBookLC.pdf" target="_blank">Peter Smith — Gödel Without (Too Many) Tears</a>.</p>
 
 </div>
 <script src="../../assets/search.js"></script>
