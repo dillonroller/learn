@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 1 — Probability Spaces &amp; Random Variables</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Probability</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 1 of many &nbsp;·&nbsp; Probability &nbsp;·&nbsp; ~30 min</p>
+  <h1>Probability Spaces &amp; Random Variables</h1>
+  <p><a href="../../rationality/lessons/0002-probabilistic-bayesian-reasoning.html">Rationality</a> had you compute <code>P(H|E)</code> dozens of times without ever pinning down what "P" formally means. That was deliberate — Rationality's job was the habit of updating on evidence, not the foundations underneath it. This topic is the foundations. By the end of this lesson you'll know exactly what a probability actually is, and what a "random variable" is — which, despite the name, is neither random nor a variable.</p>
+
+  <h2 id="sample-space">The sample space — every possible outcome, named</h2>
+  <p>Start with <strong>Ω</strong> (omega), the <strong>sample space</strong>: the set of every possible outcome of some experiment. Roll one die: <code>Ω = {1,2,3,4,5,6}</code>. Flip a coin twice: <code>Ω = {HH, HT, TH, TT}</code>. An <strong>event</strong> is just any subset of Ω — "the die shows even" is the event <code>{2,4,6}</code>. Nothing controversial yet; this is bookkeeping. The interesting part is what function turns a set of outcomes into a probability.</p>
+
+  <h2 id="probability-axioms">The axioms — three rules that generate everything else</h2>
+  <div class="callout warn">
+    <strong>The Kolmogorov Axioms</strong>
+    A probability function P, assigning a number to every event, must satisfy:
+    <ul style="margin:.5rem 0 0;">
+      <li><strong>Non-negativity:</strong> P(A) ≥ 0 for every event A</li>
+      <li><strong>Normalization:</strong> P(Ω) = 1 — something in the sample space always happens</li>
+      <li><strong>Countable additivity:</strong> if A and B can't both happen (disjoint), P(A ∪ B) = P(A) + P(B)</li>
+    </ul>
+  </div>
+  <p>That's the entire foundation — three axioms, and everything else in probability is a theorem derived from them. A couple of derivations worth doing once by hand, because they show the axioms actually earning their keep rather than just being asserted: since Ω and ∅ are disjoint and their union is Ω, additivity plus normalization forces <code>P(∅) = 0</code>. Since A and "not A" are disjoint and union to Ω, additivity forces <code>P(not A) = 1 − P(A)</code> — the complement rule you've been using without proof since <a href="../../rationality/lessons/0002-probabilistic-bayesian-reasoning.html#base-rate-neglect">Rationality's disease-test example</a> is really just this theorem, applied silently.</p>
+
+  <h2 id="random-variable">Random variables — a function, not a "variable"</h2>
+  <div class="callout">
+    <strong>The definition that surprises people</strong>
+    A <strong>random variable</strong> X is a function from the sample space to the real numbers: <code>X : Ω → ℝ</code>. That's it — a deterministic, ordinary function. Roll two dice; let X be their sum. X isn't "random" in the sense of being undetermined — for any specific outcome ω (say, (3,5)), X(ω) is a fixed number (8), every time. The randomness lives entirely in <em>which ω actually occurs</em>, not in the function X itself. "Random variable" is a genuinely misleading name for what is, mathematically, the least random object in the whole setup.
+  </div>
+  <p>Why bother with this indirection instead of just talking about outcomes directly? Because X lets you ask questions about a <em>number</em> derived from an outcome ("what's the sum?") without caring which specific outcome produced it — (3,5), (4,4), and (5,3) are different outcomes but the same value of X. This is the move that makes probability tractable for anything more complex than listing every outcome by hand.</p>
+
+  <h2 id="distribution">The distribution — X's own probability rules</h2>
+  <p>Once you have a random variable X, its <strong>distribution</strong> is the assignment of probabilities to X's possible values — derived from P on Ω, but usable on its own. For discrete X (like a die roll or a dice sum), this is the <strong>probability mass function (PMF)</strong>: <code>p(x) = P(X = x)</code>. Sum two fair dice: p(7) = 6/36 (six of the 36 equally likely outcomes sum to 7), the most likely single value, while p(2) = p(12) = 1/36, the least likely. Continuous random variables (like a measured height, or time until an event) need a different tool — a probability <em>density</em> rather than a mass — which this topic will build properly in a later lesson rather than rushing here.</p>
+
+  <h2>Try it: name the object</h2>
+  <p>For each description, identify which piece of the framework it is.</p>
+  <div id="prob-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Rolling one fair die, what is the sample space Ω?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','{even, odd} is an event partition of Ω, not Ω itself — Ω needs to list every individual outcome, not a summary category.')">{even, odd}</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — Ω is the full set of individual outcomes the die can land on.')">{1, 2, 3, 4, 5, 6}</button>
+        <button onclick="quizAnswer(this,false,'q1','This is a single outcome, or a single-element event — Ω needs to contain every possible outcome, not just one of them.')">{6}</button>
+        <button onclick="quizAnswer(this,false,'q1','P(A) is a number the probability function assigns to an event — it isn’t itself the sample space.')">1/6</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Which of these is NOT a consequence of the three Kolmogorov axioms?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','This does follow — it’s derived directly from additivity applied to Ω and ∅, which are disjoint and union to Ω.')">P(∅) = 0</button>
+        <button onclick="quizAnswer(this,false,'q2','This does follow — it’s the complement rule, derived from additivity applied to A and "not A."')">P(not A) = 1 − P(A)</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — this is false in general. Additivity only applies to disjoint events; for overlapping events you need P(A∪B) = P(A) + P(B) − P(A∩B), which is a different (also derivable, but distinct) theorem.')">P(A ∪ B) = P(A) + P(B) even when A and B overlap</button>
+        <button onclick="quizAnswer(this,false,'q2','This does follow directly from the normalization axiom, P(Ω) = 1.')">P(Ω) = 1</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Why is calling X a "random variable" somewhat misleading?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','This is backwards — X actually IS a genuine mathematical function; the misleading part is the word "random," since X itself is deterministic once an outcome is fixed.')">Because X isn't actually a function at all, just informal notation</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — X is a deterministic function of the outcome; once ω is fixed, X(ω) is a fixed number. The randomness lives in which ω occurs, not in X itself.')">Because X is a fixed, deterministic function — the randomness comes from which outcome ω occurs, not from X</button>
+        <button onclick="quizAnswer(this,false,'q3','X can certainly output the same value for different outcomes (e.g. dice sums), and that’s completely fine — it doesn’t break the definition or make X non-random in any special sense beyond what’s already true.')">Because it must give a different output for every possible outcome</button>
+        <button onclick="quizAnswer(this,false,'q3','Random variables aren’t restricted to only two values — the sum of two dice, for instance, takes on eleven different values (2 through 12).')">Because it can only take the values 0 and 1</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Summing two fair dice, why is p(7) larger than p(2)?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','7 isn’t a special or "lucky" number mathematically here — its higher probability comes entirely from counting outcomes, not from any inherent property of the number 7.')">Because 7 is a special number with higher inherent probability</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — six of the 36 equally likely (die1, die2) pairs sum to 7, versus only one pair, (1,1), summing to 2. More outcomes map to the value 7, so its probability mass is larger.')">Because more of the 36 equally likely outcome-pairs sum to 7 than sum to 2</button>
+        <button onclick="quizAnswer(this,false,'q4','The individual dice are fair and unweighted — the unevenness shows up only in the derived sum, because different sums are reachable by different numbers of underlying outcome pairs.')">Because the dice themselves are unfairly weighted</button>
+        <button onclick="quizAnswer(this,false,'q4','p(2) is not undefined — it’s a well-defined, if small, probability: exactly 1/36, corresponding to the single outcome pair (1,1).')">Because p(2) is actually undefined, not just small</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Define the full probability space for rolling two dice and looking at their sum: write out Ω (all 36 outcome pairs, or at least describe it precisely), pick one event (e.g. "sum is at least 10") and list exactly which outcomes belong to it, then state the random variable X in words and compute p(x) for two or three values of your choosing. The goal is to feel the difference between Ω (36 outcomes), an event (a subset), and X (a function reducing each outcome to one number) in your own hands.</p>
+
+  <h2>Primary resource</h2>
+  <p>See <a href="https://projects.iq.harvard.edu/stat110/home" target="_blank">Harvard Stat 110 (Blitzstein &amp; Hwang)</a> — course materials and the associated free textbook <em>Introduction to Probability</em> are widely considered one of the clearest rigorous introductions available, and match this lesson's level closely.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Want to work through a probability space for a scenario from your own life or work instead of dice? Bring it to Claude Code and we'll build it together.
+  </div>
+
+  <div class="nav">
+    <span></span>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-02">Lesson 2: Expectation &amp; Variance →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const PROB_ITEMS = [
+  {
+    english: '"The set of every possible outcome of an experiment."',
+    options: [
+      { text: 'Sample space (Ω)', correct: true, explain: 'Right — Ω is defined as exactly this: the full set of possible outcomes.' },
+      { text: 'Event', explain: 'An event is a subset of Ω (a collection of outcomes satisfying some condition), not the full set of every outcome.' },
+      { text: 'Random variable', explain: 'A random variable is a function from outcomes to numbers — not the set of outcomes itself.' },
+    ],
+  },
+  {
+    english: '"A subset of the sample space — e.g., \'the die shows an even number.\'"',
+    options: [
+      { text: 'Sample space (Ω)', explain: 'Ω is the entire set of outcomes; this description is about a specific subset of it, which is what an event is.' },
+      { text: 'Event', correct: true, explain: 'Right — an event is exactly a subset of Ω, such as the even-numbered outcomes of a die roll.' },
+      { text: 'Distribution', explain: 'A distribution assigns probabilities across all values of a random variable — a single event is just one subset, not the whole assignment.' },
+    ],
+  },
+  {
+    english: '"A deterministic function from outcomes to real numbers, such as the sum of two dice."',
+    options: [
+      { text: 'Sample space (Ω)', explain: 'Ω is a set of outcomes, not a function mapping those outcomes to numbers.' },
+      { text: 'Event', explain: 'An event is a subset of outcomes (a yes/no condition), not a function producing a numeric value.' },
+      { text: 'Random variable', correct: true, explain: 'Right — this is precisely the definition: X : Ω → ℝ, a deterministic function despite the misleading name.' },
+    ],
+  },
+];
+
+const probDiv = document.getElementById('prob-exercise');
+PROB_ITEMS.forEach((item, i) => {
+  const cardId = `prob-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  probDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

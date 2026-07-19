@@ -1,0 +1,5 @@
+# Baseline: Wants the Real Math, Not Metaphors
+
+User asked to learn something "modern... rooted in ways we can understand but a lot of people don't know about," and named quantum mechanics themselves as an example, after finishing Logic and Rationality's core curricula. Explicitly frustrated by pop-science metaphors ("a particle is in two places at once") and wants the actual formalism plus an accurate account of the interpretation debate. Same session as three other new topics ([[../../probability/learning-records/0001-baseline.md|Probability]], [[../../category-theory/learning-records/0001-baseline.md|Category Theory]], [[../../algorithmic-info-theory/learning-records/0001-baseline.md|Algorithmic Information Theory]]).
+
+**Implications:** Lead with linear algebra (vectors, complex numbers, inner products) rather than classical-mechanics prerequisites — this user's background is CS/technical, not physics. Every time a popular claim about quantum mechanics could come up, apply the same rigor-over-rhetoric test the user liked in [[../../logic/lessons/0011-godels-incompleteness-theorems.html#incompleteness-misuse|Logic's Gödel-misuse material]].
