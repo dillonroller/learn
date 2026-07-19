@@ -266,62 +266,68 @@
     return results.slice(0, 8).map(r => r.entry);
   }
 
-  // ── Styles (self-contained, hardcoded dark palette) ──
+  // ── Styles (reads the shared design-system tokens from assets/theme.css,
+  //    which every page that loads this script also loads) ──
   const style = document.createElement('style');
   style.textContent = `
-    #cp-trigger {
-      position: fixed; top: 8px; right: 1.5rem; z-index: 998;
-      background: #1c1c1c; color: #999; border: 1px solid #333;
-      border-radius: 8px; padding: .3rem .65rem; font-size: .78rem;
-      font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
-      display: flex; align-items: center; gap: .4rem;
-    }
-    #cp-trigger:hover { border-color: #4ade80; color: #e8e6e1; }
-    #cp-trigger kbd {
-      background: #2a2a2a; border: 1px solid #3a3a3a; border-radius: 4px;
-      padding: .05rem .35rem; font-size: .72rem; color: #aaa;
-    }
     #cp-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,.6);
+      position: fixed; inset: 0; background: rgba(6,8,9,.72);
       z-index: 999; display: none; align-items: flex-start; justify-content: center;
-      padding-top: 12vh;
+      padding: 12vh 1rem 0;
     }
     #cp-overlay.open { display: flex; }
     #cp-panel {
-      width: min(560px, 92vw); background: #1a1a1a; border: 1px solid #333;
-      border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,.5);
-      overflow: hidden; font-family: 'Helvetica Neue', Arial, sans-serif;
+      width: min(560px, 100%); background: var(--bg-raised, #1b2024); border: 1px solid var(--border, #333);
+      border-radius: var(--radius-lg, 14px); box-shadow: 0 24px 70px rgba(0,0,0,.55);
+      overflow: hidden; font-family: var(--font-ui, sans-serif);
     }
     #cp-input {
-      width: 100%; background: #141414; color: #e8e6e1; border: none;
-      border-bottom: 1px solid #333; padding: .9rem 1.1rem; font-size: 1rem;
-      outline: none; box-sizing: border-box;
+      width: 100%; background: var(--bg-sunken, #111); color: var(--ink, #eee); border: none;
+      border-bottom: 1px solid var(--border, #333); padding: .95rem 1.1rem; font-size: 1rem;
+      outline: none; box-sizing: border-box; font-family: var(--font-ui, sans-serif);
     }
-    #cp-input::placeholder { color: #666; }
-    #cp-results { max-height: 50vh; overflow-y: auto; }
-    #cp-empty { padding: 1.5rem 1.1rem; color: #666; font-size: .85rem; }
+    #cp-input::placeholder { color: var(--faint, #666); }
+    #cp-results { max-height: 55vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    #cp-empty { padding: 1.5rem 1.1rem; color: var(--muted, #888); font-size: .85rem; }
     .cp-item {
       display: flex; flex-direction: column; gap: .15rem;
-      padding: .7rem 1.1rem; cursor: pointer; border-left: 3px solid transparent;
+      padding: .75rem 1.1rem; cursor: pointer; border-left: 3px solid transparent;
     }
-    .cp-item.active { background: #202020; border-left-color: #4ade80; }
-    .cp-item-top { display: flex; align-items: center; gap: .5rem; }
-    .cp-item-term { color: #e8e6e1; font-size: .92rem; font-weight: 600; }
+    .cp-item.active { background: var(--bg-sunken, #141414); border-left-color: var(--accent, #4fae7d); }
+    .cp-item-top { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+    .cp-item-term { color: var(--ink, #eee); font-size: .92rem; font-weight: 600; }
     .cp-item-kind {
-      font-size: .68rem; text-transform: uppercase; letter-spacing: .05em;
-      color: #4ade80; background: #16261c; border: 1px solid #234; border-radius: 4px;
-      padding: .1rem .4rem;
+      font-size: .66rem; text-transform: uppercase; letter-spacing: .05em;
+      color: var(--accent-strong, #75d1a1); background: var(--accent-soft, #14271f);
+      border: 1px solid var(--accent-border, #234); border-radius: 4px; padding: .1rem .4rem;
     }
-    .cp-item-desc { color: #888; font-size: .8rem; }
-    .cp-item-path { color: #555; font-size: .72rem; font-family: monospace; }
+    .cp-item-desc { color: var(--muted, #888); font-size: .8rem; }
+    .cp-item-path { color: var(--faint, #555); font-size: .72rem; font-family: var(--font-mono, monospace); word-break: break-all; }
+    @media (max-width: 560px) {
+      #cp-overlay { padding-top: 4vh; }
+      #cp-panel { border-radius: var(--radius, 10px); }
+    }
   `;
   document.head.appendChild(style);
 
-  // ── DOM: trigger button + overlay ──
+  // ── DOM: trigger + overlay ──
+  // Mounted inside the page's .topnav when present (every page has one)
+  // so it reads as part of the nav bar, not a floating extra. Falls back
+  // to a small fixed button if a page somehow has no topnav.
+  const searchIconSvg = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="6" cy="6" r="4.5"/><line x1="9.6" y1="9.6" x2="13" y2="13"/></svg>';
   const trigger = document.createElement('button');
-  trigger.id = 'cp-trigger';
-  trigger.innerHTML = '🔍 Search <kbd>⌘K</kbd>';
-  document.body.appendChild(trigger);
+  trigger.type = 'button';
+  trigger.className = 'tn-search';
+  trigger.setAttribute('aria-label', 'Search the Learning Hub');
+  trigger.innerHTML = searchIconSvg + '<span class="tn-search-label">Search</span><kbd>⌘K</kbd>';
+
+  const topnav = document.querySelector('.topnav');
+  if (topnav) {
+    topnav.appendChild(trigger);
+  } else {
+    trigger.classList.add('tn-search-floating');
+    document.body.appendChild(trigger);
+  }
 
   const overlay = document.createElement('div');
   overlay.id = 'cp-overlay';
