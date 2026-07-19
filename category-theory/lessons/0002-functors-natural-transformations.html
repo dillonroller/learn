@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 2 — Functors &amp; Natural Transformations</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Category Theory</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 2 of many &nbsp;·&nbsp; Category Theory &nbsp;·&nbsp; ~35 min</p>
+  <h1>Functors &amp; Natural Transformations</h1>
+  <p><a href="0001-categories-objects-morphisms.html">Lesson 1</a> built categories — objects and arrows within one structure. This lesson does what category theory always does next: go up one level. First, a map <em>between</em> categories that respects their structure (a <strong>functor</strong>). Then, a map <em>between</em> two such maps (a <strong>natural transformation</strong>). If you've written <code>.map()</code> on an <code>Option</code> or a <code>Vec</code>, you've already used a functor — this lesson names what you were doing and shows you the law it was quietly obeying the whole time.</p>
+
+  <h2 id="functor-definition">A functor, precisely</h2>
+  <div class="callout warn">
+    <strong>Definition: Functor</strong>
+    A functor <code>F: C → D</code> from category C to category D assigns:
+    <ul style="margin:.5rem 0 0;">
+      <li>to every object A in C, an object <code>F(A)</code> in D</li>
+      <li>to every morphism <code>f: A → B</code> in C, a morphism <code>F(f): F(A) → F(B)</code> in D</li>
+    </ul>
+    subject to two laws:
+    <ul style="margin:.5rem 0 0;">
+      <li><strong>Preserves identity:</strong> <code>F(id_A) = id_F(A)</code></li>
+      <li><strong>Preserves composition:</strong> <code>F(g ∘ f) = F(g) ∘ F(f)</code></li>
+    </ul>
+  </div>
+  <p>In plain terms: a functor doesn't just relabel objects — it has to drag every arrow along consistently, in a way that respects how those arrows composed in the first place. That "in a way that respects composition" clause is doing all the real work; without it, you could map objects and morphisms around arbitrarily and call it a functor, and the whole idea would be useless.</p>
+
+  <h2 id="functor-example">The functor you already use: Option::map</h2>
+  <p>Take C = D = your own type system (lesson 1's second example). Define <code>F</code> by: on objects, <code>F(T) = Option&lt;T&gt;</code> — every type T maps to the type "maybe a T." On morphisms, given <code>f: A → B</code>, define <code>F(f) = Option::map(f) : Option&lt;A&gt; → Option&lt;B&gt;</code> — apply f inside if there's a value, pass <code>None</code> through untouched. Check the laws:</p>
+  <ul>
+    <li><strong>Identity:</strong> <code>Option::map(id)</code> applied to <code>Some(x)</code> gives <code>Some(id(x)) = Some(x)</code>; applied to <code>None</code> gives <code>None</code>. Either way, unchanged — exactly <code>id</code> on <code>Option&lt;A&gt;</code>. ✓</li>
+    <li><strong>Composition:</strong> <code>Option::map(g∘f)</code> applied to <code>Some(x)</code> gives <code>Some(g(f(x)))</code>. Doing it in two steps — <code>Option::map(g)</code> applied to <code>Option::map(f)</code> applied to <code>Some(x)</code> — gives <code>Option::map(g)</code> on <code>Some(f(x))</code>, which is <code>Some(g(f(x)))</code>. Same result either way. ✓</li>
+  </ul>
+  <div class="callout">
+    <strong>Why the laws matter in practice</strong>
+    These two laws are exactly what makes <code>.map()</code> "safe" to refactor without thinking twice: you can always merge two consecutive <code>.map(f).map(g)</code> calls into one <code>.map(|x| g(f(x)))</code>, or split them apart, and the compiler-verified behavior never changes. That's not a coincidence or a convention — it's the composition law, holding in your actual code every time you've relied on this kind of refactor being safe.
+  </div>
+
+  <h2 id="functor-non-example">A functor that isn't a container at all</h2>
+  <p>Functors aren't only about "boxes with a value inside." Recall <a href="0001-categories-objects-morphisms.html#examples-of-categories">lesson 1's preorder category</a> (numbers under ≤, a morphism m→n whenever m≤n). Define <code>F</code> from that preorder into <strong>Set</strong>: send every number n to the set <code>{1, 2, ..., n}</code>, and send the morphism "m≤n" to the inclusion function embedding <code>{1,...,m}</code> into <code>{1,...,n}</code>. This is a completely legitimate functor — it preserves identity (m≤m maps to the identity inclusion) and composition (m≤n≤p's combined inclusion is the same as composing the two smaller inclusions) — and there's no "container holding a value" anywhere in sight. The lesson: a functor is defined by what it does to objects and arrows, full stop; "generic container type" is one common shape functors take, not what a functor <em>is</em>.</p>
+
+  <h2 id="natural-transformation">Natural transformations — a map between functors</h2>
+  <div class="callout warn">
+    <strong>Definition: Natural Transformation</strong>
+    Given two functors <code>F, G : C → D</code>, a natural transformation <code>η : F ⇒ G</code> assigns to every object A in C a morphism <code>η_A : F(A) → G(A)</code> in D, such that for every morphism <code>f: A → B</code> in C, this <strong>naturality square</strong> commutes:
+    <pre style="margin:.6rem 0 0;"><code>G(f) ∘ η_A  =  η_B ∘ F(f)</code></pre>
+    — i.e., it doesn't matter whether you convert first (η) then map with G, or map with F first then convert (η) — same result either way.
+  </div>
+  <p>Concrete example: let F be the <code>Option</code> functor from above, and G be the <code>Vec</code> functor (<code>G(T) = Vec&lt;T&gt;</code>, morphisms lifted via ordinary list <code>.map()</code>). Define <code>η_T : Option&lt;T&gt; → Vec&lt;T&gt;</code> by <code>None ↦ []</code>, <code>Some(x) ↦ [x]</code> — the same conversion rule, for every type T. Check naturality for some <code>f: A → B</code>: starting from <code>Some(x)</code>, converting-then-mapping gives <code>Vec::map(f)([x]) = [f(x)]</code>; mapping-then-converting gives <code>η(Some(f(x))) = [f(x)]</code>. Same result. Starting from <code>None</code>, both paths give <code>[]</code>. The square commutes for every f, every type — which is exactly the sense in which "turn a maybe-value into a maybe-empty list" is <em>the same operation</em> regardless of what's inside, not a family of unrelated conversions that happen to look similar.</p>
+
+  <div class="callout">
+    <strong>What naturality is actually ruling out</strong>
+    Imagine instead defining a "conversion" that behaves differently depending on the type T — say, one that works fine for <code>Option&lt;i32&gt;</code> but does something special-cased for <code>Option&lt;String&gt;</code>. That could still be a legal function type-by-type, but it would <strong>fail naturality</strong>: the square wouldn't commute for a morphism f connecting those types, because the "conversion" isn't actually one uniform operation — it's secretly several different ones wearing the same name. Naturality is the formal way of saying "this transformation doesn't secretly peek at which type it's running on."
+  </div>
+
+  <h2>Try it: functor, natural transformation, or neither?</h2>
+  <p>For each description, classify what's being defined.</p>
+  <div id="func-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. What are the two things a functor F: C → D must specify?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','A functor doesn’t map two categories into a third — it maps one source category’s objects and morphisms into a single target category D.')">A mapping from two categories into a third category</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — a functor needs both an object mapping and a morphism mapping, and both are required for the definition to make sense.')">A mapping from C's objects to D's objects, and from C's morphisms to D's morphisms</button>
+        <button onclick="quizAnswer(this,false,'q1','A functor is required to map every object and morphism of C somewhere in D — it can\'t skip objects it doesn\'t like.')">A mapping only for the objects of C that satisfy some special property</button>
+        <button onclick="quizAnswer(this,false,'q1','The two functor laws (identity and composition) are constraints ON the mapping, not optional add-ons separate from what a functor is defined to do.')">A mapping of objects only, with morphisms handled automatically</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Why does Option::map(g).then(Option::map(f)) — wait, why does Option::map(g∘f) give the same result as composing Option::map(f) then Option::map(g)?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','This isn’t a coincidence specific to Option — it holds precisely because Option::map is a genuine functor and functors are required to preserve composition.')">It's a coincidence specific to how Option happens to be implemented</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — this is exactly the composition-preservation law every functor must satisfy: F(g∘f) = F(g)∘F(f), and Option::map genuinely satisfies it.')">Because Option::map is a genuine functor, and functors are required by definition to preserve composition</button>
+        <button onclick="quizAnswer(this,false,'q2','This has nothing to do with which order arguments are listed textually — it’s a structural property of functors, not a syntax quirk.')">Because function arguments are always evaluated right-to-left in every language</button>
+        <button onclick="quizAnswer(this,false,'q2','Identity preservation (F(id_A) = id_F(A)) is a separate law from composition preservation — this particular fact is specifically about composition, not identity.')">Because it only works when f or g happens to be the identity function</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. What does the naturality square requirement rule out for a proposed transformation η?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','Naturality doesn’t forbid η from touching the contents at all — the Option→Vec example clearly does something with Some(x), namely wrapping x — it forbids type-dependent special-casing, not any interaction with values.')">It rules out η ever doing anything with the actual contents of the structure</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — naturality forces the square to commute for every morphism and every type, which rules out the transformation secretly behaving differently (special-casing) depending on which specific type it\'s applied to.')">It rules out η secretly behaving differently depending on which specific type T it's being applied to</button>
+        <button onclick="quizAnswer(this,false,'q3','Naturality is a constraint that natural transformations must satisfy — it doesn’t forbid functors themselves from having natural transformations at all; quite the opposite, they’re a normal part of the theory.')">It rules out any two functors ever having a natural transformation between them</button>
+        <button onclick="quizAnswer(this,false,'q3','The naturality square is defined over morphisms of the source category and objects mapped by both functors — it doesn’t require F and G to be literally the same functor; they\'re typically different (like Option and Vec here).')">It rules out F and G being different functors</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. In the preorder-to-Set functor example, what plays the role of "morphism mapping"?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','This describes the object mapping (numbers to sets) — the question asks specifically about what happens to morphisms (the ≤ relations), not objects.')">Sending each number n to the set {1,...,n}</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — each morphism "m ≤ n" in the preorder gets sent to the actual inclusion function embedding {1,...,m} into {1,...,n}, which is the morphism-level part of the functor.')">Sending each morphism "m ≤ n" to the inclusion function from {1,...,m} into {1,...,n}</button>
+        <button onclick="quizAnswer(this,false,'q4','This isn’t part of this functor’s definition at all — no map()-style lifting over a container appears in this non-container example.')">Applying Option::map to each set</button>
+        <button onclick="quizAnswer(this,false,'q4','The identity law (F(id_n) = id_{F(n)}) is one of the two laws the functor must satisfy — it’s not itself the morphism mapping, just one property that mapping must have.')">Checking that F(id_n) = id_{F(n)} for every n</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Define your own tiny functor: pick a simple container type (say, a "box" type holding exactly one value, or a pair type holding two values of the same type) and write out, in words or pseudocode, what its <code>map</code> function does. Then check both functor laws by hand on a couple of concrete functions, the way this lesson checked them for <code>Option</code>. Finally, try defining a natural transformation from your box/pair functor to <code>Vec</code>, and check the naturality square holds for at least one function f — the goal is to build one of these yourself instead of only verifying the lesson's examples.</p>
+
+  <h2>Primary resource</h2>
+  <p>See Bartosz Milewski's <a href="https://bartoszmilewski.com/2015/01/20/functors/" target="_blank">Functors</a> and <a href="https://bartoszmilewski.com/2015/04/07/natural-transformations/" target="_blank">Natural Transformations</a> chapters of <em>Category Theory for Programmers</em>, continuing directly from lesson 1's primary resource.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Have a real generic type or trait from your own code you'd like to check for the functor laws, or a conversion you suspect isn't actually natural? Bring it to Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0001-categories-objects-morphisms.html">← Lesson 1: Categories, Objects &amp; Morphisms</a>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-03">Lesson 3: Universal Properties &amp; Products →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const FUNC_ITEMS = [
+  {
+    english: '"Sends every type T to Vec&lt;T&gt;, and every function f: A→B to Vec::map(f): Vec&lt;A&gt;→Vec&lt;B&gt;."',
+    options: [
+      { text: 'A functor', correct: true, explain: 'Right — this is exactly the List/Vec functor: an object mapping (T ↦ Vec<T>) and a morphism mapping (f ↦ Vec::map(f)) satisfying both functor laws.' },
+      { text: 'A natural transformation', explain: 'This defines a single functor (mapping types to types and functions to functions) — a natural transformation would need two functors already in hand, and a per-object morphism converting between them.' },
+    ],
+  },
+  {
+    english: '"For every type T, a function first : Vec&lt;T&gt; → Option&lt;T&gt; that returns the first element if any, satisfying the naturality square against Vec::map and Option::map."',
+    options: [
+      { text: 'A functor', explain: 'This isn’t mapping objects/morphisms of a category — it’s a single, uniform family of morphisms (one per type) between two already-defined functors, which is what a natural transformation is.' },
+      { text: 'A natural transformation', correct: true, explain: 'Right — this is a per-object morphism (one "first" function per type T) between the Vec and Option functors, checked against the naturality square — exactly the definition.' },
+    ],
+  },
+  {
+    english: '"Sends every type T to Option&lt;T&gt;, but the morphism mapping for String types behaves differently than for all other types."',
+    options: [
+      { text: 'A functor (but a broken one)', correct: true, explain: 'Right — this can still satisfy the functor definition type-by-type (object and morphism mappings exist), but type-dependent special-casing like this is exactly what breaks naturality when you try to relate it to another functor via a transformation.' },
+      { text: 'A natural transformation', explain: 'This describes a single functor\'s (oddly inconsistent) behavior across types — not a map between two functors, which is what a natural transformation requires.' },
+    ],
+  },
+];
+
+const funcDiv = document.getElementById('func-exercise');
+FUNC_ITEMS.forEach((item, i) => {
+  const cardId = `func-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  funcDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

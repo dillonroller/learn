@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 2 — Entanglement &amp; the EPR Puzzle</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Quantum Mechanics</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 2 of many &nbsp;·&nbsp; Quantum Mechanics &nbsp;·&nbsp; ~35 min</p>
+  <h1>Entanglement &amp; the EPR Puzzle</h1>
+  <p><a href="0001-state-vectors-superposition-born-rule.html">Lesson 1</a> covered one qubit at a time. Put two qubits together and something new happens: most of the states available to the pair can't be described as "qubit A is in some state, and separately, qubit B is in some state." That failure of separability is <strong>entanglement</strong> — not mysticism, a precise mathematical fact about which vectors in a bigger space can and can't be factored.</p>
+
+  <h2 id="two-qubit-states">Two qubits live in a 4-dimensional space</h2>
+  <p>One qubit lives in a 2D space, spanned by <code>|0⟩</code> and <code>|1⟩</code>. Two qubits together live in the <strong>tensor product</strong> of their spaces — 2×2 = 4 dimensions, spanned by <code>|00⟩, |01⟩, |10⟩, |11⟩</code> (shorthand for <code>|0⟩⊗|0⟩</code>, etc. — "qubit A reads this, qubit B reads that"). A general two-qubit state is:</p>
+  <pre><code>|ψ⟩ = c₀₀|00⟩ + c₀₁|01⟩ + c₁₀|10⟩ + c₁₁|11⟩</code></pre>
+  <p>normalized so <code>|c₀₀|² + |c₀₁|² + |c₁₀|² + |c₁₁|² = 1</code>, with the Born rule generalizing exactly as you'd expect — <code>|c₀₁|²</code> is the probability of measuring "A reads 0, B reads 1," and so on.</p>
+
+  <h2 id="product-vs-entangled">Product states vs. entangled states</h2>
+  <div class="callout warn">
+    <strong>Product state</strong>
+    A two-qubit state is a <strong>product state</strong> if it can be written as <code>|ψ_A⟩ ⊗ |ψ_B⟩</code> — qubit A's own independent state, tensored with qubit B's own independent state. Example: <code>(|0⟩+|1⟩)/√2 ⊗ |0⟩ = (|00⟩+|10⟩)/√2</code>. Here A and B are just two separate, ordinary qubits sitting next to each other — nothing new.
+  </div>
+  <div class="callout">
+    <strong>The Bell state — provably not a product state</strong>
+    <code>|Φ⁺⟩ = (|00⟩ + |11⟩)/√2</code>. Suppose, for contradiction, this factored as <code>(α|0⟩+β|1⟩) ⊗ (γ|0⟩+δ|1⟩) = αγ|00⟩ + αδ|01⟩ + βγ|10⟩ + βδ|11⟩</code>. Matching coefficients against <code>|Φ⁺⟩</code> requires <code>αδ = 0</code> and <code>βγ = 0</code> (no <code>|01⟩</code> or <code>|10⟩</code> terms), but also <code>αγ ≠ 0</code> and <code>βδ ≠ 0</code> (both <code>|00⟩</code> and <code>|11⟩</code> present). If <code>αδ=0</code>, either α=0 or δ=0 — but α=0 kills <code>αγ≠0</code>, and δ=0 kills <code>βδ≠0</code>. Either way, contradiction. <strong>No choice of α, β, γ, δ works</strong> — this state genuinely cannot be split into "A's state" and "B's state." That's what entanglement <em>is</em>: a proof of non-factorizability, not a metaphor.
+  </div>
+
+  <h2 id="epr-correlations">What entanglement predicts — and the puzzle it creates</h2>
+  <p>Measure qubit A of <code>|Φ⁺⟩</code> alone. By the Born rule applied to the <code>|00⟩</code> and <code>|11⟩</code> terms, A reads 0 with probability 1/2, 1 with probability 1/2 — a fair coin, same as any single qubit in superposition. Nothing unusual yet. Here's the part that isn't: <strong>whichever way A comes out, B is now guaranteed to match it</strong>, with certainty, the instant A is measured — even if B is a galaxy away and no signal has had time to travel between them.</p>
+  <div class="callout warn">
+    <strong>The EPR worry (1935)</strong>
+    Einstein, Podolsky, and Rosen took this correlation as evidence that quantum mechanics must be incomplete: surely, they argued, each qubit already had a definite value all along — the "spooky" instant correlation is really just two matching values fixed at creation, like two gloves mailed to separate cities in sealed boxes; opening one box tells you the other's contents instantly, but nothing mysterious happened at a distance, because the values were <em>always already there</em>. This is called a <strong>local hidden-variable</strong> account, and it's the natural, common-sense reading of the correlation. <a href="../index.html#lesson-03">Lesson 3</a> covers Bell's theorem — the result that actually rules this account out experimentally, which is far from obvious from the math alone.
+  </div>
+
+  <h2 id="no-signaling">What entanglement does <em>not</em> let you do</h2>
+  <div class="callout warn">
+    <strong>Before citing entanglement for "instant communication"</strong>
+    A hugely common misuse: "entanglement lets you send information instantly." It doesn't, and this is provable from the same math above, not an extra physical law bolted on. Alice's own measurement outcomes, looked at by themselves, are always a fair 50/50 coin — regardless of whether Bob has measured his qubit yet, regardless of what basis he measures in, regardless of anything Bob does. Alice cannot look at her own results alone and learn anything about Bob's actions. The correlation is only visible when the two lists of results are later compared side by side — which requires an ordinary, slower-than-light channel (a phone call, a message) to bring the lists together. This is the <strong>no-communication theorem</strong>, and it's why entanglement, despite the instant correlation, never lets you violate relativity's speed limit on sending actual information.
+  </div>
+
+  <h2>Try it: product state or entangled?</h2>
+  <p>For each two-qubit state, decide whether it's a product state or genuinely entangled.</p>
+  <div id="ent-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. What does it mean, precisely, for a two-qubit state to be "entangled"?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','This describes a specific measurement outcome pattern, not the definition of entanglement itself — entanglement is a property of the state vector, defined before any measurement happens.')">The two qubits are physically touching each other</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — entanglement is precisely the fact that the joint state cannot be written as (qubit A\'s own state) ⊗ (qubit B\'s own state), as proven for the Bell state.')">The joint state cannot be factored into a separate state for A and a separate state for B</button>
+        <button onclick="quizAnswer(this,false,'q1','Entangled qubits absolutely can be measured — measurement is exactly what reveals their correlation; entanglement isn’t about unmeasurability.')">The qubits cannot be measured at all</button>
+        <button onclick="quizAnswer(this,false,'q1','A single qubit in superposition (lesson 1) is already unpredictable on its own — that alone doesn’t make a two-qubit state entangled; entanglement is specifically about the joint state\'s non-factorizability.')">Measuring either qubit alone gives an unpredictable result</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. In the Bell state |Φ⁺⟩ = (|00⟩+|11⟩)/√2, what happens to qubit B immediately after qubit A is measured and reads 0?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','B\'s outcome is fully determined by the entangled correlation — it doesn\'t stay an independent 50/50 coin after A has been measured.')">B remains a completely independent 50/50 coin, unaffected by A's result</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — the |Φ⁺⟩ correlation guarantees B will also read 0 with certainty once A has been measured and found to be 0.')">B is now guaranteed to read 0 as well, with certainty</button>
+        <button onclick="quizAnswer(this,false,'q2','|Φ⁺⟩ has no |01⟩ or |10⟩ component at all — A and B always match, never differ, in this particular Bell state.')">B is now guaranteed to read 1, the opposite of A</button>
+        <button onclick="quizAnswer(this,false,'q2','B\'s outcome becomes perfectly determined by the entangled state and A\'s result — it doesn\'t become undefined or unmeasurable.')">B's state becomes undefined and can no longer be measured</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Why can't Alice use entanglement to send Bob an instant message?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','Entangled qubits absolutely can be separated over any distance — that’s not what prevents signaling here.')">Because entangled qubits can't be physically separated by any real distance</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — Alice\'s own measurement results, examined alone, always look like an ordinary random 50/50 coin regardless of anything Bob does, so she has no way to encode a message into her own outcomes that Bob could detect without an ordinary channel comparing results.')">Because Alice's own results, looked at alone, are always a random 50/50 coin no matter what Bob does — the correlation only shows up when the results are later compared</button>
+        <button onclick="quizAnswer(this,false,'q3','Entanglement itself is not illegal to use or create — many real quantum technologies rely on it; the issue is specifically about signaling information faster than light, not entanglement\'s legality.')">Because using entanglement at all is against the laws of physics</button>
+        <button onclick="quizAnswer(this,false,'q3','The correlation genuinely is present in the joint statistics — the lesson isn’t claiming entanglement is fake, only that it can’t be exploited for faster-than-light signaling.')">Because the correlation described in this lesson isn't actually real</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. What did Einstein, Podolsky, and Rosen propose as an explanation for the correlation?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','This is the opposite of their proposal — EPR specifically argued for hidden, predetermined values as the natural explanation, not that quantum mechanics\' account was already fully correct as is.')">That quantum mechanics was already complete and correctly described everything happening</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — EPR proposed a local hidden-variable account: each qubit secretly already had a definite value from the start, like two gloves mailed in sealed boxes, and the correlation just reflects that shared predetermined history.')">That each qubit secretly had a definite, predetermined value all along — a local hidden-variable account, like matched gloves in sealed boxes</button>
+        <button onclick="quizAnswer(this,false,'q4','EPR\'s argument was specifically about correlation and completeness, not about faster-than-light signaling being achievable — that\'s a separate, later misconception the lesson addresses.')">That the correlation actually does allow faster-than-light communication</button>
+        <button onclick="quizAnswer(this,false,'q4','EPR\'s paper predates Bell\'s theorem by decades and did not appeal to it — their argument was a philosophical/physical completeness argument, not a citation of Bell\'s later result.')">That Bell's theorem already ruled out entanglement entirely</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Take the state <code>|ψ⟩ = (|00⟩ + |01⟩ + |10⟩ + |11⟩)/2</code>. Try to factor it as <code>(α|0⟩+β|1⟩) ⊗ (γ|0⟩+δ|1⟩)</code> the way this lesson factored a product state — find actual values of α, β, γ, δ that work (hint: try α=β=γ=δ=1/√2). Then take <code>|ψ'⟩ = (|00⟩ + |01⟩ + |10⟩ − |11⟩)/2</code> and try the same thing — see where the attempt breaks down, the same way the lesson's Bell-state proof did. One of these is a product state and one is entangled; find out which by actually doing the algebra, not by guessing.</p>
+
+  <h2>Primary resource</h2>
+  <p>See John Preskill's <a href="http://theory.caltech.edu/~preskill/ph219/chap4_15.pdf" target="_blank">Caltech quantum information lecture notes, Chapter 4 — Quantum Entanglement</a>, a rigorous and freely available treatment that builds entanglement from exactly this tensor-product starting point.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Want to check whether a specific two-qubit state you come up with is entangled or a product state? Bring the coefficients to Claude Code and we'll work through the factoring together.
+  </div>
+
+  <div class="nav">
+    <a href="0001-state-vectors-superposition-born-rule.html">← Lesson 1: State Vectors, Superposition &amp; the Born Rule</a>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-03">Lesson 3: Bell's Theorem &amp; the CHSH Inequality →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const ENT_ITEMS = [
+  {
+    english: '|ψ⟩ = (|00⟩ + |01⟩ + |10⟩ + |11⟩) / 2',
+    options: [
+      { text: 'Product state', correct: true, explain: 'Right — this factors as (|0⟩+|1⟩)/√2 ⊗ (|0⟩+|1⟩)/√2, each qubit independently in an equal superposition.' },
+      { text: 'Entangled', explain: 'This one actually does factor cleanly — try α=β=γ=δ=1/√2 in the product-state formula and check it multiplies out to this exact state.' },
+    ],
+  },
+  {
+    english: '|ψ⟩ = (|01⟩ + |10⟩) / √2',
+    options: [
+      { text: 'Product state', explain: 'This is actually the other Bell state — attempting to factor it hits the same contradiction as |Φ⁺⟩: no αβγδ choice can zero out |00⟩ and |11⟩ while keeping |01⟩ and |10⟩ present.' },
+      { text: 'Entangled', correct: true, explain: 'Right — this is a Bell state (often called |Ψ⁺⟩) and is provably non-factorizable by the same argument as |Φ⁺⟩ in the lesson.' },
+    ],
+  },
+  {
+    english: '|ψ⟩ = |1⟩ ⊗ ((|0⟩ − |1⟩)/√2)',
+    options: [
+      { text: 'Product state', correct: true, explain: 'Right — this is already written in explicit product form: qubit A is definitely |1⟩, qubit B is in its own independent superposition.' },
+      { text: 'Entangled', explain: 'This state is written directly as a tensor product of two independent single-qubit states — by definition, that makes it a product state, not entangled.' },
+    ],
+  },
+];
+
+const entDiv = document.getElementById('ent-exercise');
+ENT_ITEMS.forEach((item, i) => {
+  const cardId = `ent-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  entDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>
