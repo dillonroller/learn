@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 1 — Categories, Objects &amp; Morphisms</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Category Theory</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 1 of many &nbsp;·&nbsp; Category Theory &nbsp;·&nbsp; ~30 min</p>
+  <h1>Categories, Objects &amp; Morphisms</h1>
+  <p>You already know that functions compose: given <code>f: A → B</code> and <code>g: B → C</code>, you can build <code>g∘f: A → C</code>, and it doesn't matter whether you compute <code>(g∘f)∘h</code> or <code>g∘(f∘h)</code> first. Category theory asks: what's the <em>most general</em> setting in which "things that compose, associatively, with a do-nothing identity" makes sense at all? The answer turns out to describe function composition, sets, logical proofs, and a great deal else, all at once — which is exactly the point.</p>
+
+  <h2 id="category-definition">A category, precisely</h2>
+  <div class="callout warn">
+    <strong>Definition: Category</strong>
+    A category consists of:
+    <ul style="margin:.5rem 0 0;">
+      <li><strong>Objects</strong> — think of these as "the things," whatever they are (they don't need internal structure at all)</li>
+      <li><strong>Morphisms</strong> (arrows) — for every ordered pair of objects A, B, a set of arrows <code>f: A → B</code></li>
+      <li><strong>Identity</strong> — every object A has an identity morphism <code>id_A: A → A</code></li>
+      <li><strong>Composition</strong> — arrows <code>f: A → B</code> and <code>g: B → C</code> compose to give <code>g∘f: A → C</code></li>
+    </ul>
+    subject to two laws:
+    <ul style="margin:.5rem 0 0;">
+      <li><strong>Identity law:</strong> <code>f ∘ id_A = f</code> and <code>id_B ∘ f = f</code> — composing with identity changes nothing</li>
+      <li><strong>Associativity:</strong> <code>(h∘g)∘f = h∘(g∘f)</code> — grouping doesn't matter</li>
+    </ul>
+  </div>
+  <p>Notice what's <em>not</em> in this definition: nothing about what objects "are" internally, nothing about what morphisms "do" beyond composing correctly. A category is defined entirely by how its arrows compose — which is deliberate, and is most of the point.</p>
+
+  <h2 id="examples-of-categories">Three genuinely different categories</h2>
+  <p>The temptation is to think "objects = sets, morphisms = functions" and call it a day. That's one category (called <strong>Set</strong>), but the definition doesn't require anything like it:</p>
+  <ul>
+    <li><strong>Set</strong> — objects are sets, morphisms are functions between them, composition is ordinary function composition. The familiar case.</li>
+    <li><strong>Your own type system</strong> — objects are types (<code>i32</code>, <code>String</code>, a struct), morphisms <code>A → B</code> are functions with that signature, identity is the identity function, composition is ordinary function composition — but now "object" means <em>type</em>, a compile-time concept, not a runtime value.</li>
+    <li><strong>A preorder</strong> — pick any set with a "≤"-like relation (say, natural numbers under ≤). Objects are the numbers themselves. There is a morphism <code>m → n</code> exactly when <code>m ≤ n</code> — and never more than one. Composition is transitivity (<code>m≤n</code> and <code>n≤p</code> give <code>m≤p</code>); identity is reflexivity (<code>m≤m</code>). There's no "function" here at all — a morphism is just the bare fact that the relation holds.</li>
+  </ul>
+  <div class="callout">
+    <strong>Why the preorder example matters</strong>
+    It's the cleanest proof that a category isn't secretly "just functions with extra steps." In a preorder-as-category, morphisms aren't computations you run — they're witnesses to a relationship being true. Composition isn't "do this, then that" — it's "if this holds and that holds, then the combined thing holds too." Same axioms, wildly different intuition. That gap is exactly what makes the abstraction useful: any proof you do purely from the category axioms works in <em>both</em> settings, and everywhere else the axioms happen to hold, automatically.
+  </div>
+
+  <h2 id="composition-laws">Checking the laws on a tiny example</h2>
+  <p>Take a category with exactly two objects, A and B, and exactly one non-identity morphism <code>f: A → B</code> (plus the two required identities, <code>id_A</code> and <code>id_B</code>). Check the identity law by hand: <code>f ∘ id_A</code> must equal <code>f</code> — there's genuinely only one arrow <code>A → B</code> available for it to equal, so this holds trivially here. Associativity has nothing to check in this tiny example (there's no triple of composable non-identity arrows), which is itself a useful lesson: the axioms need to hold for <em>every</em> valid composition in a category, but a specific tiny category can satisfy them by simply not having enough arrows to violate them. This is why the counterexamples worth building are ones with <em>more</em> structure — enough arrows that a law could plausibly fail, and then checking whether it actually does.</p>
+
+  <h2>Try it: does this satisfy the category axioms?</h2>
+  <p>For each proposed structure, decide whether it's a valid category.</p>
+  <div id="cat-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. In the category Set, what plays the role of "morphism"?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Elements are part of what objects (sets) contain — they aren’t the arrows between objects in this category.')">An element of a set</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — in Set, objects are sets and morphisms are functions between them.')">A function between two sets</button>
+        <button onclick="quizAnswer(this,false,'q1','A subset relationship isn’t what defines Set’s morphisms — Set’s morphisms are functions, full stop, regardless of whether one set is a subset of another.')">A subset relationship between two sets</button>
+        <button onclick="quizAnswer(this,false,'q1','The cardinality (size) of a set is a property of an object, not an arrow between objects.')">The cardinality of a set</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. In a preorder treated as a category, what is a morphism m → n?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','A preorder-as-category has no functions running between elements — a morphism here is just the fact that a relation holds, not a computation.')">A function that transforms m into n</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — the morphism is just the fact "m ≤ n" being true; it witnesses a relationship rather than performing a computation.')">The bare fact that m ≤ n holds — a witness to a relationship, not a computation</button>
+        <button onclick="quizAnswer(this,false,'q2','This describes composition (transitivity), not what an individual morphism itself is.')">A proof that m and n are equal</button>
+        <button onclick="quizAnswer(this,false,'q2','Random assignment would violate the category structure — a preorder category has at most one morphism between any two objects, tied directly to whether the relation holds.')">A randomly chosen pairing between elements</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Why does the category definition deliberately not specify what objects "are" internally?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','It’s not an oversight or incompleteness — it’s a deliberate design choice that’s central to why the same theorems apply across Set, type systems, preorders, and more.')">It's an oversight — a more complete definition would specify object structure</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — by defining a category purely through how morphisms compose, the same abstract structure and its theorems apply to sets-and-functions, types-and-functions, preorders, and any number of other genuinely different settings.')">So the same abstract structure and its theorems can apply to many genuinely different settings at once — sets, types, preorders, and more</button>
+        <button onclick="quizAnswer(this,false,'q3','Objects being unspecified doesn’t mean they’re empty or contentless — they can be sets, types, numbers, anything; the definition just doesn’t require peeking inside them.')">Because objects in category theory are always empty, structureless placeholders</button>
+        <button onclick="quizAnswer(this,false,'q3','This isn’t a shortcut around real complexity — the abstraction genuinely does useful, provable work exactly because it doesn’t depend on internal object structure.')">Because specifying internal structure is too computationally difficult</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. What would violate the associativity law <code>(h∘g)∘f = h∘(g∘f)</code>?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','Having exactly one arrow between each pair of objects doesn’t by itself violate anything — associativity is about how composed results depend on grouping, not about how many morphisms exist.')">Having exactly one morphism between every pair of objects</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — if composing h∘g first and then with f gives a genuinely different arrow than composing g∘f first and then with h, that’s a direct violation of the associativity law.')">Composing h∘g first and then with f giving a different result than composing g∘f first and then with h</button>
+        <button onclick="quizAnswer(this,false,'q4','This describes the identity law, not associativity — associativity is specifically about grouping of three or more composed morphisms giving the same result regardless of order of composition.')">An identity morphism failing to leave other morphisms unchanged when composed</button>
+        <button onclick="quizAnswer(this,false,'q4','A category having only two objects doesn’t violate any axiom on its own — plenty of valid tiny categories exist with few objects.')">A category having only two objects total</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Pick a small Rust or C type signature you actually use — say, three functions <code>f: A → B</code>, <code>g: B → C</code>, <code>h: C → D</code> from real or invented types. Write out what <code>h∘(g∘f)</code> and <code>(h∘g)∘f</code> would each compute, step by step, and confirm they give the same function. Then name one identity function for one of your types and confirm composing it with <code>f</code> changes nothing. You're checking, by hand, that your own familiar type system already satisfies both category laws — which it does, always, for any programming language's types and functions.</p>
+
+  <h2>Primary resource</h2>
+  <p>See Bartosz Milewski's <a href="https://bartoszmilewski.com/2014/10/28/category-theory-for-programmers-the-preface/" target="_blank">Category Theory for Programmers</a> (free online book), written specifically for readers with a programming background and no prior category theory or abstract algebra.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Have a data structure or type from your own code you'd like to check against the category axioms? Bring it to Claude Code and we'll work through it together.
+  </div>
+
+  <div class="nav">
+    <span></span>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-02">Lesson 2: Functors &amp; Natural Transformations →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const CAT_ITEMS = [
+  {
+    english: '"Objects are sets, morphisms are functions, composition is ordinary function composition, every set has an identity function."',
+    options: [
+      { text: 'Valid category', correct: true, explain: 'Right — this is exactly Set, the paradigm example, and it satisfies both the identity and associativity laws.' },
+      { text: 'Invalid — a law fails', explain: 'This structure is Set itself, the standard example — both category laws hold for ordinary function composition.' },
+    ],
+  },
+  {
+    english: '"Objects are natural numbers, there is a morphism m → n whenever m ≤ n, composition is transitivity of ≤, but there is no identity morphism for any object."',
+    options: [
+      { text: 'Valid category', explain: 'Missing identity morphisms means the identity law can’t even be stated, let alone hold — every object needs an id_A morphism for this to qualify as a category.' },
+      { text: 'Invalid — a law fails', correct: true, explain: 'Right — the identity law requires every object to have an identity morphism (here, that m ≤ m for every m). Without it, this fails to be a category as defined.' },
+    ],
+  },
+  {
+    english: '"Objects are your program\'s types, morphisms are functions between types, but composing f then g sometimes gives a different result than composing g then f applied in the other order on the same three functions, depending which pair you group first."',
+    options: [
+      { text: 'Valid category', explain: 'If grouping actually changes the result of composing the same three functions, that’s a direct violation of the associativity law — this fails to be a category.' },
+      { text: 'Invalid — a law fails', correct: true, explain: 'Right — this is a direct description of associativity failing: (h∘g)∘f giving a different result than h∘(g∘f) for the same f, g, h.' },
+    ],
+  },
+];
+
+const catDiv = document.getElementById('cat-exercise');
+CAT_ITEMS.forEach((item, i) => {
+  const cardId = `cat-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  catDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 1 — State Vectors, Superposition &amp; the Born Rule</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Quantum Mechanics</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 1 of many &nbsp;·&nbsp; Quantum Mechanics &nbsp;·&nbsp; ~35 min</p>
+  <h1>State Vectors, Superposition &amp; the Born Rule</h1>
+  <p>Every pop-science account of quantum mechanics eventually says something like "the particle is in two places at once." That sentence is standing in for a specific piece of math. This lesson gives you that math directly — vectors, not vagueness — so you can see exactly what "superposition" means, and exactly where the popular gloss starts to mislead.</p>
+
+  <h2 id="state-vectors">A quantum state is a vector</h2>
+  <p>Take the simplest possible quantum system: a <strong>qubit</strong> — anything with exactly two distinguishable outcomes (a photon's polarization, an electron's spin). Its state lives in a 2-dimensional complex vector space, with two special basis vectors written in "ket" notation:</p>
+  <pre><code>|0⟩ = (1, 0)      |1⟩ = (0, 1)</code></pre>
+  <p>Any valid state of the qubit is some vector built from these two:</p>
+  <pre><code>|ψ⟩ = α|0⟩ + β|1⟩       where α, β are complex numbers</code></pre>
+  <p>If you've done linear algebra, this is nothing new — it's just a vector written in a basis. The physics is entirely in what α and β are <em>allowed to mean</em>, which the next two sections build up precisely.</p>
+
+  <h2 id="superposition">Superposition — a precise claim, not a vague one</h2>
+  <div class="callout warn">
+    <strong>What superposition actually says</strong>
+    <code>|ψ⟩ = α|0⟩ + β|1⟩</code> is <strong>one single, perfectly well-defined vector</strong> — not "secretly two states happening at once," and not "we don't know which one it's in yet." It's a determinate mathematical object, in exactly the same sense that the vector (3, 4) is one determinate point in the plane, not "secretly both (3,0) and (0,4) happening simultaneously." What makes it feel strange is only revealed in the next section: what happens when you <em>measure</em> it.
+  </div>
+  <p>One constraint on α and β: the state must be <strong>normalized</strong>, <code>|α|² + |β|² = 1</code>. This isn't an extra physics assumption bolted on — it's what makes the next section's probabilities sum to 1, the same normalization axiom from <a href="../../probability/lessons/0001-probability-spaces-random-variables.html#probability-axioms">ordinary probability theory</a>. Quantum mechanics doesn't get to skip Kolmogorov's axioms; it satisfies them via a specific, unusual rule for generating the probabilities in the first place.</p>
+
+  <h2 id="born-rule">The Born rule — from vector to probability</h2>
+  <div class="callout warn">
+    <strong>The Born Rule</strong>
+    Measuring <code>|ψ⟩ = α|0⟩ + β|1⟩</code> in the {|0⟩, |1⟩} basis gives outcome 0 with probability <code>|α|²</code>, and outcome 1 with probability <code>|β|²</code>. After the measurement, the state is no longer <code>|ψ⟩</code> — it has become exactly <code>|0⟩</code> or exactly <code>|1⟩</code>, whichever was observed.
+  </div>
+  <p>This is the actual content behind "the particle is in two places until observed." Before measurement, the state genuinely is the single vector <code>α|0⟩ + β|1⟩</code> — not one or the other, and not "both" in any everyday sense either; it's its own kind of mathematical object with no classical analogue. The Born rule tells you the odds of what you'll see if you measure it. After you measure, the superposition is gone — the state has <strong>collapsed</strong> to whichever basis vector matched the outcome. This transition — irreversible, and not obviously derivable from the rest of quantum mechanics' otherwise perfectly reversible equations — is the seed of what's called the <strong>measurement problem</strong>, and it's exactly where the rival interpretations (Copenhagen, many-worlds, and others) start to disagree, which a later lesson takes on directly.</p>
+
+  <div class="callout">
+    <strong>Worked example</strong>
+    <code>|ψ⟩ = (1/√2)|0⟩ + (1/√2)|1⟩</code>. Check normalization: <code>|1/√2|² + |1/√2|² = 1/2 + 1/2 = 1</code> ✓. The Born rule gives P(0) = 1/2 and P(1) = 1/2 — a fair coin, encoded as a specific vector rather than as an unknown classical fact waiting to be revealed. The difference from an actual coin flip: a hidden classical coin already landed heads or tails before you looked, you just didn't know which. This qubit, before measurement, is not "one of the two, secretly" — the standard formalism treats it as genuinely, determinately in the superposition state, full stop, until measurement forces a definite outcome.
+  </div>
+
+  <h2 id="misuse-check">Before citing "superposition" outside physics</h2>
+  <p>Same discipline as <a href="../../logic/lessons/0011-godels-incompleteness-theorems.html#incompleteness-misuse">Logic lesson 11's Gödel-misuse check</a>: whenever "quantum superposition" gets invoked outside an actual physical system with a defined state vector and basis — to explain consciousness, free will, or "quantum healing" — ask precisely what the state vector is, what basis it's being measured in, and what the Born rule predicts. If there's no answer, the term is borrowing quantum mechanics' vocabulary and mystique without doing any of quantum mechanics' actual work.</p>
+
+  <h2>Try it: does this describe a valid state?</h2>
+  <p>For each proposed state, decide whether it's valid as written.</p>
+  <div id="qm-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. What does |ψ⟩ = α|0⟩ + β|1⟩ actually represent, before any measurement?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','This is the classical-hidden-variable reading the lesson specifically distinguishes from the standard formalism — standard QM treats the superposition as genuinely determinate, not as ignorance of a pre-existing fact.')">An unknown classical fact — the qubit is really 0 or really 1, we just don't know which yet</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — it’s one specific, well-defined vector, exactly as determinate as any other vector, with no classical analogue for what it "really" is until measured.')">A single, well-defined vector — a determinate mathematical object, not an unresolved fact</button>
+        <button onclick="quizAnswer(this,false,'q1','That’s the popular gloss the lesson is specifically correcting — the state isn’t "both 0 and 1 simultaneously" in the everyday sense of two things happening at once.')">Literally two separate physical states occurring simultaneously</button>
+        <button onclick="quizAnswer(this,false,'q1','A meaningless combination would violate normalization or otherwise not correspond to physical setup — a properly normalized superposition is a perfectly meaningful, standard object in the formalism.')">A mathematical convenience with no physical meaning at all</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Why must |α|² + |β|² = 1?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','α and β can absolutely be non-zero simultaneously — that’s exactly what a superposition is. The constraint is about the sum of their squared magnitudes, not about one of them being zero.')">Because α and β can never both be non-zero</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — |α|² and |β|² are the Born-rule probabilities of the two outcomes, and probabilities of all possible outcomes must sum to 1, per ordinary probability theory’s normalization axiom.')">Because |α|² and |β|² are measurement probabilities, and probabilities of all outcomes must sum to 1</button>
+        <button onclick="quizAnswer(this,false,'q2','α and β are complex numbers, not simple real fractions constrained to sum to 1 directly — it’s specifically the sum of their squared magnitudes that must equal 1.')">Because α and β must each individually equal exactly 1/2</button>
+        <button onclick="quizAnswer(this,false,'q2','This isn’t an arbitrary convention — it’s required precisely so the Born-rule probabilities it produces are valid probabilities at all.')">It's just an arbitrary mathematical convention with no physical necessity</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. What happens to |ψ⟩ immediately after a measurement yields outcome 1?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','This is exactly backwards — measurement collapses the state to a single definite basis vector, it doesn’t preserve the superposition.')">|ψ⟩ remains α|0⟩ + β|1⟩, unchanged</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — measurement collapses the state to exactly the observed basis vector, |1⟩, and the original superposition is gone.')">|ψ⟩ collapses to exactly |1⟩</button>
+        <button onclick="quizAnswer(this,false,'q3','The two basis vectors |0⟩ and |1⟩ represent genuinely distinct measurement outcomes — collapsing to one specifically means not being in the other.')">|ψ⟩ collapses to |0⟩ instead</button>
+        <button onclick="quizAnswer(this,false,'q3','A measurement is specifically the event that forces a determinate outcome — the state is no longer left undetermined afterward.')">|ψ⟩ becomes undefined and has no value at all</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Someone claims "quantum superposition proves consciousness can hold two contradictory beliefs at once." What's the right response, per this lesson's misuse check?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','This isn’t a faithful application — there’s no defined state vector, basis, or Born-rule prediction for "beliefs," which is exactly what the misuse check demands before accepting a quantum claim.')">Accept it — superposition is a general phenomenon that applies to any system, including minds</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — ask for the actual state vector, the basis it’s measured in, and what the Born rule predicts. Without those, "superposition" is being borrowed as a metaphor, not applied as physics.')">Ask what the actual state vector, basis, and Born-rule prediction are for this claim — if there are none, it's borrowed vocabulary, not physics</button>
+        <button onclick="quizAnswer(this,false,'q4','Superposition is a real, well-established phenomenon for actual physical systems with defined quantum states — the issue is applying the term to consciousness without any of the formal structure it requires, not that the phenomenon itself is fake.')">Reject it outright, since superposition isn't a real phenomenon</button>
+        <button onclick="quizAnswer(this,false,'q4','It’s not undecidable in principle — the check is concrete: does a state vector, basis, and Born-rule prediction exist for this claim or not. Here, they clearly don’t.')">There's no way to evaluate the claim either way</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Take the state <code>|ψ⟩ = (√3/2)|0⟩ + (1/2)|1⟩</code>. Check it's normalized, then compute P(0) and P(1) under the Born rule by hand. Then invent your own normalized two-outcome state (pick any α, β with |α|²+|β|²=1) and compute its measurement probabilities too — the goal is to do the arithmetic yourself at least twice before the next lesson introduces entanglement, which needs this comfort with single-qubit states as a prerequisite.</p>
+
+  <h2>Primary resource</h2>
+  <p>See Leonard Susskind &amp; Art Friedman's <a href="https://www.theoreticalminimum.com/courses/quantum-mechanics/2012/winter" target="_blank">The Theoretical Minimum — Quantum Mechanics</a> (Stanford Continuing Studies, free lecture videos and companion book), which builds the subject from exactly this linear-algebra-first starting point rather than assuming a prior physics course.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Seen a headline or video claiming something "quantum"? Bring the exact claim to Claude Code and we'll check it against the actual formalism together.
+  </div>
+
+  <div class="nav">
+    <span></span>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-02">Lesson 2: Entanglement &amp; Bell's Theorem →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const QM_ITEMS = [
+  {
+    english: '|ψ⟩ = (1/√2)|0⟩ + (1/√2)|1⟩',
+    options: [
+      { text: 'Valid state', correct: true, explain: 'Right — |1/√2|² + |1/√2|² = 1/2 + 1/2 = 1, so this is properly normalized.' },
+      { text: 'Invalid — normalization fails', explain: 'Check the arithmetic: (1/√2)² + (1/√2)² = 1/2 + 1/2 = 1 exactly, so this one is valid.' },
+    ],
+  },
+  {
+    english: '|ψ⟩ = (1/2)|0⟩ + (1/2)|1⟩',
+    options: [
+      { text: 'Valid state', explain: 'Check the arithmetic: (1/2)² + (1/2)² = 1/4 + 1/4 = 1/2, which is not 1 — this fails normalization.' },
+      { text: 'Invalid — normalization fails', correct: true, explain: 'Right — |1/2|² + |1/2|² = 1/4 + 1/4 = 1/2 ≠ 1, so this is not a valid normalized state.' },
+    ],
+  },
+  {
+    english: '|ψ⟩ = 1·|0⟩ + 0·|1⟩ (i.e., just |0⟩)',
+    options: [
+      { text: 'Valid state', correct: true, explain: 'Right — |1|² + |0|² = 1 + 0 = 1. A basis state on its own is a perfectly valid (if non-superposed) state.' },
+      { text: 'Invalid — normalization fails', explain: 'This one does satisfy normalization: 1² + 0² = 1. It’s valid, just not a superposition — a plain basis state.' },
+    ],
+  },
+];
+
+const qmDiv = document.getElementById('qm-exercise');
+QM_ITEMS.forEach((item, i) => {
+  const cardId = `qm-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  qmDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

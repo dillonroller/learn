@@ -192,12 +192,43 @@
     // ── Rationality: reference docs ──
     { term: 'Practical Rationality Cheat Sheet', kind: 'Reference doc', topic: 'Rationality', file: 'rationality/reference/practical-rationality-cheatsheet.html', desc: 'Compressed summary of lessons 1–3 — biases, Bayesian updating, steelmanning.' },
 
+    // ── Probability ──
+    { term: 'Probability Spaces & Random Variables', kind: 'Lesson 1', topic: 'Probability', file: 'probability/lessons/0001-probability-spaces-random-variables.html', desc: 'Sample spaces, the Kolmogorov axioms, and why a "random variable" is a deterministic function.' },
+    { term: 'Sample Space (Ω)', kind: 'Definition', topic: 'Probability', file: 'probability/lessons/0001-probability-spaces-random-variables.html', anchor: 'sample-space', desc: 'The set of every possible outcome of an experiment.' },
+    { term: 'Kolmogorov Axioms', kind: 'Definition', topic: 'Probability', file: 'probability/lessons/0001-probability-spaces-random-variables.html', anchor: 'probability-axioms', desc: 'Non-negativity, normalization, and countable additivity — the three axioms probability is built from.' },
+    { term: 'Random Variable', kind: 'Definition', topic: 'Probability', file: 'probability/lessons/0001-probability-spaces-random-variables.html', anchor: 'random-variable', desc: 'A deterministic function from outcomes to numbers, X : Ω → ℝ.' },
+    { term: 'Distribution / PMF', kind: 'Definition', topic: 'Probability', file: 'probability/lessons/0001-probability-spaces-random-variables.html', anchor: 'distribution', desc: 'The assignment of probabilities to a random variable\'s possible values.' },
+
+    // ── Quantum Mechanics ──
+    { term: 'State Vectors, Superposition & the Born Rule', kind: 'Lesson 1', topic: 'Quantum Mechanics', file: 'quantum-mechanics/lessons/0001-state-vectors-superposition-born-rule.html', desc: 'What superposition actually means mathematically, and how measurement probabilities work.', keywords: ['qubit', 'physics'] },
+    { term: 'State Vector / Ket Notation', kind: 'Definition', topic: 'Quantum Mechanics', file: 'quantum-mechanics/lessons/0001-state-vectors-superposition-born-rule.html', anchor: 'state-vectors', desc: 'A quantum state as a vector |ψ⟩ in a complex vector space.' },
+    { term: 'Superposition', kind: 'Definition', topic: 'Quantum Mechanics', file: 'quantum-mechanics/lessons/0001-state-vectors-superposition-born-rule.html', anchor: 'superposition', desc: 'A single, well-defined vector — not two states happening at once.' },
+    { term: 'Born Rule', kind: 'Theorem', topic: 'Quantum Mechanics', file: 'quantum-mechanics/lessons/0001-state-vectors-superposition-born-rule.html', anchor: 'born-rule', desc: 'Measurement probability is the squared magnitude of a state\'s amplitude.' },
+    { term: 'Quantum Claim Misuse Check', kind: 'Technique', topic: 'Quantum Mechanics', file: 'quantum-mechanics/lessons/0001-state-vectors-superposition-born-rule.html', anchor: 'misuse-check', desc: 'Before citing "superposition" outside physics: what\'s the state vector, basis, and Born-rule prediction?' },
+
+    // ── Category Theory ──
+    { term: 'Categories, Objects & Morphisms', kind: 'Lesson 1', topic: 'Category Theory', file: 'category-theory/lessons/0001-categories-objects-morphisms.html', desc: 'The core definition, three genuinely different examples, and checking the laws by hand.' },
+    { term: 'Category (Definition)', kind: 'Definition', topic: 'Category Theory', file: 'category-theory/lessons/0001-categories-objects-morphisms.html', anchor: 'category-definition', desc: 'Objects, morphisms, identity, and composition, subject to identity and associativity laws.' },
+    { term: 'Examples of Categories', kind: 'Technique', topic: 'Category Theory', file: 'category-theory/lessons/0001-categories-objects-morphisms.html', anchor: 'examples-of-categories', desc: 'Set, a programming type system, and a preorder — three genuinely different categories.' },
+    { term: 'Composition Laws', kind: 'Definition', topic: 'Category Theory', file: 'category-theory/lessons/0001-categories-objects-morphisms.html', anchor: 'composition-laws', desc: 'Checking the identity law and associativity on a tiny worked example.' },
+
+    // ── Algorithmic Information Theory ──
+    { term: 'Kolmogorov Complexity: What Does "Simple" Mean?', kind: 'Lesson 1', topic: 'Algorithmic Info Theory', file: 'algorithmic-info-theory/lessons/0001-kolmogorov-complexity.html', desc: 'The shortest-program definition, algorithmic randomness, and why K is uncomputable.', keywords: ['information theory'] },
+    { term: 'Kolmogorov Complexity K(x)', kind: 'Definition', topic: 'Algorithmic Info Theory', file: 'algorithmic-info-theory/lessons/0001-kolmogorov-complexity.html', anchor: 'kolmogorov-complexity', desc: 'The length of the shortest program that outputs x and halts.' },
+    { term: 'Algorithmic Randomness', kind: 'Definition', topic: 'Algorithmic Info Theory', file: 'algorithmic-info-theory/lessons/0001-kolmogorov-complexity.html', anchor: 'algorithmic-randomness', desc: 'A string is incompressible if no significantly shorter description exists.' },
+    { term: 'Uncomputability of K', kind: 'Theorem', topic: 'Algorithmic Info Theory', file: 'algorithmic-info-theory/lessons/0001-kolmogorov-complexity.html', anchor: 'uncomputability-of-k', desc: 'No program can always compute K(x) — a diagonalization argument in the family of Gödel and the halting problem.', keywords: ['godel', 'halting problem'] },
+    { term: 'Shannon vs. Kolmogorov', kind: 'Definition', topic: 'Algorithmic Info Theory', file: 'algorithmic-info-theory/lessons/0001-kolmogorov-complexity.html', anchor: 'shannon-vs-kolmogorov', desc: 'Entropy measures a source distribution on average; K(x) measures one specific string.' },
+
     // ── Topic indexes ──
     { term: 'Logic (topic home)', kind: 'Topic', topic: 'Logic', file: 'logic/index.html', desc: 'All Logic lessons and reference docs.' },
     { term: 'Philosophy (topic home)', kind: 'Topic', topic: 'Philosophy', file: 'philosophy/index.html', desc: 'All Philosophy lessons and reference docs.' },
     { term: 'Rationality (topic home)', kind: 'Topic', topic: 'Rationality', file: 'rationality/index.html', desc: 'All Rationality lessons and reference docs.' },
     { term: 'Music Theory & Keyboard (topic home)', kind: 'Topic', topic: 'Music Theory', file: 'music-theory/index.html', desc: 'All Music Theory lessons.' },
     { term: 'CS Interview Prep (topic home)', kind: 'Topic', topic: 'CS Interviews', file: 'cs-interviews/index.html', desc: 'All CS Interview Prep lessons.' },
+    { term: 'Probability (topic home)', kind: 'Topic', topic: 'Probability', file: 'probability/index.html', desc: 'All Probability lessons.' },
+    { term: 'Quantum Mechanics (topic home)', kind: 'Topic', topic: 'Quantum Mechanics', file: 'quantum-mechanics/index.html', desc: 'All Quantum Mechanics lessons.' },
+    { term: 'Category Theory (topic home)', kind: 'Topic', topic: 'Category Theory', file: 'category-theory/index.html', desc: 'All Category Theory lessons.' },
+    { term: 'Algorithmic Info Theory (topic home)', kind: 'Topic', topic: 'Algorithmic Info Theory', file: 'algorithmic-info-theory/index.html', desc: 'All Algorithmic Information Theory lessons.' },
     { term: 'Learning Hub (home)', kind: 'Home', topic: '', file: 'index.html', desc: 'All topics.' },
   ];
 

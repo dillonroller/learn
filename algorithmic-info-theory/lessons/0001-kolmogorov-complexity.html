@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 1 — Kolmogorov Complexity: What Does "Simple" Mean?</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Algorithmic Info Theory</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 1 of many &nbsp;·&nbsp; Algorithmic Information Theory &nbsp;·&nbsp; ~35 min</p>
+  <h1>Kolmogorov Complexity: What Does "Simple" Mean?</h1>
+  <p>Which of these two 32-character strings is more "random": <code>01010101010101010101010101010101</code>, or <code>10011010001101110010100111001011</code>? Gut instinct says the second — the first has an obvious pattern, the second doesn't. This lesson makes that gut instinct precise, and then does something more interesting: uses the same self-reference trick from <a href="../../logic/lessons/0015-godel-proof-diagonalization.html">Logic lesson 15</a> to prove that the precise version of "simple" can never be fully computed.</p>
+
+  <h2 id="kolmogorov-complexity">The definition</h2>
+  <div class="callout warn">
+    <strong>Kolmogorov Complexity</strong>
+    Fix some universal programming language. The Kolmogorov complexity of a string x, written <code>K(x)</code>, is the length (in bits) of the <em>shortest program</em> in that language that outputs x and halts.
+  </div>
+  <p>The repeating string above has low K — a program like <code>print "01" 16 times</code> is short, far shorter than the string itself. The second string, if it really has no exploitable pattern, needs a program that's basically <code>print "100110100011011100101001110010" + "11"</code> — i.e., the shortest program is roughly the string itself, plus a little overhead for <code>print</code>. That's the whole intuition: <strong>K(x) is a rigorous stand-in for "how compressible is x."</strong></p>
+
+  <div class="callout">
+    <strong>Doesn't this depend on which language you picked?</strong>
+    A little, but not in a way that matters asymptotically. The <strong>invariance theorem</strong> says: for any two universal languages L₁ and L₂, there's a constant c (the length of an L₁-to-L₂ interpreter, roughly) such that <code>|K_L₁(x) − K_L₂(x)| ≤ c</code> for every x. As strings get longer, this fixed overhead becomes negligible — so "the shortest program" is a well-defined notion up to a constant that doesn't depend on x, which is exactly the sense in which K is language-independent.
+  </div>
+
+  <h2 id="algorithmic-randomness">Algorithmic randomness — when no shortcut exists</h2>
+  <p>Call a string x of length n <strong>algorithmically random</strong> (or <strong>incompressible</strong>) if <code>K(x) ≥ n − c</code> for some small constant c — no significantly shorter description exists than just writing x out in full. A counting argument shows something that sounds strange at first: <strong>most</strong> strings of any given length are incompressible. There are <code>2ⁿ</code> strings of length n, but only <code>2ⁿ⁻¹ − 1</code> possible programs shorter than <code>n−1</code> bits — nowhere near enough short programs to give every long string a short description. Pigeonhole forces most strings to have no shortcut at all.</p>
+  <p>The strange part isn't the theorem — it's what it implies about specific strings. You can prove <em>almost all</em> strings are incompressible, but (as the next section shows) you can essentially never <em>prove a specific given string is one of them</em>. Randomness, on this definition, is common but individually hard to certify.</p>
+
+  <h2 id="uncomputability-of-k">Why K is uncomputable — the same move as Gödel</h2>
+  <div class="callout warn">
+    <strong>Theorem: K is not computable</strong>
+    There is no program that, given any string x, always outputs K(x).
+  </div>
+  <p>The proof is a direct cousin of <a href="../../logic/lessons/0015-godel-proof-diagonalization.html#diagonal-lemma">lesson 15's diagonal lemma</a> — a self-reference trap dressed up as an old riddle called the <strong>Berry paradox</strong> ("the smallest number not describable in fewer than twelve words," which that very phrase just described in eleven).</p>
+  <ul>
+    <li>Suppose, for contradiction, a program <code>K-compute</code> exists that always outputs K(x) given x, and suppose it's P bits long.</li>
+    <li>Write a new program <code>find-first-complex(N)</code>: search all strings in order and, using <code>K-compute</code>, output the first string x such that K(x) ≥ N. Such a string is guaranteed to exist by the counting argument above, for any N once strings are long enough.</li>
+    <li><code>find-first-complex</code>'s own length is roughly <code>P + log(N) + (a small constant)</code> — the cost of <code>K-compute</code>, plus writing the number N, plus a little bookkeeping. Crucially, this grows only logarithmically in N, while N itself grows linearly.</li>
+    <li>So for N large enough, <code>find-first-complex(N)</code> is a program shorter than N bits <em>that outputs a string whose K is at least N</em> — meaning that string has a description (this very program) shorter than N bits, so its real K is <em>less</em> than N. Contradiction: the program's own output has both K(x) ≥ N (by construction) and K(x) &lt; N (because we just described it briefly). <code>K-compute</code> cannot have existed.</li>
+  </ul>
+  <div class="callout">
+    <strong>Recognize the shape</strong>
+    This is the exact same family as <a href="../../logic/lessons/0011-godels-incompleteness-theorems.html#first-incompleteness-theorem">Gödel's G</a> ("this sentence is unprovable") and the halting problem ("this program halts iff it doesn't"): construct an object using a hypothetical solver, engineered specifically to contradict what that solver would say about it. Three different fields — logic, computability, information theory — and the same one proof technique breaks all three the same way.
+  </div>
+
+  <h2 id="shannon-vs-kolmogorov">Not the same "information" as Shannon entropy</h2>
+  <p>Classical (Shannon) information theory asks: given a known <em>probability distribution</em> over messages, what's the average number of bits needed to encode a message drawn from it? That's a statement about a <em>source</em>, not any single message. Kolmogorov complexity asks a different question entirely: given <em>one specific string</em>, with no reference to any distribution it was drawn from, how short can its shortest description be? A single, highly patterned string can have low K even if it was drawn from a distribution with high entropy (you just got a low-probability, highly-compressible outcome). The two "information" concepts agree on average, in a precise sense, but they are not interchangeable, and conflating them is a common, real error.</p>
+
+  <h2>Try it: which claim is right?</h2>
+  <p>For each claim about K, decide whether it's accurate.</p>
+  <div id="ait-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Why does the invariance theorem let us treat K(x) as roughly language-independent?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','K genuinely can differ slightly between two languages — the theorem doesn’t claim exact equality, only that the difference is bounded by a fixed constant.')">Because K(x) is always exactly identical across every possible language</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — the gap between K measured in two different universal languages is bounded by a constant independent of x, so it becomes negligible for long strings.')">Because the difference between K measured in any two universal languages is bounded by a constant that doesn't depend on x</button>
+        <button onclick="quizAnswer(this,false,'q1','The theorem is specifically about universal (Turing-complete) languages — it doesn’t say anything about weaker languages that can’t express every computable function.')">Because it only applies to programming languages that can't express loops</button>
+        <button onclick="quizAnswer(this,false,'q1','The invariance theorem is a real, provable mathematical result, not an assumption taken on faith.')">Because it's an assumption, not a proven result</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Why does the counting argument show most strings of length n are incompressible?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','This is backwards — there are far more strings of length n than there are short programs available to describe them, not the other way around.')">Because there are more short programs than there are strings of length n</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — there are 2ⁿ strings of length n, but nowhere near enough programs shorter than n bits to give each one a short description, so most strings must lack any shortcut.')">Because there are 2ⁿ strings of length n but far fewer possible programs shorter than n bits, so most strings can't all have short descriptions</button>
+        <button onclick="quizAnswer(this,false,'q2','Long strings aren’t inherently unpredictable by definition — some very long strings (like the repeating one in the lesson) are highly compressible; the counting argument is a statistical fact about most strings, not about length per se.')">Because longer strings are inherently more unpredictable by definition</button>
+        <button onclick="quizAnswer(this,false,'q2','This isn’t a computability claim — it’s a purely combinatorial/counting fact about how many strings versus how many short programs exist.')">Because computers can't generate long strings reliably</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. What role does <code>find-first-complex(N)</code> play in the proof that K is uncomputable?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','It’s a hypothetical construction built purely for the proof by contradiction — it isn’t a real, usable tool for finding complex strings, because its existence is exactly what gets refuted.')">It's a real, practical tool for finding highly compressible strings</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — assuming K-compute exists, this program is short (roughly P + log N bits) yet is built to output a string with K ≥ N, giving that string both a short description and a supposedly-high K — a direct contradiction.')">It's a hypothetical program that, if K-compute existed, would be short yet output a string with contradictorily high K — refuting K-compute's existence</button>
+        <button onclick="quizAnswer(this,false,'q3','This describes something like invariance, not what this specific program is doing — it’s constructed to expose a contradiction, not to translate between languages.')">It translates programs from one universal language to another</button>
+        <button onclick="quizAnswer(this,false,'q3','The proof doesn’t require actually running this program to completion in practice — its role is purely to derive a logical contradiction from the assumption that K-compute exists.')">It's a working algorithm that efficiently computes K(x) for any x</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. How does Kolmogorov complexity differ from Shannon entropy?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','They are related but genuinely distinct, not identical formulas for the same thing — one is about a single object, the other about a source distribution.')">They're just two different names for the exact same formula</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — Shannon entropy is about the average description length for messages from a known distribution (a property of the source), while K(x) is about a single specific string’s own shortest description, with no distribution involved.')">Shannon entropy measures average bits needed for messages from a known distribution; K(x) measures a single specific string's own shortest description, independent of any distribution</button>
+        <button onclick="quizAnswer(this,false,'q4','Shannon entropy is a well-established, fully computable-in-principle quantity for a known distribution — it’s K(x) that’s uncomputable, not Shannon entropy.')">Shannon entropy is uncomputable while K(x) is always computable</button>
+        <button onclick="quizAnswer(this,false,'q4','Both concepts are explicitly about information/description length in some form — neither one is about physical energy or thermodynamic entropy.')">Shannon entropy is about physical energy, unrelated to information</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Take three strings of your own choosing, all the same length (say 24 characters): one obviously patterned (like a repeating sequence), one you generate by actually flipping a coin 24 times, and one that looks random to you but that you made up "randomly" off the top of your head. Write, in plain English, what the shortest program you can think of for each would look like. Then consider: which one do you expect to be hardest to actually prove is incompressible, even if it probably is? (Hint: it's not the coin-flip one you'd guess.)</p>
+
+  <h2>Primary resource</h2>
+  <p>See Scott Aaronson's <a href="https://www.scottaaronson.com/democritus/lec8.html" target="_blank">Quantum Computing Since Democritus, Lecture 8 — Kolmogorov Complexity</a>, a rigorous but conversational treatment written for readers with a strong CS background and no prior information theory.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Want to try to actually compress a real string of your own by hand, or trace through the uncomputability proof line by line? Bring it to Claude Code.
+  </div>
+
+  <div class="nav">
+    <span></span>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-02">Lesson 2: Algorithmic Statistics &amp; Chaitin's Ω →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const AIT_ITEMS = [
+  {
+    english: '"K(x) can be computed exactly for any string x, given enough computing time."',
+    options: [
+      { text: 'Accurate', explain: 'This is exactly what the uncomputability theorem rules out — no amount of extra time fixes it, since no program computing K(x) for all x can exist at all.' },
+      { text: 'Misuse / inaccurate', correct: true, explain: 'Right — K is proven uncomputable in principle, not just impractical to compute quickly. No amount of extra time or resources changes that.' },
+    ],
+  },
+  {
+    english: '"Most strings of a given length are algorithmically random, but we can rarely prove a specific one is."',
+    options: [
+      { text: 'Accurate', correct: true, explain: 'Right — this is precisely the tension the lesson highlights: common in aggregate (via counting), yet essentially uncertifiable case by case.' },
+      { text: 'Misuse / inaccurate', explain: 'This is actually the accurate, if counterintuitive, summary of the lesson’s two key results together — the counting argument and uncomputability.' },
+    ],
+  },
+  {
+    english: '"A string with high Shannon entropy under its source distribution must also have high Kolmogorov complexity."',
+    options: [
+      { text: 'Accurate', explain: 'Not necessarily — a high-entropy source can still occasionally emit a highly patterned, low-K string; entropy is about the source on average, K is about one specific string.' },
+      { text: 'Misuse / inaccurate', correct: true, explain: 'Right — Shannon entropy describes the source distribution on average; any one specific draw, even from a high-entropy source, can still happen to be highly compressible (low K).' },
+    ],
+  },
+];
+
+const aitDiv = document.getElementById('ait-exercise');
+AIT_ITEMS.forEach((item, i) => {
+  const cardId = `ait-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  aitDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>
