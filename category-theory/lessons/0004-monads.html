@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 4 — Monads</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Category Theory</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 4 of many &nbsp;·&nbsp; Category Theory &nbsp;·&nbsp; ~40 min</p>
+  <h1>Monads</h1>
+  <p>There's a famous joke: "a monad is just a monoid in the category of endofunctors." By the end of this lesson that sentence will be a literal, checkable description, not a punchline — and you'll recognize the pattern as something you've already used every time you've chained <code>Option</code> or <code>Result</code> operations in Rust.</p>
+
+  <h2 id="monad-motivation">The problem: composing functions that don't quite compose</h2>
+  <p><a href="0002-functors-natural-transformations.html#functor-example">Lesson 2's functor</a> let you lift an ordinary function <code>f: A → B</code> to <code>Option::map(f): Option&lt;A&gt; → Option&lt;B&gt;</code>. But what about a function that's <em>itself</em> fallible — <code>f: A → Option&lt;B&gt;</code>? Given a second such function <code>g: B → Option&lt;C&gt;</code>, ordinary composition <code>g∘f</code> doesn't typecheck: f's output is <code>Option&lt;B&gt;</code>, but g expects a plain <code>B</code>. You need a principled way to chain functions whose outputs already carry extra context (maybe-absent, error-or-success, many-possible-results) — and "principled" here means: a general recipe that works for <em>any</em> such context, not a one-off fix per type. That recipe is a monad.</p>
+
+  <h2 id="monad-definition">The definition</h2>
+  <div class="callout warn">
+    <strong>Definition: Monad</strong>
+    A monad on category C is an <strong>endofunctor</strong> <code>T: C → C</code> (a functor from C to itself) together with two natural transformations:
+    <ul style="margin:.5rem 0 0;">
+      <li><strong>unit</strong> <code>η: Id ⇒ T</code> — for every object A, a morphism <code>η_A: A → T(A)</code> (wrap a plain value in the context)</li>
+      <li><strong>join</strong> <code>μ: T∘T ⇒ T</code> — for every object A, a morphism <code>μ_A: T(T(A)) → T(A)</code> (collapse two layers of context into one)</li>
+    </ul>
+    satisfying laws directly analogous to a monoid's associativity and identity axioms (made precise below).
+  </div>
+
+  <h2 id="option-monad-example">The Option monad, concretely</h2>
+  <p><code>T(A) = Option&lt;A&gt;</code> is already a functor (<a href="0002-functors-natural-transformations.html#functor-example">lesson 2</a>). The monad structure adds:</p>
+  <ul>
+    <li><strong>unit:</strong> <code>η_A(a) = Some(a)</code> — wrap any plain value.</li>
+    <li><strong>join:</strong> <code>μ_A: Option&lt;Option&lt;A&gt;&gt; → Option&lt;A&gt;</code> — flatten: <code>None ↦ None</code>, <code>Some(None) ↦ None</code>, <code>Some(Some(a)) ↦ Some(a)</code>.</li>
+  </ul>
+  <p>Check one instance of the identity law by hand: <code>μ_A(η_{Option&lt;A&gt;}(Some(x)))</code> — apply <code>η</code> at type <code>Option&lt;A&gt;</code> to get <code>Some(Some(x))</code>, then <code>μ</code> flattens it to <code>Some(x)</code>. Unchanged, as the law requires. This particular combination of unit-then-join undoing itself, for every object, isn't a coincidence for Option specifically — it's exactly what the monad laws demand of any valid monad.</p>
+
+  <h2 id="bind-operation">Where "bind" (and_then, ?) comes from</h2>
+  <p>The operation you actually reach for day to day — Rust's <code>.and_then(f)</code>, or the <code>?</code> operator's short-circuiting — is <strong>bind</strong>, and it's not a separate primitive; it's unit and join in disguise: given <code>m: T(A)</code> and <code>f: A → T(B)</code>, define <code>bind(m,f) = μ(T(f)(m))</code> — apply the functor's own lifted <code>f</code> (giving <code>T(T(B))</code>, a value nested two levels deep), then flatten with <code>μ</code>. For Option: <code>bind(Some(x), f) = μ(Some(f(x))) = f(x)</code>, and <code>bind(None, f) = μ(None) = None</code> — exactly the short-circuiting behavior <code>.and_then()</code> already gives you. Chaining <code>bind(bind(m, f), g)</code> for <code>f: A→Option&lt;B&gt;</code>, <code>g: B→Option&lt;C&gt;</code> now composes cleanly, automatically propagating <code>None</code> through every step — precisely the composition problem from the top of this lesson, solved once, generally, for any monad.</p>
+
+  <h2 id="monoid-in-endofunctors">Cashing in the joke</h2>
+  <div class="callout">
+    <strong>"A monoid in the category of endofunctors" — literally</strong>
+    A <strong>monoid</strong> is a set M with an associative binary operation and an identity element. Now build a category whose <em>objects</em> are endofunctors <code>C → C</code> and whose <em>morphisms</em> are natural transformations between them. In this category, <strong>functor composition</strong> plays the role of the binary operation, and the <strong>identity functor</strong> plays the role of the identity element. A monad — an endofunctor T with <code>μ: T∘T ⇒ T</code> and <code>η: Id ⇒ T</code> — is exactly a monoid object living inside that category: <code>μ</code> is the "multiplication" (combining two applications of T into one, the way a monoid combines two elements into one), <code>η</code> is the "identity element" (inserting a value with no real effect, the way a monoid's identity element changes nothing when combined). The monad laws (associativity: <code>μ∘(μT) = μ∘(Tμ)</code>; identity: <code>μ∘ηT = id = μ∘Tη</code>) are, symbol for symbol, the monoid axioms, just stated in terms of natural transformations between endofunctors instead of elements of a set. The "joke" was always a precise, checkable claim — it just assumed you already knew what a monoid, an endofunctor, and a natural transformation were, which by this lesson, you do.
+  </div>
+
+  <h2>Try it: does this satisfy the monad laws?</h2>
+  <p>For each proposed unit/join pair on <code>Option</code>, decide whether it's a valid monad structure.</p>
+  <div id="monad-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Why doesn't ordinary function composition g∘f work directly for f: A→Option&lt;B&gt; and g: B→Option&lt;C&gt;?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Option types are perfectly composable with the right tools (bind) — the issue isn\'t that Option can\'t be used this way, it\'s that PLAIN composition doesn\'t typecheck without an extra step.')">Because Option types can never be composed with each other under any circumstances</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — f produces an Option<B>, but g expects a plain B as input, so g(f(x)) doesn\'t typecheck directly; bind/join is exactly the extra step that reconciles this mismatch.')">Because f's output type is Option<B>, but g expects a plain B as input — the types don't line up for direct composition</button>
+        <button onclick="quizAnswer(this,false,'q1','This has nothing to do with the functor laws from lesson 2 — those laws are about map/composition preservation, not about why direct composition of Option-returning functions fails to typecheck.')">Because functors are not allowed to be composed according to the functor laws</button>
+        <button onclick="quizAnswer(this,false,'q1','g does need to accept type B specifically, per the setup — the issue is f\'s output not matching that directly, not that g has no type requirement at all.')">Because g doesn't require any particular input type</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. What does the join/μ operation do, conceptually?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','This describes unit/η, not join — wrapping a plain value into the monadic context is η\'s job; μ does the opposite, collapsing nested context.')">It wraps a plain value into the monadic context, e.g. turning A into Option<A></button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — μ_A: T(T(A)) → T(A) collapses two layers of the same context into one, e.g. flattening Option<Option<A>> down to Option<A>.')">It collapses two nested layers of the same context into one, e.g. flattening Option<Option<A>> down to Option<A></button>
+        <button onclick="quizAnswer(this,false,'q2','This describes what a functor\'s map operation does (lesson 2), not specifically join — join is about flattening nested context, not lifting an arbitrary function.')">It lifts an arbitrary function f: A→B to F(A)→F(B)</button>
+        <button onclick="quizAnswer(this,false,'q2','join specifically operates on nested contexts of the SAME functor T applied twice (T∘T ⇒ T) — it isn\'t about converting between two unrelated types like Option and Result.')">It converts between two entirely different monads, like Option and Result</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. In the "monoid in the category of endofunctors" framing, what plays the role of the monoid's binary operation?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','Individual objects of the base category C aren\'t what\'s being combined here — the endofunctor category\'s objects are functors, and it\'s those that get combined via composition.')">Addition of objects in the base category C</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — in the category whose objects are endofunctors, composing two endofunctors (T∘T) plays exactly the role a monoid\'s binary operation plays for combining two elements, with μ implementing that combination for a monad specifically.')">Composition of endofunctors — combining two functors into one, the way a monoid combines two elements</button>
+        <button onclick="quizAnswer(this,false,'q3','η (unit) plays the role of the monoid\'s IDENTITY element, not its binary operation — μ (join) is what plays the binary-operation role.')">The unit natural transformation η itself</button>
+        <button onclick="quizAnswer(this,false,'q3','Natural transformations are the MORPHISMS of the endofunctor category (analogous to morphisms in an ordinary category) — they aren\'t what plays the role of the binary operation combining objects.')">Natural transformations between unrelated categories</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. How does bind(m, f) relate to unit and join?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','bind is not a third independent primitive — the lesson specifically derives it FROM unit and join (well, from join and the functor\'s own map), showing it\'s not extra machinery.')">It's an entirely separate, independent primitive unrelated to unit or join</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — bind(m,f) = μ(T(f)(m)): first lift f via the functor\'s own map to get a doubly-nested T(T(B)), then flatten with join. Bind isn\'t extra machinery — it\'s built entirely from pieces already defined.')">bind(m,f) = μ(T(f)(m)) — apply the functor's lifted f, then flatten the resulting nested structure with join</button>
+        <button onclick="quizAnswer(this,false,'q4','bind uses μ (join), not η (unit), as the flattening step — η only appears in bind\'s definition indirectly if at all, and this description omits join entirely, which is essential.')">bind(m,f) simply calls η(m) directly, ignoring f entirely</button>
+        <button onclick="quizAnswer(this,false,'q4','bind IS defined in every monad in exactly the way described — it isn\'t something that changes definition on a per-type basis; the formula μ(T(f)(m)) is the general recipe for any monad.')">bind is defined completely differently for every individual type, with no shared formula</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Write out, by hand or in pseudocode, three functions <code>f: A→Option&lt;B&gt;</code>, <code>g: B→Option&lt;C&gt;</code>, <code>h: C→Option&lt;D&gt;</code> of your own invention (they don't need to be real code — just plausible fallible operations, like "parse a string," "look up a key," "divide two numbers"). Chain them using bind/and_then, and trace through what happens when the second function returns <code>None</code> — confirm the whole chain short-circuits to <code>None</code> without ever calling the third function, purely as a consequence of Option's join collapsing <code>None</code> at every step.</p>
+
+  <h2>Primary resource</h2>
+  <p>See the <a href="https://github.com/hmemcpy/milewski-ctfp-pdf" target="_blank">free PDF compilation of Bartosz Milewski's Category Theory for Programmers</a>, continuing from lessons 1–3's chapters into the monads material, for the full formal treatment with additional worked examples beyond Option.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Want to check whether a custom type you've defined actually satisfies the monad laws, or work through the Result/Either monad the same way this lesson did Option? Bring it to Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0003-universal-properties-products.html">← Lesson 3: Universal Properties &amp; Products</a>
+    <span class="spacer"></span>
+    <a href="../index.html">Category Theory: All Lessons →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const MONAD_ITEMS = [
+  {
+    english: '"η_A(a) = Some(a); μ_A flattens None↦None, Some(None)↦None, Some(Some(a))↦Some(a)."',
+    options: [
+      { text: 'Valid monad structure', correct: true, explain: 'Right — this is exactly the standard Option monad from the lesson, satisfying the identity and associativity laws.' },
+      { text: 'Breaks a monad law', explain: 'This is precisely the standard Option monad worked through in the lesson — it satisfies both laws.' },
+    ],
+  },
+  {
+    english: '"η_A(a) = None (always); μ_A flattens the normal way."',
+    options: [
+      { text: 'Valid monad structure', explain: 'The identity law requires μ(η(x)) to recover x unchanged — if η always returns None, that law fails immediately for any non-None value.' },
+      { text: 'Breaks a monad law', correct: true, explain: 'Right — with η always returning None, μ_A(η_{Option<A>}(Some(x))) = μ(None) = None ≠ Some(x), violating the identity law.' },
+    ],
+  },
+  {
+    english: '"η_A(a) = Some(a); μ_A flattens Some(Some(a))↦Some(a), but Some(None)↦Some(a) using some arbitrary default value a instead of None."',
+    options: [
+      { text: 'Valid monad structure', explain: 'This isn\'t a well-defined operation at all — μ can\'t conjure an arbitrary value "a" for the Some(None) case with no such value available in scope, and it also breaks associativity with a genuine Option semantics.' },
+      { text: 'Breaks a monad law / ill-defined', correct: true, explain: 'Right — flattening Some(None) to some fabricated default value isn\'t even a well-defined function (there\'s no such value available), and it wouldn\'t satisfy the monad laws even if patched.' },
+    ],
+  },
+];
+
+const monadDiv = document.getElementById('monad-exercise');
+MONAD_ITEMS.forEach((item, i) => {
+  const cardId = `monad-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  monadDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

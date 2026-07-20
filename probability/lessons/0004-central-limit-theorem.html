@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 4 — The Central Limit Theorem</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Probability</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 4 of many &nbsp;·&nbsp; Probability &nbsp;·&nbsp; ~40 min</p>
+  <h1>The Central Limit Theorem</h1>
+  <p><a href="0003-common-distributions.html">Lesson 3</a> introduced the Normal distribution as one option among several. This lesson explains why it isn't just "one option" in practice — it's the distribution that sums and averages converge to almost no matter what you started with. That's a genuinely strange, powerful claim, and unlike <a href="../../logic/lessons/0015-godel-proof-diagonalization.html">Gödel's proof</a>, this lesson builds the actual mechanism, not just the statement.</p>
+
+  <h2 id="clt-statement">The statement</h2>
+  <div class="callout warn">
+    <strong>Central Limit Theorem</strong>
+    Let <code>X₁, X₂, ..., Xₙ</code> be independent, identically distributed random variables with finite mean μ and variance σ² — <strong>any</strong> distribution with those two finite numbers, discrete or continuous, symmetric or wildly skewed. Let <code>Sₙ = X₁+...+Xₙ</code>. Then as <code>n → ∞</code>, the standardized sum <code>(Sₙ − nμ)/(σ√n)</code> converges in distribution to the <strong>standard Normal(0,1)</strong> — regardless of what distribution the Xᵢ actually came from.
+  </div>
+  <p>Read the "regardless" literally: the Xᵢ could be Bernoulli coin flips, Poisson counts, or a distribution so lopsided it barely resembles a bell curve at all — the theorem doesn't care. Only two numbers about the original distribution matter (μ and σ²); everything else about its shape gets washed out by the act of summing many of them.</p>
+
+  <h2 id="sample-mean-variance">Why the sample mean's spread shrinks like 1/n</h2>
+  <p>The <strong>sample mean</strong> <code>X̄ₙ = Sₙ/n</code> is what you actually compute in practice (an average, not a raw sum). Using <a href="0002-expectation-variance.html#linearity-of-expectation">linearity of expectation</a>: <code>E[X̄ₙ] = E[Sₙ]/n = nμ/n = μ</code> — the sample mean is centered exactly on the true mean, for any n. Using <a href="0003-common-distributions.html#bernoulli-binomial">lesson 3's variance-additivity under independence</a>: <code>Var(Sₙ) = n·σ²</code> (the Xᵢ are independent by assumption), so <code>Var(X̄ₙ) = Var(Sₙ)/n² = σ²/n</code>. The sample mean's spread shrinks as n grows — averaging over more data genuinely does make your estimate more concentrated around the truth, and this is the precise rate at which it happens.</p>
+
+  <h2 id="mgf-proof-sketch">Why it converges to <em>Normal</em>, specifically — a real proof sketch</h2>
+  <p>The mechanism uses a tool worth having on hand generally: the <strong>moment generating function</strong> <code>M_X(t) = E[e^(tX)]</code>. Two facts about MGFs make the proof work: MGFs of independent sums multiply (<code>M_{X+Y}(t) = M_X(t)·M_Y(t)</code>), and — stated without proof here, a real but separate theorem — a distribution's MGF, where it exists, determines that distribution uniquely.</p>
+  <div class="callout">
+    <strong>The derivation</strong>
+    Let <code>Y = (X−μ)/σ</code> (a standardized single Xᵢ, so E[Y]=0, E[Y²]=1). The standardized sum is <code>Zₙ = ΣYᵢ/√n</code>. By independence, MGFs multiply: <code>M_{Zₙ}(t) = [M_Y(t/√n)]ⁿ</code>. Near 0, any well-behaved MGF has the Taylor expansion <code>M_Y(s) = 1 + s·E[Y] + (s²/2)·E[Y²] + o(s²) = 1 + s²/2 + o(s²)</code> (using E[Y]=0, E[Y²]=1). Substituting <code>s = t/√n</code>:
+    <pre style="margin:.6rem 0 0;"><code>M_{Zₙ}(t) = [1 + t²/(2n) + o(1/n)]ⁿ  →  e^(t²/2)   as n → ∞</code></pre>
+    using the standard limit <code>(1 + x/n)ⁿ → eˣ</code>. And <code>e^(t²/2)</code> is <em>exactly</em> the MGF of a standard Normal(0,1) — which, by the uniqueness fact above, means <code>Zₙ</code>'s distribution itself converges to standard Normal. The entire shape of the original distribution disappeared into the <code>o(s²)</code> term, which vanishes in the limit — only μ and σ² survived to matter.
+  </div>
+
+  <h2 id="clt-misconceptions">What the theorem does <em>not</em> say</h2>
+  <div class="callout warn">
+    <strong>"CLT means my raw data becomes normally distributed with enough samples"</strong> — No. The theorem is about the distribution of the <em>sum or average</em> of many draws, not about the individual data points themselves. Roll a fair die a million times: each individual roll is still exactly Uniform{1,...,6}, flat, forever — rolling more dice doesn't reshape a single die's own distribution. What becomes approximately Normal is the <em>average of many rolls</em>, a completely different random variable from any single roll.
+  </div>
+  <div class="callout warn">
+    <strong>"CLT works no matter what, for any n"</strong> — The theorem is a statement about a limit as <code>n → ∞</code>; it doesn't promise how large n needs to be for the approximation to already be good, and that answer genuinely depends on the original distribution (a very skewed starting distribution needs a larger n before the Normal approximation looks convincing than a starting distribution that's already close to symmetric).
+  </div>
+
+  <h2>Try it: does CLT apply here?</h2>
+  <p>For each scenario, decide whether the Central Limit Theorem is the right tool.</p>
+  <div id="clt-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. What property of the original Xᵢ distribution does the Central Limit Theorem actually require?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','This is exactly what the theorem does NOT require — the whole point is that it works "regardless" of shape, as long as mean and variance are finite.')">That the Xᵢ already be approximately Normal or symmetric</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — the theorem only needs the Xᵢ to be independent, identically distributed, with finite mean and variance; the shape of their distribution is otherwise unconstrained.')">That the Xᵢ be independent and identically distributed, with finite mean and variance</button>
+        <button onclick="quizAnswer(this,false,'q1','The theorem places no such requirement on discreteness or continuity — it applies to both discrete distributions like Bernoulli and continuous ones alike.')">That the Xᵢ be continuous, not discrete</button>
+        <button onclick="quizAnswer(this,false,'q1','n is what\'s taken to infinity in the theorem\'s statement — it\'s not a fixed prerequisite on the original variables themselves.')">That n be fixed and small</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Why does Var(X̄ₙ) = σ²/n specifically require the variance-additivity fact from lesson 3, rather than following from linearity of expectation alone?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Linearity of expectation is exactly what gives E[X̄ₙ]=μ — but Var(X̄ₙ)=σ²/n is a separate derivation using variance-additivity, which needs independence.')">It doesn't — linearity of expectation is sufficient on its own to derive this variance formula</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — linearity of expectation (which needs no independence) only gives E[X̄ₙ]=μ; getting Var(Sₙ)=nσ² specifically requires variance-additivity, which does need the Xᵢ to be independent.')">Because linearity of expectation holds unconditionally and only gives the mean, while variance additivity (needed for Var(Sₙ)=nσ²) specifically requires independence</button>
+        <button onclick="quizAnswer(this,false,'q2','σ² is defined as the finite variance of a single Xᵢ from the start — it isn\'t something separately estimated via this derivation.')">Because σ² itself is unknown until this formula is derived</button>
+        <button onclick="quizAnswer(this,false,'q2','n² does appear in the derivation (Var(Sₙ)/n²), but the final simplified result is σ²/n, not something scaling as n²  — the question is about why independence specifically is needed, not about the n² cancellation itself.')">Because n² only applies when n is prime</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. In the MGF proof sketch, what specifically survives to the limit e^(t²/2), and what gets washed out?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','This is backwards — the o(s²) higher-order terms (which encode the original distribution\'s specific shape beyond mean and variance) are exactly what vanish, while μ (via standardization) and σ² (via the s²/2 term) are what determine the limit.')">The original distribution's shape survives; only μ and σ² are washed out</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — after standardizing, only the mean (0) and variance (1) of Y feed into the t²/2 term that survives; the higher-order o(s²) terms encoding the rest of the distribution\'s shape vanish as n→∞.')">Only the standardized mean (0) and variance (1) survive into the t²/2 term; the higher-order o(s²) terms encoding the original shape vanish</button>
+        <button onclick="quizAnswer(this,false,'q3','This has it backwards for what\'s stated — the derivation is specifically showing what DOES survive vs vanish, and the shape-encoding higher-order terms are the ones that vanish, not everything uniformly.')">Everything about the original distribution survives equally into the limit</button>
+        <button onclick="quizAnswer(this,false,'q3','The o(s²) terms are exactly the ones that vanish as n→∞ — nothing in the derivation shows them growing without bound.')">The o(s²) terms grow without bound and dominate the limit</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Rolling a fair six-sided die a million times, which claim is correct?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','This is the misconception the lesson specifically flags — each individual die roll stays exactly Uniform{1,...,6} forever; CLT does not reshape a single roll\'s own distribution.')">Each individual roll's distribution becomes approximately Normal after enough rolls</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — each individual roll stays flat and Uniform{1,...,6} regardless of how many rolls happen; it\'s the AVERAGE of many rolls that becomes approximately Normal, a completely different random variable.')">Each individual roll stays exactly Uniform{1,...,6}, but the average of all the rolls becomes approximately Normal</button>
+        <button onclick="quizAnswer(this,false,'q4','CLT does not require symmetric starting distributions — a fair die is already symmetric anyway, but CLT would apply just as well to a skewed distribution.')">CLT doesn't apply here at all, since a die's outcomes aren't symmetric</button>
+        <button onclick="quizAnswer(this,false,'q4','The sample mean\'s variance shrinks with more rolls (Var = σ²/n), not the reverse — more data makes the average more tightly concentrated, not less.')">The average of the rolls becomes less predictable as more dice are rolled</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Take the flattest, least "normal-looking" distribution you can think of — say, a fair die (Uniform{1,...,6}), or even a two-valued Bernoulli(0.5). Imagine (or actually simulate, if you want to write a few lines of code) averaging 2 rolls, then 5, then 30. Describe, in your own words, how you'd expect the shape of "average of k rolls" to change as k grows — from flat/two-spike toward bell-shaped — and connect that directly to the μ, σ²/k prediction from this lesson rather than just eyeballing it.</p>
+
+  <h2>Primary resource</h2>
+  <p>See <a href="https://projects.iq.harvard.edu/stat110/home" target="_blank">Harvard Stat 110 (Blitzstein &amp; Hwang)</a>'s chapter on the Central Limit Theorem and moment generating functions, which develops the MGF machinery this lesson used in full rigor.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Want to work through the MGF Taylor expansion step more slowly, or see the theorem applied to a real dataset you have in mind? Bring it to Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0003-common-distributions.html">← Lesson 3: Common Distributions</a>
+    <span class="spacer"></span>
+    <a href="../index.html">Probability: All Lessons →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const CLT_ITEMS = [
+  {
+    english: '"Estimating the average height of a population by averaging a large random sample, where individual heights are only roughly bell-shaped to begin with."',
+    options: [
+      { text: 'CLT applies as intended', correct: true, explain: 'Right — this is exactly the CLT\'s use case: averaging many iid measurements, regardless of the original distribution\'s exact shape, to get an approximately Normal sample mean.' },
+      { text: 'Misapplication of CLT', explain: 'This is a textbook correct application — CLT doesn\'t require the original data to already be Normal, only that it has finite mean and variance.' },
+    ],
+  },
+  {
+    english: '"Claiming that after rolling a single fair die many times, each individual roll\'s own distribution becomes bell-shaped."',
+    options: [
+      { text: 'CLT applies as intended', explain: 'This confuses the distribution of individual rolls (which stays flat/Uniform forever) with the distribution of their average (which does trend toward Normal) — exactly the misconception the lesson flags.' },
+      { text: 'Misapplication of CLT', correct: true, explain: 'Right — CLT says nothing about individual draws reshaping; it\'s specifically about the sum or average of many draws.' },
+    ],
+  },
+  {
+    english: '"Averaging 5 samples from a wildly skewed distribution and assuming the average is already an excellent Normal approximation."',
+    options: [
+      { text: 'CLT applies as intended', explain: 'CLT is a limiting statement as n→∞ — it doesn\'t guarantee a good approximation at any particular small n, especially for a highly skewed starting distribution, which typically needs much larger n.' },
+      { text: 'Misapplication of CLT', correct: true, explain: 'Right — CLT doesn\'t promise how large n must be for the approximation to be good; assuming n=5 suffices for a wildly skewed distribution overstates what the theorem guarantees.' },
+    ],
+  },
+];
+
+const cltDiv = document.getElementById('clt-exercise');
+CLT_ITEMS.forEach((item, i) => {
+  const cardId = `clt-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  cltDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

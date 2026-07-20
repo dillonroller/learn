@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 3 — Algorithmic Statistics &amp; Sophistication</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Algorithmic Info Theory</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 3 of many &nbsp;·&nbsp; Algorithmic Information Theory &nbsp;·&nbsp; ~35 min</p>
+  <h1>Algorithmic Statistics &amp; Sophistication</h1>
+  <p>Take a string that's 900,000 zeros followed by 100,000 genuinely random-looking bits. <a href="0001-kolmogorov-complexity.html">Lesson 1's</a> K(x) gives you one number for the whole thing — but that number conflates two very different things happening inside this string: a large, simple, structured part (the zeros) and a small, genuinely unstructured, random part (the tail). This lesson builds a way to pull those apart, and lands on a genuinely surprising conclusion about what "complex" even means.</p>
+
+  <h2 id="two-part-codes">Two-part codes: separating model from residual</h2>
+  <div class="callout warn">
+    <strong>Two-part description</strong>
+    Describe a string x by picking a finite set <code>S</code> with <code>x ∈ S</code> (a "model" — the structural claim "x is the kind of thing that looks like this"), then specifying x's <strong>index</strong> within S (which of the <code>|S|</code> elements it is, needing about <code>log₂|S|</code> bits). Total description length: <code>K(S) + log|S|</code> (up to an additive constant for bookkeeping).
+  </div>
+  <p>Any such <code>S</code> gives <em>a</em> description of x, so <code>K(x) ≤ K(S) + log|S|</code> always. The interesting question is how close you can get: a good model S should capture everything genuinely structured about x, leaving the <code>log|S|</code> part to encode only the leftover randomness — with no further compressible pattern in <em>which</em> element of S happens to be x.</p>
+
+  <h2 id="sufficient-statistic">Sufficient statistics — a model that uses up all the structure</h2>
+  <div class="callout warn">
+    <strong>Sufficient statistic</strong>
+    S is a (algorithmic) <strong>sufficient statistic</strong> for x if <code>K(S) + log|S| ≈ K(x)</code> (equal up to lower-order terms) — the two-part code is essentially as short as the best possible single description. Once you know S, specifying which element of S is x takes no further exploitable structure — x looks "typical" among S's other members.
+  </div>
+  <p>For the 900,000-zeros-then-random-tail example: a good model is <code>S = {strings of length 1,000,000 starting with 900,000 zeros}</code>. <code>K(S)</code> is tiny (the rule "900,000 zeros then anything" is a short description). <code>log|S| = 100,000</code> bits (exactly enough to specify the random tail, which is genuinely incompressible). Together, <code>K(S) + log|S| ≈ 100,000</code> bits, matching <code>K(x)</code> — S is sufficient. Compare a bad model: <code>S' =</code> the single-element set <code>{x}</code>. <code>K(S')</code> then has to encode all of x directly (roughly <code>K(x)</code> bits) while <code>log|S'| = log(1) = 0</code> — technically a valid two-part code, but it puts <em>all</em> the work into the model and none into the index, capturing zero structure separately from the raw data. A sufficient statistic is specifically one that does real separating work, not just one that satisfies the inequality trivially.</p>
+
+  <h2 id="kolmogorov-structure-function">The structure function — trading model size against fit</h2>
+  <p>For a fixed x, define <code>h_x(α) = </code> the smallest possible <code>log|S|</code> achievable using any model S with <code>K(S) ≤ α</code> — i.e., "given a budget of α bits for the model's own complexity, how tightly can you pin x down?" As α grows (richer, more expressive models allowed), <code>h_x(α)</code> shrinks — more budget buys a tighter-fitting model, needing fewer bits for the index. This trade-off curve is the <strong>Kolmogorov structure function</strong>, and it's the rigorous version of a very ordinary idea: any statistical model involves a trade-off between how complex the model is and how well it fits the data, made completely precise and defined for a single object rather than a population.</p>
+
+  <h2 id="sophistication">Sophistication — the surprising shape of "how structured"</h2>
+  <div class="callout">
+    <strong>Sophistication</strong>
+    Roughly: the complexity <code>K(S)</code> of the <em>simplest sufficient statistic</em> for x — the smallest model complexity at which the structure function's curve essentially flattens out (adding more model budget stops buying you a meaningfully tighter fit). This is a measure of how much genuine, extractable <em>structure</em> x has — distinct from K(x), which conflates structure with randomness into one number.
+  </div>
+  <p>Work through the two extremes, and the result is genuinely surprising: a <strong>purely random</strong> string (K(x) ≈ n, maximal) has <em>low</em> sophistication — its simplest sufficient statistic is the trivial model "all strings of length n," which has tiny K(S) and needs the full n bits for the index, since there's no smaller model that fits any tighter. A <strong>purely patterned</strong> string like all-zeros (K(x) ≈ 0, minimal) also has <em>low</em> sophistication — the model "just this one string" already has tiny K(S) and needs zero index bits. <strong>Both extremes of K(x) — maximal and minimal — have low sophistication.</strong> High sophistication belongs to objects in between: things with real, extractable, nontrivial structure that still leave a genuinely random residual once that structure is accounted for — exactly the 900,000-zeros example, which needed a real (non-trivial, non-single-element) model to describe well.</p>
+
+  <div class="callout warn">
+    <strong>Don't conflate "high K(x)" with "complex" or "sophisticated"</strong>
+    A maximally random string has the highest possible K(x) — and is, by this lesson's measure, among the <em>least</em> sophisticated objects there are: it has no structure to extract at all, just irreducible noise. "Complex-looking" and "high information content" are not the same claim as "richly structured" — <a href="0001-kolmogorov-complexity.html#shannon-vs-kolmogorov">lesson 1's Shannon-vs-Kolmogorov distinction</a> warned against conflating two different notions of "information"; sophistication is a third notion again, and conflating any of the three is a real, recurring error whenever "complexity" gets invoked loosely.
+  </div>
+
+  <h2>Try it: rate the sophistication</h2>
+  <p>For each string description, judge whether it has high or low sophistication.</p>
+  <div id="algstat-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. In a two-part code K(S) + log|S|, what does the log|S| term represent?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','K(S), not log|S|, is what measures the model\'s own complexity — log|S| is about specifying WHICH element of S is x, a separate quantity.')">The complexity of the model S itself</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — once S is fixed, specifying which of its |S| elements is x takes about log|S| bits, which represents the residual, unstructured-relative-to-S information needed to pin down x exactly.')">The number of bits needed to specify which particular element of S happens to be x, once S is already known</button>
+        <button onclick="quizAnswer(this,false,'q1','This describes K(S) again, not log|S| — the question specifically asks about the index term, which is a distinct quantity from the model\'s complexity.')">The total length of the shortest program describing S</button>
+        <button onclick="quizAnswer(this,false,'q1','log|S| is a real, meaningful, generally nonzero quantity for a well-chosen model — it isn\'t simply K(x) restated, though for a good sufficient statistic the two terms sum to approximately K(x).')">Exactly K(x), restated under a different name</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Why does S = {x} (the singleton set containing only x) fail to be a useful sufficient statistic, even though it technically satisfies K(S) + log|S| ≈ K(x)?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','The inequality K(x) ≤ K(S) + log|S| does hold here — that\'s exactly why it "technically satisfies" the bound; the problem is elsewhere, in how the work is distributed.')">Because it violates the basic K(x) ≤ K(S) + log|S| inequality</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — {x} puts all the descriptive work into K(S) (which must encode x directly) and none into the index (log|S|=log(1)=0), failing to separate genuine structure from residual randomness — the whole point of the exercise.')">Because it puts all the work into K(S) directly encoding x, doing none of the actual separating-structure-from-randomness work a useful model should do</button>
+        <button onclick="quizAnswer(this,false,'q2','A singleton set is a perfectly well-defined, finite set — there\'s no issue with S being uncomputable here; the problem is that it\'s a degenerate, unhelpful choice of model, not an invalid one.')">Because {x} is not a computable set</button>
+        <button onclick="quizAnswer(this,false,'q2','log|S| = log(1) = 0 is a perfectly valid (if degenerate) value, not undefined — the issue is that this degenerate case reveals nothing about x\'s actual structure, not a mathematical error.')">Because log|S| is undefined when S has only one element</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Why does a purely random string have LOW sophistication despite having maximal K(x)?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','This has the relationship backwards — the lesson specifically shows maximal K(x) and low sophistication CAN coexist, precisely for purely random strings, because sophistication measures something different from raw K(x).')">Because sophistication and K(x) always move together, so this situation is actually impossible</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — its simplest sufficient statistic is the trivial "all strings of length n" model (tiny K(S)), with the full complexity pushed into the index (log|S|=n) — there\'s no genuine structure to extract, so sophistication (measured by that minimal K(S)) is low.')">Because its simplest sufficient statistic is the trivial "all strings of this length" model, which has very low complexity K(S) itself — all the string's complexity sits in the index, not in any extractable structure</button>
+        <button onclick="quizAnswer(this,false,'q3','K(x) is genuinely uncomputable in general (lesson 1) — but this fact about computability isn\'t what explains why sophistication specifically comes out low for random strings; that\'s about the shape of the best available model.')">Because K(x) is impossible to compute for random strings, so sophistication defaults to zero</button>
+        <button onclick="quizAnswer(this,false,'q3','A single random string is still one specific, particular object once generated — sophistication isn\'t about needing many strings, it\'s about the structure-vs-residual trade-off for that one string.')">Because sophistication requires comparing many different strings at once, which isn't possible for a single string</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Why is it a mistake to treat "high K(x)" as synonymous with "highly sophisticated" or "richly structured"?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','This is exactly the mistake the lesson warns against — high K(x) and high sophistication are demonstrably different things, with maximal-K random strings actually having minimal sophistication.')">It's not a mistake — high K(x) and high sophistication are the same measurement under different names</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — maximal K(x) (pure randomness) corresponds to minimal sophistication, since there\'s no extractable structure at all; K(x) alone conflates genuine structure with raw incompressibility, which sophistication is specifically designed to tease apart.')">Because maximal K(x) (pure randomness) actually corresponds to minimal sophistication — K(x) alone conflates real structure with raw incompressible randomness</button>
+        <button onclick="quizAnswer(this,false,'q4','This restates the Shannon-vs-Kolmogorov distinction from lesson 1, which is a real, separate, valid point — but it doesn\'t explain why THIS particular conflation (K(x) vs. sophistication) is a mistake, which is what the question asks.')">Because K(x) is about probability distributions, unrelated to any single string's own complexity</button>
+        <button onclick="quizAnswer(this,false,'q4','Sophistication is a genuine, well-defined quantity built directly from K(S) and the structure function — it isn\'t meaningless or undefinable, just conceptually distinct from raw K(x).')">Because sophistication itself has no real mathematical definition</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Take a string of your own design that mixes structure and randomness — say, "the first 50 digits of π, followed by 50 digits you type by mashing your keyboard." Describe, in words, what a good sufficient statistic S for this string would look like (what set would it be? how would you describe it concisely?), and estimate roughly how many bits would go into K(S) versus how many would go into log|S|. The goal is to practice the model/residual split by hand on something you made up yourself, not just on the lesson's own zeros-then-random example.</p>
+
+  <h2>Primary resource</h2>
+  <p>See <a href="https://en.wikipedia.org/wiki/Kolmogorov_structure_function" target="_blank">Wikipedia — Kolmogorov Structure Function</a> for the formal definition and its history, tracing back to Kolmogorov's own 1974 unpublished remarks on the topic.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Want to work through the model/residual split for a real dataset or string you have in mind? Bring it to Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0002-chaitins-omega.html">← Lesson 2: Chaitin's Ω</a>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-04">Lesson 4: Solomonoff Induction →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const ALGSTAT_ITEMS = [
+  {
+    english: '"A string of one million bits generated by flipping a fair coin, with no detectable pattern anywhere."',
+    options: [
+      { text: 'High sophistication', explain: 'A purely random string\'s simplest sufficient statistic is the trivial "all strings of this length" model — tiny K(S), maximal index — which is exactly the low-sophistication case the lesson derives.' },
+      { text: 'Low sophistication', correct: true, explain: 'Right — despite having maximal K(x), this is the paradigm low-sophistication case: no extractable structure, just irreducible randomness.' },
+    ],
+  },
+  {
+    english: '"A string consisting of one million copies of the character \'0\'."',
+    options: [
+      { text: 'High sophistication', explain: 'The simplest sufficient statistic here is essentially {this exact string} — tiny K(S), zero-length index — the other low-sophistication extreme (minimal K(x) this time, but still low sophistication).' },
+      { text: 'Low sophistication', correct: true, explain: 'Right — a purely patterned string also has low sophistication: its minimal K(x) is achieved with virtually no residual randomness to separate out.' },
+    ],
+  },
+  {
+    english: '"A string that is the digits of a well-defined but structurally rich mathematical sequence for its first half, followed by 500,000 bits with no further exploitable pattern."',
+    options: [
+      { text: 'High sophistication', correct: true, explain: 'Right — this is the middle case: genuine, non-trivial structure (the first half\'s rule) plus a real residual of randomness (the incompressible second half), needing a non-degenerate model S to describe well.' },
+      { text: 'Low sophistication', explain: 'This is exactly the kind of case that sits between the two low-sophistication extremes — a real, non-trivial model captures genuine structure while leaving an irreducibly random remainder, which is the high-sophistication case.' },
+    ],
+  },
+];
+
+const algstatDiv = document.getElementById('algstat-exercise');
+ALGSTAT_ITEMS.forEach((item, i) => {
+  const cardId = `algstat-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  algstatDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

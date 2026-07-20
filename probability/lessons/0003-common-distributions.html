@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 3 — Common Distributions</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Probability</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 3 of many &nbsp;·&nbsp; Probability &nbsp;·&nbsp; ~35 min</p>
+  <h1>Common Distributions</h1>
+  <p><a href="0001-probability-spaces-random-variables.html">Lesson 1</a> gave you the machinery (spaces, random variables). <a href="0002-expectation-variance.html">Lesson 2</a> gave you the tools to summarize a distribution (E, Var). This lesson applies both to the handful of distributions that show up so often they get their own names — and along the way, introduces a genuine subtlety: continuous random variables break one thing you've taken for granted since lesson 1.</p>
+
+  <h2 id="bernoulli-binomial">Bernoulli &amp; Binomial — counting successes</h2>
+  <div class="callout warn">
+    <strong>Bernoulli(p) and Binomial(n, p)</strong>
+    A <strong>Bernoulli(p)</strong> random variable is a single coin flip with bias p: <code>P(X=1) = p</code>, <code>P(X=0) = 1−p</code>. A <strong>Binomial(n, p)</strong> random variable is the count of successes in n independent Bernoulli(p) trials: <code>P(X=k) = C(n,k) pᵏ(1−p)ⁿ⁻ᵏ</code>.
+  </div>
+  <p>Binomial's PMF looks like it demands real work to find E[X]. It doesn't — because a Binomial(n,p) is secretly just <code>X₁ + X₂ + ... + Xₙ</code>, a sum of n Bernoulli(p) variables. By <a href="0002-expectation-variance.html#linearity-of-expectation">lesson 2's linearity of expectation</a>: <code>E[X] = n · E[X₁] = n · p</code> — no sum over k needed, ever. The same shortcut that solved the card-shuffle problem solves this one for free.</p>
+  <div class="callout">
+    <strong>A genuinely new fact: variance needs independence</strong>
+    Linearity of expectation held <em>unconditionally</em> — dependent or not. Variance doesn't get that for free: <code>Var(X+Y) = Var(X) + Var(Y)</code> only when X and Y are <strong>independent</strong> (in general there's a correlation term). The n Bernoulli trials making up a Binomial genuinely are independent by construction, so <code>Var(X) = n · Var(X₁) = n · p(1−p)</code> — but this is a real, separate fact from linearity, not the same shortcut in disguise. Keep the asymmetry straight: expectation always adds; variance only adds under independence.
+  </div>
+
+  <h2 id="poisson-distribution">Poisson — counting rare events</h2>
+  <div class="callout warn">
+    <strong>Poisson(λ)</strong>
+    Models the count of rare, independent events over a fixed window (time, area, etc.), with average rate λ: <code>P(X=k) = e⁻λ λᵏ / k!</code>. <code>E[X] = Var(X) = λ</code>.
+  </div>
+  <p>Poisson isn't an arbitrary formula — it's what Binomial(n,p) becomes in the limit of many trials, each individually very unlikely: let <code>n → ∞</code> and <code>p → 0</code> while holding <code>np = λ</code> fixed (more and more chances for something rare to happen, each chance individually tinier). Concretely: modeling "typos per page" as Binomial would require picking an arbitrary number of "trials" (characters? words?); Poisson sidesteps that by only needing the average rate λ, which is exactly the situation you're usually actually in.</p>
+
+  <h2 id="normal-distribution">The Normal distribution — and a subtlety continuous variables force on you</h2>
+  <p>Bernoulli, Binomial, and Poisson are all <strong>discrete</strong> — countable possible values, each with its own positive probability. The <strong>Normal (Gaussian)</strong> distribution is <strong>continuous</strong> — its values range over an entire interval of real numbers, and that changes the rules.</p>
+  <div class="callout warn">
+    <strong>Normal(μ, σ²)</strong>
+    Probability density function: <code>f(x) = (1 / σ√(2π)) · e^(−(x−μ)²/2σ²)</code>. <code>E[X] = μ</code>, <code>Var(X) = σ²</code>. Probabilities come from area under the curve: <code>P(a ≤ X ≤ b) = ∫ₐᵇ f(x) dx</code>.
+  </div>
+  <div class="callout">
+    <strong>The subtlety: P(X = x) = 0 for every exact value</strong>
+    For a continuous random variable, the probability of landing on any <em>single, exact</em> value is always zero — not "very small," genuinely zero. A person's height is never <em>exactly</em> 5.83920... feet with positive probability; only intervals ("between 5.8 and 5.9 feet") have positive area under the curve and therefore positive probability. This isn't a paradox, but it does mean <a href="0001-probability-spaces-random-variables.html#distribution">lesson 1's PMF</a> (<code>p(x) = P(X=x)</code>) is literally identically zero for a continuous X and useless as a description — which is exactly why continuous variables need a <em>density</em> (something you integrate) instead of a <em>mass</em> (something you sum), and why this lesson waited until now to introduce one properly.
+  </div>
+  <p>The famous "68–95–99.7 rule": about 68% of a Normal distribution's probability sits within one standard deviation of the mean, 95% within two, 99.7% within three — worth memorizing as a sanity check, though the exact numbers come from integrating the density above.</p>
+
+  <h2>Try it: which distribution fits?</h2>
+  <p>For each scenario, pick the distribution that models it.</p>
+  <div id="dist-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Why can E[Binomial(n,p)] be computed as n·p without summing the PMF over all k?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Binomial\'s PMF genuinely does involve a sum over k with the C(n,k) formula — the shortcut avoids working with that sum directly, it doesn\'t make it simpler by rewriting it.')">Because the PMF formula itself simplifies to n·p algebraically</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — writing the Binomial as a sum of n Bernoulli(p) variables and applying linearity of expectation (which requires no independence) gives n·E[single Bernoulli] = n·p directly.')">Because a Binomial is a sum of n Bernoulli variables, and linearity of expectation applies regardless of independence</button>
+        <button onclick="quizAnswer(this,false,'q1','This is specifically about expectation, which doesn\'t need independence at all — the shortcut works for expectation whether or not the trials are independent.')">Because the trials happen to be independent, which is required for this particular shortcut</button>
+        <button onclick="quizAnswer(this,false,'q1','n·p is the exact expectation, not an approximation — this holds precisely for any n, however small.')">Because it's only an approximation valid for large n</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Why does Var(Binomial) = n·p(1−p) require an extra assumption that E[Binomial] = n·p did not?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Variance-additivity does require independence — that\'s precisely the extra assumption at play, not something that holds unconditionally like linearity of expectation.')">It doesn't — variance adds unconditionally too, just like expectation</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — Var(X+Y) = Var(X) + Var(Y) specifically requires independence (otherwise there\'s a correlation term), while E[X+Y] = E[X] + E[Y] holds no matter what. The Binomial trials being independent by construction is what licenses this step.')">Var(X+Y) = Var(X)+Var(Y) requires independence, while E[X+Y]=E[X]+E[Y] doesn't — and the Binomial's trials happen to be independent by construction</button>
+        <button onclick="quizAnswer(this,false,'q2','Var(X) genuinely can be computed via E[X²] − (E[X])² as a general definition — this isn\'t about variance being undefined, it\'s about when Var(X+Y) simplifies to a sum.')">Because variance isn't well-defined for a sum of random variables at all</button>
+        <button onclick="quizAnswer(this,false,'q2','p(1−p) isn\'t an error-correction term — it\'s the exact variance of a single Bernoulli(p) trial, appearing because Var(X) = n × Var(one trial) under independence.')">Because p(1−p) is a correction factor for rounding error</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. In what sense is the Poisson distribution a limit of the Binomial?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','This is backwards — the Poisson limit is n → ∞ with p → 0, holding np = λ fixed, not both parameters growing together.')">As n and p both grow large together, holding n/p fixed</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — Poisson arises as the limit of Binomial(n,p) when n → ∞ and p → 0 simultaneously, with the product np held fixed at λ.')">As n → ∞ and p → 0 simultaneously, holding np = λ fixed</button>
+        <button onclick="quizAnswer(this,false,'q3','Poisson only needs λ, not p specifically — the limit is defined by np staying fixed, with p itself shrinking toward zero, not staying fixed.')">As n → ∞ while p stays fixed at some constant value</button>
+        <button onclick="quizAnswer(this,false,'q3','Poisson is a genuine limiting distribution of Binomial under a specific, well-defined limit — it\'s not an unrelated distribution that merely happens to look similar.')">Poisson isn't actually related to Binomial at all — the resemblance is coincidental</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Why is P(X = 5.0 exactly) = 0 for a continuous random variable, even though 5.0 is a value X could plausibly take?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','This isn\'t about measurement precision or rounding — it\'s an exact, provable mathematical fact about continuous distributions, true even with infinitely precise measurement.')">Because measuring devices can never be perfectly precise</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — for a continuous random variable, probability corresponds to area under the density curve over an interval; a single exact point has zero width and therefore zero area, hence zero probability, even though the value is entirely plausible.')">Because probability for continuous variables comes from area under the density over an interval, and a single exact point has zero width</button>
+        <button onclick="quizAnswer(this,false,'q4','5.0 isn\'t excluded from X\'s possible values — it\'s a perfectly valid value X could take; the issue is about how probability is assigned to single points versus intervals, not about validity.')">Because 5.0 is not actually a valid value for X to take</button>
+        <button onclick="quizAnswer(this,false,'q4','This isn\'t a Normal-specific quirk — it\'s a general fact about every continuous distribution, since it follows from the definition of probability as area under a density curve.')">Because this is a special defect specific to the Normal distribution only</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Compute E[X] and Var(X) for X ~ Binomial(20, 0.25) two ways: first using the shortcut (n·p and n·p(1−p)), then — for just k=0,1,2 — compute a few actual PMF values <code>C(20,k)(0.25)ᵏ(0.75)²⁰⁻ᵏ</code> by hand to get a feel for how much harder the direct route would be for the full expectation sum. Then sketch (roughly, by hand or in words) what a Normal(0,1) density looks like, and shade the region corresponding to <code>P(−1 ≤ X ≤ 1)</code> — connecting the abstract 68% figure to an actual picture.</p>
+
+  <h2>Primary resource</h2>
+  <p>See <a href="https://projects.iq.harvard.edu/stat110/home" target="_blank">Harvard Stat 110 (Blitzstein &amp; Hwang)</a>, continuing from lessons 1–2 — the "Story Proofs" chapter's treatment of Binomial and Poisson (including the Poisson limit derivation) is the direct source for this lesson's approach.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Have a real counting or measurement scenario you want to match to the right distribution? Bring it to Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0002-expectation-variance.html">← Lesson 2: Expectation &amp; Variance</a>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-04">Lesson 4: The Central Limit Theorem →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const DIST_ITEMS = [
+  {
+    english: '"The number of heads in 50 independent coin flips."',
+    options: [
+      { text: 'Binomial', correct: true, explain: 'Right — a fixed number of independent trials (50), each with the same success probability, counting successes: the definition of Binomial.' },
+      { text: 'Poisson', explain: 'Poisson is for rare events over a continuous window without a natural fixed trial count — 50 independent flips is a clean, fixed-n Binomial setup instead.' },
+      { text: 'Normal', explain: 'This is a discrete count of successes, not a continuous measurement — Binomial, not Normal, is the right fit (though for large n, Binomial can be approximated by Normal — a preview of lesson 4).' },
+    ],
+  },
+  {
+    english: '"The number of typos on a randomly selected page of a book, given an average rate of 0.6 typos per page."',
+    options: [
+      { text: 'Binomial', explain: 'There\'s no natural fixed number of "trials" here (characters? words?) — this is exactly the situation Poisson is built for: an average rate over a window, no fixed trial count needed.' },
+      { text: 'Poisson', correct: true, explain: 'Right — a rare-event count with a given average rate over a fixed window (one page), and no natural discrete trial count, is the paradigm Poisson scenario.' },
+      { text: 'Normal', explain: 'Typo counts are discrete (0, 1, 2, ...), not a continuous measurement — Poisson fits a count with an average rate far better than a continuous density.' },
+    ],
+  },
+  {
+    english: '"A person\'s height, measured as precisely as you like."',
+    options: [
+      { text: 'Binomial', explain: 'Height isn\'t a count of discrete successes across fixed trials — it\'s a continuous measurement, which rules out Binomial.' },
+      { text: 'Poisson', explain: 'Poisson models discrete counts, not a continuous measurement like height that can take any real value in a range.' },
+      { text: 'Normal', correct: true, explain: 'Right — a continuous measurement like height, clustering around an average with symmetric spread, is the classic Normal-distribution scenario.' },
+    ],
+  },
+];
+
+const distDiv = document.getElementById('dist-exercise');
+DIST_ITEMS.forEach((item, i) => {
+  const cardId = `dist-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  distDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>
