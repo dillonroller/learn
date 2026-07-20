@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 4 — Solomonoff Induction</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Algorithmic Info Theory</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 4 of many &nbsp;·&nbsp; Algorithmic Information Theory &nbsp;·&nbsp; ~35 min</p>
+  <h1>Solomonoff Induction</h1>
+  <p><a href="../../rationality/lessons/0002-probabilistic-bayesian-reasoning.html#bayes-theorem">Rationality's Bayes' theorem</a> lesson gave you <code>P(H|E) ∝ P(E|H)·P(H)</code> and left one question quietly unanswered: where does the prior, <code>P(H)</code>, actually come from before you've seen any evidence at all? This lesson gives Occam's razor — "prefer the simplest explanation" — an actual mathematical definition, using exactly the machinery from lessons 1–2, and turns it into a specific, principled choice of prior.</p>
+
+  <h2 id="algorithmic-probability">Algorithmic probability</h2>
+  <div class="callout warn">
+    <strong>Algorithmic Probability m(x)</strong>
+    <code>m(x) = Σ 2^(−|p|)</code>, summed over every self-delimiting program p that outputs x and halts. Compare directly to <a href="0002-chaitins-omega.html#chaitins-omega">lesson 2's Ω</a>, which sums over <em>every</em> halting program regardless of output — m(x) is the same construction, restricted to programs that produce this <em>specific</em> x. Interpreted the same way as Ω: the probability that a program built by flipping coins one bit at a time happens to output exactly x.
+  </div>
+  <p>Because <code>2^(−|p|)</code> shrinks exponentially with program length, <code>m(x)</code> is overwhelmingly dominated by x's <em>shortest</em> programs — the longer ones contribute almost nothing to the sum. This gives a genuinely deep connection, known as the <strong>coding theorem</strong> (Levin): <code>−log₂ m(x) = K(x) + O(1)</code>. Algorithmic probability and Kolmogorov complexity are, up to a constant, the same information viewed two ways — a string with short description (low K) has high algorithmic probability; a string needing a long description (high K) has correspondingly tiny algorithmic probability.</p>
+
+  <h2 id="solomonoff-induction-definition">Using m as a universal prior</h2>
+  <div class="callout warn">
+    <strong>Solomonoff Induction</strong>
+    Given observed data, use <code>m</code> as the prior over hypotheses (each hypothesis being, formally, a program that could generate the data): <code>P(hypothesis) ∝ m(hypothesis)</code>. Predict future observations by weighting every program consistent with what's been observed so far by its algorithmic probability, and combining their predictions for what comes next.
+  </div>
+  <p>This makes Occam's razor an actual computation rather than a rule of thumb: since <code>m</code> assigns exponentially more weight to shorter programs, a simple hypothesis (a short program) that explains the data gets exponentially more prior weight than a needlessly convoluted one that explains it equally well. "Prefer simpler explanations, all else equal" isn't imported as an extra principle bolted onto Bayes' theorem — it falls straight out of using <code>m</code> as the prior, which is itself just <a href="0001-kolmogorov-complexity.html#kolmogorov-complexity">lesson 1's K(x)</a> restated as a probability distribution.</p>
+  <div class="callout">
+    <strong>Why "universal"</strong>
+    Solomonoff proved (a real theorem, not just a hopeful analogy) that induction using <code>m</code> as the prior converges to the true data-generating process about as fast as any method could, for <em>any</em> computable environment — a single prior that performs near-optimally no matter which computable process is actually generating the data, without needing to know which one in advance. This is the sense in which the method is "universal": it doesn't need to be told what kind of pattern to look for.
+  </div>
+
+  <h2 id="uncomputability-and-misuse">The catch — and a common overclaim to watch for</h2>
+  <div class="callout warn">
+    <strong>Solomonoff induction is uncomputable</strong>
+    Computing <code>m(x)</code> requires summing over every halting program that outputs x — which requires knowing which programs halt, exactly the fact <a href="0002-chaitins-omega.html#omega-uncomputable-and-random">lesson 2</a> already proved is permanently out of reach. Solomonoff induction is a genuine mathematical ideal, an upper bound on how well inductive inference could possibly work — not an algorithm anyone runs.
+  </div>
+  <p>Before accepting a claim like "modern AI systems approximate Solomonoff induction": ask precisely what's being approximated, and how. Real learning systems use specific, computable, practical methods (gradient descent over a fixed architecture, for instance) that were not derived from <code>m(x)</code> and don't compute anything resembling it. There may be a loose, qualitative family resemblance — both do something Occam's-razor-shaped, preferring simpler fits to data — but "approximates the uncomputable universal prior" is a much stronger, and generally unsupported, claim than "both happen to favor simplicity in some sense." Same discipline as every other misuse-check in this curriculum: ask exactly what's being computed, and compare it to the real, cited definition, not the evocative name.</p>
+
+  <h2>Try it: accurate or overclaimed?</h2>
+  <p>For each claim about Solomonoff induction, decide whether it's accurate.</p>
+  <div id="solo-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. How does m(x) relate to Chaitin's Ω from lesson 2?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','They are related, not identical — Ω sums over every halting program regardless of output, while m(x) restricts that sum to programs outputting one specific x.')">They are exactly the same quantity, just under different names</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — Ω = Σ 2^(−|p|) over every halting program regardless of output; m(x) is the same kind of sum, restricted to only those halting programs that output the specific string x.')">m(x) is the same construction as Ω, restricted to only the halting programs that output the specific string x</button>
+        <button onclick="quizAnswer(this,false,'q1','Neither m(x) nor Ω is defined this way — both are sums of 2^(−|p|) terms over sets of halting programs, not ratios or divisions.')">m(x) is Ω divided by the length of x</button>
+        <button onclick="quizAnswer(this,false,'q1','m(x) and Ω are both defined via prefix-free self-delimiting programs, following directly from lesson 2\'s Kraft-inequality setup — this isn\'t a departure from that framework.')">They are unrelated quantities from completely different areas of the topic</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. What does the coding theorem (−log₂ m(x) = K(x) + O(1)) establish?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','This overstates it as an unconditional identity — the relationship holds up to an additive O(1) constant, not as an exact equation with no error term.')">That m(x) and K(x) are unrelated quantities that happen to share a name</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — up to an additive constant, algorithmic probability and Kolmogorov complexity carry the same information, viewed two different ways: high algorithmic probability corresponds to low K(x), and vice versa.')">That algorithmic probability and Kolmogorov complexity are, up to a constant, the same information viewed two different ways</button>
+        <button onclick="quizAnswer(this,false,'q2','m(x) is deliberately dominated by x\'s SHORTEST programs (since longer programs contribute exponentially less) — it isn\'t primarily about the longest possible program for x.')">That m(x) is determined entirely by the longest program that outputs x</button>
+        <button onclick="quizAnswer(this,false,'q2','This is the opposite of the actual relationship — LOW K(x) (a short description) corresponds to HIGH algorithmic probability m(x), not the other way around.')">That K(x) and m(x) move in the same direction, so low K(x) means low algorithmic probability</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. In what precise sense does Solomonoff induction "formalize Occam's razor"?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','Simplicity preference isn\'t added as a separate rule alongside Bayes\' theorem here — it emerges directly from the specific choice of prior (m), which itself is just K(x) restated as a probability.')">By adding an extra rule on top of Bayes' theorem that manually penalizes complicated hypotheses</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — using m as the prior means shorter-program hypotheses automatically receive exponentially more prior weight, so "prefer simpler explanations" falls directly out of the prior\'s definition rather than being a separately bolted-on rule.')">By using m (built from program length) as the Bayesian prior, so shorter-program hypotheses automatically get exponentially more prior weight without any extra rule</button>
+        <button onclick="quizAnswer(this,false,'q3','Occam\'s razor here concerns hypothesis complexity (program length), not sample size — this isn\'t about how much data has been collected.')">By requiring a minimum amount of observed data before any hypothesis can be considered</button>
+        <button onclick="quizAnswer(this,false,'q3','The uniform-prior approach is exactly what m does NOT do — m specifically weights hypotheses unevenly, favoring shorter programs exponentially more than longer ones.')">By assigning every possible hypothesis exactly equal prior probability</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Why should "this AI system approximates Solomonoff induction" be treated skeptically by default?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','Solomonoff induction is a genuine, well-defined (if uncomputable) mathematical construction — the issue with the claim isn\'t that the underlying concept is meaningless.')">Because Solomonoff induction itself is not a well-defined mathematical concept</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — Solomonoff induction is uncomputable, and real systems use specific, different, computable methods not derived from m(x) — the claim usually overstates a loose family resemblance (both favor simplicity somehow) as a precise technical relationship.')">Because Solomonoff induction is uncomputable, while real AI systems use specific, computable methods not actually derived from or equal to m(x) — the claim usually overstates a loose resemblance as a precise one</button>
+        <button onclick="quizAnswer(this,false,'q4','Modern AI systems generally don\'t use gradient-descent-free training — the issue isn\'t the type of optimization used, it\'s the (usually unsupported) claim of a precise mathematical relationship to an uncomputable ideal.')">Because modern AI systems never use anything resembling gradient descent</button>
+        <button onclick="quizAnswer(this,false,'q4','This kind of claim is a real, recurring rhetorical move worth checking precisely, per the lesson\'s misuse-check discipline — it\'s not automatically true just because it invokes a real theorem\'s name.')">It shouldn't be treated skeptically — it's always a precise and fully accurate technical description</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Take two strings of the same length: one highly compressible (like "ab" repeated 50 times) and one that looks incompressible to you (type random-seeming characters). Without computing anything exactly, reason through which one has higher algorithmic probability m(x) and why, using the coding theorem's relationship to K(x) from this lesson. Then write, in a sentence or two, what it would mean for a Solomonoff-induction-based predictor to have observed the first half of the compressible string and be asked to predict the rest — which hypotheses (programs) would dominate its prediction, and why.</p>
+
+  <h2>Primary resource</h2>
+  <p>See <a href="https://en.wikipedia.org/wiki/Solomonoff%27s_theory_of_inductive_inference" target="_blank">Wikipedia — Solomonoff's Theory of Inductive Inference</a> for the formal construction, convergence theorem, and its place in the history of algorithmic probability alongside Kolmogorov and Chaitin's work from lessons 1–2.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Heard a claim about an AI system "doing Solomonoff induction" or "approximating the universal prior"? Bring the exact claim to Claude Code and we'll check what it actually means.
+  </div>
+
+  <div class="nav">
+    <a href="0003-algorithmic-statistics.html">← Lesson 3: Algorithmic Statistics &amp; Sophistication</a>
+    <span class="spacer"></span>
+    <a href="../index.html">Algorithmic Info Theory: All Lessons →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const SOLO_ITEMS = [
+  {
+    english: '"Solomonoff induction assigns exponentially more prior weight to hypotheses expressible as shorter programs."',
+    options: [
+      { text: 'Accurate', correct: true, explain: 'Right — this is exactly what using m (built from 2^(−|p|)) as the prior does: shorter programs get exponentially more weight than longer ones.' },
+      { text: 'Overclaimed / inaccurate', explain: 'This is a faithful, accurate statement of how the universal prior m weights hypotheses — not an overclaim.' },
+    ],
+  },
+  {
+    english: '"Solomonoff induction can be run today on a powerful enough computer to get exact predictions."',
+    options: [
+      { text: 'Accurate', explain: 'This is exactly what the lesson rules out — m(x) requires summing over all halting programs, which requires solving the halting problem; no amount of computing power changes that.' },
+      { text: 'Overclaimed / inaccurate', correct: true, explain: 'Right — Solomonoff induction is uncomputable in principle, not merely impractical; it\'s a theoretical ideal, not a runnable algorithm regardless of hardware.' },
+    ],
+  },
+  {
+    english: '"A neural network trained with gradient descent is mathematically identical to Solomonoff induction."',
+    options: [
+      { text: 'Accurate', explain: 'Gradient descent over a fixed architecture is a specific, different, computable method — it wasn\'t derived from m(x) and doesn\'t compute anything resembling it, despite both favoring simplicity in some loose sense.' },
+      { text: 'Overclaimed / inaccurate', correct: true, explain: 'Right — this is exactly the kind of overclaim the lesson\'s misuse-check warns about: a loose family resemblance (both favor simple fits) stated as a precise mathematical identity, which it isn\'t.' },
+    ],
+  },
+];
+
+const soloDiv = document.getElementById('solo-exercise');
+SOLO_ITEMS.forEach((item, i) => {
+  const cardId = `solo-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  soloDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

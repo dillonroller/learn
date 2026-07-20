@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 3 — Universal Properties &amp; Products</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Category Theory</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 3 of many &nbsp;·&nbsp; Category Theory &nbsp;·&nbsp; ~35 min</p>
+  <h1>Universal Properties &amp; Products</h1>
+  <p>Every construction so far — categories, functors, natural transformations — was defined by writing out concrete formulas. This lesson shows category theory's actual signature move: defining something purely by <em>what it does</em> in relation to everything else, never by what it's internally "made of." That style of definition is called a <strong>universal property</strong>, and once you see it applied to something as familiar as a pair of values, you'll see why category theorists reach for it constantly.</p>
+
+  <h2 id="universal-property-intro">The product, defined the wrong way and the right way</h2>
+  <p>The obvious way to define "the product of A and B": the set of ordered pairs <code>{(a,b) : a∈A, b∈B}</code>. That definition only makes sense in Set — pairs of what, in a preorder, or in your own type system's abstract objects? A universal property defines "product" once, for any category, using only objects and morphisms.</p>
+
+  <h2 id="product-universal-property">The product's universal property</h2>
+  <div class="callout warn">
+    <strong>Definition: Product</strong>
+    Given objects A, B in a category, their product is an object <code>P</code> together with two morphisms <code>π_A: P → A</code>, <code>π_B: P → B</code> (the <strong>projections</strong>), such that: for <em>any</em> other object X with morphisms <code>f: X → A</code> and <code>g: X → B</code>, there exists a <strong>unique</strong> morphism <code>⟨f,g⟩: X → P</code> making both triangles commute — <code>π_A ∘ ⟨f,g⟩ = f</code> and <code>π_B ∘ ⟨f,g⟩ = g</code>.
+  </div>
+  <p>In Set, check this against the ordinary Cartesian product <code>A×B</code> with the usual projections <code>π_A(a,b)=a</code>, <code>π_B(a,b)=b</code>: given <code>f:X→A</code> and <code>g:X→B</code>, the map <code>⟨f,g⟩(x) = (f(x), g(x))</code> is exactly the unique function making both triangles commute — any other candidate function <code>h:X→A×B</code> satisfying <code>π_A∘h=f</code> and <code>π_B∘h=g</code> would have to send <code>x</code> to a pair whose first coordinate is <code>f(x)</code> and second is <code>g(x)</code>, which is only one possible pair. Uniqueness isn't an extra assumption here — it falls straight out of what a pair <em>is</em>.</p>
+
+  <h2 id="product-in-different-categories">The same definition, a completely different answer</h2>
+  <p>Apply the identical universal property inside <a href="0001-categories-objects-morphisms.html#examples-of-categories">lesson 1's preorder category</a> (numbers under ≤, one morphism m→n exactly when m≤n). "Projections" <code>π_A: P→A</code> just mean <code>P≤A</code>; the universal property demands an object P with <code>P≤m</code> and <code>P≤n</code>, such that <em>any</em> X with <code>X≤m</code> and <code>X≤n</code> also satisfies <code>X≤P</code> — i.e., P is a lower bound for both m and n, and every other common lower bound is ≤ P. That's exactly the definition of <code>P = min(m,n)</code>. (Uniqueness of the mediating morphism is automatic here for free: a preorder never has more than one morphism between any two objects.)</p>
+  <div class="callout">
+    <strong>The payoff</strong>
+    "Product" in Set means ordered pairs. "Product" in a number preorder means the minimum. Same universal property, wildly different concrete answers — because the universal property only specifies a <em>relationship</em> to every other object in the category, and lets each category's own structure determine what actually satisfies it. This is the real advantage over defining constructions case-by-case: prove a theorem using only the universal property, and it holds in Set, in preorders, and in every other category with products, all at once, with zero extra work per category.
+  </div>
+
+  <h2 id="terminal-object">A second, even simpler example: the terminal object</h2>
+  <div class="callout warn">
+    <strong>Definition: Terminal Object</strong>
+    An object <code>1</code> such that for every object X in the category, there is a <strong>unique</strong> morphism <code>X → 1</code>.
+  </div>
+  <p>In Set: any singleton set works (there's exactly one function from any set into a one-element set — send everything to the single element). In your own type system: the <strong>unit type</strong> (Rust's <code>()</code>) — every type has exactly one function into it, the one that discards its input and returns <code>()</code>. Same universal-property pattern as products: one abstract specification, satisfied by a completely ordinary, already-familiar object in each category.</p>
+
+  <h2 id="uniqueness-up-to-isomorphism">Why "the" product is justified — uniqueness up to isomorphism</h2>
+  <p>Universal properties never pin down a construction to <em>one specific object</em> — they pin it down <strong>up to a unique isomorphism</strong>. Suppose both P and P′ satisfy the product universal property for the same A, B. Apply P′'s universal property to P's own projections (P counts as one of the "any object X with maps to A and B"): you get a unique <code>φ: P → P′</code>. Apply P's universal property to P′'s projections symmetrically: a unique <code>ψ: P′ → P</code>. Composing, <code>ψ∘φ: P→P</code> satisfies the same triangles as <code>id_P</code> — and by P's <em>own</em> universal property, the mediating morphism making those triangles commute is unique, so <code>ψ∘φ = id_P</code>. The same argument gives <code>φ∘ψ = id_P′</code>. So φ is an isomorphism — P and P′ aren't just similar, they're interchangeable, with a canonical (not arbitrarily chosen) isomorphism between them. This is why mathematicians comfortably say "<em>the</em> product," definite article, despite the universal property never naming one specific object.</p>
+
+  <h2>Try it: does this satisfy the universal property?</h2>
+  <p>For each proposed candidate, decide whether it actually is the product (or terminal object) as universally defined.</p>
+  <div id="up-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. What's the key advantage of defining "product" via a universal property instead of "the set of ordered pairs"?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','This isn\'t really about computational efficiency — the advantage is generality across categories, not runtime performance of any particular implementation.')">It's computationally faster to construct in practice</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — "ordered pairs" only makes sense in Set; the universal property is stated purely in terms of objects and morphisms, so it applies to any category, and each category\'s own structure determines what actually satisfies it.')">It's defined purely in terms of objects and morphisms, so it applies in any category, not just Set</button>
+        <button onclick="quizAnswer(this,false,'q1','The universal property is a general specification that still needs to be checked against a category\'s actual structure — it isn\'t automatically true in every category, some categories may lack products altogether.')">It guarantees every category automatically has a product for any two objects</button>
+        <button onclick="quizAnswer(this,false,'q1','The lesson explicitly shows the same universal property gives a different concrete answer per category (pairs in Set, minimum in a preorder) — it does not eliminate the need to reason about each specific category.')">It removes the need to think about what category you're working in at all</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. In the preorder-of-numbers category, why does the product of m and n turn out to be min(m,n)?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','This is essentially arbitrary convention framing — the result follows necessarily from applying the universal property\'s conditions (common lower bound, greatest among all common lower bounds) to this specific category\'s structure.')">Because that's simply how "product" is defined by convention in preorders, unrelated to the general universal property</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — the universal property requires P to be a common lower bound for m and n (P≤m, P≤n) such that every other common lower bound X also satisfies X≤P — which is exactly the defining property of min(m,n).')">Because the universal property\'s conditions (a common lower bound that every other common lower bound is ≤ to) are exactly the defining property of the minimum</button>
+        <button onclick="quizAnswer(this,false,'q2','Preorders don\'t generally have every pair of objects related by ≤ directly — the min still exists as the greatest common lower bound regardless of whether m and n are directly comparable.')">Because m and n are always directly comparable in a preorder</button>
+        <button onclick="quizAnswer(this,false,'q2','Uniqueness of the mediating morphism is trivially automatic in a preorder (never more than one morphism between any two objects) — it isn\'t what specifically forces min rather than some other value; the ≤ conditions themselves do that.')">Because uniqueness of the mediating morphism forces min specifically, unrelated to the ≤ conditions</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. What does "unique up to unique isomorphism" mean for two objects P and P′ both satisfying the same universal property?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','This is exactly wrong — the whole point of the uniqueness-up-to-isomorphism proof is that P and P′ ARE canonically isomorphic whenever they both satisfy the same universal property.')">P and P′ are generally unrelated objects with no connection between them</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — the proof constructs a canonical isomorphism φ: P→P′ (and its inverse) directly from the two universal properties, showing P and P′ are interchangeable, which is why mathematicians say "the" product despite the universal property never naming one specific object.')">There is a canonical, unique isomorphism between P and P′, making them interchangeable — which justifies calling it "the" product</button>
+        <button onclick="quizAnswer(this,false,'q3','The proof specifically constructs an isomorphism (invertible morphism both ways), not merely a one-directional morphism — P and P′ are shown to be interchangeable, not just connected one way.')">P and P′ must be literally the same object, with no distinction possible</button>
+        <button onclick="quizAnswer(this,false,'q3','The isomorphism here is derived directly and specifically from the two universal properties themselves via the argument in the lesson — it isn\'t an unrelated fact requiring outside assumptions.')">It's an unprovable assumption taken on faith, not something derivable from the universal property</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Why does Rust's unit type () satisfy the terminal object universal property?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','() is not empty in the sense of having no values — it has exactly one value, which is precisely why it works as a terminal object (unique morphism into a one-element target).')">Because () contains no values at all, making any function into it impossible</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — for any type X, there is exactly one function X → () (discard the input, return the single unit value) — precisely the terminal object requirement of a unique morphism from every object.')">Because for any type X, there is exactly one function X → () — discard the input and return the single unit value, with no other option possible</button>
+        <button onclick="quizAnswer(this,false,'q4','Terminal objects require exactly one morphism from every object INTO the terminal object, not many possible functions — () satisfies this because there\'s exactly one, not many.')">Because () allows many different functions from any type X, giving lots of flexibility</button>
+        <button onclick="quizAnswer(this,false,'q4','The terminal object property is about morphisms INTO 1 from every object, not the reverse direction — this describes something different (more like an initial object) than what\'s being asked about here.')">Because there's a unique morphism FROM () to every other type</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Take your own type system as the category (lesson 1's second example) and check the product universal property against an ordinary tuple type <code>(A, B)</code> with the projections <code>.0</code> and <code>.1</code>. Given any two functions <code>f: X → A</code> and <code>g: X → B</code>, write out (in words or pseudocode) the unique function <code>X → (A,B)</code> the universal property demands, and confirm composing it with each projection recovers f and g exactly — the same check the lesson did for Set, now in your own hands.</p>
+
+  <h2>Primary resource</h2>
+  <p>See Bartosz Milewski's <a href="https://bartoszmilewski.com/2015/01/07/products-and-coproducts/" target="_blank">Products and Coproducts</a> chapter of <em>Category Theory for Programmers</em>, continuing from lessons 1–2's primary resource.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Want to work out the universal property for a different construction (like a coproduct/sum type), or check a candidate object against a universal property you're unsure about? Bring it to Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0002-functors-natural-transformations.html">← Lesson 2: Functors &amp; Natural Transformations</a>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-04">Lesson 4: Monads →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const UP_ITEMS = [
+  {
+    english: '"In Set, propose P = A×B×{extra tag}, with projections that ignore the extra tag, as the product of A and B."',
+    options: [
+      { text: 'Satisfies the universal property', explain: 'This candidate has extra structure the universal property doesn\'t force — multiple different tag values would give multiple distinct mediating morphisms X→P for the same f,g, violating the required uniqueness.' },
+      { text: 'Fails — breaks uniqueness', correct: true, explain: 'Right — the extra tag isn\'t determined by f and g, so there would be multiple valid mediating morphisms instead of a unique one, violating the universal property.' },
+    ],
+  },
+  {
+    english: '"In the preorder-of-numbers category, propose P = max(m,n) as the product of m and n."',
+    options: [
+      { text: 'Satisfies the universal property', explain: 'max(m,n) generally fails P≤m and P≤n (e.g. max(3,5)=5, but 5≤3 is false) — it doesn\'t even satisfy the basic projection requirements, let alone the full universal property.' },
+      { text: 'Fails — not even a valid lower bound', correct: true, explain: 'Right — the product requires P≤m and P≤n, which max(m,n) generally violates (it\'s an upper bound, not a lower bound) — min(m,n) is the correct answer, as the lesson derives.' },
+    ],
+  },
+  {
+    english: '"In Set, propose any two-element set as a terminal object."',
+    options: [
+      { text: 'Satisfies the universal property', explain: 'A two-element set admits TWO distinct functions from any nonempty set X (X could map to either element) — this breaks the required uniqueness of the morphism into a terminal object.' },
+      { text: 'Fails — breaks uniqueness', correct: true, explain: 'Right — only a one-element (singleton) set has exactly one function from any set into it; a two-element set allows multiple functions, violating the terminal object\'s uniqueness requirement.' },
+    ],
+  },
+];
+
+const upDiv = document.getElementById('up-exercise');
+UP_ITEMS.forEach((item, i) => {
+  const cardId = `up-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  upDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

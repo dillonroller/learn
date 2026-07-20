@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 4 — The Schrödinger Equation</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Quantum Mechanics</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 4 of many &nbsp;·&nbsp; Quantum Mechanics &nbsp;·&nbsp; ~40 min</p>
+  <h1>The Schrödinger Equation</h1>
+  <p>Lessons 1–3 were entirely about <em>static</em> pictures — what a state is, what happens the instant you measure it, what correlations entangled pairs produce. None of it said what a state does <em>between</em> measurements, while nothing is watching. This lesson answers that, and in doing so makes something you've been quietly promised since lesson 1 — that normalization always holds — into something actually proven, not just asserted, and exposes the real fault line at the center of the "measurement problem."</p>
+
+  <h2 id="schrodinger-equation">The equation</h2>
+  <div class="callout warn">
+    <strong>The (time-dependent) Schrödinger Equation</strong>
+    <code>iℏ d|ψ⟩/dt = H|ψ⟩</code>, where <code>H</code> is the <strong>Hamiltonian</strong> — the operator corresponding to total energy — and ℏ is a fixed physical constant.
+  </div>
+  <p>Read it as: the rate of change of the state vector is determined entirely by applying one fixed operator, H, to the current state. This is a first-order linear differential equation for <code>|ψ⟩</code> — mechanically the same kind of object you'd meet solving <code>dx/dt = kx</code>, just for a vector in a complex Hilbert space instead of a real number.</p>
+
+  <h2 id="unitary-time-evolution">Solving it: unitary time evolution</h2>
+  <p>For a time-independent H, the equation has a clean, closed-form solution:</p>
+  <pre><code>|ψ(t)⟩ = e^(−iHt/ℏ) |ψ(0)⟩  =:  U(t)|ψ(0)⟩</code></pre>
+  <p>where <code>e^(−iHt/ℏ)</code> is defined the same way <code>eˣ</code> is for numbers — via its power series, now applied to an operator. <code>U(t)</code> has a crucial property: it's <strong>unitary</strong>, meaning <code>U†(t)U(t) = I</code> (its conjugate-transpose is its inverse).</p>
+  <div class="callout">
+    <strong>Why unitarity is the whole point</strong>
+    Unitary evolution automatically preserves the normalization <code>⟨ψ(t)|ψ(t)⟩ = 1</code> for <em>every</em> t — you can check this directly: <code>⟨ψ(t)|ψ(t)⟩ = ⟨ψ(0)|U†(t)U(t)|ψ(0)⟩ = ⟨ψ(0)|I|ψ(0)⟩ = ⟨ψ(0)|ψ(0)⟩ = 1</code>. <a href="0001-state-vectors-superposition-born-rule.html#superposition">Lesson 1's normalization constraint</a> <code>|α|²+|β|²=1</code> wasn't just a rule imposed once at the start — the Schrödinger equation guarantees it stays true forever, automatically, for any state evolving this way. Unitary evolution is also <strong>reversible</strong> — since <code>U†(t) = U(t)⁻¹</code> always exists, you can always run time backward and recover the exact earlier state, with nothing lost.
+  </div>
+
+  <h2 id="measurement-vs-evolution">Two rules, and they don't agree with each other</h2>
+  <div class="callout warn">
+    <strong>The actual content of the "measurement problem"</strong>
+    Quantum mechanics, as normally presented, has <em>two separate rules</em> for how a state changes, and they behave nothing alike:
+    <ul style="margin:.5rem 0 0;">
+      <li><strong>Schrödinger evolution</strong> (this lesson): deterministic, reversible, continuous — <code>|ψ(t)⟩</code> is a smooth, predictable function of t, and you can always undo it.</li>
+      <li><strong>Measurement / the Born rule</strong> (<a href="0001-state-vectors-superposition-born-rule.html#born-rule">lesson 1</a>): probabilistic, irreversible, discontinuous — the state jumps to a definite basis vector, and there's no <code>U(t)</code> that undoes a collapse.</li>
+    </ul>
+    Nothing in the theory as usually stated says precisely <em>when</em> the smooth, deterministic rule stops applying and the abrupt, probabilistic one takes over — "when a measurement happens" is doing a lot of unexamined work. This is exactly what <a href="0003-bells-theorem-chsh.html#chsh-quantum-violation">lesson 3's interpretations</a> disagree about: many-worlds denies collapse ever really happens (everything is unitary evolution, forever, and "measurement" is really just entanglement with a measuring device); Copenhagen treats collapse as a genuine, separate physical process; Bohmian mechanics adds hidden trajectories underneath the wavefunction entirely. This lesson isn't settling that — it's making precise exactly what's in tension.
+  </div>
+
+  <h2 id="worked-example-qubit-precession">Worked example: a qubit that visibly changes even though its 0/1 odds don't</h2>
+  <p>Take <code>H = (ℏω/2)</code> times the operator that sends <code>|0⟩ ↦ |0⟩</code> and <code>|1⟩ ↦ −|1⟩</code> (a standard, simple Hamiltonian — an energy "splitting" ω between the two basis states). Starting from <code>|ψ(0)⟩ = (|0⟩+|1⟩)/√2</code>, solving the Schrödinger equation gives:</p>
+  <pre><code>|ψ(t)⟩ = (e^(−iωt/2)|0⟩ + e^(iωt/2)|1⟩) / √2</code></pre>
+  <p>Measuring in the <code>{|0⟩,|1⟩}</code> basis: Born-rule probabilities are <code>|e^(∓iωt/2)/√2|² = 1/2</code> for both outcomes, at <em>every</em> t — a complex phase always has magnitude 1, so it vanishes under the Born rule's squaring. It would be easy to conclude nothing is happening. But measure instead in the rotated basis <code>|+⟩=(|0⟩+|1⟩)/√2</code>, <code>|−⟩=(|0⟩−|1⟩)/√2</code>: working out <code>⟨+|ψ(t)⟩</code> gives probability <code>cos²(ωt/2)</code> for outcome <code>+</code>, genuinely oscillating between 0 and 1 as t increases. The state was changing the entire time — a fact only visible once you measure in a basis that's sensitive to the relative phase between <code>|0⟩</code> and <code>|1⟩</code>.</p>
+
+  <h2>Try it: evolution or measurement?</h2>
+  <p>For each description, classify which of the two rules it's describing.</p>
+  <div id="sch-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Why does U(t) being unitary guarantee normalization is preserved for all t?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','This gets the derivation backwards — ⟨ψ(t)|ψ(t)⟩ = 1 is what gets PROVEN using unitarity (U†U=I), not something assumed as a starting premise of the proof.')">Because ⟨ψ(t)|ψ(t)⟩ = 1 is assumed as a premise, not actually derived</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — U†(t)U(t) = I by the definition of unitary, so ⟨ψ(t)|ψ(t)⟩ = ⟨ψ(0)|U†U|ψ(0)⟩ = ⟨ψ(0)|ψ(0)⟩ = 1, exactly as shown in the lesson\'s derivation.')">Because U†(t)U(t) = I by definition, which directly forces ⟨ψ(t)|ψ(t)⟩ to equal ⟨ψ(0)|ψ(0)⟩ = 1 for all t</button>
+        <button onclick="quizAnswer(this,false,'q1','H being Hermitian (a separate fact needed for U to be unitary in the first place) is not itself what\'s being used in this specific normalization derivation — it\'s U†U=I doing the direct work here.')">Because H is always equal to zero</button>
+        <button onclick="quizAnswer(this,false,'q1','This is essentially circular and not how the derivation actually proceeds — the derivation uses the algebraic property U†U=I directly, not repeated re-measurement.')">Because measurement is performed continuously to keep re-normalizing the state</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. What makes Schrödinger evolution "reversible" in a way that measurement is not?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','This is backwards — measurement/collapse has no such inverse operation defined; it\'s Schrödinger evolution that has this property.')">Because measurement always has a well-defined inverse operation that undoes it</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — because U(t) is unitary, U†(t) = U(t)⁻¹ always exists, letting you run the evolution backward and recover any earlier state exactly. Collapse has no such inverse operation.')">Because U(t) being unitary guarantees U†(t) = U(t)⁻¹ exists, so evolution can always be run backward — collapse has no equivalent inverse</button>
+        <button onclick="quizAnswer(this,false,'q2','H being Hermitian is a real requirement for U to be unitary, but the reversibility described here follows specifically from U†U=I giving U an inverse, not from H being merely "very large."')">Because H is required to be extremely large in magnitude</button>
+        <button onclick="quizAnswer(this,false,'q2','This has the causal relationship backwards — reversibility is a genuine mathematical consequence of unitarity (having a well-defined inverse), not an independent assumption made separately.')">Because reversibility is simply assumed as an independent axiom, unrelated to unitarity</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. In the worked example, why do the {|0⟩,|1⟩}-basis measurement probabilities stay at 1/2 and 1/2 for all t, even though the state is genuinely changing?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','The state genuinely does change over time — its phase factors e^(∓iωt/2) evolve continuously; what stays fixed is specifically the {|0⟩,|1⟩}-basis measurement probabilities, not the state itself.')">Because the state doesn't actually change at all in this example</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — the time-dependence lives entirely in complex phase factors e^(∓iωt/2), and since |e^(iθ)|=1 for any real θ, the Born rule\'s squared-magnitude calculation makes those phases vanish in THIS basis — even though the state vector itself is genuinely different at different times.')">Because the time-dependence is entirely in complex phase factors with magnitude 1, which vanish under the Born rule\'s squared-magnitude calculation in this particular basis</button>
+        <button onclick="quizAnswer(this,false,'q3','The Hamiltonian used here, H = (ℏω/2) times a sign-flip operator on |0⟩/|1⟩, is a completely standard, valid Hamiltonian — the flat probabilities are a real physical consequence of the setup, not a sign the Hamiltonian is somehow wrong.')">Because this particular H is not a valid physical Hamiltonian</button>
+        <button onclick="quizAnswer(this,false,'q3','This describes the +/− basis result (oscillating cos²(ωt/2) probabilities), which is different from the {|0⟩,|1⟩}-basis result the question specifically asks about — the two bases behave differently, which is the whole point of the example.')">Because measuring in the +/− basis always gives the same result as measuring in the {|0⟩,|1⟩} basis</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. What does it mean that "nothing in the theory says precisely when Schrödinger evolution stops and measurement collapse takes over"?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','This is a genuine, actively debated tension in how quantum mechanics is usually presented — it\'s not a settled, resolved non-issue.')">It's a solved problem with a precise, universally agreed-upon answer</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — this is exactly the substance of the measurement problem, and it\'s precisely what different interpretations (Copenhagen, many-worlds, Bohmian mechanics) disagree about resolving, each in a different way.')">It's the actual content of the measurement problem — different interpretations resolve this ambiguity in genuinely different ways</button>
+        <button onclick="quizAnswer(this,false,'q4','The lesson explicitly connects this tension directly to lesson 3\'s interpretations (Copenhagen, many-worlds, Bohmian mechanics) — it\'s not an unrelated, separate issue from that discussion.')">It's unrelated to the interpretations discussed in lesson 3</button>
+        <button onclick="quizAnswer(this,false,'q4','This tension is a real, substantive open question about how the two rules relate — it isn\'t merely a notational or terminology issue with an easy fix.')">It's just a matter of notation, with no real physical content behind it</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Using the worked example's <code>|ψ(t)⟩</code>, compute <code>⟨+|ψ(t)⟩</code> by hand at <code>t</code> such that <code>ωt/2 = π/2</code> (i.e. <code>ωt = π</code>), and confirm the probability of measuring <code>+</code> comes out to <code>cos²(π/2) = 0</code> — the state has rotated all the way to being certainly <code>|−⟩</code> at that moment, purely from Schrödinger evolution, with no measurement involved anywhere in the calculation.</p>
+
+  <h2>Primary resource</h2>
+  <p>See Leonard Susskind &amp; Art Friedman's <a href="https://www.theoreticalminimum.com/courses/quantum-mechanics/2012/winter" target="_blank">The Theoretical Minimum — Quantum Mechanics</a>, continuing from lesson 1's primary resource into the later lectures covering time evolution and the Schrödinger equation.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Want to work through a different Hamiltonian's time evolution, or see how this connects to the interpretations from lesson 3? Bring it to Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0003-bells-theorem-chsh.html">← Lesson 3: Bell's Theorem &amp; the CHSH Inequality</a>
+    <span class="spacer"></span>
+    <a href="../index.html">Quantum Mechanics: All Lessons →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const SCH_ITEMS = [
+  {
+    english: '"The state changes smoothly and predictably according to iℏ d|ψ⟩/dt = H|ψ⟩, and could be run backward to recover any earlier state exactly."',
+    options: [
+      { text: 'Schrödinger evolution', correct: true, explain: 'Right — deterministic, continuous, reversible: exactly the character of unitary time evolution under the Schrödinger equation.' },
+      { text: 'Measurement / collapse', explain: 'Collapse is probabilistic and irreversible — this description of smooth, reversible, predictable change is Schrödinger evolution instead.' },
+    ],
+  },
+  {
+    english: '"The state abruptly jumps to a single definite basis vector, with an outcome that could not have been predicted in advance with certainty."',
+    options: [
+      { text: 'Schrödinger evolution', explain: 'Schrödinger evolution is smooth and fully deterministic — an abrupt, unpredictable jump is the signature of measurement/collapse instead.' },
+      { text: 'Measurement / collapse', correct: true, explain: 'Right — probabilistic, discontinuous, irreversible: exactly the Born-rule collapse described in lesson 1.' },
+    ],
+  },
+  {
+    english: '"Applying U(t) = e^(−iHt/ℏ) to a state vector, where U(t) satisfies U†(t)U(t) = I."',
+    options: [
+      { text: 'Schrödinger evolution', correct: true, explain: 'Right — this is literally the definition of unitary time evolution derived from the Schrödinger equation for time-independent H.' },
+      { text: 'Measurement / collapse', explain: 'Collapse has no such U(t) operator or unitarity property — this description is specifically the Schrödinger-equation solution.' },
+    ],
+  },
+];
+
+const schDiv = document.getElementById('sch-exercise');
+SCH_ITEMS.forEach((item, i) => {
+  const cardId = `sch-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  schDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

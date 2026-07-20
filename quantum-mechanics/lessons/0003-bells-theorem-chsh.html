@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 3 — Bell's Theorem &amp; the CHSH Inequality</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Quantum Mechanics</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 3 of many &nbsp;·&nbsp; Quantum Mechanics &nbsp;·&nbsp; ~40 min</p>
+  <h1>Bell's Theorem &amp; the CHSH Inequality</h1>
+  <p><a href="0002-entanglement-epr-puzzle.html">Lesson 2</a> left the EPR worry unresolved: maybe entangled qubits just carry predetermined, hidden values, and the "spooky" correlation is nothing more than two matched gloves in sealed boxes. This lesson builds the actual inequality that <em>any</em> such hidden-value account must obey — and shows that quantum mechanics predicts a correlation that violates it. This isn't philosophy anymore; it's an algebraic proof plus an experiment.</p>
+
+  <h2 id="chsh-setup">The setup: two settings each, not one</h2>
+  <p>Alice and Bob share an entangled pair. Each independently picks one of <strong>two</strong> possible measurement settings — Alice picks <code>a₁</code> or <code>a₂</code>, Bob picks <code>b₁</code> or <code>b₂</code> (think: measuring spin along different axes) — and each gets an outcome of <code>+1</code> or <code>−1</code>. Crucially, <em>Alice doesn't know which setting Bob chose, and vice versa</em> — this is what "local" will mean below. Define the correlation for a given pair of settings as <code>E(a,b) = average of (Alice's outcome) × (Bob's outcome)</code>, over many repeated trials.</p>
+
+  <h2 id="local-hidden-variables">Formalizing "local hidden variables"</h2>
+  <div class="callout warn">
+    <strong>The local hidden-variable (LHV) assumption</strong>
+    Each pair carries a hidden variable λ, drawn from some distribution, fixed at creation. Alice's outcome for setting a is some function <code>A(a, λ) ∈ {+1,−1}</code>, and Bob's outcome for setting b is some function <code>B(b, λ) ∈ {+1,−1}</code> — critically, <strong>A depends only on a and λ, never on Bob's setting b</strong> (locality), and vice versa. This is exactly the EPR picture: the "instructions" for every possible measurement were fixed in advance, independent of what the other side does.
+  </div>
+
+  <h2 id="chsh-inequality-proof">The CHSH inequality — an algebraic fact about any LHV theory</h2>
+  <div class="callout warn">
+    <strong>CHSH Inequality (Clauser–Horne–Shimony–Holt, 1969)</strong>
+    Define <code>S = E(a₁,b₁) + E(a₁,b₂) + E(a₂,b₁) − E(a₂,b₂)</code>. Under <em>any</em> local hidden-variable theory: <code>|S| ≤ 2</code>.
+  </div>
+  <p>This isn't a physical assumption — it's pure algebra, true for <em>any</em> LHV assignment whatsoever. For a fixed λ, look at the bracketed quantity <code>A(a₁,λ)[B(b₁,λ)+B(b₂,λ)] + A(a₂,λ)[B(b₁,λ)−B(b₂,λ)]</code>. Since <code>B(b₁,λ)</code> and <code>B(b₂,λ)</code> are each <code>±1</code>, exactly one of two things happens: either they're equal, making <code>[B(b₁,λ)+B(b₂,λ)] = ±2</code> and <code>[B(b₁,λ)−B(b₂,λ)] = 0</code>; or they're opposite, making the first bracket 0 and the second <code>±2</code>. Either way, the whole expression evaluates to exactly <code>±2</code> — never more, since <code>A(a,λ) ∈ {+1,−1}</code> just flips the sign. Averaging <code>±2</code> (a bounded quantity) over any distribution of λ can never exceed 2 in absolute value: <code>|S| ≤ 2</code>. No physics has been assumed anywhere in this argument — only that outcomes are real numbers fixed in {+1,−1} in advance, independent of the other side's choice.</p>
+
+  <h2 id="chsh-quantum-violation">What quantum mechanics actually predicts</h2>
+  <p>For the entangled Bell state <a href="0002-entanglement-epr-puzzle.html#product-vs-entangled">from lesson 2</a>, measured along axes separated by angle θ, the Born rule gives <code>E(a,b) = −cos(θ_a − θ_b)</code>. Choosing the angles <code>a₁=0°, a₂=45°, b₁=22.5°, b₂=67.5°</code> (each adjacent pair 22.5° apart):</p>
+  <pre><code>S = −cos(22.5°) − cos(67.5°) − cos(22.5°) − (−cos(112.5°))
+  = 2√2  ≈  2.828</code></pre>
+  <div class="callout">
+    <strong>2.828 &gt; 2 — the LHV bound, violated</strong>
+    Quantum mechanics predicts a correlation strictly larger than <em>any</em> local hidden-variable theory can ever produce, for any choice of λ-distribution and any functions A, B whatsoever. This specific maximum (<code>2√2</code>) is called <strong>Tsirelson's bound</strong> — the actual ceiling quantum mechanics imposes, itself an interesting further fact (nature doesn't violate CHSH maximally; it violates it up to exactly this amount and no further). Real experiments — starting with Alain Aspect's in 1982, and "loophole-free" versions closing every known experimental gap by 2015 — have measured S values matching the quantum prediction, not the classical bound. <strong>Local hidden variables, as formalized above, are experimentally ruled out.</strong>
+  </div>
+
+  <div class="callout warn">
+    <strong>What this does and doesn't settle</strong>
+    Bell's theorem rules out theories that are simultaneously <strong>local</strong> (no influence faster than light) <em>and</em> <strong>realist</strong> (definite values exist before measurement) in the specific form formalized above. It does not, by itself, tell you which assumption to give up — different interpretations make different choices. Many-worlds keeps realism (the full wavefunction is always real and determinate) but denies that measurement picks out one single outcome at all. Standard (Copenhagen-style) quantum mechanics denies predetermined values exist before measurement in the first place. Bohmian mechanics keeps hidden variables but gives up locality outright. All three remain live, debated positions — this is exactly the kind of open question <a href="../MISSION.md">this topic's mission</a> commits to presenting accurately rather than resolving.
+  </div>
+
+  <h2>Try it: check the CHSH algebra</h2>
+  <p>For each specific hidden-variable assignment, verify the bracketed CHSH term evaluates to ±2 as the proof claims.</p>
+  <div id="chsh-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Why is locality built into the LHV assumption as "A depends only on a and λ, never on b"?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','This is a modeling assumption about how outcomes are determined, not a claim about measurement being impossible — both settings are indeed measured, one per side.')">Because it's physically impossible to measure two settings at once</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — this formalizes "no influence from Bob\'s choice reaches Alice\'s outcome," which is exactly what "local" means in "local hidden-variable theory."')">Because it formalizes the idea that Alice's outcome cannot be influenced by which setting Bob happens to choose, and vice versa</button>
+        <button onclick="quizAnswer(this,false,'q1','A depending on λ is exactly what makes it a HIDDEN VARIABLE theory — dependence on λ is required, not something this locality condition removes.')">Because it removes any dependence of A on the hidden variable λ</button>
+        <button onclick="quizAnswer(this,false,'q1','This condition is about Alice\'s outcome not depending on Bob\'s remote setting choice — it has nothing to do with whether λ itself is measurable or hidden.')">Because it guarantees λ itself is always directly observable</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. In the CHSH proof, why does the bracketed expression always equal exactly ±2 for any fixed λ?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','This isn\'t an assumption baked in from the start — it\'s a derived consequence of B(b₁,λ) and B(b₂,λ) each being restricted to ±1, shown via the two-case argument.')">Because B(b₁,λ) and B(b₂,λ) are assumed equal from the start</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — since B(b₁,λ) and B(b₂,λ) are each ±1, they\'re either equal (making one bracket ±2 and the other 0) or opposite (the reverse) — either way the total is exactly ±2, with A(a,λ) only flipping the overall sign.')">Because B(b₁,λ) and B(b₂,λ), each restricted to ±1, are either equal or opposite — and either case forces the sum of the two bracketed terms to be exactly ±2</button>
+        <button onclick="quizAnswer(this,false,'q2','This isn\'t an approximation — the proof shows the bracketed term equals exactly ±2 for every individual λ, not approximately, and not only on average.')">Because it's only an average that happens to work out to roughly 2</button>
+        <button onclick="quizAnswer(this,false,'q2','A(a,λ) is also restricted to ±1 in the LHV formalization — it isn\'t allowed to take arbitrary real values.')">Because A(a,λ) can take any real number, not just ±1</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. What does the measured value S ≈ 2.828 (matching the quantum prediction) actually demonstrate?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','This overclaims — Bell\'s theorem rules out the specific combination of locality AND realism (predetermined values) together, not every possible alternative account without exception.')">That quantum mechanics has been proven wrong and needs replacing</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — since |S|≤2 is a hard algebraic bound for any local hidden-variable theory, and the measured value exceeds it, no such theory (as formalized) can be correct — this is what "ruled out experimentally" means here.')">That local hidden-variable theories, as formalized by the LHV assumption, cannot correctly describe the measured correlations</button>
+        <button onclick="quizAnswer(this,false,'q3','The lesson explicitly notes Bell\'s theorem doesn\'t single out one specific interpretation as the definite correct account — several remain live and debated.')">That many-worlds is definitively the correct interpretation of quantum mechanics</button>
+        <button onclick="quizAnswer(this,false,'q3','2.828 is well within Tsirelson\'s bound (2√2), the actual quantum-mechanical ceiling — it isn\'t evidence of any experimental error or anomaly.')">That the experiment contains a measurement error, since no correlation should exceed 2</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Which assumption(s) does Bell's theorem's violation force you to give up?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','The theorem doesn\'t pin down which one specifically — different interpretations give up different assumptions (locality, realism, or single-outcome measurement), and the lesson deliberately doesn\'t pick a winner.')">Specifically locality, and nothing else — every viable interpretation must be nonlocal</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — the theorem only shows locality and realism (predetermined values) can\'t both hold together; which one (or which other assumption, like single-outcome measurement) gets abandoned is exactly where interpretations diverge.')">At least one of locality or realism (predetermined values) — but which one is exactly where interpretations like Copenhagen, many-worlds, and Bohmian mechanics disagree</button>
+        <button onclick="quizAnswer(this,false,'q4','This is the opposite of what the theorem shows — a real, well-defined experimental violation of a classical bound was measured, not evidence that no fact of the matter exists.')">Neither — the theorem shows there's no real fact of the matter at all</button>
+        <button onclick="quizAnswer(this,false,'q4','Superposition (lesson 1) isn\'t what Bell\'s theorem targets — the theorem is specifically about ruling out local realist accounts of entangled correlations, not about superposition itself.')">Specifically superposition — Bell's theorem shows single-qubit superposition is impossible</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Pick a specific λ and hidden-variable assignment: say <code>A(a₁,λ)=+1</code>, <code>A(a₂,λ)=−1</code>, <code>B(b₁,λ)=+1</code>, <code>B(b₂,λ)=+1</code>. Compute the bracketed CHSH term <code>A(a₁,λ)[B(b₁,λ)+B(b₂,λ)] + A(a₂,λ)[B(b₁,λ)−B(b₂,λ)]</code> by hand and confirm it comes out to exactly ±2, the way the lesson's proof claims for <em>any</em> assignment. Then flip one of your four choices and redo it — confirm you still land on ±2, never anything in between.</p>
+
+  <h2>Primary resource</h2>
+  <p>See the <a href="https://plato.stanford.edu/entries/bell-theorem/" target="_blank">Stanford Encyclopedia of Philosophy — Bell's Theorem</a> for the full historical and formal treatment, including the original 1964 Bell inequality and its relationship to CHSH.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Want to work through the −cos(θₐ−θ_b) correlation formula's derivation from the Born rule, or check a different CHSH angle choice? Bring it to Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0002-entanglement-epr-puzzle.html">← Lesson 2: Entanglement &amp; the EPR Puzzle</a>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-04">Lesson 4: The Schrödinger Equation →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const CHSH_ITEMS = [
+  {
+    english: 'A(a₁,λ)=+1, A(a₂,λ)=+1, B(b₁,λ)=+1, B(b₂,λ)=−1',
+    options: [
+      { text: '+2', correct: true, explain: 'Right — B(b₁)+B(b₂) = 1+(−1) = 0, and B(b₁)−B(b₂) = 1−(−1) = 2. Term = A(a₁)·0 + A(a₂)·2 = 1·0 + 1·2 = 2.' },
+      { text: '−2', explain: 'B(b₁)+B(b₂) = 0 and B(b₁)−B(b₂) = 2 here, giving A(a₁)·0 + A(a₂)·2 = 0 + 2 = +2, not −2.' },
+      { text: '0', explain: 'The proof guarantees the bracketed term is always exactly ±2, never 0 — recompute B(b₁)+B(b₂) and B(b₁)−B(b₂) separately before combining with A(a₁) and A(a₂).' },
+    ],
+  },
+  {
+    english: 'A(a₁,λ)=+1, A(a₂,λ)=−1, B(b₁,λ)=+1, B(b₂,λ)=−1',
+    options: [
+      { text: '+2', explain: 'B(b₁)+B(b₂) = 0 and B(b₁)−B(b₂) = 2 here, giving A(a₁)·0 + A(a₂)·2 = 1·0 + (−1)·2 = −2, not +2.' },
+      { text: '−2', correct: true, explain: 'Right — B(b₁)+B(b₂) = 1+(−1) = 0, and B(b₁)−B(b₂) = 1−(−1) = 2. Term = A(a₁)·0 + A(a₂)·2 = 1·0 + (−1)·2 = −2.' },
+      { text: '4', explain: 'The proof bounds the bracketed term at exactly ±2 in magnitude — 4 is outside what\'s possible given each factor is restricted to ±1.' },
+    ],
+  },
+];
+
+const chshDiv = document.getElementById('chsh-exercise');
+CHSH_ITEMS.forEach((item, i) => {
+  const cardId = `chsh-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  chshDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>
