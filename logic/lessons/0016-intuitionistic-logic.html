@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 16 — Intuitionistic Logic: What Changes Without Excluded Middle</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Logic</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 16 of 14+ &nbsp;·&nbsp; Logic &nbsp;·&nbsp; Mastery phase &nbsp;·&nbsp; ~35 min</p>
+  <h1>Intuitionistic Logic: What Changes Without Excluded Middle</h1>
+  <p><a href="0005-natural-deduction.html#reductio">Lesson 5's reductio example</a> proved <code>¬A</code> by assuming <code>A</code> and deriving a contradiction — and that proof is, quietly, completely fine by the standards of this lesson. What this lesson exposes is a <em>different</em> move classical logic allows without comment: using the exact same contradiction trick to prove a <em>positive</em> claim <code>P</code>, not just a negative one. Intuitionistic logic is what you get when you refuse that second move — and refusing it turns out to change less than you'd expect, and more than you'd expect, in exactly the places that matter.</p>
+
+  <h2 id="law-of-excluded-middle">The law everyone assumes without noticing</h2>
+  <div class="callout warn">
+    <strong>Law of Excluded Middle (LEM)</strong>
+    <code>P ∨ ¬P</code> — every statement is either true or its negation is. Classically, this is a tautology: check it on <a href="0003-truth-tables.html">a truth table</a> and it comes out true on every row, no matter what P is.
+  </div>
+  <p>Intuitionistic logic doesn't add "LEM is false" as a rule — it simply <strong>doesn't assume it</strong>, and doesn't let you derive it for free the way classical logic does. That single omission is the entire difference between the two systems. Everything else in this lesson is downstream of it.</p>
+
+  <h2 id="bhk-interpretation">Why omit it? The BHK interpretation of "proof"</h2>
+  <p>Intuitionistic logic reads each connective as a <em>specification for what counts as a proof</em>, not just a truth-table row (the <strong>Brouwer–Heyting–Kolmogorov</strong> interpretation):</p>
+  <ul>
+    <li>A proof of <code>P ∧ Q</code> is a pair: a proof of P <em>and</em> a proof of Q.</li>
+    <li>A proof of <code>P ∨ Q</code> is a proof of P <em>with a tag saying which one</em>, or a proof of Q with a tag — you must actually know which disjunct holds, not just that at least one does.</li>
+    <li>A proof of <code>P → Q</code> is a procedure that converts any proof of P into a proof of Q.</li>
+    <li>A proof of <code>∃x. P(x)</code> is a specific witness <code>a</code>, together with a proof of <code>P(a)</code> — an example you can point to, not an abstract guarantee one exists.</li>
+    <li><code>¬P</code> is defined as <code>P → ⊥</code> — a proof of ¬P is a procedure turning any proof of P into an absurdity.</li>
+  </ul>
+  <div class="callout">
+    <strong>Now LEM's problem is visible</strong>
+    To assert <code>P ∨ ¬P</code> under this reading, you'd need to already have, in hand, either a proof of P or a proof of ¬P. For a statement nobody has resolved yet — an open conjecture, say — you have neither. Classically, LEM asserts it anyway, unconditionally, for every P, resolved or not. Intuitionistically, that's asserting more than you're entitled to: a guarantee that a disjunct is available, made without producing one.
+  </div>
+
+  <h2 id="double-negation">Double negation — the rule that's really doing the work</h2>
+  <p>LEM and <strong>double-negation elimination</strong> (<code>¬¬P ⊢ P</code>) turn out to be interchangeable — each can be derived from the other using only rules both systems already share. So the practical question is: which familiar proof technique secretly relies on DNE?</p>
+  <div class="callout warn">
+    <strong>Two reductios that look identical and aren't</strong>
+    <strong>Proving a negation</strong> (valid intuitionistically, exactly <a href="0005-natural-deduction.html#reductio">lesson 5's example</a>): assume P, derive ⊥, conclude ¬P. Under BHK this is just unpacking the definition of ¬P as "P → ⊥" — nothing extra is smuggled in.<br><br>
+    <strong>Proving an affirmation by contradiction</strong> (invalid intuitionistically, valid classically): assume ¬P, derive ⊥, conclude P. This has the exact surface shape of the first move, but it's really an application of double-negation elimination in disguise — you derived ¬¬P (¬P leads to absurdity), then quietly cashed it in for P. BHK asks: where's the actual procedure that builds you a proof of P? A refutation of a refutation of P is not the same object as a proof of P — it doesn't hand you a witness, it just rules out one particular way of denying it.
+  </div>
+  <p>This is the whole system, in practice: <strong>ex falso quodlibet</strong> (from ⊥, derive anything — <code>⊥ ⊢ P</code>) stays valid, because absurdity really does make any procedure vacuously satisfiable. Deriving a negation by contradiction stays valid. What goes away is exactly one move: using a contradiction from ¬P to conclude P outright.</p>
+
+  <h2 id="intuitionistic-proof-system">What this costs you, concretely</h2>
+  <p>A short, genuinely surprising list of things that are classically provable but have no intuitionistic proof: <code>P ∨ ¬P</code> itself; <code>¬¬P → P</code>; and — this is the one that trips people up — <code>¬(∀x.¬P(x)) → ∃x.P(x)</code> ("not everything fails to satisfy P" does <em>not</em> intuitionistically give you an actual witness where P holds; it only rules out the universal failure, without constructing an example). Meanwhile, the core proof rules from <a href="0005-natural-deduction.html">lesson 5</a> and <a href="0008-proofs-in-predicate-logic.html">lesson 8</a> — Modus Ponens, conjunction/disjunction introduction and elimination, universal instantiation, existential generalization — are entirely unchanged. Intuitionistic logic isn't a different logic built from scratch; it's classical logic's proof system with exactly one exit removed.</p>
+
+  <div class="callout">
+    <strong>Curry–Howard — why this isn't just a philosophical scruple</strong>
+    Read <code>P → Q</code> as a function type <code>A → B</code>: a proof of P → Q, under BHK, <em>is</em> a procedure converting a P into a Q — which is exactly what a function of type <code>A → B</code> is. This correspondence (propositions are types, proofs are programs) is a genuine, formal isomorphism, not a loose analogy, called the <strong>Curry–Howard correspondence</strong>. It's also why this isn't an obscure branch of logic: it's the logic every strongly-typed programming language's type system already implements. A Rust function that type-checks <em>is</em> a constructive proof of the proposition its signature encodes — your compiler has been doing intuitionistic logic the whole time you've been writing Rust.
+  </div>
+
+  <h2>Try it: classical-only, or intuitionistic too?</h2>
+  <p>For each statement, decide whether it has an intuitionistic proof or requires classical logic (LEM/DNE).</p>
+  <div id="intu-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. What is the single rule difference between classical and intuitionistic natural deduction?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Ex falso quodlibet (⊥ ⊢ P) is retained in intuitionistic logic — it isn’t the rule that gets removed.')">Ex falso quodlibet (⊥ ⊢ P) is removed</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — LEM and double-negation elimination are interderivable, so omitting either one (they’re really the same missing move) is the entire difference between the two systems.')">The law of excluded middle / double-negation elimination is not assumed or derivable</button>
+        <button onclick="quizAnswer(this,false,'q1','Modus Ponens is one of the shared, unchanged rules — both systems keep it exactly as is.')">Modus Ponens is removed</button>
+        <button onclick="quizAnswer(this,false,'q1','Proving a negation via contradiction (assume P, derive ⊥, conclude ¬P) remains valid intuitionistically — it’s the OTHER direction (proving an affirmation by contradiction) that’s removed.')">Proving a negation by contradiction is no longer allowed</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Under the BHK interpretation, what would a proof of P ∨ Q have to include?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','This is exactly what LEM asserts without justification — BHK specifically requires actually knowing which disjunct holds, not just that at least one abstractly does.')">A guarantee that at least one of P or Q is true, without needing to say which</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — BHK requires an actual proof of one specific disjunct, tagged with which one it is, not just an assurance that one exists somewhere.')">A proof of one specific disjunct (P or Q), tagged with which one it is</button>
+        <button onclick="quizAnswer(this,false,'q2','This describes a proof of P ∧ Q, not P ∨ Q — conjunction requires both, disjunction requires only one, but a specific known one.')">Proofs of both P and Q simultaneously</button>
+        <button onclick="quizAnswer(this,false,'q2','A truth table row is exactly the classical semantics BHK is replacing — BHK cares about what constitutes an actual proof, not a truth-value assignment.')">A truth table row showing the disjunction evaluates to true</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Why does "proving a negation by contradiction" stay valid while "proving an affirmation by contradiction" doesn't?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','Both really are structurally different under BHK — proving a negation directly unpacks the definition ¬P := P→⊥, while proving an affirmation smuggles in double-negation elimination.')">They're actually the same move; intuitionists reject both equally</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — proving ¬P by assuming P and deriving ⊥ is just unpacking the definition of ¬P as P→⊥, with nothing extra required. Proving P by assuming ¬P and deriving ⊥ requires converting a refutation-of-a-refutation into an actual proof, which is exactly double-negation elimination.')">Proving ¬P this way just unpacks ¬P's definition (P→⊥); proving P this way requires double-negation elimination, a genuinely extra step</button>
+        <button onclick="quizAnswer(this,false,'q3','Ex falso quodlibet (⊥ implies anything) is valid in both systems and used in both cases here — it’s not what distinguishes them.')">Because ex falso quodlibet is invalid in one case but not the other</button>
+        <button onclick="quizAnswer(this,false,'q3','Whether P is atomic or compound doesn’t matter to this distinction — the issue is specifically about affirmation vs. negation as the conclusion, not the internal structure of P.')">Because negations are always atomic while affirmations are always compound</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. What does the Curry–Howard correspondence say about a Rust function that type-checks?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','This drastically understates it — Curry-Howard is a genuine formal isomorphism between proofs and programs, not merely a loose comparison.')">It's a loose, informal metaphor for what proofs are like</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — under Curry-Howard, a type-checking function of type A → B literally IS a constructive proof of the proposition "A implies B," with no metaphor involved.')">It literally is a constructive proof of the proposition its type signature encodes</button>
+        <button onclick="quizAnswer(this,false,'q4','Curry-Howard connects proofs to programs specifically through intuitionistic (constructive) logic, not classical logic with LEM freely available.')">It's a proof in classical logic, using excluded middle freely</button>
+        <button onclick="quizAnswer(this,false,'q4','This has nothing to do with runtime performance — Curry-Howard is about the logical/type-theoretic content of the function, not its execution speed.')">It means the function will run faster than an unproven equivalent</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Take a claim like "there exist irrational numbers a, b such that a<sup>b</sup> is rational" (a classic example). The classical proof considers <code>√2^√2</code>: either it's rational (done, a=b=√2) or it's irrational (then use it as a, and b=√2, since irrational<sup>irrational</sup> = (√2^√2)^√2 = √2^2 = 2, rational) — proved by cases, via LEM, without ever determining which case actually holds. Write out, in your own words, why this proof does <em>not</em> satisfy the BHK reading of ∃ (a specific witness plus a proof it works) — and what would be missing if someone challenged you to actually name the a and b.</p>
+
+  <h2>Primary resource</h2>
+  <p>See the <a href="https://plato.stanford.edu/entries/logic-intuitionistic/" target="_blank">Stanford Encyclopedia of Philosophy — Intuitionistic Logic</a> for the full formal system and its philosophical motivation (Brouwer's constructivism), and Philip Wadler's <a href="https://homepages.inf.ed.ac.uk/wadler/papers/propositions-as-types/propositions-as-types.pdf" target="_blank">Propositions as Types</a> for the Curry–Howard correspondence explained specifically for programmers.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Want to check whether a specific classical proof you know secretly relies on LEM or double-negation elimination? Bring it to Claude Code and we'll trace through it together.
+  </div>
+
+  <div class="nav">
+    <a href="0015-godel-proof-diagonalization.html">← Lesson 15: Proving Gödel</a>
+    <span class="spacer"></span>
+    <a href="../index.html">Logic: All Lessons →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const INTU_ITEMS = [
+  {
+    english: '"P ∨ ¬P" (the law of excluded middle itself)',
+    options: [
+      { text: 'Has an intuitionistic proof', explain: 'This is exactly the statement intuitionistic logic doesn’t assume or derive — there’s no general BHK-style proof of it for arbitrary, unresolved P.' },
+      { text: 'Requires classical logic', correct: true, explain: 'Right — LEM is the one thing intuitionistic logic specifically withholds; it has no proof without assuming what’s being questioned.' },
+    ],
+  },
+  {
+    english: '"If assuming P leads to a contradiction, then ¬P" (proving a negation via contradiction)',
+    options: [
+      { text: 'Has an intuitionistic proof', correct: true, explain: 'Right — this just unpacks the BHK definition of ¬P as P→⊥; no double-negation elimination is needed.' },
+      { text: 'Requires classical logic', explain: 'This move is actually fine intuitionistically — it’s the definition of negation itself, not an appeal to excluded middle or DNE.' },
+    ],
+  },
+  {
+    english: '"If assuming ¬P leads to a contradiction, then P" (proving an affirmation via contradiction)',
+    options: [
+      { text: 'Has an intuitionistic proof', explain: 'This is precisely double-negation elimination in disguise — deriving ¬¬P and then claiming P outright, which BHK does not license.' },
+      { text: 'Requires classical logic', correct: true, explain: 'Right — this is exactly the move that’s equivalent to double-negation elimination, which intuitionistic logic rejects.' },
+    ],
+  },
+];
+
+const intuDiv = document.getElementById('intu-exercise');
+INTU_ITEMS.forEach((item, i) => {
+  const cardId = `intu-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  intuDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

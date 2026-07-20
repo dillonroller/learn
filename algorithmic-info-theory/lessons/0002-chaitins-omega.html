@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 2 — Chaitin's Ω: The Halting Probability</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Algorithmic Info Theory</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 2 of many &nbsp;·&nbsp; Algorithmic Information Theory &nbsp;·&nbsp; ~35 min</p>
+  <h1>Chaitin's Ω: The Halting Probability</h1>
+  <p><a href="0001-kolmogorov-complexity.html">Lesson 1</a> ended with K(x) uncomputable. This lesson builds something stranger: a single, perfectly well-defined real number between 0 and 1 — one specific constant, not a family of them — whose digits secretly encode the true/false answer to the halting problem for <em>every program that will ever be written</em>. You could write down its first handful of digits with real effort. You could never, even in principle, write down all of them.</p>
+
+  <h2 id="prefix-free-codes">A prerequisite: self-delimiting programs</h2>
+  <div class="callout">
+    <strong>Why "self-delimiting" matters</strong>
+    A set of binary strings is <strong>prefix-free</strong> if no string in the set is a prefix of another — you never need a delimiter to know where one code ends and the next begins, because reading bit by bit, the moment you've matched a valid code, you know you're done. Restrict attention to programs written in a prefix-free encoding (this is a real, standard restriction — not a cheat — and it costs nothing important, since any computable function can be encoded this way). <strong>Kraft's inequality</strong> then guarantees: <code>Σ 2^(−|p|) ≤ 1</code>, summed over any prefix-free set of codewords p. This single fact is what makes the rest of this lesson's sum well-defined instead of diverging to infinity.
+  </div>
+
+  <h2 id="chaitins-omega">The definition</h2>
+  <div class="callout warn">
+    <strong>Chaitin's Ω (Halting Probability)</strong>
+    <code>Ω = Σ 2^(−|p|)</code>, summed over every self-delimiting program p that halts.
+  </div>
+  <p>Read it as a probability: generate a program by flipping a fair coin for each bit, one bit at a time, stopping the moment you've matched a valid self-delimiting codeword. Ω is exactly the probability that the program you build this way eventually halts. Because the programs summed over are prefix-free, Kraft's inequality guarantees <code>0 &lt; Ω &lt; 1</code> — a genuine, specific real number, not a divergent or ill-defined expression, despite being a sum over infinitely many halting programs of every possible length.</p>
+
+  <h2 id="omega-encodes-halting">Why Ω answers the halting problem, one bit at a time</h2>
+  <p>Here's the genuinely strange part. Suppose you somehow knew the first <code>N</code> bits of Ω exactly. Run every program of length up to N in parallel (dovetailing: run step 1 of every program, then step 2 of every program, and so on), and keep a running partial sum of <code>2^(−|p|)</code> for every program p that has halted <em>so far</em>. This partial sum only ever grows, and it's always less than the true Ω (since it's missing contributions from programs that haven't halted yet, or haven't even been reached). Once the running partial sum's first N bits match your known first N bits of Ω, you can conclude with certainty: <strong>no other program of length ≤ N will ever halt</strong> — because if one did, eventually, it would push the partial sum's first N bits past what Ω actually allows, since Ω is the true total and your partial sum can never overshoot it. At that moment, you've settled the halting status — halts, or provably never halts — of every program up to length N, using nothing but those N bits.</p>
+  <div class="callout">
+    <strong>The trade you're making</strong>
+    You haven't cheated the halting problem's undecidability — you've paid for the answer up front, in the form of N bits of a number that (the next section shows) you can never actually obtain beyond a handful of them. Ω doesn't make the halting problem decidable; it relocates all of that problem's difficulty into a single, maximally compressed, and permanently inaccessible place.
+  </div>
+
+  <h2 id="omega-uncomputable-and-random">Why Ω is uncomputable — and why its own digits are random</h2>
+  <p>If a program could compute arbitrarily many digits of Ω on demand, the previous section shows you could feed it enough digits to decide the halting problem for programs of any length you like — which <a href="../../logic/lessons/0015-godel-proof-diagonalization.html">lesson 9 and lesson 15's diagonalization results</a> already ruled out. So Ω itself must be uncomputable: no program outputs its digits, one after another, forever.</p>
+  <div class="callout warn">
+    <strong>Ω is algorithmically random</strong>
+    Beyond merely being uncomputable, Ω's first n bits are themselves <a href="0001-kolmogorov-complexity.html#algorithmic-randomness">algorithmically random</a> in lesson 1's exact sense: <code>K(Ω₁...Ωₙ) ≥ n − c</code>. There is no shorter description of Ω's digits than the digits themselves — despite Ω being one single, specific, well-defined mathematical constant that you can characterize completely in one clean sentence ("the halting probability of a universal machine"). A short, precise <em>definition</em> of a number is not the same thing as a short <em>description of its digits</em> — Ω is the sharpest possible illustration of that gap.
+  </div>
+  <p>In practice, researchers have computed the first handful of bits of Ω for specific toy machines (a handful of digits, with real effort) — but the theorem above guarantees this can never be extended into a general algorithm producing digit after digit indefinitely. Every bit past what's already been earned requires genuinely new, irreducible work; no shortcut, pattern, or formula can ever take over.</p>
+
+  <h2>Try it: what follows from knowing Ω's first N bits?</h2>
+  <p>For each claim, decide whether it's a correct consequence of the lesson's argument.</p>
+  <div id="omega-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Why must programs be prefix-free for Ω's defining sum to make sense?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Prefix-freedom is unrelated to whether a program halts — it\'s a constraint on the encoding of programs as strings, not on their runtime behavior.')">Because prefix-free programs are guaranteed to halt</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — Kraft\'s inequality specifically requires a prefix-free set of codewords to guarantee Σ 2^(−|p|) ≤ 1; without that restriction the sum isn\'t guaranteed to converge to a well-defined value between 0 and 1.')">Because Kraft's inequality, which bounds the sum Σ 2^(−|p|) ≤ 1, specifically requires a prefix-free set of codewords</button>
+        <button onclick="quizAnswer(this,false,'q1','Prefix-free codes still allow arbitrarily long programs — the restriction is about no codeword being a prefix of another, not about length.')">Because it limits programs to a fixed maximum length</button>
+        <button onclick="quizAnswer(this,false,'q1','Programs are read directly as sequences of coin flips against valid codewords — this doesn\'t require or imply parallel execution.')">Because it lets every program run in parallel automatically</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. If you knew the true first N bits of Ω and ran the dovetailing procedure, what would matching those bits with your running partial sum tell you?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','This vastly overclaims — you only learn about the specific programs of length ≤ N being run in the dovetailing procedure, not literally every program that could ever exist.')">That every program that will ever be written has now been proven to halt</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — matching the known first N bits with the running partial sum certifies that no program of length ≤ N still running could ever contribute enough to change those bits, meaning it will never halt.')">That every program of length ≤ N which hasn't halted yet in the dovetailing procedure never will halt</button>
+        <button onclick="quizAnswer(this,false,'q2','This is backwards — the argument gives you certainty about which programs of length ≤N will never halt, not a probability estimate for arbitrary programs.')">That there's a 50% chance any given program will eventually halt</button>
+        <button onclick="quizAnswer(this,false,'q2','Nothing in this procedure computes further digits of Ω itself — it uses N already-known digits to resolve halting status for length-≤N programs, not to extend Ω\'s own digit sequence.')">That you can now compute the (N+1)th digit of Ω directly</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Why does Ω being uncomputable follow from the halting problem's undecidability?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','This gets the logical direction backwards — the lesson shows that computing Ω would let you SOLVE the halting problem, and since the halting problem is known to be unsolvable, Ω must be uncomputable, not the other way around.')">Because Ω's uncomputability was assumed first, and the halting problem's undecidability was derived from it</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — if a program could output arbitrarily many digits of Ω, you could use enough of those digits (via the dovetailing procedure) to decide halting for programs of any length, contradicting the halting problem\'s known undecidability. So no such program can exist.')">Because computing enough digits of Ω on demand would let you decide the halting problem for programs of any length, which is already known to be impossible</button>
+        <button onclick="quizAnswer(this,false,'q3','Ω is a completely well-defined real number by Kraft\'s inequality — its uncomputability is about no algorithm being able to output its digits, not about the number itself lacking a definition.')">Because Ω isn't actually a well-defined mathematical object</button>
+        <button onclick="quizAnswer(this,false,'q3','Ω\'s uncomputability is a permanent, unconditional theorem — it has nothing to do with hardware speed or how much time is allowed; no amount of computing time changes the result.')">Because current computers are too slow to finish the calculation, though faster hardware could eventually solve it</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. What's surprising about Ω being "algorithmically random"?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','This is exactly backwards — algorithmic randomness is specifically about the digits having no compact description, in contrast to Ω\'s own short, clean definition as a constant.')">That Ω has a very short, simple description as a specific number</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — Ω can be characterized completely in one short, clean sentence ("the halting probability of a universal machine") and yet its actual digit sequence has no shorter description than writing the digits out in full — a striking gap between defining a number and describing its digits.')">That a number with such a short, clean definition can still have digits with no shorter description than the digits themselves</button>
+        <button onclick="quizAnswer(this,false,'q4','This isn\'t what "algorithmically random" means here — the claim is specifically about the incompressibility of Ω\'s digit sequence, not about the value of Ω itself compared to other numbers.')">That Ω is larger than most other real numbers between 0 and 1</button>
+        <button onclick="quizAnswer(this,false,'q4','Researchers actually have computed a handful of early bits of Ω for specific toy machines — the point isn\'t that literally zero digits are knowable, but that the process can\'t be extended into a general, indefinitely-continuing algorithm.')">That literally no digit of Ω has ever been determined by anyone</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Work a tiny toy version of Kraft's inequality by hand: pick three prefix-free binary codewords of your own choosing (e.g. lengths 1, 2, and 3 bits, chosen so none is a prefix of another — try <code>0</code>, <code>10</code>, <code>110</code>). Compute <code>Σ 2^(−|p|)</code> for your three codewords and confirm it's ≤ 1. Then try to add a fourth codeword that breaks prefix-freeness (e.g. one that starts with an existing codeword) and see how the sum's meaning breaks down — the goal is to feel, on a tiny scale, why Ω's definition needs this property to be well-defined at all.</p>
+
+  <h2>Primary resource</h2>
+  <p>See Gregory Chaitin's own accessible essay <a href="https://www.cs.auckland.ac.nz/~chaitin/olympia.html" target="_blank">"The Halting Probability Ω"</a> and the <a href="https://en.wikipedia.org/wiki/Chaitin%27s_constant" target="_blank">Wikipedia — Chaitin's Constant</a> entry for the full formal treatment and history.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Want to work through the Kraft's inequality arithmetic together, or trace the dovetailing argument on a tiny set of toy programs? Bring it to Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0001-kolmogorov-complexity.html">← Lesson 1: Kolmogorov Complexity</a>
+    <span class="spacer"></span>
+    <a href="../index.html">Algorithmic Info Theory: All Lessons →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const OMEGA_ITEMS = [
+  {
+    english: '"Knowing the first 1000 bits of Ω would let you decide, with certainty, the halting status of every program of length ≤ 1000."',
+    options: [
+      { text: 'Correct consequence', correct: true, explain: 'Right — this is exactly what the dovetailing-and-matching procedure establishes for programs up to that length.' },
+      { text: 'Overclaims what the argument shows', explain: 'This is precisely the lesson\'s central result — the dovetailing procedure with N known bits resolves halting status for exactly the programs of length ≤ N.' },
+    ],
+  },
+  {
+    english: '"Since Ω is a specific, well-defined real number between 0 and 1, some sufficiently clever algorithm will eventually be able to compute all of its digits."',
+    options: [
+      { text: 'Correct consequence', explain: 'This is exactly what the uncomputability proof rules out — no algorithm, however clever, can output Ω\'s digits indefinitely, since that would solve the halting problem.' },
+      { text: 'Overclaims what the argument shows', correct: true, explain: 'Right — Ω being well-defined doesn\'t make it computable; the uncomputability proof is unconditional and doesn\'t leave room for a future cleverer algorithm.' },
+    ],
+  },
+  {
+    english: '"Ω\'s digits being algorithmically random means no algorithm can ever correctly output even a single one of its digits."',
+    options: [
+      { text: 'Correct consequence', explain: 'This overstates it — researchers HAVE computed a handful of early digits for specific toy machines; what\'s ruled out is a general algorithm continuing indefinitely, not any single digit ever being known.' },
+      { text: 'Overclaims what the argument shows', correct: true, explain: 'Right — a handful of digits can genuinely be computed with real effort for specific setups; the impossibility is about extending that into an unbounded, general digit-generating algorithm.' },
+    ],
+  },
+];
+
+const omegaDiv = document.getElementById('omega-exercise');
+OMEGA_ITEMS.forEach((item, i) => {
+  const cardId = `omega-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  omegaDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

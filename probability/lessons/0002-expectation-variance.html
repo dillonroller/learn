@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 2 — Expectation &amp; Variance</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Probability</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 2 of many &nbsp;·&nbsp; Probability &nbsp;·&nbsp; ~30 min</p>
+  <h1>Expectation &amp; Variance</h1>
+  <p><a href="../../rationality/lessons/0004-calibration-and-expected-value.html#expected-value">Rationality's expected value lesson</a> gave you <code>EV = Σ p(outcome) × value(outcome)</code> as a practical formula. That formula has a proper name — <strong>expectation</strong> — and now that <a href="0001-probability-spaces-random-variables.html">lesson 1</a> gave you random variables to plug into it, it comes with a genuinely surprising superpower: you can compute it without ever knowing the full distribution.</p>
+
+  <h2 id="expectation">Expectation, formally</h2>
+  <div class="callout warn">
+    <strong>Expectation</strong>
+    For a discrete random variable X with possible values <code>x</code> and PMF <code>p(x)</code>: <code>E[X] = Σ x · p(x)</code>.
+  </div>
+  <p>This is exactly Rationality's EV formula, just written with X's own values instead of generic "outcomes" — <code>value(outcome)</code> was always secretly a random variable, and <code>p(outcome)</code> was always secretly its distribution. Summing two dice (from <a href="0001-probability-spaces-random-variables.html#distribution">lesson 1</a>): <code>E[X] = 2(1/36) + 3(2/36) + ... + 12(1/36) = 7</code>. Exactly the middle of the possible range — no surprise for a symmetric distribution, but the next section shows a much faster way to have gotten that same 7.</p>
+
+  <h2 id="linearity-of-expectation">Linearity of expectation — the shortcut that shouldn't work this well</h2>
+  <div class="callout warn">
+    <strong>Linearity of Expectation</strong>
+    <code>E[X + Y] = E[X] + E[Y]</code> — <strong>always</strong>. Not just when X and Y are independent. Not just when they're uncorrelated. Always, unconditionally, for any two random variables on the same probability space.
+  </div>
+  <p>This deserves to feel surprising. Computing the sum of two dice's expectation directly (as above) required knowing the full 11-value distribution of the sum — real work, built from all 36 outcome pairs. Linearity skips all of it: let <code>X₁</code> be die 1, <code>X₂</code> be die 2. <code>E[X₁] = E[X₂] = 3.5</code> each (average of 1 through 6). So <code>E[X₁+X₂] = 3.5 + 3.5 = 7</code> — the same answer, computed from two one-line calculations instead of building the whole joint distribution.</p>
+  <div class="callout">
+    <strong>Where this actually pays off</strong>
+    The shortcut becomes indispensable once "dependent" enters the picture. Classic example: shuffle a deck of 52 cards; how many cards, on average, end up in their own original position? Let <code>Xᵢ = 1</code> if card i is in position i, else 0 — these <code>Xᵢ</code> are wildly dependent on each other (if 51 cards are fixed, the 52nd is forced too). Computing the distribution of the total directly is a real combinatorics problem. Linearity sidesteps it entirely: <code>E[total] = E[X₁] + E[X₂] + ... + E[X₅₂]</code>, and each <code>E[Xᵢ] = P(card i is fixed) = 1/52</code> by symmetry — so the answer is <code>52 × (1/52) = 1</code>, on average exactly one card lands in its own spot, regardless of dependence. No joint distribution required, ever.
+  </div>
+
+  <h2 id="variance">Variance — how spread out, not just where centered</h2>
+  <p>Two random variables can have the identical expectation and still be nothing alike. A fair coin paying $0 or $2 has <code>E = $1</code>. A trick coin paying exactly $1 always also has <code>E = $1</code>. Expectation alone can't tell them apart — you need a second number for spread.</p>
+  <div class="callout warn">
+    <strong>Variance &amp; Standard Deviation</strong>
+    <code>Var(X) = E[(X − E[X])²]</code> — the average squared distance from the mean. Equivalently (often easier to compute): <code>Var(X) = E[X²] − (E[X])²</code>. <strong>Standard deviation</strong> is <code>σ = √Var(X)</code> — back in the original units, since variance's squaring distorts the scale.
+  </div>
+  <p>For the $0-or-$2 coin: <code>Var = 0.5(0−1)² + 0.5(2−1)² = 0.5 + 0.5 = 1</code>, so <code>σ = 1</code>. For the guaranteed $1: <code>Var = 0</code> — no spread at all, since it never deviates from its own mean. Same expectation, completely different risk profile — which is precisely the gap <a href="../../rationality/lessons/0004-calibration-and-expected-value.html#expected-utility">Rationality's expected-utility correction</a> gestured at without the formal tool to measure it: two bets with equal EV are not equally comfortable to take, and variance is the number that says by how much.</p>
+
+  <h2>Try it: compute or reason about it</h2>
+  <p>For each scenario, pick the correct application of expectation or linearity.</p>
+  <div id="ev-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Why does linearity of expectation hold even when X and Y are dependent?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Linearity is a fully general, unconditional theorem — it isn’t an approximation and doesn’t require independence at all.')">It's only an approximation that happens to work when dependence is weak</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — the proof of E[X+Y] = E[X] + E[Y] never uses independence anywhere; it follows directly from how expectation sums over the joint distribution, dependent or not.')">The proof never actually requires independence — it holds by the structure of expectation itself, regardless of dependence</button>
+        <button onclick="quizAnswer(this,false,'q1','Dependent variables absolutely can have well-defined individual expectations — dependence affects things like variance of the sum, not whether E[X] and E[Y] exist.')">Because dependent variables don't have well-defined individual expectations</button>
+        <button onclick="quizAnswer(this,false,'q1','This has it backwards — linearity is exactly the tool that lets you skip building the joint distribution, not something that requires it.')">It only holds because you first compute the full joint distribution</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. In the card-shuffle example, why is linearity so much easier than computing the distribution directly?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','The Xᵢ indicators are highly dependent on each other (fixing 51 cards forces the 52nd) — linearity works despite that dependence, not because it’s absent.')">Because the indicator variables Xᵢ are actually independent of each other</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — linearity reduces the problem to 52 trivial one-line calculations (each E[Xᵢ] = 1/52 by symmetry) instead of working out the full, genuinely hard combinatorial distribution of the total.')">Because it reduces to summing 52 simple individual expectations instead of solving a hard combinatorics problem for the whole distribution</button>
+        <button onclick="quizAnswer(this,false,'q2','Each Xᵢ is 1 or 0 depending on whether card i lands in its own position — this is a completely different setup from summing two dice.')">Because it's the same calculation as the two-dice sum example</button>
+        <button onclick="quizAnswer(this,false,'q2','This isn’t an approximation — linearity gives the exact expected value, 1, with no approximation involved.')">Because it gives an approximate answer that's close enough for practical purposes</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Two bets both have E[payout] = $100. Bet A always pays exactly $100. Bet B pays $0 or $200 with equal probability. What distinguishes them?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','Nothing distinguishes them in expectation — they’re equal there. Variance is exactly the number that captures what’s actually different between them.')">Nothing — equal expectation means they're interchangeable in every respect</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — Bet A has Var = 0 (no spread at all), while Bet B has substantial variance around the same $100 mean. Same center, very different spread.')">Variance — Bet A has zero variance, Bet B has substantial variance, despite identical expectation</button>
+        <button onclick="quizAnswer(this,false,'q3','Both bets do have well-defined, equal expectations ($100 each) — that’s not in question here.')">Expectation — Bet B actually has a higher expectation than Bet A</button>
+        <button onclick="quizAnswer(this,false,'q3','Both scenarios are perfectly valid, well-defined probability distributions — nothing here violates any probability axiom.')">Bet B violates the probability axioms, so it isn't a valid comparison</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Why take the square root of variance to get standard deviation, rather than just using variance directly?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','Variance isn’t always exactly the square of the mean — the square root specifically undoes variance’s own squared units, not a relationship to E[X] as such.')">Because variance is always exactly the square of the mean</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — variance is computed from squared deviations, which puts it in squared units (e.g. dollars²); the square root converts back to the original units (dollars), making it directly comparable to the mean.')">Because variance's squaring puts it in squared units; the square root converts back to the variable's original units for direct comparison</button>
+        <button onclick="quizAnswer(this,false,'q4','Standard deviation isn’t generally a smaller number by convention — depending on the values, either could be numerically larger or smaller.')">Because standard deviation is always a smaller, more convenient number</button>
+        <button onclick="quizAnswer(this,false,'q4','Variance is a well-defined, directly computable quantity — it isn’t "impossible" to interpret, just in squared units, which is precisely why standard deviation exists as a complementary measure.')">Because variance itself is impossible to compute directly</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Compute, by hand, E[X] and Var(X) for a single fair six-sided die (X = the value rolled, each value 1–6 with probability 1/6). Then use linearity to find E[X₁+X₂+X₃] for three dice rolled together, without computing the sum's full distribution. Finally, invent two different bets with the same expectation as each other but visibly different variance, the way this lesson's $100 example did — the goal is to feel expectation and variance as two genuinely separate pieces of information, not one number in disguise.</p>
+
+  <h2>Primary resource</h2>
+  <p>See <a href="https://projects.iq.harvard.edu/stat110/home" target="_blank">Harvard Stat 110 (Blitzstein &amp; Hwang)</a>, continuing from lesson 1 — the linearity-of-expectation chapter and its card-matching/hat-check examples are a well-known highlight of the course for exactly the reason this lesson leads with them.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Have a real scenario with dependent outcomes where you want to try applying linearity instead of the full distribution? Bring it to Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0001-probability-spaces-random-variables.html">← Lesson 1: Probability Spaces &amp; Random Variables</a>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-03">Lesson 3: Common Distributions →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const EV2_ITEMS = [
+  {
+    english: '"Rolling 5 dice, find the expected value of the sum."',
+    options: [
+      { text: 'Direct linearity: 5 × E[one die]', correct: true, explain: 'Right — by linearity, E[X₁+...+X₅] = 5 × 3.5 = 17.5, no need to build the sum\'s full distribution.' },
+      { text: 'Must build the full joint distribution first', explain: 'Linearity makes this unnecessary — you can sum the five individual expectations directly, regardless of how the sum\'s distribution looks.' },
+    ],
+  },
+  {
+    english: '"52 people randomly grab their own or someone else\'s coat from a pile; find the expected number who get their own coat."',
+    options: [
+      { text: 'Direct linearity: sum of 52 dependent indicator expectations', correct: true, explain: 'Right — same structure as the card-shuffle example: define an indicator per person, sum their (dependent) expectations, get 52 × 1/52 = 1.' },
+      { text: 'Must build the full joint distribution first', explain: 'This is exactly the case linearity is built for — the indicators are dependent, but their individual expectations still sum correctly without the full joint distribution.' },
+    ],
+  },
+  {
+    english: '"Compare a guaranteed $50 bonus to a lottery ticket with the same expected value; decide which is more predictable."',
+    options: [
+      { text: 'Compare variance, not just expectation', correct: true, explain: 'Right — with equal expectation, variance (zero for the guaranteed bonus, high for the lottery) is exactly the number that captures the difference in predictability.' },
+      { text: 'They\'re identical since expectation matches', explain: 'Equal expectation doesn\'t mean equal risk — variance distinguishes a guaranteed outcome from a highly spread-out one even when their averages match.' },
+    ],
+  },
+];
+
+const ev2Div = document.getElementById('ev-exercise');
+EV2_ITEMS.forEach((item, i) => {
+  const cardId = `ev2-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  ev2Div.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>
