@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 5 — Adjunctions</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Category Theory</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 5 of many &nbsp;·&nbsp; Category Theory &nbsp;·&nbsp; ~45 min</p>
+  <h1>Adjunctions</h1>
+  <p>You've already used two adjunctions without a name for them: currying a two-argument Rust function into a function that returns a function, and building a <code>Vec&lt;T&gt;</code> from raw elements and then <code>.fold()</code>-ing it back down. Adjunctions are the single idea that explains why both of those "just work," why <a href="0003-universal-properties-products.html#product-universal-property">lesson 3's universal properties</a> keep showing up in pairs, and — as the closing callout below shows — where <a href="0004-monads.html#monad-definition">lesson 4's monads</a> actually come from.</p>
+
+  <h2 id="adjunction-motivation">The pattern: a "best approximate" round trip</h2>
+  <p>A functor <code>F: C → D</code> and a functor going the other way, <code>G: D → C</code>, rarely undo each other exactly — <code>G(F(A))</code> usually isn't literally <code>A</code>. But in a huge number of important cases, there's still a precise, checkable relationship between them: mapping out of <code>F(A)</code> in D is <em>exactly the same information</em> as mapping out of <code>A</code> into <code>G(B)</code> in C, for every A and B. That relationship — not equality of the functors, but a controlled, natural correspondence between the morphisms they produce — is an <strong>adjunction</strong>, and F is said to be <strong>left adjoint</strong> to G (written <code>F ⊣ G</code>, with G the <strong>right adjoint</strong>).</p>
+
+  <h2 id="adjunction-definition">The definition</h2>
+  <div class="callout warn">
+    <strong>Definition: Adjunction</strong>
+    Functors <code>F: C → D</code> and <code>G: D → C</code> form an adjunction <code>F ⊣ G</code> when there is a bijection
+    <p style="margin:.5rem 0;"><code>Hom_D(F(A), B) &nbsp;≅&nbsp; Hom_C(A, G(B))</code></p>
+    for every object A in C and B in D, and this bijection is <strong>natural</strong> in both A and B — it doesn't secretly special-case which objects you plugged in, the same requirement <a href="0002-functors-natural-transformations.html#natural-transformation">lesson 2's naturality square</a> imposed on natural transformations.
+  </div>
+  <p>Read left to right: a morphism out of <code>F(A)</code> in D is freely interchangeable with a morphism into <code>G(B)</code> from A back in C. Nothing here says F and G are inverses — <code>G(F(A))</code> is generally a bigger, more structured object than A. The adjunction only promises that morphisms on either side carry the same information.</p>
+
+  <h2 id="unit-counit">Unit and counit</h2>
+  <p>The hom-set bijection has an equivalent, more operational formulation: two natural transformations,</p>
+  <ul>
+    <li><strong>unit</strong> <code>η: Id_C ⇒ G∘F</code> — for every A, a morphism <code>η_A: A → G(F(A))</code></li>
+    <li><strong>counit</strong> <code>ε: F∘G ⇒ Id_D</code> — for every B, a morphism <code>ε_B: F(G(B)) → B</code></li>
+  </ul>
+  <p>satisfying the <strong>triangle identities</strong> <code>(ε∘F)∘(F∘η) = id_F</code> and <code>(G∘ε)∘(η∘G) = id_G</code> — the categorical way of saying the unit and counit don't fight each other; going "out and back" via either functor first is a no-op on the other. This is the same shape as <a href="0004-monads.html#monad-definition">lesson 4's monad unit</a>, but now between two different categories via two different functors, instead of one endofunctor talking to itself. You'll see exactly how they connect in the callout near the end of this lesson.</p>
+
+  <h2 id="currying-adjunction">Worked example 1: currying is an adjunction</h2>
+  <p>Fix a set (or type) B. Define <code>F(A) = A×B</code> and <code>G(C) = C^B</code> — read <code>C^B</code> as "the set of functions <code>B → C</code>," i.e. Rust's <code>impl Fn(B) -&gt; C</code>. The claim: <code>F ⊣ G</code>, via</p>
+  <p style="margin:.5rem 0;"><code>Hom(A×B, C) &nbsp;≅&nbsp; Hom(A, C^B)</code></p>
+  <p>which is exactly <code>curry</code>/<code>uncurry</code> in Rust: a function <code>fn(A, B) -&gt; C</code> corresponds exactly to a function <code>fn(A) -&gt; (fn(B) -&gt; C)</code>, with no information gained or lost either way. Under unit/counit:</p>
+  <ul>
+    <li><strong>unit</strong> <code>η_A: A → (A×B)^B</code>, <code>η_A(a) = λb.(a, b)</code> — pair a with whatever B-value shows up later.</li>
+    <li><strong>counit</strong> <code>ε_C: C^B×B → C</code>, <code>ε_C(f, b) = f(b)</code> — this one is worth sitting with: the counit of the currying adjunction is <em>literally function application</em>. Every time you call a closure, you're using this counit.</li>
+  </ul>
+
+  <h2 id="free-forgetful-monoid">Worked example 2: free monoid, forgetful functor, and fold</h2>
+  <p>Let <code>U: Monoid → Set</code> be the <strong>forgetful functor</strong> — take a monoid and just remember its underlying set, throwing away the operation. Let <code>F: Set → Monoid</code> be the <strong>free functor</strong> — take a set A and build <code>List&lt;A&gt;</code>, with concatenation as the operation and the empty list as identity. This is <a href="0003-universal-properties-products.html#uniqueness-up-to-isomorphism">lesson 3</a>'s "the smallest thing satisfying the property" move: <code>List&lt;A&gt;</code> is the monoid you get by adding <em>only</em> what the monoid axioms force and nothing else. The claim: <code>F ⊣ U</code>, via</p>
+  <p style="margin:.5rem 0;"><code>Hom_Monoid(List&lt;A&gt;, M) &nbsp;≅&nbsp; Hom_Set(A, U(M))</code></p>
+  <p>Right to left: given a plain function <code>f: A → U(M)</code> — no monoid structure required, just "for each element of A, pick a value in M" — there's exactly one monoid homomorphism <code>List&lt;A&gt; → M</code> agreeing with it, and you already know its name: <strong>fold</strong>. Concretely, <code>ĥ([a₁,...,aₙ]) = f(a₁) ⊕ f(a₂) ⊕ ... ⊕ f(aₙ)</code> (empty list ↦ M's identity), which in Rust is <code>xs.into_iter().map(f).fold(M::identity(), M::combine)</code>. The adjunction is the formal statement that this is the <em>unique</em> homomorphism extending f — the same uniqueness clause that made lesson 3's universal properties bite.</p>
+
+  <div class="callout" id="adjunctions-give-monads">
+    <strong>Where lesson 4's monads actually come from</strong>
+    Every adjunction <code>F ⊣ G</code> produces a monad on C: take <code>T = G∘F</code> as the endofunctor, the adjunction's own <code>η</code> as the monad's unit, and <code>μ = G∘ε∘F</code> (apply the counit "in the middle," then let G carry it back) as join. The <a href="0004-monads.html#option-monad-example">Option monad from lesson 4</a> isn't a special case invented from nowhere — it's <code>G∘F</code> for the free/forgetful adjunction between Set and <strong>pointed sets</strong> (a set with one designated basepoint, plus basepoint-preserving functions): <code>F(A) = A ⊔ {*}</code> adds a fresh basepoint to A (this <em>is</em> <code>Option&lt;A&gt;</code> — the basepoint is <code>None</code>, everything else is wrapped in <code>Some</code>), and <code>U</code> forgets which point was distinguished. <code>T = U∘F</code> sends A to <code>Option&lt;A&gt;</code>, exactly recovering lesson 4's monad. The "monoid in the category of endofunctors" joke had a second layer underneath it the whole time.
+  </div>
+
+  <h2>Try it: is this pair an adjunction?</h2>
+  <p>For each proposed F, G, and claimed hom-set bijection, decide whether it's actually a valid adjunction.</p>
+  <div id="adjunction-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. What does F ⊣ G actually assert?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','That would make F and G inverses (an equivalence of categories) — a much stronger, rarer condition. Adjunction only requires the hom-sets to correspond, not that G(F(A)) literally equals A.')">That F and G are inverse functors, so applying one after the other always gets back exactly where you started</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — the defining condition is exactly this natural bijection between the two hom-sets, for every A and B.')">That morphisms F(A)→B in D correspond bijectively and naturally to morphisms A→G(B) in C</button>
+        <button onclick="quizAnswer(this,false,'q1','Both worked examples in this lesson have F and G landing in genuinely different categories (Set/Monoid, and Set to itself with a fixed B is still fine, but the free/forgetful example spans two different categories) — adjunctions routinely relate different categories.')">That F and G must both be functors from a category to itself</button>
+        <button onclick="quizAnswer(this,false,'q1','Order of composition (G∘F vs F∘G) is a separate concern from what the adjunction condition itself asserts — the definition is about the hom-set bijection, not an ordering rule on applying the functors.')">That G must always be composed before F in any expression</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. In the currying adjunction (–×B) ⊣ (–)^B, what does the counit ε_C concretely do?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','This describes the UNIT η_A, not the counit — η_A(a) = λb.(a,b) is the one that pairs a value with a placeholder for later; the counit goes the other direction.')">It wraps a value a into the constant function λb.(a, b)</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — ε_C(f, b) = f(b) is function application/evaluation: hand it a function and an argument, get the result. Every closure call you make is this counit in action.')">It applies a function to an argument: ε_C(f, b) = f(b)</button>
+        <button onclick="quizAnswer(this,false,'q2','Ordinary function composition (B→C composed with A→B) isn\'t what the counit does here — the counit\'s job is evaluation/application, not chaining two separate functions together.')">It composes two separate functions into one longer function</button>
+        <button onclick="quizAnswer(this,false,'q2','The counit doesn\'t "convert back" without evaluating — ε_C(f,b)=f(b) genuinely computes the result by applying f to b, it isn\'t a no-op repackaging.')">It converts a curried function back into a pair, without evaluating anything</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. In the free monoid / forgetful adjunction, what does a plain function f: A → U(M) uniquely extend to?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','Monoids don\'t require inverses in general (that\'s groups) — the extension is a monoid homomorphism, which only has to respect the operation and identity, nothing about invertibility.')">A group homomorphism, since every monoid secretly has inverses</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — f extends uniquely to the monoid homomorphism List<A> → M given by mapping each element through f and then folding with M\'s operation, exactly the fold worked through in the lesson.')">A monoid homomorphism List<A> → M, given by mapping each element via f and then folding with M's operation</button>
+        <button onclick="quizAnswer(this,false,'q3','f itself is just a function between underlying sets — it doesn\'t respect any monoid operation by itself (A isn\'t even a monoid), so it can\'t already BE a monoid homomorphism without the fold construction.')">Nothing further — f is already a monoid homomorphism as given</button>
+        <button onclick="quizAnswer(this,false,'q3','F itself (the free-monoid assignment A ↦ List<A>) is the functor already fixed by the adjunction\'s setup — it isn\'t something a single function f: A→U(M) produces; f extends to one specific homomorphism out of List<A>, not to a whole new functor.')">A new functor from Set to Monoid</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. For an adjunction F ⊣ G with F: C→D and G: D→C, which composite is the endofunctor T of the monad it produces on C?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','F∘G goes C-object → D (via G) → D (via F), landing back in D, not C — it\'s not even an endofunctor on C, so it can\'t be T.')">F∘G</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — T = G∘F: apply the left adjoint F (C→D), then the right adjoint G (D→C), landing back in C where it started — exactly the endofunctor the induced monad needs.')">G∘F</button>
+        <button onclick="quizAnswer(this,false,'q4','F alone goes C→D — it isn\'t an endofunctor on either category by itself, so it can\'t serve as the monad\'s T.')">F alone</button>
+        <button onclick="quizAnswer(this,false,'q4','G alone goes D→C — it isn\'t an endofunctor on C by itself (its domain is D, not C), so it can\'t serve as the monad\'s T.')">G alone</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Take the free monoid adjunction and make it concrete: let <code>A = {x, y}</code> and let <code>M</code> be the monoid of integers under addition (identity 0). Pick any plain function <code>f: A → ℤ</code> — say <code>f(x) = 3, f(y) = -1</code> — and hand-compute what the unique extended homomorphism <code>ĥ: List&lt;A&gt; → ℤ</code> sends the list <code>[x, y, x, x]</code> to. Then separately verify the currying adjunction on a toy example: write (in pseudocode) a two-argument function <code>f(a, b)</code>, curry it into <code>g(a)(b)</code>, and confirm <code>g(a)(b) = f(a, b)</code> for a couple of concrete inputs — that equality, holding for every a and b, is precisely the naturality of worked example 1's bijection.</p>
+
+  <h2>Primary resource</h2>
+  <p>See the <a href="https://github.com/hmemcpy/milewski-ctfp-pdf" target="_blank">free PDF compilation of Bartosz Milewski's Category Theory for Programmers</a>, continuing from lessons 1–4's chapters into the adjunctions material, for the full formal treatment and additional worked examples beyond currying and free monoids.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Want to work out the unit/counit for a different adjunction (free groups, or the discrete/indiscrete-topology pair), or see the triangle identities checked in full symbolic detail on one of this lesson's examples? Bring it to Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0004-monads.html">← Lesson 4: Monads</a>
+    <span class="spacer"></span>
+    <a href="../index.html">Category Theory: All Lessons →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const ADJUNCTION_ITEMS = [
+  {
+    english: '"F = (–)×B : Set→Set, G = (–)^B : Set→Set, with Hom(A×B,C) ≅ Hom(A,C^B) natural in A,C."',
+    options: [
+      { text: 'Valid adjunction', correct: true, explain: 'Right — this is exactly the currying adjunction worked through in the lesson: F ⊣ G via curry/uncurry.' },
+      { text: 'Breaks the adjunction condition', explain: 'This is precisely the currying adjunction from the lesson — the bijection holds and is natural in both A and C.' },
+    ],
+  },
+  {
+    english: '"F = free-monoid functor Set→Monoid (A ↦ List<A>), G = forgetful functor Monoid→Set, with Hom_Monoid(F(A),M) ≅ Hom_Set(A,G(M))."',
+    options: [
+      { text: 'Valid adjunction', correct: true, explain: 'Right — this is exactly the free/forgetful adjunction from the lesson: F ⊣ G, witnessed by fold extending a plain function to a unique monoid homomorphism.' },
+      { text: 'Breaks the adjunction condition', explain: 'This is precisely the free/forgetful adjunction worked through in the lesson — the fold construction gives exactly the required bijection.' },
+    ],
+  },
+  {
+    english: '"F = forgetful functor Monoid→Set, G = free-monoid functor Set→Monoid, with Hom_Set(F(M),A) ≅ Hom_Monoid(M,G(A))."',
+    options: [
+      { text: 'Valid adjunction', explain: 'Direction matters: the lesson\'s example is Free ⊣ Forgetful, not Forgetful ⊣ Free. Swapping which functor is F and which is G makes a different, generally false, claim — there\'s no reason an arbitrary monoid homomorphism M→List<A> should correspond to an arbitrary plain function U(M)→A.' },
+      { text: 'Breaks the adjunction condition', correct: true, explain: 'Right — adjunctions aren\'t symmetric. Free is left adjoint to Forgetful (F ⊣ G as stated in the lesson), but Forgetful is not, in general, left adjoint to Free.' },
+    ],
+  },
+];
+
+const adjDiv = document.getElementById('adjunction-exercise');
+ADJUNCTION_ITEMS.forEach((item, i) => {
+  const cardId = `adj-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  adjDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>
