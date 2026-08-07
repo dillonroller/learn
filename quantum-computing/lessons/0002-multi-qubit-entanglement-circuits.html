@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 2 — Multi-Qubit Systems, Entanglement &amp; Circuits</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Quantum Computing</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 2 of 10 &nbsp;·&nbsp; Quantum Computing &nbsp;·&nbsp; ~35 min</p>
+  <h1>Multi-Qubit Systems, Entanglement &amp; Circuits</h1>
+  <p><a href="0001-qubits-bloch-sphere-single-qubit-gates.html">Lesson 1</a> was one wire. Real computation needs many. This lesson builds the circuit that produces the simplest entangled state there is — and shows exactly where a quantum computer's state space starts growing exponentially, which is the whole reason quantum computing is interesting and the whole reason it's hard to simulate classically.</p>
+
+  <h2 id="tensor-product-gates">n qubits, 2ⁿ amplitudes</h2>
+  <p>Two qubits together live in the <a href="../../quantum-mechanics/lessons/0002-entanglement-epr-puzzle.html#two-qubit-states">tensor-product space</a> spanned by |00⟩, |01⟩, |10⟩, |11⟩ — four basis states, so a general two-qubit state needs four complex amplitudes:</p>
+  <pre><code>|ψ⟩ = c₀₀|00⟩ + c₀₁|01⟩ + c₁₀|10⟩ + c₁₁|11⟩       Σ|cᵢⱼ|² = 1</code></pre>
+  <p>Each additional qubit doubles the number of basis states, because the tensor product multiplies dimensions rather than adding them. n qubits need 2ⁿ complex amplitudes — 20 qubits already need over a million, 300 qubits need more amplitudes than there are atoms in the observable universe.</p>
+  <div class="callout warn" id="exponential-state-space">
+    <strong>The trap: exponential state space ≠ automatic exponential speedup</strong>
+    It's tempting to conclude "2ⁿ amplitudes means a quantum computer explores 2ⁿ possibilities in parallel, so it's exponentially faster at everything." That's the single most common misconception about quantum computing, and this course corrects it directly starting in <a href="0004-interference-deutsch-jozsa.html">lesson 4</a>: you can prepare all 2ⁿ amplitudes at once, but you can only ever <em>read out</em> one measurement result, governed by the <a href="../../quantum-mechanics/lessons/0001-state-vectors-superposition-born-rule.html#born-rule">Born rule</a>. Every real quantum algorithm's speedup comes from carefully engineering <em>interference</em> so the amplitudes you don't want cancel out before you measure — not from "checking every answer at once" for free.
+  </div>
+
+  <h2>Applying a gate to just one wire</h2>
+  <p>To apply a single-qubit gate to only qubit 0 while leaving qubit 1 alone, tensor it with the identity: <code>U ⊗ I</code>. Concretely, H applied to qubit 0 of a two-qubit system is a 4×4 matrix built from the 2×2 Hadamard and the 2×2 identity — the mechanics are just the tensor product from <a href="../../quantum-mechanics/lessons/0002-entanglement-epr-puzzle.html#two-qubit-states">Quantum Mechanics lesson 2</a>, now applied to an operator instead of a state.</p>
+
+  <h2 id="cnot-gate">CNOT: the simplest two-qubit gate</h2>
+  <p>The controlled-NOT (CNOT) gate reads one qubit (the <strong>control</strong>) and flips another (the <strong>target</strong>) only if the control is |1⟩:</p>
+  <pre><code>CNOT|00⟩ = |00⟩        control=0 → target untouched
+CNOT|01⟩ = |01⟩        control=0 → target untouched
+CNOT|10⟩ = |11⟩        control=1 → target flipped
+CNOT|11⟩ = |10⟩        control=1 → target flipped
+
+As a matrix, basis order {|00⟩,|01⟩,|10⟩,|11⟩}:
+CNOT = |1 0 0 0|
+       |0 1 0 0|
+       |0 0 0 1|
+       |0 0 1 0|</code></pre>
+  <p>In circuit notation, the control is a solid dot and the target is a ⊕ symbol, joined by a vertical line:</p>
+  <pre><code>q0 (control) ──●──
+                │
+q1 (target)  ──⊕──</code></pre>
+  <p>CNOT is unitary (check: applying it twice returns every basis state to itself, so CNOT² = I, its own inverse) — consistent with <a href="0001-qubits-bloch-sphere-single-qubit-gates.html#unitary-gates">every gate needing to be reversible</a>.</p>
+
+  <h2 id="bell-state-circuit">Building an entangled state, one gate at a time</h2>
+  <p>Start both qubits in |0⟩. Apply H to qubit 0 only, then CNOT with qubit 0 as control:</p>
+  <pre><code>q0: |0⟩──[H]──●──
+q1: |0⟩───────⊕──</code></pre>
+  <div class="callout">
+    <strong>Walking through it</strong>
+    Step 1 — start: <code>|00⟩</code>.<br>
+    Step 2 — H on q0: <code>(|0⟩+|1⟩)/√2 ⊗ |0⟩ = (|00⟩ + |10⟩)/√2</code>.<br>
+    Step 3 — CNOT (q0 controls, q1 is target): the |00⟩ term has control=0, untouched; the |10⟩ term has control=1, so its target flips to |11⟩. Result: <code>(|00⟩ + |11⟩)/√2</code>.
+  </div>
+  <p>That final state is exactly a <a href="../../quantum-mechanics/lessons/0002-entanglement-epr-puzzle.html#product-vs-entangled">non-factorizable, entangled state</a> — it provably cannot be written as (single qubit state)⊗(single qubit state). This two-gate circuit is the standard way to manufacture entanglement on demand, and it's the opening move of a large fraction of quantum algorithms and protocols, including several later in this course.</p>
+
+  <h2>Try it: product state or entangled?</h2>
+  <p>For each two-qubit state, decide whether it factors into two separate single-qubit states.</p>
+  <div id="entangle-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Why does a system of n qubits need 2ⁿ complex amplitudes to describe, instead of just n numbers?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q1','Right — combining qubits is a tensor product, which multiplies dimensions rather than adding them: each new qubit doubles the number of basis states.')">Each additional qubit doubles the dimension of the joint state space, via the tensor product</button>
+        <button onclick="quizAnswer(this,false,'q1','That describes n independent classical bits (n numbers total) — qubits combine multiplicatively, not additively, which is exactly why the count is 2ⁿ and not n.')">Each qubit contributes one independent amplitude, tracked separately</button>
+        <button onclick="quizAnswer(this,false,'q1','Measurement outcomes are what you read out, not what determines how many amplitudes describe the pre-measurement state.')">Because measurement outcomes multiply together</button>
+        <button onclick="quizAnswer(this,false,'q1','Product states (unentangled ones) are still described in the same 2ⁿ-dimensional space — entanglement isn’t what creates the dimension count, the tensor product does.')">Because the qubits must be entangled for the space to exist at all</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. What circuit turns |00⟩ into the Bell state (|00⟩ + |11⟩)/√2?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right — H spreads qubit 0 into superposition first, then CNOT correlates qubit 1 with it, entangling the two.')">H on qubit 0, then CNOT with qubit 0 as control</button>
+        <button onclick="quizAnswer(this,false,'q2','CNOT on |00⟩ alone does nothing — the control qubit is 0, so the target is never flipped, leaving |00⟩ unchanged.')">CNOT alone, with no other gates</button>
+        <button onclick="quizAnswer(this,false,'q2','H on both qubits gives (|00⟩+|01⟩+|10⟩+|11⟩)/2, which is the product state |+⟩⊗|+⟩ — no entanglement, since it factors cleanly.')">H on both qubit 0 and qubit 1</button>
+        <button onclick="quizAnswer(this,false,'q2','Z only changes phases of an already-unentangled |00⟩ state — it can’t create the correlation between the two qubits that entanglement requires.')">Z on qubit 1 only</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Is (|00⟩ + |11⟩)/√2 a product state or an entangled state?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right — no choice of single-qubit states (a|0⟩+b|1⟩)⊗(c|0⟩+d|1⟩) reproduces this state; it provably cannot be factored, per the entangled-state definition from Quantum Mechanics.')">Entangled — it cannot be written as (single-qubit state) ⊗ (single-qubit state)</button>
+        <button onclick="quizAnswer(this,false,'q3','|+⟩⊗|+⟩ expands to (|00⟩+|01⟩+|10⟩+|11⟩)/2, which has all four terms with equal sign — that’s a different state from (|00⟩+|11⟩)/√2, which is missing the |01⟩ and |10⟩ terms.')">Product state — equal to |+⟩⊗|+⟩</button>
+        <button onclick="quizAnswer(this,false,'q3','Whether a state is entangled is a property of the state itself, before any measurement — measurement collapses it to a definite outcome, it doesn’t create the entanglement.')">Entangled only after it's measured</button>
+        <button onclick="quizAnswer(this,false,'q3','Factorizability doesn’t depend on which basis you write it in — this specific state (the Bell state) is entangled in any basis.')">Undefined without first picking a measurement basis</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Formally, what does "apply gate U to qubit 0 only" mean in a two-qubit system?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q4','Right — tensoring U with the identity on qubit 1’s factor is exactly what "act on qubit 0, leave qubit 1 alone" means mathematically.')">Apply the operator U ⊗ I — U on qubit 0's factor, identity on qubit 1's</button>
+        <button onclick="quizAnswer(this,false,'q4','Applying U twice to the same qubit is a different operation (U², which for many gates like H returns the identity) — it has nothing to do with acting on only one of two qubits.')">Apply U twice in a row to the combined state</button>
+        <button onclick="quizAnswer(this,false,'q4','Gates act on the full state vector via matrix multiplication, not by singling out one scalar coefficient to modify.')">Apply U only to the c₀₀ coefficient</button>
+        <button onclick="quizAnswer(this,false,'q4','Nothing about applying a gate to one qubit requires touching the other qubit at all — that’s exactly what U ⊗ I guarantees: qubit 1’s factor gets the identity, unchanged.')">Apply U's inverse to qubit 1 to compensate</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>By hand: start from |00⟩ and work out the circuit H on q0, H on q1, then CNOT (q0 controls). Write out the state after each of the three gates. (You should end up with an equal superposition of all four two-qubit states, but check whether it's entangled or a product state — the answer says something important about when CNOT actually creates entanglement and when it doesn't.)</p>
+
+  <h2>Primary resource</h2>
+  <p>See the <a href="https://learning.quantum.ibm.com/course/basics-of-quantum-information/multiple-systems" target="_blank">"Multiple Systems" chapter of IBM's Basics of Quantum Information course</a>, which builds tensor products, CNOT, and entanglement from exactly this circuit-first perspective, with runnable examples.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Want to see the full 4×4 matrix for H⊗I written out, or trace through a different circuit by hand? Ask Claude Code to work through it step by step.
+  </div>
+
+  <div class="nav">
+    <a href="0001-qubits-bloch-sphere-single-qubit-gates.html">← Lesson 1: Qubits &amp; Single-Qubit Gates</a>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-03">Lesson 3: Universal Gates, Reversibility &amp; No-Cloning →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const ENTANGLE_ITEMS = [
+  {
+    english: '(|00⟩ + |01⟩) / √2',
+    options: [
+      { text: 'Product state', correct: true, explain: 'Right — this factors as |0⟩ ⊗ (|0⟩+|1⟩)/√2: qubit 0 is definitely |0⟩, qubit 1 is in superposition, independently.' },
+      { text: 'Entangled state', explain: 'It does factor: |0⟩ ⊗ (|0⟩+|1⟩)/√2 reproduces exactly this state, so it’s a product state, not entangled.' },
+    ],
+  },
+  {
+    english: '(|00⟩ + |11⟩) / √2',
+    options: [
+      { text: 'Product state', explain: 'No single choice of (a|0⟩+b|1⟩)⊗(c|0⟩+d|1⟩) produces this state — try expanding it and you’ll find no consistent a,b,c,d.' },
+      { text: 'Entangled state', correct: true, explain: 'Right — this is the Bell state from this lesson’s circuit, the canonical example of a non-factorizable two-qubit state.' },
+    ],
+  },
+  {
+    english: '(|00⟩ + |01⟩ + |10⟩ + |11⟩) / 2',
+    options: [
+      { text: 'Product state', correct: true, explain: 'Right — this is |+⟩ ⊗ |+⟩, where |+⟩ = (|0⟩+|1⟩)/√2 for each qubit independently; all four equal-sign terms are exactly what that expansion gives.' },
+      { text: 'Entangled state', explain: 'Expand |+⟩ ⊗ |+⟩ and you get exactly this state — all four coefficients equal and positive is the signature of two independent equator states, not entanglement.' },
+    ],
+  },
+];
+
+const entDiv = document.getElementById('entangle-exercise');
+ENTANGLE_ITEMS.forEach((item, i) => {
+  const cardId = `ent-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  entDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

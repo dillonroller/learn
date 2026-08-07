@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 4 — Quantum Interference &amp; the Deutsch-Jozsa Algorithm</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Quantum Computing</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 4 of 10 &nbsp;·&nbsp; Quantum Computing &nbsp;·&nbsp; ~40 min</p>
+  <h1>Quantum Interference &amp; the Deutsch-Jozsa Algorithm</h1>
+  <p>This is the lesson the first three were building toward. It corrects the single most common misconception about quantum computing head-on, names the actual mechanism behind every real speedup, and then proves it with the first quantum algorithm ever shown to beat classical computers — worked out by hand, completely, for the simplest case.</p>
+
+  <h2 id="interference">Not "trying every answer at once"</h2>
+  <p>The popular claim goes: a quantum computer holds 2ⁿ amplitudes at once, so it "checks all 2ⁿ possible answers in parallel." <a href="0002-multi-qubit-entanglement-circuits.html#exponential-state-space">Lesson 2 already flagged</a> the problem: you can prepare all those amplitudes, but the <a href="../../quantum-mechanics/lessons/0001-state-vectors-superposition-born-rule.html#born-rule">Born rule</a> only ever hands you <em>one</em> measurement outcome, with a probability equal to that outcome's amplitude squared. If a "correct answer" is hiding among 2ⁿ equally-weighted terms, measuring gives it to you with probability 1/2ⁿ — vanishingly small, no better than guessing. Superposition alone buys you nothing.</p>
+  <p>What actually buys you something is <strong>interference</strong>. Amplitudes are complex numbers, and when a computation has more than one path to the same final basis state, those paths' amplitudes <em>add</em> before you square them:</p>
+  <pre><code>Two paths to the same state, amplitude a and amplitude b:
+  constructive:  a + b  can be LARGER than either alone     (same sign / phase)
+  destructive:   a + b  can be SMALLER, even exactly 0       (opposite sign / phase)</code></pre>
+  <p>A quantum algorithm's entire design is about engineering the phases of every computational path so that paths leading to <em>wrong</em> answers cancel to zero, and paths leading to the <em>right</em> answer reinforce. That's the actual mechanism — not "parallel guessing," but "guaranteed cancellation of everything except the answer." The rest of this lesson builds the simplest possible example of that trick from scratch.</p>
+
+  <h2 id="oracle">Oracles: querying a function as a gate</h2>
+  <p>Many quantum algorithms are phrased in terms of an <strong>oracle</strong> — a black-box unitary that computes some function f without you knowing its internal wiring, so you can reason about how many times you need to <em>call</em> it, independent of how it's built inside. Because f might not be reversible (e.g. f could map two different inputs to the same output — exactly <a href="0003-universal-gates-reversibility-no-cloning.html#reversibility">the AND-gate problem from lesson 3</a>), the standard construction uses an extra output register and XOR, the same ancilla-bit trick that made Toffoli work:</p>
+  <pre><code>O_f : |x⟩|y⟩  →  |x⟩|y ⊕ f(x)⟩</code></pre>
+  <p>This is always reversible regardless of whether f itself is — applying O_f twice returns y to its original value, since XOR-ing f(x) in twice cancels out. O_f is how you "call" f inside a quantum circuit.</p>
+
+  <h2 id="phase-kickback">Phase kickback: the trick that makes it all work</h2>
+  <p>Here's the move that turns a black-box function into something interference can use. Instead of putting a definite value in the target register y, put it in <a href="0001-qubits-bloch-sphere-single-qubit-gates.html#bloch-sphere">|−⟩ = (|0⟩−|1⟩)/√2</a>:</p>
+  <div class="callout">
+    <strong>Deriving phase kickback</strong>
+    If f(x)=0: <code>y ⊕ 0 = y</code>, so |−⟩ is untouched: <code>O_f|x⟩|−⟩ = |x⟩|−⟩</code>.<br>
+    If f(x)=1: <code>y ⊕ 1</code> swaps 0 and 1 in y's label, which turns <code>(|0⟩−|1⟩)/√2</code> into <code>(|1⟩−|0⟩)/√2 = −|−⟩</code>. So: <code>O_f|x⟩|−⟩ = −|x⟩|−⟩</code>.<br><br>
+    Both cases combine into one formula: <strong>O_f|x⟩|−⟩ = (−1)<sup>f(x)</sup> |x⟩|−⟩</strong>.
+  </div>
+  <p>Look closely at what happened: the target register |−⟩ never changed its label at all — only a <em>phase</em> appeared, and it attached itself to the <em>x</em> register instead. The function's output got "kicked back" onto the input register as a sign. This is exactly the raw material interference needs: f(x) is now encoded as a phase sitting on |x⟩, ready to be cancelled or reinforced against other |x⟩ terms by a later Hadamard.</p>
+
+  <h2 id="deutsch-jozsa">The Deutsch-Jozsa problem</h2>
+  <p>You're given oracle access to f: {0,1}ⁿ → {0,1}, <strong>promised</strong> to be one of exactly two kinds:</p>
+  <ul>
+    <li><strong>Constant</strong> — f outputs the same value for every input.</li>
+    <li><strong>Balanced</strong> — f outputs 0 for exactly half of all inputs and 1 for the other half.</li>
+  </ul>
+  <p>Which kind is it? Classically, in the worst case, a deterministic algorithm must query f up to 2<sup>n−1</sup>+1 times before it can be <em>certain</em> — check just over half the inputs, and if they're all equal you still can't rule out "balanced, and I haven't found the differing half yet." The quantum algorithm below answers with 100% certainty using the oracle exactly <strong>once</strong>, for any n.</p>
+
+  <h2>Working the n=1 case completely</h2>
+  <p>This is small enough to carry every amplitude by hand — this is Deutsch's original 1985 algorithm, the n=1 special case of Deutsch-Jozsa. Circuit: two qubits, prepared |0⟩ and |1⟩, Hadamard both, apply the oracle, Hadamard the first qubit, measure it.</p>
+  <pre><code>q0: |0⟩──[H]──●O_f●──[H]──(measure)
+q1: |1⟩──[H]──●O_f●───────────────</code></pre>
+  <div class="callout">
+    <strong>Step by step</strong>
+    <strong>Start:</strong> <code>|0⟩|1⟩</code><br>
+    <strong>After H on both:</strong> <code>(|0⟩+|1⟩)/√2 ⊗ (|0⟩−|1⟩)/√2</code> — note the second register is now exactly |−⟩.<br>
+    <strong>After O_f (phase kickback on each term):</strong> <code>[(−1)^f(0)|0⟩ + (−1)^f(1)|1⟩]/√2 ⊗ |−⟩</code><br>
+    <strong>After H on q0</strong> — using H|0⟩=(|0⟩+|1⟩)/√2 and H|1⟩=(|0⟩−|1⟩)/√2 from <a href="0001-qubits-bloch-sphere-single-qubit-gates.html#hadamard-gate">lesson 1</a>:
+    <ul>
+      <li><strong>If f is constant</strong> (f(0)=f(1)): the bracket is ±(|0⟩+|1⟩)/√2. Applying H gives exactly ±|0⟩ — measuring q0 gives <strong>0</strong>, with certainty.</li>
+      <li><strong>If f is balanced</strong> (f(0)≠f(1)): the bracket is ±(|0⟩−|1⟩)/√2. Applying H gives exactly ±|1⟩ — measuring q0 gives <strong>1</strong>, with certainty.</li>
+    </ul>
+  </div>
+  <p>That's the whole mechanism laid bare: the second Hadamard is where interference actually happens — it's the step where the four possible (f(0), f(1)) phase patterns either reinforce onto |0⟩ or reinforce onto |1⟩, with zero probability of landing anywhere else. One oracle call, one measurement, a certain answer.</p>
+  <p>General n works identically in spirit: Hadamard all n input qubits plus the target, apply O_f once, Hadamard the n input qubits again, and measure them. All-zeros iff f is constant — the algorithm is genuinely n-query-vs-1-query exponential, not just a two-input special case.</p>
+  <div class="callout warn">
+    <strong>Keep this in perspective</strong>
+    Constant-vs-balanced is an artificial promise nobody needs solved in practice — Deutsch-Jozsa isn't useful the way Grover's or Shor's are. Its importance is that it was the <em>first rigorous proof</em> that a quantum algorithm can beat every possible classical deterministic algorithm on some problem — proof the exponential speedup you'll see in later lessons isn't just a hope, before those later results made it practically consequential.
+  </div>
+
+  <h2>Try it: phase kickback and the final measurement</h2>
+  <p>Work through each mini-question about the mechanics above.</p>
+  <div id="dj-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. What is the actual source of a quantum algorithm's speedup, per this lesson?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q1','Right — the whole design challenge of a quantum algorithm is arranging phases so wrong-answer amplitudes cancel and the right answer’s amplitude survives measurement.')">Interference — engineering phases so wrong-answer amplitudes cancel and the right one survives</button>
+        <button onclick="quizAnswer(this,false,'q1','This is the myth the lesson opens by correcting — having 2ⁿ amplitudes available doesn’t help if measurement still only returns one of them with tiny probability.')">Simply having 2ⁿ amplitudes available to check all answers at once, for free</button>
+        <button onclick="quizAnswer(this,false,'q1','Nothing about quantum algorithms involves running the same circuit on separate parallel hardware — it’s one circuit, one execution, exploiting interference within a single run.')">Running the same circuit on many separate pieces of hardware simultaneously</button>
+        <button onclick="quizAnswer(this,false,'q1','Clock speed is a classical-hardware engineering concern, unrelated to why quantum algorithms like Deutsch-Jozsa need fewer queries.')">Increasing the clock speed of the underlying qubits</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. What does phase kickback actually do?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right — applying the oracle with the target qubit in |−⟩ turns f(x) into a (−1)^f(x) phase attached to the x register, leaving the target’s label unchanged.')">Encodes f(x) as a (−1)^f(x) phase on the x register, by using the target qubit in state |−⟩</button>
+        <button onclick="quizAnswer(this,false,'q2','That describes the plain oracle O_f without the |−⟩ trick — kickback’s whole point is that with |−⟩ as target, its label stays fixed and only a phase moves to the x register instead.')">Permanently changes the value stored in the target qubit's basis label</button>
+        <button onclick="quizAnswer(this,false,'q2','No measurement happens anywhere in the phase-kickback step — it’s a purely unitary operation, which is exactly what preserves the interference for later.')">Measures the oracle's output directly</button>
+        <button onclick="quizAnswer(this,false,'q2','Kickback is a single-query trick — that’s the entire point of Deutsch-Jozsa needing only one oracle call.')">Requires querying the oracle twice to work</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. In the n=1 Deutsch algorithm, measuring the first qubit and getting 1 tells you what about f?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right — the worked derivation shows the balanced case (f(0)≠f(1)) is exactly the one that lands on ±|1⟩ after the final Hadamard.')">f is balanced (f(0) ≠ f(1))</button>
+        <button onclick="quizAnswer(this,false,'q3','Constant f is the case that lands on ±|0⟩ after the final Hadamard, per the worked derivation — outcome 1 specifically means balanced instead.')">f is constant</button>
+        <button onclick="quizAnswer(this,false,'q3','Both outcomes 0 and 1 are the algorithm working correctly — they’re how it reports its (certain) answer, not evidence of a malfunction.')">The oracle malfunctioned</button>
+        <button onclick="quizAnswer(this,false,'q3','The derivation shows both cases land on a single definite basis state with certainty — there’s no need for repeated measurement.')">Nothing conclusive — you'd need to measure again</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Why is Deutsch-Jozsa historically significant, despite the constant-vs-balanced promise being artificial?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q4','Right — it was the first rigorous demonstration that some problem admits an exponential quantum-vs-classical query advantage, opening the door the rest of this course walks through.')">It was the first proof that a quantum algorithm can beat every classical deterministic algorithm on some problem</button>
+        <button onclick="quizAnswer(this,false,'q4','Breaking RSA is Shor’s algorithm, covered in a later lesson — Deutsch-Jozsa’s constant-vs-balanced promise has no cryptographic use.')">It's the algorithm actually used to break RSA encryption</button>
+        <button onclick="quizAnswer(this,false,'q4','This overclaim is exactly what a later lesson on quantum complexity corrects — quantum computers are not known to efficiently solve NP-hard problems in general.')">It proves quantum computers can efficiently solve all NP-hard problems</button>
+        <button onclick="quizAnswer(this,false,'q4','The entire algorithm is built around a single call to the oracle O_f — an oracle is central to its design, not absent from it.')">It requires no oracle at all</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>By hand, for n=1: pick f(0)=1, f(1)=0 (balanced) and redo the full derivation from |0⟩|1⟩ to the final measurement, writing out the actual amplitude (with sign) at every step — don't just recall the schema above. Confirm you land on exactly −|1⟩ (up to global phase). This is worth doing by hand once; every later algorithm in this course reuses the same H → oracle → H interference pattern.</p>
+
+  <h2>Primary resource</h2>
+  <p>See Michael Nielsen &amp; Andy Matuschak's <a href="https://quantum.country/qcvc" target="_blank">Quantum Computing for the Very Curious</a> (the "Quantum Circuits" and interference sections), and, for the original argument, David Deutsch's 1985 paper <a href="https://royalsocietypublishing.org/doi/10.1098/rspa.1985.0070" target="_blank">"Quantum theory, the Church-Turing principle and the universal quantum computer."</a></p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> If the second Hadamard's interference step still feels like a trick rather than something you could derive yourself, ask Claude Code to work n=2 by hand with you — it's the smallest case that shows the pattern generalizes.
+  </div>
+
+  <div class="nav">
+    <a href="0003-universal-gates-reversibility-no-cloning.html">← Lesson 3: Universal Gates &amp; No-Cloning</a>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-05">Lesson 5: Grover's Algorithm →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const DJ_ITEMS = [
+  {
+    english: 'f(x) = 0:  O_f|x⟩|−⟩ = ?',
+    options: [
+      { text: '|x⟩|−⟩, unchanged', correct: true, explain: 'Right — y ⊕ 0 = y, so |−⟩ is left exactly as it was.' },
+      { text: '−|x⟩|−⟩', explain: 'The sign flip only happens when f(x)=1, which swaps the two terms of |−⟩ — f(x)=0 leaves it untouched.' },
+    ],
+  },
+  {
+    english: 'f(x) = 1:  O_f|x⟩|−⟩ = ?',
+    options: [
+      { text: '|x⟩|−⟩, unchanged', explain: 'y ⊕ 1 swaps the labels 0 and 1, which turns (|0⟩−|1⟩)/√2 into (|1⟩−|0⟩)/√2 = −|−⟩ — not unchanged.' },
+      { text: '−|x⟩|−⟩', correct: true, explain: 'Right — swapping the two terms of |−⟩ = (|0⟩−|1⟩)/√2 produces exactly −|−⟩, so the whole term picks up a minus sign.' },
+    ],
+  },
+  {
+    english: "Deutsch's algorithm (n=1) measures q0 = 0. What does this tell you about f?",
+    options: [
+      { text: 'f is constant', correct: true, explain: 'Right — the derivation shows the constant case lands on ±|0⟩ after the final Hadamard, with certainty.' },
+      { text: 'f is balanced', explain: 'Balanced f lands on ±|1⟩ after the final Hadamard per the derivation — outcome 0 specifically indicates constant.' },
+    ],
+  },
+];
+
+const djDiv = document.getElementById('dj-exercise');
+DJ_ITEMS.forEach((item, i) => {
+  const cardId = `dj-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  djDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

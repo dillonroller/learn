@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 1 — Qubits, the Bloch Sphere &amp; Single-Qubit Gates</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Quantum Computing</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 1 of 10 &nbsp;·&nbsp; Quantum Computing &nbsp;·&nbsp; ~35 min</p>
+  <h1>Qubits, the Bloch Sphere &amp; Single-Qubit Gates</h1>
+  <p>You already know a qubit is a vector: <a href="../../quantum-mechanics/lessons/0001-state-vectors-superposition-born-rule.html#state-vectors">|ψ⟩ = α|0⟩ + β|1⟩</a>, normalized so <a href="../../quantum-mechanics/lessons/0001-state-vectors-superposition-born-rule.html#born-rule">|α|² + |β|² = 1</a>. Quantum computing asks a different question than quantum mechanics does about that same object: not "what does nature do with it," but "what can <em>I</em> do to it, on purpose, to compute something." The things you're allowed to do are called <strong>gates</strong>. This lesson gives you the simplest possible picture of a qubit — a point on a sphere — and the gates that move it around.</p>
+
+  <h2 id="bloch-sphere">One qubit, one sphere</h2>
+  <p>A general qubit state has four real numbers hiding inside it: the real and imaginary parts of α and β. Two of those four are not physically meaningful:</p>
+  <ul>
+    <li><strong>Normalization</strong> removes one degree of freedom — |α|² + |β|² = 1 is one equation constraining four numbers.</li>
+    <li><strong>Global phase</strong> removes another. Multiplying the <em>entire</em> state by e<sup>iγ</sup> — i.e. |ψ⟩ and e<sup>iγ</sup>|ψ⟩ — changes no <a href="../../quantum-mechanics/lessons/0001-state-vectors-superposition-born-rule.html#born-rule">Born-rule probability</a> at all, for any measurement. Two states that differ only by an overall phase are the same physical state.</li>
+  </ul>
+  <p>That leaves exactly two real numbers. Use the leftover global-phase freedom to make α real and non-negative, and write the state as:</p>
+  <pre><code>|ψ⟩ = cos(θ/2)|0⟩ + e^(iφ) sin(θ/2)|1⟩       θ ∈ [0, π],  φ ∈ [0, 2π)</code></pre>
+  <p>θ and φ are exactly a latitude and a longitude. Plot them and every possible single-qubit state becomes one point on the surface of a sphere — the <strong>Bloch sphere</strong>. |0⟩ sits at the north pole (θ=0), |1⟩ at the south pole (θ=π). The equator (θ=π/2) is the set of equal-magnitude superpositions, distinguished only by the <strong>relative phase</strong> φ between α and β — the phase that <em>does</em> matter, unlike the global phase you just factored away.</p>
+  <div class="callout">
+    <strong>Two poles you'll see everywhere</strong>
+    On the equator, φ=0 gives <code>|+⟩ = (|0⟩+|1⟩)/√2</code> and φ=π gives <code>|−⟩ = (|0⟩−|1⟩)/√2</code>. These aren't exotic — they're the states you get by applying the very first gate below to |0⟩ and |1⟩.
+  </div>
+
+  <h2 id="unitary-gates">A gate is a rotation of the sphere</h2>
+  <p>A single-qubit gate is a 2×2 matrix U applied to the state vector: |ψ'⟩ = U|ψ⟩. For this to always output a valid, normalized state — for any input state — U must be <strong>unitary</strong>: U†U = I, where U† is the conjugate transpose. This is the exact same requirement that governs <a href="../../quantum-mechanics/lessons/0004-schrodinger-equation.html#unitary-time-evolution">time evolution under the Schrödinger equation</a>; a gate is nothing but a deliberately chosen, short burst of unitary evolution.</p>
+  <p>Geometrically, every unitary on one qubit is a <strong>rotation of the Bloch sphere</strong> — it moves points on the sphere to other points on the sphere, preserving distances and angles, never stretching or collapsing anything. That single geometric fact is worth holding onto: whatever a single-qubit gate "does," it's a rotation, full stop.</p>
+
+  <h2 id="pauli-gates">The Pauli gates: X, Y, Z</h2>
+  <p>The three Pauli gates are 180° rotations about the sphere's three axes:</p>
+  <pre><code>X = |0 1|     180° about the x-axis. Swaps |0⟩ ↔ |1⟩ — the "bit flip."
+    |1 0|
+
+Z = |1  0|    180° about the z-axis. Leaves |0⟩ alone, sends |1⟩ → −|1⟩ — the "phase flip."
+    |0 -1|
+
+Y = |0 -i|    180° about the y-axis. Does both at once (up to a phase).
+    |i  0|</code></pre>
+  <p>Notice Z does nothing visible if you only ever measure in the {|0⟩,|1⟩} basis — |1⟩ and −|1⟩ give identical Born-rule probabilities on their own. Z's effect only shows up once that qubit is combined with another via superposition or entanglement, which is exactly why phase gates matter so much once you reach interference in <a href="0004-interference-deutsch-jozsa.html">lesson 4</a>.</p>
+
+  <h2 id="hadamard-gate">The Hadamard gate: the superposition-maker</h2>
+  <pre><code>H = (1/√2) |1  1|
+           |1 -1|</code></pre>
+  <p>H is a 180° rotation about the diagonal axis halfway between x and z. Its whole job is turning basis states into equator states and back:</p>
+  <div class="callout">
+    <strong>Worked example: H|0⟩</strong>
+    <code>H|0⟩ = (1/√2)|1 1; 1 -1| · |1; 0| = (1/√2)(|0⟩ + |1⟩) = |+⟩</code>. One gate, applied to a definite state, produces an equal superposition. This is the standard first step of almost every quantum algorithm you'll meet in this course: start in |0⟩, apply H (or many H's) to spread the state out before doing something clever with the phases.
+  </div>
+  <p>H is also its own inverse: H(H|ψ⟩) = |ψ⟩ for any |ψ⟩ — check it on |0⟩ above and you'll get back |0⟩. That's not a coincidence; every quantum gate must be invertible (more on exactly why in <a href="0003-universal-gates-reversibility-no-cloning.html">lesson 3</a>), and H happens to be its own inverse specifically.</p>
+
+  <h2 id="phase-gates">S and T: fine-grained phase gates</h2>
+  <p>Z is a 180° turn about the z-axis. S and T are smaller turns about the same axis — 90° and 45° respectively:</p>
+  <pre><code>S = |1 0|      quarter turn about z.  S² = Z.
+    |0 i|
+
+T = |1 0    |  eighth turn about z.   T² = S.
+    |0 e^(iπ/4)|</code></pre>
+  <p>Both leave |0⟩ completely untouched and multiply |1⟩'s amplitude by a phase. T in particular will matter later: {H, T, CNOT} turns out to be enough gates to approximate <em>any</em> quantum circuit at all — the subject of <a href="0003-universal-gates-reversibility-no-cloning.html">lesson 3</a>.</p>
+
+  <h2>Circuit notation</h2>
+  <p>A single qubit is drawn as a horizontal wire, read left to right, with gates as boxes on it:</p>
+  <pre><code>|0⟩ ──[H]──[T]──  (measure)</code></pre>
+  <p>That's the whole notation for one qubit: prepare a starting state on the left (almost always |0⟩), apply gates in time order left-to-right, measure on the right. <a href="0002-multi-qubit-entanglement-circuits.html">Lesson 2</a> adds a second wire and the gates that connect them.</p>
+
+  <h2>Try it: apply the gate</h2>
+  <p>For each gate acting on the given input state, pick the correct output.</p>
+  <div id="gate-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. A general qubit state has 4 real parameters. Normalization removes one. What removes a second, leaving exactly the two Bloch-sphere angles (θ, φ)?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q1','Right — multiplying the whole state by e^(iγ) changes no measurement probability at all, so that freedom can be used to fix α real and non-negative, leaving only θ and φ.')">Global phase has no physical effect, so it can be fixed away</button>
+        <button onclick="quizAnswer(this,false,'q1','Measurement isn’t part of deriving the Bloch sphere parametrization at all — this describes the state itself, before any measurement happens.')">Measurement collapses the state to a single real number</button>
+        <button onclick="quizAnswer(this,false,'q1','Complex numbers each have two real degrees of freedom (real and imaginary parts) — that’s exactly why there were 4 real parameters to begin with, not 1.')">Complex numbers only have one degree of freedom each</button>
+        <button onclick="quizAnswer(this,false,'q1','The Born rule is what normalization is for — that’s the first degree of freedom removed, not a second, independent one.')">The Born rule constrains β directly, on top of normalization</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Geometrically, what does the Pauli-X gate do to the Bloch sphere?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right — X is a 180° rotation about the x-axis, which swaps the north and south poles, i.e. |0⟩ ↔ |1⟩.')">180° rotation about the x-axis, swapping |0⟩ and |1⟩</button>
+        <button onclick="quizAnswer(this,false,'q2','That describes Z, not X — Z rotates about the z-axis and leaves |0⟩ fixed while flipping the phase of |1⟩.')">180° rotation about the z-axis, flipping only the phase of |1⟩</button>
+        <button onclick="quizAnswer(this,false,'q2','That describes H — a smaller rotation that creates superposition rather than a full 180° flip.')">A 90° rotation that creates an equal superposition</button>
+        <button onclick="quizAnswer(this,false,'q2','X is a genuine rotation with a real geometric effect on the sphere, not a phase-only, no-movement operation.')">No rotation at all — just a global phase shift</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Why must every single-qubit gate be represented by a unitary matrix?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right — unitarity (U†U = I) is exactly the condition that guarantees the output is normalized whenever the input is, which the Born rule needs to keep producing valid probabilities.')">Unitary matrices are exactly the transformations that preserve normalization</button>
+        <button onclick="quizAnswer(this,false,'q3','Nothing about unitarity requires doubling qubit count — plenty of unitary gates act on a single qubit, as this whole lesson shows.')">Because gates must always double the number of qubits involved</button>
+        <button onclick="quizAnswer(this,false,'q3','Classical AND/OR gates are specifically not reversible — that’s a real contrast with quantum gates, not a reason quantum gates are unitary.')">Because classical logic gates are also always reversible</button>
+        <button onclick="quizAnswer(this,false,'q3','Matrices with complex entries can easily be non-unitary — unitarity is a specific extra condition (U†U = I), not just "has complex numbers in it."')">Because unitary matrices are the only matrices with complex entries</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. What is H|1⟩?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','That’s H|0⟩ — check the matrix multiplication again for the second column of H acting on |1⟩ = (0,1).')">(|0⟩ + |1⟩)/√2</button>
+        <button onclick="quizAnswer(this,true,'q4','Right — H|1⟩ = (1/√2)(1·1 + (-1)·1 terms) works out to (|0⟩ − |1⟩)/√2 = |−⟩, the minus sign coming from H’s bottom-right −1 entry.')">(|0⟩ − |1⟩)/√2</button>
+        <button onclick="quizAnswer(this,false,'q4','H is not the identity — it always moves a basis state onto the equator, it never leaves a basis state unchanged.')">|1⟩, unchanged</button>
+        <button onclick="quizAnswer(this,false,'q4','H maps basis states to equator superpositions, not to the other basis state outright — that’s what X does, not H.')">|0⟩</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>By hand: compute Z|+⟩ (where |+⟩ = (|0⟩+|1⟩)/√2) and simplify it in terms of |+⟩ and |−⟩. You should find Z swaps |+⟩ and |−⟩ — the mirror image of how X swaps |0⟩ and |1⟩. That symmetry (X flips the computational basis, Z flips the Hadamard basis) is a preview of a pattern that keeps recurring in quantum circuits.</p>
+
+  <h2>Primary resource</h2>
+  <p>See Michael Nielsen &amp; Andy Matuschak's <a href="https://quantum.country/qcvc" target="_blank">Quantum Computing for the Very Curious</a>, a free interactive introduction built exactly bottom-up from linear algebra, with spaced-repetition review built in — an unusually good fit for a self-study, CS-flavored approach to this material.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> If a gate's matrix or its Bloch-sphere picture isn't clicking, ask Claude Code to walk through the matrix multiplication by hand, or to compute where a specific input state ends up after a specific gate.
+  </div>
+
+  <div class="nav">
+    <span></span>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-02">Lesson 2: Multi-Qubit Systems, Entanglement &amp; Circuits →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const GATE_ITEMS = [
+  {
+    english: 'X|0⟩ = ?',
+    options: [
+      { text: '|1⟩', correct: true, explain: 'Right — X swaps the two basis states, so X|0⟩ = |1⟩.' },
+      { text: '|0⟩', explain: 'X is the bit-flip gate — it never leaves a basis state unchanged, it swaps |0⟩ and |1⟩.' },
+    ],
+  },
+  {
+    english: 'Z|0⟩ = ?',
+    options: [
+      { text: '|0⟩', correct: true, explain: 'Right — Z leaves |0⟩ completely unchanged; it only affects the |1⟩ component, flipping its sign.' },
+      { text: '−|0⟩', explain: 'Z\'s matrix has +1 in the top-left entry — it acts as identity specifically on |0⟩, and only puts a minus sign on |1⟩.' },
+    ],
+  },
+  {
+    english: 'H|0⟩ = ?',
+    options: [
+      { text: '(|0⟩ + |1⟩) / √2', correct: true, explain: 'Right — this is |+⟩, the equal superposition H produces from |0⟩.' },
+      { text: '(|0⟩ − |1⟩) / √2', explain: 'That’s H|1⟩ = |−⟩, not H|0⟩ — the minus sign comes specifically from H’s action on the |1⟩ component.' },
+    ],
+  },
+];
+
+const gateDiv = document.getElementById('gate-exercise');
+GATE_ITEMS.forEach((item, i) => {
+  const cardId = `gate-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  gateDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

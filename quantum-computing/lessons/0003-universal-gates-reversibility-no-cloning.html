@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 3 — Universal Gates, Reversibility &amp; No-Cloning</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Quantum Computing</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 3 of 10 &nbsp;·&nbsp; Quantum Computing &nbsp;·&nbsp; ~30 min</p>
+  <h1>Universal Gates, Reversibility &amp; No-Cloning</h1>
+  <p>Two lessons in, you've been told every gate must be unitary without being told exactly why that's such a strong restriction, or what it rules out. This lesson closes both gaps: it shows what "every gate is reversible" actually forbids compared to ordinary classical logic, what a small set of gates can still build despite that restriction, and proves — with nothing but the linearity you already use every day — a genuinely surprising fact: you cannot copy an unknown qubit.</p>
+
+  <h2 id="reversibility">Reversible by construction</h2>
+  <p>A <a href="0001-qubits-bloch-sphere-single-qubit-gates.html#unitary-gates">unitary matrix</a> always has an inverse — U<sup>−1</sup> = U†, guaranteed, for every unitary U. So every quantum gate is automatically reversible: given the output, you can always compute exactly which input produced it, just by applying the gate backwards.</p>
+  <p>Ordinary classical logic gates don't have this property. Take AND:</p>
+  <pre><code>0 AND 0 = 0
+0 AND 1 = 0
+1 AND 0 = 0
+1 AND 1 = 1</code></pre>
+  <p>Three different inputs produce the same output, 0. Given only the output "0," there's no way to recover which input it came from — information was thrown away. That's exactly what "not reversible" means, and it's true of most classical logic (AND, OR, NAND — anything with more input bits than output bits).</p>
+  <div class="callout">
+    <strong>The physics isn't a coincidence</strong>
+    <a href="https://en.wikipedia.org/wiki/Landauer%27s_principle" target="_blank">Landauer's principle</a> says erasing one bit of information necessarily dissipates at least a small, fixed amount of heat — irreversible computation is thermodynamically irreversible too. Reversible gates aren't just a quirk of quantum mechanics; they're the only kind of computation that could, in principle, be done with zero energy dissipation.
+  </div>
+
+  <h2 id="toffoli-gate">Making classical logic reversible: the Toffoli gate</h2>
+  <p>You don't have to give up classical computation to keep everything reversible — you just need one extra output. The <strong>Toffoli gate</strong> (CCNOT) takes three bits, flips the third only if <em>both</em> the first two are 1, and leaves everything else alone:</p>
+  <pre><code>Toffoli(a, b, c) = (a, b, c ⊕ (a AND b))</code></pre>
+  <p>Set c = 0 going in, and the third output becomes exactly a AND b — while the first two inputs are preserved on the outputs, so nothing is lost and the gate is its own inverse (apply it twice and you're back where you started). Toffoli alone, plus fixed 0/1 inputs (called <strong>ancilla bits</strong>) and wires you simply ignore at the end, can reproduce any classical logic circuit reversibly. That makes Toffoli <strong>universal for classical reversible computation</strong> — every classical algorithm has a reversible, and therefore quantum-gate-compatible, version.</p>
+
+  <h2 id="universal-gate-set">Universal for quantum computation</h2>
+  <p>Toffoli plus reversibility gets you classical computation back. But quantum computing also needs superposition and relative phase, which Toffoli alone can't produce (it only ever permutes basis states — feed it a definite input, get a definite output). Add the <a href="0001-qubits-bloch-sphere-single-qubit-gates.html#hadamard-gate">Hadamard gate</a> for superposition and the <a href="0001-qubits-bloch-sphere-single-qubit-gates.html#phase-gates">T gate</a> for fine phase control, and the set <strong>{H, T, CNOT}</strong> becomes <strong>universal for all of quantum computing</strong>: any unitary on any number of qubits can be approximated to arbitrary precision using only gates from this set (a result called the <a href="https://en.wikipedia.org/wiki/Solovay%E2%80%93Kitaev_theorem" target="_blank">Solovay-Kitaev theorem</a>). This is the quantum-circuit analogue of NAND being universal for classical logic — a small, fixed toolkit that's provably enough for everything.</p>
+
+  <h2 id="no-cloning-theorem">You cannot copy an unknown qubit</h2>
+  <p>Here's a question a classical programmer would never think to ask: can you build a gate that copies a qubit — takes |ψ⟩ (in any state, unknown to you) and produces |ψ⟩|ψ⟩? In classical computing, copying a bit is free and constant. In quantum computing, it's <strong>impossible</strong>, and the proof uses nothing beyond what you already have.</p>
+  <div class="callout warn">
+    <strong>Proof: assume a cloning gate exists, then contradict it</strong>
+    Suppose a unitary U existed with <code>U(|ψ⟩|0⟩) = |ψ⟩|ψ⟩</code> for <em>every</em> single-qubit state |ψ⟩ — a universal copier. In particular it must work on the two basis states:<br>
+    <code>U(|0⟩|0⟩) = |0⟩|0⟩</code> and <code>U(|1⟩|0⟩) = |1⟩|1⟩</code>.<br><br>
+    Now feed it the superposition (|0⟩+|1⟩)/√2 instead. Every unitary operator is <strong>linear</strong>, so U must distribute over the sum:<br>
+    <code>U((|0⟩+|1⟩)/√2 ⊗ |0⟩) = (U(|0⟩|0⟩) + U(|1⟩|0⟩))/√2 = (|00⟩ + |11⟩)/√2</code><br><br>
+    That's the <a href="0002-multi-qubit-entanglement-circuits.html#bell-state-circuit">entangled Bell state</a> from lesson 2. But true cloning of (|0⟩+|1⟩)/√2 should have produced <em>two independent copies</em> of that same state:<br>
+    <code>[(|0⟩+|1⟩)/√2] ⊗ [(|0⟩+|1⟩)/√2] = (|00⟩ + |01⟩ + |10⟩ + |11⟩)/2</code><br><br>
+    (|00⟩+|11⟩)/√2 ≠ (|00⟩+|01⟩+|10⟩+|11⟩)/2 — linearity forces the entangled state, not the product-state "two copies" a real cloner would need to produce. No unitary can satisfy the cloning equation for every input state. This is the <strong>no-cloning theorem</strong>.
+  </div>
+  <p>Notice the proof never used anything specific to qubits — only that U is linear (because it's unitary) and is assumed to work on <em>every</em> input state, including superpositions of states it already handles correctly individually. That's why no-cloning is a theorem, not an engineering limitation waiting on better hardware.</p>
+  <p>This is also why quantum error correction (<a href="../index.html#lesson-09">lesson 9</a>) can't use the classical trick of "make three copies and take a majority vote" — and why quantum key distribution protocols like BB84 can detect eavesdropping: an eavesdropper physically cannot make an undetectable copy of a qubit in transit to inspect later.</p>
+
+  <h2>Try it: is this operation reversible?</h2>
+  <p>For each operation, decide whether the output alone always determines the input.</p>
+  <div id="reversible-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Why is the classical AND gate not reversible?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q1','Right — (0,0), (0,1), and (1,0) all produce output 0, so seeing output 0 alone can never tell you which of the three actually happened.')">Multiple distinct inputs map to the same output, so the input can't be recovered</button>
+        <button onclick="quizAnswer(this,false,'q1','AND is the non-reversible one here — three different input pairs all collapse to output 0, exactly the property OR doesn’t share in the same way (OR still collapses (0,1),(1,0),(1,1) to 1, so it’s equally non-reversible, but AND isn’t reversible either).')">AND is reversible; it's OR that isn't</button>
+        <button onclick="quizAnswer(this,false,'q1','Reversibility is a general property of any function, classical or quantum — the Toffoli gate is a classical, reversible gate, which is exactly this lesson’s point.')">Reversibility only applies to quantum gates, not classical ones</button>
+        <button onclick="quizAnswer(this,false,'q1','Unitary matrices are a quantum-specific requirement — classical gates are just ordinary functions on bits, with no unitarity requirement at all.')">AND requires unitary matrices, which don't exist classically</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. What makes the Toffoli gate "universal for classical reversible computation"?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right — setting the third input to 0 makes the third output exactly a AND b, while a and b are preserved on the other outputs, so any classical circuit can be rebuilt this way without losing information.')">Any classical logic function (like AND) can be built from it via an ancilla bit, without losing information</button>
+        <button onclick="quizAnswer(this,false,'q2','Toffoli only permutes definite basis states — feeding it a definite classical input always gives a definite classical output, no superposition involved.')">It directly produces arbitrary quantum superposition states</button>
+        <button onclick="quizAnswer(this,false,'q2','Toffoli is a gate applied before measurement, not something that interacts with measurement’s collapse at all.')">It undoes the effects of measurement</button>
+        <button onclick="quizAnswer(this,false,'q2','Toffoli’s universality has nothing to do with cloning — it works by preserving its inputs on its outputs, which is the opposite strategy from copying.')">It only works when combined with a qubit-cloning gate</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. In the no-cloning proof, applying the assumed cloning gate U to (|0⟩+|1⟩)/√2 ⊗ |0⟩ produces what, by linearity?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','That’s what a real cloner would need to produce — two independent copies — but linearity doesn’t give you this; it gives the entangled Bell state instead, which is the whole contradiction.')">Two independent copies: (|0⟩+|1⟩)/√2 ⊗ (|0⟩+|1⟩)/√2</button>
+        <button onclick="quizAnswer(this,true,'q3','Right — distributing U linearly over the sum gives (U|00⟩ + U|10⟩)/√2 = (|00⟩+|11⟩)/√2, the entangled Bell state, not two independent copies.')">The entangled state (|00⟩ + |11⟩)/√2</button>
+        <button onclick="quizAnswer(this,false,'q3','Linearity distributes U over both terms of the superposition — it doesn’t collapse the input to just one of them.')">|00⟩ only</button>
+        <button onclick="quizAnswer(this,false,'q3','Every unitary operator is linear by definition — that’s precisely the property the proof relies on to derive a definite, contradictory output.')">Undefined, since U isn't linear</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Why does the no-cloning theorem matter for practical quantum computing?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q4','Right — classical error correction leans on copying and majority-voting, which no-cloning rules out, so quantum error correction needs a fundamentally different strategy.')">Quantum error correction can't copy qubits and majority-vote like classical error correction does</button>
+        <button onclick="quizAnswer(this,false,'q4','No-cloning forbids duplicating one qubit's exact state onto another — it says nothing about how many total qubits a device can hold.')">It means a quantum computer can never store more than one qubit</button>
+        <button onclick="quizAnswer(this,false,'q4','Measurement is a separate postulate entirely — no-cloning is about copying pre-measurement states, not about whether measurement is needed.')">It means measurement is unnecessary</button>
+        <button onclick="quizAnswer(this,false,'q4','The proof’s contradiction specifically relies on entanglement being exactly what linearity produces — no-cloning depends on entanglement being real, not on ruling it out.')">It proves entanglement is impossible</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>By hand: write the truth table for Toffoli(a, b, 0) for all four combinations of a, b ∈ {0,1}, and confirm the third output column matches AND(a,b) exactly. Then explain in one sentence why this same trick (ancilla bit initialized to 0, third output holds the answer) could not be used to build a cloning gate — what goes wrong if you try to set it up the same way with U(|ψ⟩|0⟩) = |ψ⟩|ψ⟩ for a Toffoli-style construction?</p>
+
+  <h2>Primary resource</h2>
+  <p>See Scott Aaronson's <a href="https://www.scottaaronson.com/qclec.pdf" target="_blank">Introduction to Quantum Information Science lecture notes</a> (Chapters on reversible computation and no-cloning), which give both results with the same directness and proof-first style used here.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Want to see the full Toffoli truth table worked out, or trace through why a specific proposed "cloning trick" (there are many tempting near-misses) fails? Ask Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0002-multi-qubit-entanglement-circuits.html">← Lesson 2: Multi-Qubit Systems &amp; Circuits</a>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-04">Lesson 4: Interference &amp; the Deutsch-Jozsa Algorithm →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const REV_ITEMS = [
+  {
+    english: 'Toffoli gate (CCNOT)',
+    options: [
+      { text: 'Reversible', correct: true, explain: 'Right — Toffoli is its own inverse; applying it twice returns every input to itself, and no information is discarded.' },
+      { text: 'Not reversible', explain: 'Toffoli preserves all three inputs on its outputs (two unchanged, one XORed with a function of the other two) — that’s exactly enough information to invert it.' },
+    ],
+  },
+  {
+    english: 'Classical AND gate',
+    options: [
+      { text: 'Reversible', explain: 'Three different input pairs — (0,0), (0,1), (1,0) — all give output 0, so the output alone can’t tell you which input actually occurred.' },
+      { text: 'Not reversible', correct: true, explain: 'Right — AND has 2 inputs but only 1 output, and several inputs collapse to the same output, so information is lost.' },
+    ],
+  },
+  {
+    english: 'Measurement (Born-rule collapse)',
+    options: [
+      { text: 'Reversible', explain: 'Measurement collapses a superposition to one definite basis outcome — the original amplitudes are gone and can’t be recovered from the outcome alone.' },
+      { text: 'Not reversible', correct: true, explain: 'Right — measurement is the one process in quantum mechanics that isn’t unitary and can’t be undone; this is exactly the fault line from the Schrödinger-equation lesson.' },
+    ],
+  },
+];
+
+const revDiv = document.getElementById('reversible-exercise');
+REV_ITEMS.forEach((item, i) => {
+  const cardId = `rev-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  revDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

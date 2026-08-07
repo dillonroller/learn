@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quantum Computing — Lessons</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <span class="tn-topic">Quantum Computing</span>
+</nav>
+<div class="page">
+  <div class="topic-header">
+    <p class="lesson-meta" style="margin-bottom:.6rem;">Topic overview</p>
+    <h1><span class="topic-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="2" y1="7" x2="22" y2="7"/><line x1="2" y1="17" x2="22" y2="17"/><rect x="5" y="4.5" width="5" height="5" rx="1"/><circle cx="16" cy="7" r="1.6" fill="currentColor" stroke="none"/><line x1="16" y1="7" x2="16" y2="17"/><circle cx="16" cy="17" r="2.4"/><line x1="14.3" y1="17" x2="17.7" y2="17"/><line x1="16" y1="15.3" x2="16" y2="18.7"/></svg></span>Quantum Computing</h1>
+    <p>Builds directly on <a href="../quantum-mechanics/index.html">Quantum Mechanics</a>'s formalism — state vectors, the Born rule, entanglement, unitary evolution — and asks what happens when you treat those as a computing model instead of a physical theory. Gates, circuits, interference as the actual source of speedup (not "trying every answer at once"), and the landmark algorithms: Deutsch-Jozsa, Grover's, Shor's.</p>
+  </div>
+
+  <p class="section-label">Foundations</p>
+  <div class="lesson-list">
+    <a class="lesson-card" id="lesson-01" href="lessons/0001-qubits-bloch-sphere-single-qubit-gates.html"><span class="lesson-num">01</span><div class="lesson-info"><div class="lesson-title">Qubits, the Bloch Sphere &amp; Single-Qubit Gates</div><div class="lesson-desc">From state vector to Bloch sphere geometry, and the gates that rotate a qubit around it</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="lesson-02" href="lessons/0002-multi-qubit-entanglement-circuits.html"><span class="lesson-num">02</span><div class="lesson-info"><div class="lesson-title">Multi-Qubit Systems, Entanglement &amp; Circuits</div><div class="lesson-desc">Tensor products of gates, CNOT, and building a Bell state as a circuit</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="lesson-03" href="lessons/0003-universal-gates-reversibility-no-cloning.html"><span class="lesson-num">03</span><div class="lesson-info"><div class="lesson-title">Universal Gates, Reversibility &amp; No-Cloning</div><div class="lesson-desc">Why every quantum gate must be reversible, and why you can't copy an unknown qubit</div></div><span class="lesson-arrow">→</span></a>
+  </div>
+
+  <p class="section-label">Algorithms</p>
+  <div class="lesson-list">
+    <a class="lesson-card" id="lesson-04" href="lessons/0004-interference-deutsch-jozsa.html"><span class="lesson-num">04</span><div class="lesson-info"><div class="lesson-title">Quantum Interference &amp; the Deutsch-Jozsa Algorithm</div><div class="lesson-desc">The actual mechanism behind quantum speedup, and the first algorithm that uses it</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="lesson-05" href="lessons/0005-grovers-algorithm.html"><span class="lesson-num">05</span><div class="lesson-info"><div class="lesson-title">Grover's Algorithm &amp; Amplitude Amplification</div><div class="lesson-desc">The geometric picture behind the quadratic search speedup, and why it's provably optimal</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="lesson-06" href="lessons/0006-quantum-fourier-transform-phase-estimation.html"><span class="lesson-num">06</span><div class="lesson-info"><div class="lesson-title">The Quantum Fourier Transform &amp; Phase Estimation</div><div class="lesson-desc">The circuit that finds periods, and the workhorse subroutine behind Shor's algorithm</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card locked" id="lesson-07" href="#"><span class="lesson-num">07</span><div class="lesson-info"><div class="lesson-title">Shor's Algorithm &amp; Breaking RSA</div><div class="lesson-desc">Turning factoring into period-finding, and why that breaks most of today's public-key cryptography</div></div><span class="lesson-arrow">→</span></a>
+  </div>
+
+  <p class="section-label">Limits &amp; Reality</p>
+  <div class="lesson-list">
+    <a class="lesson-card locked" id="lesson-08" href="#"><span class="lesson-num">08</span><div class="lesson-info"><div class="lesson-title">Quantum Complexity: BQP and the Limits of Quantum Speedup</div><div class="lesson-desc">Where quantum computers actually help, where they provably don't, and how BQP relates to P and NP</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card locked" id="lesson-09" href="#"><span class="lesson-num">09</span><div class="lesson-info"><div class="lesson-title">Decoherence, Noise &amp; Quantum Error Correction</div><div class="lesson-desc">Why qubits are fragile, and the core idea that lets you protect quantum information anyway</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card locked" id="lesson-10" href="#"><span class="lesson-num">10</span><div class="lesson-info"><div class="lesson-title">Physical Qubits &amp; the NISQ Era</div><div class="lesson-desc">How superconducting and trapped-ion qubits actually work, and what today's hardware can and can't do</div></div><span class="lesson-arrow">→</span></a>
+  </div>
+</div>
+<script src="../assets/search.js"></script>
+</body>
+</html>

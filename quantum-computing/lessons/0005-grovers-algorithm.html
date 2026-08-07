@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 5 — Grover's Algorithm &amp; Amplitude Amplification</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Quantum Computing</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 5 of 10 &nbsp;·&nbsp; Quantum Computing &nbsp;·&nbsp; ~40 min</p>
+  <h1>Grover's Algorithm &amp; Amplitude Amplification</h1>
+  <p>Deutsch-Jozsa solved an artificial problem to prove a point. Grover's algorithm solves a genuinely useful one: finding a marked item in an unsorted list. It reuses exactly the phase-kickback trick from <a href="0004-interference-deutsch-jozsa.html#phase-kickback">lesson 4</a>, adds one new operator, and the result is a real, provably optimal quadratic speedup — worked out below with actual numbers, not just the abstract argument.</p>
+
+  <h2 id="grover-problem">The problem: search with no structure to exploit</h2>
+  <p>You have N = 2ⁿ items, indexed 0 to N−1, and an oracle that tells you whether a given index is "the marked one": f(x) = 1 if x is marked, 0 otherwise. There's no sorting, no hint, nothing — the only way to learn anything is to query f. Classically, in the worst case you might have to check every single item; on average, over all possible positions of the mark, you need about N/2 queries. There is no way to beat O(N) queries classically — that's what "unstructured" means.</p>
+
+  <h2 id="amplitude-amplification">The geometric picture: two reflections make a rotation</h2>
+  <p>Start in the uniform superposition over all N items, <code>|s⟩ = (1/√N) Σₓ |x⟩</code> — built with n Hadamards, same as every algorithm so far. Split |s⟩ into two pieces: its component along the marked state |ω⟩, and its component along |s'⟩, the uniform superposition over everything <em>except</em> the mark:</p>
+  <pre><code>|s⟩ = sinθ · |ω⟩ + cosθ · |s'⟩         where sinθ = 1/√N</code></pre>
+  <p>Picture this as a single 2D plane with |s'⟩ and |ω⟩ as two perpendicular axes — |s⟩ starts off almost entirely along |s'⟩, since sinθ = 1/√N is tiny for large N. The goal is to rotate the state vector toward |ω⟩, so that measuring it gives the marked item with high probability. One <strong>Grover iteration</strong> does exactly that, using two reflections:</p>
+  <ol>
+    <li><strong>The oracle</strong>, applied via the same phase-kickback construction as <a href="0004-interference-deutsch-jozsa.html#phase-kickback">lesson 4</a> — flip the sign of the marked amplitude only, leaving everything else untouched. Geometrically, this reflects the state vector across the |s'⟩ axis.</li>
+    <li><strong>The diffusion operator</strong>, <code>D = 2|s⟩⟨s| − I</code> — reflects the state vector across the |s⟩ axis.</li>
+  </ol>
+  <p>Two reflections compose into a rotation, by exactly twice the angle between the two mirror lines — a standard fact from plane geometry, now doing real computational work. Since |s⟩ sits at angle θ from |s'⟩, each Grover iteration rotates the state by <strong>2θ</strong> toward |ω⟩. Repeat it k times and the state sits at angle (2k+1)θ from |s'⟩; choose k so that angle is as close to 90° (i.e. aligned with |ω⟩) as possible, and measuring gives the marked item with near-certainty.</p>
+
+  <h2 id="diffusion-operator">Inversion about the mean, with real numbers</h2>
+  <p>The diffusion operator has a vivid description: it reflects every amplitude about the <em>average</em> of all the amplitudes. Watch it work on the smallest interesting case, N=4 (2 qubits), marked item |11⟩:</p>
+  <div class="callout">
+    <strong>Worked example: one full Grover iteration, N=4</strong>
+    <strong>Start:</strong> uniform superposition, every amplitude = 1/2:
+    <code>(1/2, 1/2, 1/2, 1/2)</code> for (|00⟩, |01⟩, |10⟩, |11⟩).<br><br>
+    <strong>Oracle</strong> flips the sign of the marked amplitude (|11⟩):
+    <code>(1/2, 1/2, 1/2, −1/2)</code><br><br>
+    <strong>Diffusion</strong> — mean of these four amplitudes is (1/2+1/2+1/2−1/2)/4 = 1/4. Reflect each amplitude about that mean, i.e. new = 2·mean − old:
+    <ul>
+      <li>unmarked terms: 2(1/4) − 1/2 = <strong>0</strong>, for each of the three</li>
+      <li>marked term: 2(1/4) − (−1/2) = <strong>1</strong></li>
+    </ul>
+    Result: <code>(0, 0, 0, 1)</code> — exactly |11⟩, with probability 1. One Grover iteration, and N=4 unstructured search is solved with certainty.
+  </div>
+  <p>See why the marked amplitude jumps so far: the oracle pushed it <em>below</em> the mean while every unmarked amplitude stayed <em>at</em> the old value (above the new, lower mean). Reflecting about the mean sends a below-average value up by the same distance it was below — and because the marked term was pushed the furthest below, it comes back the furthest above. That's amplitude amplification in one sentence: push the target below the average, then reflect everything about the average.</p>
+  <p>N=4 is a special case where exactly one iteration lands perfectly on |ω⟩ — for general N, the ideal iteration count is <code>k ≈ (π/4)√N</code> (rounded to the nearest integer), and the success probability after k iterations is sin²((2k+1)θ), which is close to but not always exactly 1.</p>
+
+  <h2>The full circuit</h2>
+  <pre><code>|0⟩^n ──[H^⊗n]──[Oracle → Diffusion]×k── (measure)</code></pre>
+  <p>Prepare the uniform superposition, apply the Grover iterate (oracle then diffusion) k ≈ (π/4)√N times, measure. That's the entire algorithm — no other moving parts.</p>
+
+  <h2 id="grover-optimality">Why √N and not better</h2>
+  <p>Grover's algorithm isn't just a good algorithm — it's <strong>provably optimal</strong>. The <a href="https://en.wikipedia.org/wiki/BBBV_theorem" target="_blank">BBBV theorem</a> (Bennett, Bernstein, Brassard, Vazirani, 1997) proves <em>no</em> quantum algorithm, however cleverly designed, can solve unstructured search in fewer than Ω(√N) oracle queries. This is a genuinely different situation from Deutsch-Jozsa: Grover's speedup is real, useful, <em>and</em> known to be the best possible for this exact problem — quadratic, not exponential, and that ceiling is a theorem, not a current limitation waiting on a smarter algorithm.</p>
+
+  <h2>Try it: how many iterations?</h2>
+  <p>For each N, pick the number of Grover iterations closest to (π/4)√N.</p>
+  <div id="grover-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Classically, how many oracle queries does unstructured search over N items need, on average?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q1','Right — with no structure to exploit, roughly half the items must be checked on average before finding the mark, so it’s O(N).')">O(N) — roughly proportional to the number of items</button>
+        <button onclick="quizAnswer(this,false,'q1','O(√N) is Grover’s quantum result, not the classical baseline — the whole point of this lesson is that quantum search beats the classical O(N).')">O(√N) — the same scaling as Grover's algorithm</button>
+        <button onclick="quizAnswer(this,false,'q1','Logarithmic scaling would require some structure (like sorted order) to exploit — unstructured search specifically has none.')">O(log N) — logarithmic in the number of items</button>
+        <button onclick="quizAnswer(this,false,'q1','A single query can’t distinguish the marked item from N−1 others in general — that would make search trivial, which it isn’t classically.')">O(1) — a constant number of queries regardless of N</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Geometrically, what does one Grover iteration do to the state vector?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right — the oracle reflection and the diffusion reflection compose into a rotation by 2θ, steadily turning the state toward the marked-item axis.')">Rotates it by a fixed angle 2θ closer to the marked-item state, via two reflections</button>
+        <button onclick="quizAnswer(this,false,'q2','Measurement only happens once, at the very end, after all k iterations — measuring mid-algorithm would collapse the state and destroy the amplification.')">Measures it directly to check whether the mark was found</button>
+        <button onclick="quizAnswer(this,false,'q2','The oracle and diffusion operators both act on the same fixed n-qubit register — no qubits are added or removed during Grover iterations.')">Doubles the number of qubits involved</button>
+        <button onclick="quizAnswer(this,false,'q2','The oracle uses the same phase-kickback construction as lesson 4, where the ancilla register’s label is left completely unchanged — no lasting entanglement with any oracle machinery remains.')">Permanently entangles the state with the oracle's internal machinery</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. In the N=4 worked example, why does the marked amplitude end up boosted so much after one diffusion step?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right — the oracle pushes the marked amplitude below the mean while the others stay put, and reflecting about that mean sends the furthest-below value up by the largest amount.')">The oracle drops the marked amplitude below the mean, and reflecting about that (now lower) mean pushes it up the most</button>
+        <button onclick="quizAnswer(this,false,'q3','The diffusion operator has no access to which item is marked — it only reflects amplitudes about their current mean, without any direct knowledge of f.')">The diffusion operator directly checks which item is marked and sets its amplitude to 1</button>
+        <button onclick="quizAnswer(this,false,'q3','Diffusion is a reflection, which can decrease amplitudes just as easily as increase them — the unmarked amplitudes in this exact example dropped to 0.')">Amplitudes always increase after any unitary operation</button>
+        <button onclick="quizAnswer(this,false,'q3','The mechanism — push below the mean, then reflect about the mean — is completely general; N=4 is just the special case where one iteration happens to land exactly on the mark.')">It's a coincidence specific to N=4, not a general mechanism</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Why can't Grover's algorithm be sped up further, e.g. to O(log N) queries?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q4','Right — the BBBV theorem proves Ω(√N) queries are necessary for any quantum algorithm solving unstructured search, so √N is a provable floor, not just the best known result.')">The BBBV theorem proves any quantum algorithm needs at least Ω(√N) queries for this problem</button>
+        <button onclick="quizAnswer(this,false,'q4','This is a proven mathematical lower bound, not an open research question waiting for a cleverer oracle construction.')">Nobody has found a clever enough oracle construction yet</button>
+        <button onclick="quizAnswer(this,false,'q4','The √N bound is a fundamental limit on the algorithm itself, true on any hardware whatsoever — it isn’t about today’s noisy qubits catching up.')">It's a hardware limitation of current quantum computers, not a fundamental one</button>
+        <button onclick="quizAnswer(this,false,'q4','Grover's algorithm needs Θ(√N) queries, not O(1) — for large N that’s far more than a constant number of queries.')">Grover's algorithm already achieves O(1), so there's nothing left to speed up</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>By hand: repeat the N=4 worked example above, but with |01⟩ as the marked item instead of |11⟩. Confirm you still land on the marked state with amplitude 1 after exactly one iteration — the mechanism doesn't care which item is marked, only that exactly one is.</p>
+
+  <h2>Primary resource</h2>
+  <p>See the <a href="https://learning.quantum.ibm.com/course/fundamentals-of-quantum-algorithms/grovers-algorithm" target="_blank">"Grover's Algorithm" chapter of IBM's Fundamentals of Quantum Algorithms course</a>, which builds the same geometric rotation picture with interactive circuit diagrams.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Want to trace through the N=8 case, where one iteration alone doesn't land exactly on |ω⟩ and you can see the sin²((2k+1)θ) success-probability formula actually matter? Ask Claude Code to work it through with you.
+  </div>
+
+  <div class="nav">
+    <a href="0004-interference-deutsch-jozsa.html">← Lesson 4: Interference &amp; Deutsch-Jozsa</a>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-06">Lesson 6: The Quantum Fourier Transform &amp; Phase Estimation →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const GROVER_ITEMS = [
+  {
+    english: 'N = 4 items — how many Grover iterations?',
+    options: [
+      { text: '~1  (≈(π/4)√4)', correct: true, explain: 'Right — (π/4)√4 ≈ 1.57, rounding to 1 iteration, exactly the worked example above.' },
+      { text: '~2  (≈N/2, the classical average)', explain: 'N/2 is the classical query count — Grover’s scales as √N instead, which for N=4 rounds to 1 iteration, not 2.' },
+    ],
+  },
+  {
+    english: 'N = 16 items — how many Grover iterations?',
+    options: [
+      { text: '~3  (≈(π/4)√16)', correct: true, explain: 'Right — (π/4)√16 = (π/4)·4 ≈ 3.14, rounding to about 3 iterations.' },
+      { text: '~8  (≈N/2, the classical average)', explain: 'N/2 = 8 is the classical query count — the quantum count scales as √N, which for N=16 is about 3, not 8.' },
+    ],
+  },
+  {
+    english: 'N = 100 items — how many Grover iterations?',
+    options: [
+      { text: '~8  (≈(π/4)√100)', correct: true, explain: 'Right — (π/4)√100 = (π/4)·10 ≈ 7.85, rounding to about 8 iterations.' },
+      { text: '~50  (≈N/2, the classical average)', explain: 'N/2 = 50 is the classical query count — the whole point of the quadratic speedup is that Grover’s needs only about 8, not 50.' },
+    ],
+  },
+];
+
+const groverDiv = document.getElementById('grover-exercise');
+GROVER_ITEMS.forEach((item, i) => {
+  const cardId = `grover-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  groverDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

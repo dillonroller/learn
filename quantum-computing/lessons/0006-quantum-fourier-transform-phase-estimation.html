@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 6 — The Quantum Fourier Transform &amp; Phase Estimation</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Quantum Computing</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 6 of 10 &nbsp;·&nbsp; Quantum Computing &nbsp;·&nbsp; ~40 min</p>
+  <h1>The Quantum Fourier Transform &amp; Phase Estimation</h1>
+  <p>Grover's algorithm amplified an amplitude you could point at with an oracle. This lesson builds a different tool: one that reads out <em>periodicity</em> — and a general-purpose subroutine, phase estimation, that generalizes <a href="0004-interference-deutsch-jozsa.html#phase-kickback">lesson 4's phase kickback</a> from a single bit to an arbitrary real number. Both are the machinery <a href="../index.html#lesson-07">Shor's algorithm</a> is built from.</p>
+
+  <h2 id="qft-definition">From Fourier transform to quantum Fourier transform</h2>
+  <p>The classical discrete Fourier transform turns a signal into its frequency components. The <strong>quantum Fourier transform (QFT)</strong> is the same linear transformation, applied to the amplitudes of a quantum state over N = 2ⁿ basis states:</p>
+  <pre><code>QFT|x⟩ = (1/√N) Σ_y  e^(2πixy/N) |y⟩          for x = 0, ..., N−1</code></pre>
+  <p>Feed it one basis state |x⟩, and it outputs a superposition over <em>every</em> basis state |y⟩, with phases that spin around the unit circle at a rate set by x. The reason this is useful for computing has nothing to do with signal processing directly — it's that the QFT takes a state whose amplitudes are <em>periodic</em> and concentrates the output almost entirely onto basis states related to that period. That's the property <a href="../index.html#lesson-07">Shor's algorithm</a> exploits: turn "find a hidden period" into "prepare a periodic state, apply QFT, measure."</p>
+
+  <h2>The smallest case is a gate you already know</h2>
+  <p>For n=1 (N=2), the QFT formula reduces to exactly the <a href="0001-qubits-bloch-sphere-single-qubit-gates.html#hadamard-gate">Hadamard gate</a>:</p>
+  <pre><code>QFT|0⟩ = (1/√2)(|0⟩ + |1⟩) = H|0⟩
+QFT|1⟩ = (1/√2)(|0⟩ − |1⟩) = H|1⟩</code></pre>
+  <p>Every H gate you've used since lesson 1 was already a 1-qubit Fourier transform. The n-qubit QFT is what you get by generalizing H's role — "spread a basis state into an equal superposition with structured phases" — to N basis states instead of 2.</p>
+
+  <h2 id="qft-circuit">Building it from gates you already have</h2>
+  <p>The QFT circuit is built entirely from Hadamards and controlled phase-rotation gates <code>R_k = diag(1, e^(2πi/2^k))</code> — a generalization of the <a href="0001-qubits-bloch-sphere-single-qubit-gates.html#phase-gates">S and T gates</a> from lesson 1, which are exactly R₂ and R₃. The full n-qubit circuit uses O(n²) gates total.</p>
+  <div class="callout warn">
+    <strong>O(n²) gates ≠ "reading out" the transformed vector</strong>
+    A classical Fast Fourier Transform on N = 2ⁿ data points takes O(n·2ⁿ) time but gives you back all N transformed values, fully readable. The quantum circuit is exponentially cheaper to <em>run</em> — but it only prepares the transformed amplitudes inside a quantum state, and a single measurement only samples one basis state from it, per the Born rule, exactly the same caveat <a href="0002-multi-qubit-entanglement-circuits.html#exponential-state-space">lesson 2</a> raised about exponential state spaces in general. The QFT is a component inside a larger algorithm, never a drop-in replacement for "compute the classical FFT, fast."
+  </div>
+
+  <h2 id="phase-estimation">Phase estimation: reading out an eigenvalue's phase</h2>
+  <p>Here's the general problem phase estimation solves: given a unitary U and one of its eigenvectors |u⟩ (so U|u⟩ = e<sup>2πiφ</sup>|u⟩ for some unknown φ ∈ [0,1)), estimate φ.</p>
+  <p>Start with a single control qubit, exactly like lesson 4's derivation:</p>
+  <pre><code>(|0⟩+|1⟩)/√2 ⊗ |u⟩  --controlled-U-->  (|0⟩|u⟩ + e^(2πiφ)|1⟩|u⟩)/√2  =  [(|0⟩ + e^(2πiφ)|1⟩)/√2] ⊗ |u⟩</code></pre>
+  <p>This is exactly phase kickback again — φ lands on the control qubit as a phase, and |u⟩ is completely untouched, so no entanglement lingers. The only thing new is that φ can now be <em>any</em> real number in [0,1), not just 0 or 1/2 — <a href="0004-interference-deutsch-jozsa.html#phase-kickback">lesson 4's O_f</a> was the special case φ ∈ {0, 1/2}, since (−1)^f(x) = e<sup>2πiφ</sup> exactly when φ is 0 or 1/2.</p>
+  <p>To read out more than one bit of φ, use t control qubits instead of one, each in |+⟩, and let control qubit j apply <strong>U<sup>2ʲ</sup></strong> (U raised to the 2ʲ power) instead of plain U. Kickback then puts a phase of e<sup>2πiφ·2ʲ</sup> on control qubit j, and together the t control qubits end up holding:</p>
+  <pre><code>(1/√2^t) Σ_(k=0)^(2^t−1)  e^(2πiφk) |k⟩</code></pre>
+  <p>which is <em>exactly</em> the kind of periodic, phase-structured state the QFT is built to decode. Apply the <strong>inverse</strong> QFT to this register and measure: the result is φ, expressed to t bits of binary precision.</p>
+  <div class="callout">
+    <strong>Worked example: φ = 1/4, t = 2 control qubits</strong>
+    With t=2, N=4, the control register ends up in <code>(1/2)[e^(2πi·(1/4)·0)|0⟩ + e^(2πi·(1/4)·1)|1⟩ + e^(2πi·(1/4)·2)|2⟩ + e^(2πi·(1/4)·3)|3⟩] = (1/2)[|0⟩ + i|1⟩ − |2⟩ − i|3⟩]</code>.<br><br>
+    Compare this to the QFT formula applied directly to |1⟩ with N=4: <code>QFT|1⟩ = (1/2)Σ_y e^(2πi·1·y/4)|y⟩ = (1/2)[|0⟩ + i|1⟩ − |2⟩ − i|3⟩]</code> — the identical vector. So the control register above <em>is</em> QFT|1⟩, which means the inverse QFT maps it back to exactly |1⟩. Measuring gives k=1 with certainty, and k/2ᵗ = 1/4 = φ, recovered exactly.
+  </div>
+  <p>φ = 1/4 was chosen because it's exactly representable in 2 bits (φ = 0.01 in binary); in general φ won't be exactly representable in t bits, and the algorithm returns the closest t-bit estimate with high probability rather than a guaranteed-exact answer. More control qubits buy more precision, at the cost of a longer circuit.</p>
+
+  <h2>Try it: reading the output register</h2>
+  <p>With t=2 control qubits (N=4 basis states), phase estimation outputs k where k/N ≈ φ. For each φ below, pick the k it produces.</p>
+  <div id="qpe-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. What does the QFT do to a computational basis state |x⟩?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q1','Right — QFT|x⟩ is a superposition over every basis state |y⟩, with a phase e^(2πixy/N) that depends on both x and y.')">Maps it to a superposition over all N basis states, with phases that depend on x and y</button>
+        <button onclick="quizAnswer(this,false,'q1','Only for x=0 does QFT leave the state as a plain equal-phase superposition close to unchanged in a trivial sense — in general it is very much not the identity; every |x⟩ maps to a genuinely different, spread-out state.')">Nothing — the QFT is the identity gate</button>
+        <button onclick="quizAnswer(this,false,'q1','The QFT is a deterministic unitary transformation, not a random or probabilistic collapse — the exact same input always produces the exact same output superposition.')">Collapses it to a single random basis state</button>
+        <button onclick="quizAnswer(this,false,'q1','The QFT acts within a fixed n-qubit register — it transforms amplitudes, it doesn’t add or remove qubits.')">Doubles the number of qubits in the register</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. For a single qubit (n=1), the QFT is exactly which gate you already know?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right — QFT|0⟩ and QFT|1⟩ both reduce exactly to H|0⟩ and H|1⟩, per the formula worked out above.')">The Hadamard gate, H</button>
+        <button onclick="quizAnswer(this,false,'q2','X swaps basis states with no phase structure at all — the QFT specifically produces phase-structured superpositions, which is what H does, not X.')">The Pauli-X gate</button>
+        <button onclick="quizAnswer(this,false,'q2','CNOT is a two-qubit gate — the n=1 QFT acts on a single qubit, so it can’t be CNOT.')">The CNOT gate</button>
+        <button onclick="quizAnswer(this,false,'q2','The identity leaves every basis state unchanged — QFT|0⟩ produces a superposition, not |0⟩ itself, so it can’t be the identity.')">The identity gate</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Applying a single controlled-U (control in |+⟩, target in eigenstate |u⟩, eigenvalue e^(2πiφ)) produces what, via phase kickback?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right — exactly like lesson 4’s derivation, φ lands as a phase on the control qubit while the target |u⟩ is left completely unchanged.')">[(|0⟩ + e^(2πiφ)|1⟩)/√2] ⊗ |u⟩ — φ encoded as a phase on the control, target unchanged</button>
+        <button onclick="quizAnswer(this,false,'q3','Phase kickback is a unitary transformation, not a measurement — φ ends up encoded as a phase, it isn’t read out as a classical value at this step.')">A direct classical measurement of the value φ</button>
+        <button onclick="quizAnswer(this,false,'q3','The target register’s label stays exactly |u⟩ throughout — that’s precisely why this counts as kickback rather than ordinary entangling interaction.')">An entangled state between control and target that can't be separated</button>
+        <button onclick="quizAnswer(this,false,'q3','U|u⟩ = e^(2πiφ)|u⟩ is the defining eigenvalue equation used throughout — the eigenvalue itself is exactly what gets kicked back, not replaced by anything random.')">The eigenvalue e^(2πiφ) gets replaced with a random value</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. How does phase estimation relate to lesson 4's phase kickback trick?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q4','Right — t control qubits each apply an increasing power U^(2ʲ), kicking back one bit of φ per qubit, and the inverse QFT then decodes the resulting periodic phase pattern into a binary estimate of φ.')">It repeats the same kickback mechanism across t control qubits with increasing powers U^(2ʲ), then reads out φ via inverse QFT</button>
+        <button onclick="quizAnswer(this,false,'q4','Phase estimation is built directly on top of the same phase-kickback mechanism from lesson 4 — it’s a generalization, not an unrelated technique.')">It's an unrelated technique with no connection to phase kickback</button>
+        <button onclick="quizAnswer(this,false,'q4','Amplitude amplification is Grover's mechanism (lesson 5) — phase estimation is built from kickback and the QFT, a different toolset entirely.')">It replaces phase kickback with Grover's amplitude amplification</button>
+        <button onclick="quizAnswer(this,false,'q4','Lesson 4’s φ ∈ {0, 1/2} was explicitly called out above as the special case — phase estimation’s whole point is generalizing to any φ in [0,1).')">It only works for φ = 0 or φ = 1/2, exactly as in lesson 4</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>By hand: with t=2 control qubits (N=4), write out the control-register state for φ=1/2 the same way the worked example did for φ=1/4, and confirm it matches QFT|2⟩ exactly (so the inverse QFT recovers k=2, and k/N = 2/4 = 1/2 = φ). This is the exact subroutine <a href="../index.html#lesson-07">Shor's algorithm</a> reuses next — get comfortable with it here.</p>
+
+  <h2>Primary resource</h2>
+  <p>See the <a href="https://learning.quantum.ibm.com/course/fundamentals-of-quantum-algorithms/phase-estimation-and-factoring" target="_blank">"Phase Estimation and Factoring" chapter of IBM's Fundamentals of Quantum Algorithms course</a>, which builds the QFT circuit and phase estimation with the same controlled-U^(2ʲ) construction used here.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> The controlled-U^(2ʲ) step is the densest idea in this lesson — if it's not clicking, ask Claude Code to work through why raising U to a power of 2 is what lets each control qubit read off one specific binary digit of φ.
+  </div>
+
+  <div class="nav">
+    <a href="0005-grovers-algorithm.html">← Lesson 5: Grover's Algorithm</a>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-07">Lesson 7: Shor's Algorithm &amp; Breaking RSA →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const QPE_ITEMS = [
+  {
+    english: 't=2 control qubits (N=4), φ = 1/2 — output k?',
+    options: [
+      { text: 'k = 2  (φ·N = (1/2)·4)', correct: true, explain: 'Right — k/N should equal φ, and 2/4 = 1/2 matches exactly.' },
+      { text: 'k = 1', explain: 'k=1 would give k/N = 1/4, not 1/2 — check φ·N = (1/2)·4 = 2 instead.' },
+    ],
+  },
+  {
+    english: 't=2 control qubits (N=4), φ = 3/4 — output k?',
+    options: [
+      { text: 'k = 3  (φ·N = (3/4)·4)', correct: true, explain: 'Right — k/N = 3/4 matches φ exactly.' },
+      { text: 'k = 2', explain: 'k=2 would give k/N = 2/4 = 1/2, not 3/4 — check φ·N = (3/4)·4 = 3 instead.' },
+    ],
+  },
+  {
+    english: 't=2 control qubits (N=4), φ = 0 — output k?',
+    options: [
+      { text: 'k = 0', correct: true, explain: 'Right — φ=0 means no phase accumulates at all, so the control register stays in |0⟩ and k=0.' },
+      { text: 'k = 4', explain: 'With t=2 control qubits, N=4, valid outputs range only from 0 to 3 — k=4 is out of range for this register size.' },
+    ],
+  },
+];
+
+const qpeDiv = document.getElementById('qpe-exercise');
+QPE_ITEMS.forEach((item, i) => {
+  const cardId = `qpe-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  qpeDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>
