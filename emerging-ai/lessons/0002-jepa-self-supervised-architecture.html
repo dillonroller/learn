@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 2 — JEPA &amp; Self-Supervised Representation Learning</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Emerging AI Research</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 2 of 6 &nbsp;·&nbsp; Emerging AI Research &nbsp;·&nbsp; ~35 min</p>
+  <h1>JEPA &amp; Self-Supervised Representation Learning</h1>
+  <p><a href="0001-beyond-next-token-prediction-world-models.html#world-model">Lesson 1</a> defined a world model as a state representation plus a model of how that state changes — and left open whether next-token prediction reliably builds one. The <strong>Joint-Embedding Predictive Architecture</strong> (JEPA) is a direct, deliberate attempt to build one by architectural design instead of hoping it emerges. This lesson explains exactly what JEPA does differently from a generative model, and states plainly what's demonstrated versus what's still a bet.</p>
+
+  <h2 id="self-supervised-learning">Self-supervised learning, briefly</h2>
+  <p>Self-supervised learning (SSL) trains on unlabeled data by manufacturing a supervisory signal from the data itself — no human annotation required. Next-token prediction is one instance of SSL: the "label" for each position is just the next token, which the corpus already provides for free. Masked-image modeling is another: hide patches of an image and train the model to reconstruct them from the visible ones. What all of these share is a <strong>pretext task</strong> — a training objective chosen not because anyone cares about it directly, but because doing well at it forces the model to learn useful internal representations along the way.</p>
+
+  <h2 id="generative-vs-jepa">Two ways to build a pretext task: reconstruct, or predict in embedding space</h2>
+  <p>Both next-token prediction and masked-image reconstruction share a structural choice: the target the model is scored against lives in <strong>input space</strong> — actual pixels, actual tokens. JEPA makes a different structural choice. Its pretext task is: given a context (part of an input), predict the <strong>representation</strong> of a target (another part of the same input) — not the target's raw pixels or tokens, but the embedding a separate encoder produces from them.</p>
+  <div class="callout warn">
+    <strong id="jepa-def">Joint-Embedding Predictive Architecture (JEPA)</strong>
+    An architecture that learns by predicting the latent embedding of a target from the latent embedding of a context, rather than by reconstructing the target's raw input values. "Joint-embedding" because both context and target pass through encoders into the same representation space; "predictive" because a separate predictor network is trained to map context embeddings to target embeddings.
+  </div>
+  <p>Yann LeCun's original argument for this choice, in his 2022 position paper, is about where model capacity gets spent. A pixel-reconstruction model is forced to predict every last unpredictable detail of the target — the exact texture of grass, the exact position of leaves on a tree — because the loss penalizes any pixel-level mismatch, predictable or not. A model predicting in embedding space can let the target encoder discard that irrelevant, unpredictable detail up front, so the predictor only has to get the parts that actually are predictable — structure, layout, semantics — right. The claim is capacity efficiency: less of the model's effort goes toward modeling noise it was never going to predict anyway.</p>
+
+  <h2 id="jepa-architecture">The architecture, piece by piece</h2>
+  <p>A JEPA system has three trained pieces working together on a single input (an image, a video clip, and so on):</p>
+  <ul>
+    <li><strong>Context encoder</strong> — encodes the visible/context portion of the input into an embedding.</li>
+    <li><strong>Target encoder</strong> — encodes the target portion (the part being predicted) into an embedding. This is usually not trained directly by backpropagation; instead it's updated as a slowly-moving exponential moving average (EMA) of the context encoder's weights, and gradients are stopped from flowing into it.</li>
+    <li><strong>Predictor</strong> — a smaller network trained to map the context embedding to a prediction of the target embedding. The loss is a distance (e.g. squared error) between the predictor's output and the target encoder's actual output — entirely in embedding space, never touching raw pixels.</li>
+  </ul>
+  <div class="callout">
+    <strong>Why the stop-gradient and EMA target encoder matter</strong>
+    Predicting in embedding space creates a failure mode reconstruction-based methods don't have to worry about as much: <strong>representation collapse</strong>, where the easiest way to drive the prediction loss to zero is for every encoder to output the same constant vector regardless of input — a trivially "perfect," and completely useless, solution. Making the target encoder a stop-gradient EMA copy of the context encoder (rather than trained jointly by the same loss) is one of the standard tricks — shared with earlier non-contrastive SSL work like BYOL — that keeps this collapse from happening in practice, though avoiding collapse remains an active area of architectural and regularization work rather than a single fully solved problem.
+  </div>
+
+  <h2 id="i-jepa-v-jepa">From position paper to working system: I-JEPA and V-JEPA</h2>
+  <p>The 2022 position paper laid out the JEPA idea as a proposal. Mahmoud Assran and colleagues then built and benchmarked a concrete instance for images, <strong>I-JEPA</strong>: given one context block of an image, predict the embeddings of several separate target blocks in the same image, using a Vision Transformer for all three pieces. Trained this way, I-JEPA's representations performed competitively with — and in some settings better than — prior pixel-reconstruction and augmentation-heavy contrastive methods on standard benchmarks like linear-probe ImageNet classification, while being reported as substantially cheaper to train. Meta's follow-on <strong>V-JEPA</strong> line extends the same embedding-prediction idea to video, and the 2025 V-JEPA 2 work goes further still, using the learned representation to support robot action planning — a step toward the "predict state, then plan with it" picture from lesson 1's definition, now demonstrated on a real robotic arm rather than only as a proposal.</p>
+
+  <h2 id="the-bet">The bet this architecture is making</h2>
+  <p>Strip away the engineering and JEPA is a specific, falsifiable research bet: that architectures which predict abstract representations of the world — built through self-supervised learning, organized hierarchically, and eventually used for planning rather than only for one-step prediction — are a necessary ingredient for reaching more sample-efficient, common-sense, animal-like intelligence, and that pixel/token-level generative prediction alone is not sufficient to get there. LeCun's position paper is explicit that this includes a specific critique of pure autoregressive generation for long-horizon tasks: because each generated token can carry some error, and errors compound across a long generated sequence, autoregressive generation is argued to be an unreliable way to plan or reason over long horizons without some additional mechanism.</p>
+  <div class="callout warn">
+    <strong>What's demonstrated vs. what's still a bet</strong>
+    <strong>Demonstrated:</strong> JEPA-style embedding prediction is a working, benchmarkable technique — I-JEPA and V-JEPA report real, reproducible results against real baselines, and V-JEPA 2 demonstrates the representation transferring to a genuine robotic planning task. <strong>Still a bet:</strong> that this specific architectural family is <em>necessary</em> for reaching more general, sample-efficient intelligence, and that scaled-up autoregressive LLMs specifically <em>cannot</em> get there through some other route (larger context, tool use, chain-of-thought, hybrid architectures, and so on). That second claim is the position paper's central thesis — a serious, well-argued research hypothesis from a highly credentialed researcher, not yet an empirically settled result the way backpropagation or attention are settled techniques.
+  </div>
+
+  <h2 id="misuse-check">Before repeating "next-token prediction can't reason" or "JEPA solves world models"</h2>
+  <p>Same discipline as <a href="0001-beyond-next-token-prediction-world-models.html#misuse-check">lesson 1's misuse check</a>, applied to architecture claims specifically.</p>
+  <div class="callout warn">
+    <strong>"LLMs just predict the next token, so they fundamentally can't reason"</strong> — Overclaim as a one-line dismissal. It skips over real, specific, testable phenomena — chain-of-thought prompting, in-context learning, tool use — that any serious version of this critique has to engage with directly rather than wave away. The defensible version of this critique is LeCun's actual, narrower argument about error compounding over long autoregressive horizons specifically, not a blanket "can't reason" claim.
+  </div>
+  <div class="callout warn">
+    <strong>"JEPA has solved the world model problem"</strong> — Overclaim. I-JEPA and V-JEPA are real, working systems with real benchmark results — that's demonstrated. Whether embedding-space self-supervised prediction is the architecture that gets AI research to robust, general world models is the open bet stated above, not a closed question.</div>
+  <div class="callout warn">
+    <strong>"JEPA and LLMs are direct competitors, pick one"</strong> — Overclaim in a different direction. Nothing about JEPA rules out combining representation-prediction ideas with large transformer-based language systems, and active research explores exactly that kind of hybrid; treating the two as a forced binary is a simplification the source material doesn't require.
+  </div>
+
+  <h2>Try it: generative reconstruction, or JEPA-style embedding prediction?</h2>
+  <p>For each described training setup, decide which family it belongs to.</p>
+  <div id="jepa-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. What's the defining structural difference between a pixel/token-reconstruction model and a JEPA-style model?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Model size isn\'t the defining difference — JEPA is defined by where its prediction target lives (embedding space vs. input space), not by parameter count.')">JEPA models are always smaller than reconstruction models</button>
+        <button onclick="quizAnswer(this,true,'q1','Right — reconstruction models are scored against raw pixels/tokens (input space); JEPA is scored against a target encoder\'s embedding (representation space).')">Reconstruction models predict raw pixels/tokens; JEPA predicts a target encoder\'s embedding instead</button>
+        <button onclick="quizAnswer(this,false,'q1','Both families of methods are typically self-supervised, requiring no human labels — that\'s not what distinguishes them from each other.')">JEPA requires human-labeled data while reconstruction models don\'t</button>
+        <button onclick="quizAnswer(this,false,'q1','JEPA still uses trained neural network encoders end-to-end — it isn\'t a hand-engineered, non-learned feature extraction pipeline.')">JEPA uses hand-engineered features instead of learned ones</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Per LeCun's argument, why might predicting in embedding space use model capacity more efficiently than predicting raw pixels?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Embedding-space prediction still requires a real, separately-trained predictor network — it isn\'t free of a prediction step, just a different target for that step.')">Because embedding-space prediction requires no predictor network at all</button>
+        <button onclick="quizAnswer(this,true,'q2','Right — the target encoder can discard unpredictable, irrelevant low-level detail before the predictor ever sees the target, so the predictor spends its capacity only on the structure that\'s actually predictable.')">Because the target encoder can discard unpredictable, irrelevant low-level detail, so the predictor only has to get the predictable structure right</button>
+        <button onclick="quizAnswer(this,false,'q2','This is backwards — pixel-reconstruction models are the ones penalized for every pixel-level mismatch, predictable or not, which is exactly the inefficiency LeCun\'s argument targets.')">Because pixel-space prediction ignores fine detail while embedding-space prediction is forced to capture it</button>
+        <button onclick="quizAnswer(this,false,'q2','This isn\'t part of LeCun\'s stated argument — the efficiency claim is about which details get penalized in the loss, not directly about training-example count.')">Because embedding-space models need fewer training examples by definition</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. What specific problem does the stop-gradient, EMA-updated target encoder address in JEPA-style architectures?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','This describes an unrelated concern (training speed), not the specific failure mode — representation collapse — that the stop-gradient/EMA design is aimed at.')">Making the model train faster on larger batch sizes</button>
+        <button onclick="quizAnswer(this,true,'q3','Right — without this design, the easiest way to minimize embedding-prediction loss is for all encoders to collapse to the same constant output, which the stop-gradient EMA target encoder helps prevent.')">Representation collapse, where encoders could otherwise trivially minimize loss by outputting a constant vector regardless of input</button>
+        <button onclick="quizAnswer(this,false,'q3','The predictor network is a separate, explicitly trained component with its own gradients — the EMA/stop-gradient trick applies to the target encoder, not to removing the predictor.')">Eliminating the need for a separate predictor network</button>
+        <button onclick="quizAnswer(this,false,'q3','Human labels aren\'t part of this picture at all — JEPA is self-supervised throughout, and this design choice has nothing to do with labeling.')">Reducing the amount of human-labeled data required for training</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Per this lesson's rigor-over-hype standard, what's the accurate characterization of "JEPA proves LLMs can't build world models"?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','I-JEPA and V-JEPA are real, benchmarked systems with reproducible reported results — dismissing them as pure hype ignores the demonstrated half of the picture.')">Accurate — JEPA is purely marketing with no real benchmark results behind it</button>
+        <button onclick="quizAnswer(this,true,'q4','Right — JEPA is a serious, working competing architecture with real results, but it demonstrates an alternative approach works, not that LLMs specifically are incapable of anything like a world model.')">Overclaim — JEPA demonstrates a working alternative architecture with real benchmark results, but that\'s not the same as proving another architecture family is incapable</button>
+        <button onclick="quizAnswer(this,false,'q4','This reverses the actual open question — whether JEPA-style prediction is necessary for reaching general intelligence is exactly the unresolved bet, not a settled fact either way.')">Accurate — this is a fully settled empirical result at this point</button>
+        <button onclick="quizAnswer(this,false,'q4','LeCun\'s position paper is explicit and specific about its own architectural claims and critiques — describing it as having no clear claims at all misrepresents the actual source.')">Overclaim — because LeCun\'s paper doesn\'t actually make any specific claims about anything</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Open the I-JEPA paper (linked below) and find Figure 1, which diagrams the context encoder / target encoder / predictor setup. Without reading the caption first, try to label each of the three components yourself from what you learned in this lesson, then check your labels against the caption. <a href="0003-reading-a-paper-claims-vs-evidence.html">Lesson 3</a> uses this same paper as its worked example for reading claims and evidence, so this is a useful first pass.</p>
+
+  <h2>Primary resource</h2>
+  <p>See Yann LeCun, <a href="https://openreview.net/forum?id=BZ5a1r-kVsf" target="_blank">"A Path Towards Autonomous Machine Intelligence"</a> (2022) — the position paper that introduced JEPA and Hierarchical JEPA, and the source for the architectural bet described in this lesson.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Want to work through the embedding-prediction loss by hand on a toy example, or compare JEPA's stop-gradient trick to BYOL's or SimSiam's in more depth? Bring it to Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0001-beyond-next-token-prediction-world-models.html">← Lesson 1: Beyond Next-Token Prediction</a>
+    <span class="spacer"></span>
+    <a href="0003-reading-a-paper-claims-vs-evidence.html">Lesson 3: Reading a Real Paper →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const JEPA_ITEMS = [
+  {
+    english: '"Hide 40% of an image\'s patches; train the model to reconstruct the missing pixel values directly."',
+    options: [
+      { text: 'Generative reconstruction', correct: true, explain: 'Right — the loss is scored against raw pixel values in input space, which is exactly the reconstruction family JEPA is defined against.' },
+      { text: 'JEPA-style embedding prediction', explain: 'This setup reconstructs raw pixels, not a target encoder\'s embedding — that makes it a reconstruction method, not JEPA.' },
+    ],
+  },
+  {
+    english: '"Encode a context region and a target region separately; train a predictor to match the target encoder\'s output from the context encoder\'s output."',
+    options: [
+      { text: 'Generative reconstruction', explain: 'No raw-pixel reconstruction is happening here — the loss compares two embeddings, which is the JEPA pattern, not reconstruction.' },
+      { text: 'JEPA-style embedding prediction', correct: true, explain: 'Right — separate context/target encoders and a predictor trained to match embeddings is exactly the JEPA architecture described in this lesson.' },
+    ],
+  },
+  {
+    english: '"At every position in a sentence, predict a probability distribution over the exact next word, scored against the word that actually appeared."',
+    options: [
+      { text: 'Generative reconstruction', correct: true, explain: 'Right — the target is the actual next token in input space (vocabulary space), the same structural family as pixel reconstruction, just for text.' },
+      { text: 'JEPA-style embedding prediction', explain: 'The prediction target here is an actual vocabulary token, not an embedding produced by a separate target encoder — that makes this next-token prediction, not JEPA.' },
+    ],
+  },
+];
+
+const jepaDiv = document.getElementById('jepa-exercise');
+JEPA_ITEMS.forEach((item, i) => {
+  const cardId = `jepa-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  jepaDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

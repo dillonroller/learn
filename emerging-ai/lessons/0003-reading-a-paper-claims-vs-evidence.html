@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 3 — Reading a Real Paper: Claims, Evidence &amp; Abstract-Marketing</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Emerging AI Research</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 3 of 6 &nbsp;·&nbsp; Emerging AI Research &nbsp;·&nbsp; ~35 min</p>
+  <h1>Reading a Real Paper: Claims, Evidence &amp; Abstract-Marketing</h1>
+  <p>The mission behind this whole course is being able to read one real, current paper and form a genuine opinion about it — not repeat its headline. That's a skill, and like any skill it has a procedure. This lesson teaches that procedure directly, using the <a href="0002-jepa-self-supervised-architecture.html#i-jepa-v-jepa">I-JEPA paper</a> from lesson 2 as the worked example, precisely because you already know roughly what it's about — which frees you to focus on <em>how</em> to read it rather than decoding the content from scratch.</p>
+
+  <h2 id="paper-anatomy">The anatomy of a typical ML paper</h2>
+  <p>Most machine learning papers, I-JEPA included, follow a recognizable shape, and each section plays a different evidentiary role:</p>
+  <ul>
+    <li><strong>Abstract</strong> — a compressed, highly persuasive summary written last, after the authors know their best results, specifically to get the paper read, reviewed favorably, and cited.</li>
+    <li><strong>Introduction / related work</strong> — motivates the problem and stakes a claim to novelty relative to prior work; this is where the "gap" the paper claims to fill gets defined, on the authors' own terms.</li>
+    <li><strong>Method</strong> — the actual technical description: precise enough, in principle, that someone else could reimplement it.</li>
+    <li><strong>Experiments / results</strong> — tables and figures reporting numbers under specific, stated conditions. This is where the real, checkable evidence lives.</li>
+    <li><strong>Ablations</strong> — experiments that remove or vary one piece of the method at a time, to show which parts of it are actually doing the work. Often the most honest section in the paper.</li>
+    <li><strong>Limitations / conclusion</strong> — where authors are expected to state what their method doesn't do, though how thoroughly this gets done varies a great deal paper to paper.</li>
+  </ul>
+
+  <h2 id="abstract-vs-claim">Why the abstract is the least reliable section for evidence</h2>
+  <p>This isn't a claim that abstracts are dishonest — it's a claim about incentives. An abstract is the single most re-read, most quoted, most screenshotted paragraph of the entire paper, and authors know it. It's optimized to be maximally persuasive within a tight word count, which structurally rewards strong, general-sounding language over precise, hedged language. Watch for words doing rhetorical work rather than reporting a measurement: "dramatically," "for the first time," "human-level," "outperforms" (outperforms <em>on what, exactly, compared to what baseline, under what compute budget?</em>). None of this makes an abstract worthless — it's usually an accurate compressed pointer to the paper's real content — but it is the wrong place to stop reading if you actually want to know what was shown.</p>
+  <div class="callout">
+    <strong>A concrete habit</strong>
+    Before reading past the abstract, write down, in your own words, the single most specific falsifiable claim you think the paper is making — something you could imagine being wrong. Then go find the table or figure that's supposed to support exactly that claim. If you can't find one, that's itself a finding.
+  </div>
+
+  <h2 id="claims-and-evidence-worked-example">Worked example: I-JEPA's claim, and where its evidence actually lives</h2>
+  <p>I-JEPA's framing claim, stated at the level lesson 2 already covered, is roughly: predicting in representation space rather than pixel space produces representations that are useful for downstream tasks, while being simpler and more compute-efficient to train than prior pixel-reconstruction and augmentation-heavy contrastive approaches. Read that sentence again and separate two very different kinds of content inside it:</p>
+  <ul>
+    <li><strong>The checkable part:</strong> specific reported numbers — linear-probe accuracy on ImageNet, performance in low-label-data ("low-shot") settings, and reported training compute/wall-clock time, each measured under a stated experimental setup (which encoder architecture, which dataset, which comparison baselines). These are the paper's real evidence — they're what you should actually check, and what a replication attempt would try to reproduce.</li>
+    <li><strong>The interpretive part:</strong> words like "useful," "simpler," and "semantic." These are the authors' interpretation of what the numbers mean, and reasonable readers can weigh that interpretation differently even while agreeing completely on the underlying numbers. This part is where your own judgment is supposed to engage — not where you should expect the paper to have settled the matter for you.</li>
+  </ul>
+  <p>The skill this lesson is teaching is keeping those two categories separate in your head at all times: which sentence in this paper is a number under a stated condition, and which sentence is the authors telling you what to think about that number.</p>
+
+  <h2 id="ablations-and-limitations">Ablations and limitations: often the most honest section</h2>
+  <p>A paper's ablation table is where authors show what happens when you remove or swap one design choice at a time — the stop-gradient target encoder, the specific masking strategy, and so on, in I-JEPA's case. Because ablations are usually reported with less rhetorical pressure than the headline results (they're not the number on the leaderboard), they tend to be where you learn which part of a method is actually load-bearing versus incidental. Similarly, a limitations section that specifically names what didn't work, or what conditions the method was <em>not</em> tested under, is a genuine positive signal about a paper's trustworthiness — the absence of any stated limitation at all is worth noticing, not treating as reassurance.</p>
+
+  <h2 id="misuse-check">Before repeating a paper's headline claim</h2>
+  <p>Same discipline as the misuse checks in <a href="0001-beyond-next-token-prediction-world-models.html#misuse-check">lesson 1</a> and <a href="0002-jepa-self-supervised-architecture.html#misuse-check">lesson 2</a>, turned into a checklist you can run against any paper before you repeat its claim to someone else:</p>
+  <div class="callout warn">
+    <strong>Four questions to ask before repeating a result</strong>
+    <ol>
+      <li>What's the exact metric and benchmark — not "it's better," but better <em>at what task, measured how</em>?</li>
+      <li>Is the comparison baseline matched on compute, data, and model size, or is this comparing a bigger/newer model to a smaller/older one and calling the difference "architecture"?</li>
+      <li>Has this been peer reviewed, or independently reproduced by anyone outside the original team? A preprint's numbers are exactly as reliable as the experiment that produced them and no more.</li>
+      <li>Would the headline framing survive being stated next to the paper's own limitations section, in the same sentence?</li>
+    </ol>
+  </div>
+  <div class="callout warn">
+    <strong>"This paper proves X" (as a one-word substitute for reading it)</strong> — A single paper, however well-run, reports evidence under one specific, stated setup. Treating one paper's result as a closed, general "proof" — rather than as evidence to be weighed alongside replications, follow-up work, and known limitations — is the single most common way a real result gets inflated into a headline that oversells it.
+  </div>
+
+  <h2>Try it: claim, evidence, or marketing framing?</h2>
+  <p>For each sentence (paraphrased in the style typical of an ML paper, not a direct quotation), classify what kind of content it is.</p>
+  <div id="paper-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Why is a paper's abstract structurally the least reliable section to treat as primary evidence?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','The lesson\'s point isn\'t that abstracts are dishonest — it\'s an incentive/format argument about what gets rewarded within a tight, highly-read summary, not an accusation of deliberate falsehood.')">Because abstracts are usually deliberately dishonest about the paper\'s content</button>
+        <button onclick="quizAnswer(this,true,'q1','Right — it\'s the most re-read, most quoted section, which structurally rewards strong, persuasive, general-sounding language over precise, hedged reporting; the checkable evidence lives in the experiments section instead.')">Because it\'s optimized to persuade within a tight word count, which rewards strong general language over precise, hedged reporting found in the experiments section</button>
+        <button onclick="quizAnswer(this,false,'q1','Abstracts are typically written by the same authors as the rest of the paper, often written last — this isn\'t a claim about a separate marketing team.')">Because abstracts are written by a different team than the researchers who ran the experiments</button>
+        <button onclick="quizAnswer(this,false,'q1','Abstracts are near-universal across ML papers, not a rare or unusual practice — the lesson\'s point is about what abstracts structurally reward, not their rarity.')">Because most papers don\'t actually include an abstract at all</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. In the worked I-JEPA example, which part of the framing claim is the "checkable" part?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','This is exactly the interpretive language the lesson says to separate out — words like "useful" and "semantic" are the authors\' interpretation, not the checkable measurement itself.')">The words "useful" and "semantic" applied to the learned representations</button>
+        <button onclick="quizAnswer(this,true,'q2','Right — specific reported numbers (linear-probe accuracy, low-shot performance, training compute) under a stated experimental setup are the checkable evidence; that\'s what a replication attempt would try to reproduce.')">The specific reported numbers — linear-probe accuracy, low-shot results, training compute — under their stated experimental setup</button>
+        <button onclick="quizAnswer(this,false,'q2','The lesson doesn\'t treat the paper\'s title as evidence of anything — titles are framing, similar to the abstract, not a reported measurement.')">The paper\'s title</button>
+        <button onclick="quizAnswer(this,false,'q2','This is the interpretive claim about the training process, not a specific checkable number — "simpler" is exactly the kind of interpretive word the lesson flags.')">The claim that the method is "simpler" than prior approaches</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Per this lesson, why are ablation tables often more trustworthy than the headline results table?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','Ablations are not held to a different statistical standard — the lesson\'s point is about rhetorical pressure and incentives, not a formal statistical distinction.')">Because ablation results are held to a stricter statistical significance standard by convention</button>
+        <button onclick="quizAnswer(this,true,'q3','Right — ablations aren\'t the number that goes on the leaderboard, so they carry less rhetorical pressure, and tend to more honestly reveal which design choices are actually load-bearing.')">Because they carry less rhetorical/leaderboard pressure, so they tend to more honestly show which specific design choices are actually doing the work</button>
+        <button onclick="quizAnswer(this,false,'q3','Ablations are run by the same authors, on the same codebase, as the rest of the paper — there\'s no independent-team distinction here.')">Because ablations are run by an independent team separate from the paper\'s authors</button>
+        <button onclick="quizAnswer(this,false,'q3','Ablation studies use the same experimental infrastructure as the main results — the lesson doesn\'t claim they use a fundamentally different, more rigorous method.')">Because ablations always use a completely different, more rigorous experimental method</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Per this lesson's rigor-over-hype standard, what's the right way to treat a single paper's reported result?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','This is exactly the overclaim the lesson warns against — one paper\'s evidence is scoped to its stated setup, not an automatic proof of a general claim.')">As settled proof of its general claim, since it was published</button>
+        <button onclick="quizAnswer(this,true,'q4','Right — a paper\'s numbers are real evidence under its own specific, stated conditions; generalizing beyond that setup, or treating any single paper as final, is exactly the overclaim to watch for.')">As evidence under the paper\'s own specific, stated setup — real, but not automatically generalizable beyond that setup or final on its own</button>
+        <button onclick="quizAnswer(this,false,'q4','The lesson explicitly argues the opposite — peer review, ablations, and specific reported numbers are exactly the kind of signal worth weighing, not something to dismiss outright.')">As worthless until independently reproduced, with no weight given to the original report at all</button>
+        <button onclick="quizAnswer(this,false,'q4','The lesson\'s whole four-question checklist is about how to weigh a specific paper\'s claim carefully — not a recommendation to only trust the framing/abstract for a quick read.')">As accurately summarized by its abstract alone, which is quicker to read than the full paper</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Open the I-JEPA paper (linked below) for real this time. Read the abstract, then Figure 1, then the main results table. Write, in your own words: one sentence for the paper's actual falsifiable claim, and one sentence naming the specific number and comparison baseline that's supposed to support it. Then check whether the abstract's framing language ("simpler," "efficient," and so on) survives sitting next to that specific number, or whether it's doing more rhetorical work than the number alone would justify.</p>
+
+  <h2>Primary resource</h2>
+  <p>See Mahmoud Assran et al., <a href="https://arxiv.org/abs/2301.08243" target="_blank">"Self-Supervised Learning from Images with a Joint-Embedding Predictive Architecture"</a> (I-JEPA, 2023) — the paper this lesson's worked example is drawn from, and the concrete system <a href="0002-jepa-self-supervised-architecture.html#i-jepa-v-jepa">lesson 2</a> introduced.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Bring an actual claim/evidence pair you found in the I-JEPA paper — or any other paper — to Claude Code, and work through together whether the framing matches the number.
+  </div>
+
+  <div class="nav">
+    <a href="0002-jepa-self-supervised-architecture.html">← Lesson 2: JEPA &amp; Self-Supervised Representation Learning</a>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-04">Lesson 4: Mechanistic Interpretability →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const PAPER_ITEMS = [
+  {
+    english: '"Our method achieves 77.3 top-1 accuracy on the target benchmark, using the same backbone and training budget as the baseline in Table 2."',
+    options: [
+      { text: 'Evidence', correct: true, explain: 'Right — a specific number, under a stated, matched comparison condition, is exactly the checkable evidence category this lesson asks you to find.' },
+      { text: 'Interpretive claim', explain: 'This sentence reports a specific number under a matched condition — that\'s evidence, not the authors\' interpretation of what a number means.' },
+      { text: 'Marketing framing', explain: 'This sentence names a specific number and a matched comparison condition — that\'s evidence, not rhetorical framing.' },
+    ],
+  },
+  {
+    english: '"This represents a dramatic leap forward in self-supervised representation learning."',
+    options: [
+      { text: 'Evidence', explain: 'No metric, no baseline, no number — "dramatic leap forward" is interpretive, persuasive language, not a checkable measurement.' },
+      { text: 'Interpretive claim', explain: 'This goes further than a reasoned interpretation of a specific result — it\'s general, superlative language with no result attached, which is the marketing-framing case specifically.' },
+      { text: 'Marketing framing', correct: true, explain: 'Right — this is exactly the kind of general, rhetorically strong language the lesson flags as framing rather than evidence.' },
+    ],
+  },
+  {
+    english: '"We hypothesize that predicting in representation space allows the model to allocate capacity toward predictable structure rather than irrelevant pixel-level detail."',
+    options: [
+      { text: 'Evidence', explain: 'This is a stated hypothesis about why a result might hold, not itself a reported number or measurement.' },
+      { text: 'Interpretive claim', correct: true, explain: 'Right — this is the paper\'s interpretive claim about the mechanism, exactly the kind of sentence you should go looking for supporting evidence for, rather than accepting on its own.' },
+      { text: 'Marketing framing', explain: 'This is a specific, falsifiable mechanistic hypothesis, not vague superlative language — it\'s precise enough to actually be tested, which is what separates a claim from pure framing.' },
+    ],
+  },
+];
+
+const paperDiv = document.getElementById('paper-exercise');
+PAPER_ITEMS.forEach((item, i) => {
+  const cardId = `paper-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  paperDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

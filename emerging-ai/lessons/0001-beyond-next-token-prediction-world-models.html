@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 1 — Beyond Next-Token Prediction: What a "World Model" Actually Means</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Emerging AI Research</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 1 of 6 &nbsp;·&nbsp; Emerging AI Research &nbsp;·&nbsp; ~30 min</p>
+  <h1>Beyond Next-Token Prediction: What a "World Model" Actually Means</h1>
+  <p>You already have a rough sense of how a large language model is trained: feed it enormous amounts of text, and at every position ask it to predict the next token, scored against how well that prediction matched what actually came next. That single objective — cheap to compute, trivially scalable, no human labeling required — is the engine behind essentially every frontier LLM. This lesson asks a sharper question than "is that enough?": what would it even mean for a model to have <strong>more</strong> than that — a "world model" — and is that phrase doing real work or just borrowing gravitas the way "quantum" gets borrowed outside physics?</p>
+
+  <h2 id="next-token-prediction">What next-token prediction actually optimizes</h2>
+  <p>Precisely: an autoregressive LLM is trained to minimize cross-entropy loss between its predicted probability distribution over the next token and the actual next token, at every position in a training corpus, conditioned only on the tokens that came before. Nothing in that objective directly rewards the model for representing "the state of the world" — no notion of objects persisting, actions having consequences, or physical dynamics unfolding over time is written into the loss function anywhere. Whatever structure like that ends up inside the model, if any, has to emerge as a side effect of getting very good at predicting text — it isn't the thing being optimized for.</p>
+  <p>That gap — between "optimizes token prediction" and "represents the world" — is the entire subject of this lesson.</p>
+
+  <h2 id="world-model">A precise definition of "world model"</h2>
+  <p>The modern technical use of the term comes from reinforcement learning, most influentially from David Ha and Jürgen Schmidhuber's 2018 paper, which trains an agent's internal model to do two specific things: (1) compress raw observations into a compact latent representation, and (2) predict how that latent representation changes over time, typically conditioned on an action the agent takes. That gives a much sharper bar than "the model knows stuff about the world":</p>
+  <div class="callout warn">
+    <strong id="world-model-def">World model (working definition)</strong>
+    A learned internal representation of an environment's <em>state</em>, together with a learned model of how that state <em>changes</em> — ideally in response to actions — good enough to predict future states and support planning, without needing to re-observe the real environment for every step.
+  </div>
+  <p>Notice what this definition requires that plain next-token prediction doesn't provide for free: a notion of <em>state</em> distinct from the raw input stream, and a notion of <em>dynamics</em> — how state transitions — rather than just "what token is statistically likely to follow this text." A model can be extremely good at the second (next-token prediction) while it remains a genuinely open question whether, and to what extent, it has built the first (state + dynamics) as a byproduct.</p>
+
+  <h2 id="does-an-llm-have-a-world-model">Does an LLM build a world model? The honest answer is: sometimes, partially, and it's contested</h2>
+  <p>This is the section to read slowly, because the popular discourse tends to collapse into one of two overconfident answers ("obviously yes, look what it can do" or "obviously no, it's just autocomplete"), and neither survives contact with the actual evidence.</p>
+  <p><strong>Evidence for implicit structure:</strong> Kenneth Li and colleagues trained a small GPT-style model on nothing but sequences of legal moves in the board game Othello — the model was never told the rules or shown a board. Trained purely to predict the next move, the network turned out to contain an internal, decodable representation of the actual board state, and intervening on that internal representation causally changed the model's predicted moves in the expected way. That's a genuine, controlled result: next-token prediction, on a narrow synthetic task, produced something that behaves like a state representation — a real, small-scale existence proof that the gap between "predicts tokens" and "represents state" can be bridged by training alone, at least sometimes.</p>
+  <p><strong>Evidence for limits:</strong> Lukas Berglund and colleagues showed what they called the "reversal curse": a model trained on "A is B" (e.g., a specific person described one way) reliably fails to answer the reverse question "who is B?", even though a model with a genuine, queryable internal representation of the underlying fact ought to answer both directions equally well. That's evidence the internal representations LLMs build are, at least in many cases, tied tightly to the specific direction and phrasing they were trained on — more like a huge web of directional associations than a clean, queryable model of "who is who" that you could interrogate from any angle.</p>
+  <p><strong>The skeptical position, stated fairly:</strong> Emily Bender and colleagues' widely-cited "stochastic parrots" paper predates both of the above results, but makes the structural point that still has to be answered by anyone claiming an LLM "understands" or "models" anything: a system trained purely to match the statistical distribution of surface text form can produce fluent, contextually appropriate output without that output being backed by any grounded representation of meaning or reference at all. The paper isn't a technical proof that LLMs lack world models — it's a warning against inferring understanding from fluency alone, which is exactly the inferential move both boosters and casual critics keep making in different directions.</p>
+
+  <div class="callout">
+    <strong>Hold these together, not apart</strong>
+    Othello-GPT shows narrow, task-specific state representations can emerge from pure next-token prediction. The reversal curse shows those representations are often shallower and more direction-dependent than "a world model" implies. Stochastic Parrots explains why fluent output is not, by itself, evidence of either. None of these three results contradicts the others — they narrow the honest answer down to "partially, unevenly, and it depends enormously on what you're testing," which is a much more useful thing to have learned than either slogan.
+  </div>
+
+  <h2 id="misuse-check">Before you say an LLM "has a world model"</h2>
+  <p>Same discipline as <a href="../../logic/lessons/0011-godels-incompleteness-theorems.html#incompleteness-misuse">Logic lesson 11's Gödel-misuse check</a> and <a href="../../quantum-mechanics/lessons/0001-state-vectors-superposition-born-rule.html#misuse-check">Quantum Mechanics' superposition-misuse check</a>: whenever "world model" gets applied to a specific system, ask precisely which claim is being made before accepting or rejecting it.</p>
+  <div class="callout warn">
+    <strong>"LLMs are just stochastic parrots, they can't model anything"</strong> — Overclaim in the other direction. Othello-GPT is a real, controlled counterexample to the strong version of this claim on at least one narrow task. The accurate claim is narrower: fluent output alone isn't evidence of a world model, not that no world-model-like structure can ever emerge from next-token prediction.
+  </div>
+  <div class="callout warn">
+    <strong>"GPT-4 clearly has a world model, look how well it reasons about physics questions"</strong> — Overclaim. Good performance on physics-flavored text questions is evidence about output quality on that distribution of questions, not direct evidence of a persistent internal state-plus-dynamics representation in the technical sense above. The reversal curse is exactly the kind of result that should make you suspicious of inferring a clean internal model from surface competence.
+  </div>
+  <div class="callout warn">
+    <strong>"Whether LLMs have world models is settled"</strong> — Overclaim regardless of which side it's asserting. As of this course, it's an active empirical research question studied case by case (which capability, which model, which probing method) — not a single yes/no fact. Treat any confident one-line answer, in either direction, as a sign the claim hasn't been checked against a specific result.
+  </div>
+
+  <h2>Try it: established, or overclaim?</h2>
+  <p>For each claim about world models and LLMs, decide whether it's an accurate, appropriately scoped claim or an overclaim beyond current evidence.</p>
+  <div id="wm-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Precisely, what does an autoregressive LLM's training objective directly optimize?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q1','Right — cross-entropy between the predicted next-token distribution and the actual next token, at every position, is the entire direct training signal. Anything resembling a world model has to emerge as a side effect of getting good at this.')">Cross-entropy loss between predicted and actual next token, at every position</button>
+        <button onclick="quizAnswer(this,false,'q1','No such term appears in the standard pretraining objective — the loss function has no direct notion of "world state" written into it at all, which is exactly why whether one emerges is an open question.')">A direct penalty for internal world-state representations that are inconsistent with reality</button>
+        <button onclick="quizAnswer(this,false,'q1','Human preference comparisons are the RLHF/preference-tuning stage, applied after pretraining — they are not what next-token pretraining itself optimizes.')">Agreement with human preference rankings collected after generation</button>
+        <button onclick="quizAnswer(this,false,'q1','Planning success requires a defined environment and reward signal to even measure — plain next-token pretraining on text has neither.')">Success at multi-step planning tasks in a simulated environment</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Per this lesson's working definition (following Ha &amp; Schmidhuber), what does a "world model" require beyond just predicting the next observation?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Model size is not part of the definition at all — a small model can meet the definition on a narrow task (as Othello-GPT shows) and a huge model can fail to on a broader one.')">A minimum number of trainable parameters</button>
+        <button onclick="quizAnswer(this,true,'q2','Right — the definition specifically requires a compact state representation plus a learned model of how that state changes, ideally with actions, sufficient to predict forward without re-observing reality.')">A compressed representation of state, plus a model of how that state changes over time (ideally with actions)</button>
+        <button onclick="quizAnswer(this,false,'q2','The definition says nothing about output modality — a world model in Ha & Schmidhuber\'s sense could in principle operate over text, images, or other observations; text-only isn\'t disqualifying or defining.')">Training exclusively on natural-language text rather than any other modality</button>
+        <button onclick="quizAnswer(this,false,'q2','Human labels are not part of the definition — Ha & Schmidhuber\'s original setup, and self-supervised approaches generally, are explicitly about learning this without hand-labeled supervision.')">Human-labeled annotations for every state transition in training</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. What did Li et al.'s Othello-GPT result actually demonstrate?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','The lesson is explicit that this is a narrow, task-specific existence proof, not a general claim about all LLMs or all tasks — overclaiming the scope is exactly the error the misuse check warns against.')">That all large language models understand the rules of any game they're shown</button>
+        <button onclick="quizAnswer(this,true,'q3','Right — a model trained only to predict legal next moves developed a decodable, causally-relevant internal representation of the board state, without ever being told the rules explicitly.')">That a model trained only on next-move prediction developed a decodable internal board-state representation, with causal effects on its outputs</button>
+        <button onclick="quizAnswer(this,false,'q3','The model was never given the rules or board state as explicit input at any point — the whole point of the result is that it inferred structure purely from move sequences.')">That the model was given explicit board-state labels during training</button>
+        <button onclick="quizAnswer(this,false,'q3','This is the reversal curse\'s finding, from a different paper about factual-recall direction — not what the Othello-GPT board-game result showed.')">That models trained on "A is B" fail to answer "who is B?"</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Per this lesson's rigor-over-hype standard, which is the most defensible summary of "do LLMs have world models"?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','This is the overclaim in one direction — Othello-GPT is a real counterexample to a blanket "never" claim, at least on the narrow task it was tested on.')">No — Stochastic Parrots proved LLMs can never represent state, full stop</button>
+        <button onclick="quizAnswer(this,false,'q4','This is the overclaim in the other direction — fluent reasoning-flavored output is not, by itself, evidence of a persistent state-plus-dynamics representation, and the reversal curse specifically cuts against assuming clean queryable structure.')">Yes — modern LLMs clearly have full world models, since they reason well about many topics</button>
+        <button onclick="quizAnswer(this,true,'q4','Right — the honest, current answer is uneven and task-dependent: real evidence of narrow emergent structure exists (Othello-GPT), real evidence of shallow direction-bound associations also exists (reversal curse), and neither settles the general question.')">It's genuinely unsettled and uneven — some evidence of narrow emergent state representations, other evidence of shallow, direction-bound structure, decided case by case</button>
+        <button onclick="quizAnswer(this,false,'q4','No result in this lesson turns on training compute specifically — the disagreement is about what kind of structure the training objective incentivizes, not about how much compute was spent.')">It's purely a matter of not yet having spent enough compute; more scale will resolve it automatically</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Open the abstract of the Othello-GPT paper (linked below) and, without reading past the abstract, write down in one sentence what you predict the paper's actual evidence looks like — then skim the paper's figures to check yourself. This is a small rehearsal of the exact skill <a href="0003-reading-a-paper-claims-vs-evidence.html">lesson 3</a> builds in full: forming a specific, falsifiable prediction about a paper's evidence before you let the abstract's framing do your thinking for you.</p>
+
+  <h2>Primary resource</h2>
+  <p>See David Ha &amp; Jürgen Schmidhuber, <a href="https://arxiv.org/abs/1803.10122" target="_blank">"World Models"</a> (2018) — the paper that gives the term its modern technical meaning in machine learning, and the definition this lesson builds on directly.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Want to look at the actual Othello-GPT probing methodology, or work through what a "state representation" would need to look like for a different domain (e.g. text adventures, code)? Bring it to Claude Code.
+  </div>
+
+  <div class="nav">
+    <span></span>
+    <span class="spacer"></span>
+    <a href="0002-jepa-self-supervised-architecture.html">Lesson 2: JEPA &amp; Self-Supervised Representation Learning →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const WM_ITEMS = [
+  {
+    english: '"A model trained purely on next-token prediction can never develop any internal representation resembling world state."',
+    options: [
+      { text: 'Established', explain: 'The Othello-GPT result is a direct, real counterexample to this blanket claim, at least on the narrow task it was tested on — so this is not an established fact.' },
+      { text: 'Overclaim', correct: true, explain: 'Right — this is the "just a stochastic parrot" overclaim, contradicted by at least one controlled result (Othello-GPT) on a narrow task.' },
+    ],
+  },
+  {
+    english: '"Whether an LLM has built something world-model-like depends heavily on which specific capability and model you test, and is not a single settled yes/no fact."',
+    options: [
+      { text: 'Established', correct: true, explain: 'Right — this is the accurate, appropriately scoped summary this lesson argues for, consistent with both the Othello-GPT and reversal-curse evidence.' },
+      { text: 'Overclaim', explain: 'This is actually the careful, well-scoped claim — the overclaims are the confident one-line yes/no answers on either side, not this one.' },
+    ],
+  },
+  {
+    english: '"Fluent, contextually appropriate text output is by itself sufficient evidence that a model has a grounded internal representation of what it\'s describing."',
+    options: [
+      { text: 'Established', explain: 'This is exactly the inferential move the Stochastic Parrots paper argues against — fluency is evidence about output quality, not automatically about grounded internal representation.' },
+      { text: 'Overclaim', correct: true, explain: 'Right — this is the specific gap the Stochastic Parrots critique identifies: fluent surface form does not, on its own, establish grounded understanding or state representation.' },
+    ],
+  },
+];
+
+const wmDiv = document.getElementById('wm-exercise');
+WM_ITEMS.forEach((item, i) => {
+  const cardId = `wm-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  wmDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

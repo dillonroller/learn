@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 2 — RSA: Key Generation, Encryption &amp; a Full Correctness Proof</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Cryptography &amp; Number Theory</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 2 of 8 &nbsp;·&nbsp; Cryptography &amp; Number Theory &nbsp;·&nbsp; ~40 min</p>
+  <h1>RSA: Key Generation, Encryption &amp; a Full Correctness Proof</h1>
+  <p><a href="0001-modular-arithmetic-eulers-theorem.html#eulers-theorem">Euler's theorem</a> guarantees that a<sup>φ(n)</sup> ≡ 1 (mod n) whenever gcd(a, n) = 1. RSA turns that single fact into an entire public-key cryptosystem: a scheme where anyone can encrypt a message using a key you publish openly, but only you — holding a second, secret key — can decrypt it. This lesson builds RSA from the ground up and proves, with real numbers, that decryption really does recover the original message.</p>
+
+  <h2 id="public-key-idea">The idea: two keys, not one</h2>
+  <p>Classical (symmetric) encryption uses one shared secret key for both encrypting and decrypting — which means the two parties need a secure way to agree on that key before they can talk securely at all, a chicken-and-egg problem. <strong id="public-key-cryptography-def">Public-key cryptography</strong> breaks that circularity: each person publishes a <strong id="public-key-def">public key</strong> that anyone can use to encrypt a message to them, while keeping a mathematically linked <strong id="private-key-def">private key</strong> secret, which alone can decrypt it. RSA — named for Rivest, Shamir, and Adleman, who published it in 1977 — was the first practical realization of this idea, and it works because of a computational asymmetry: multiplying two large primes together is easy, but factoring the product back apart is (believed to be) hard. <a href="0003-why-factoring-is-hard-shors-algorithm.html">Lesson 3</a> examines that hardness claim directly.</p>
+
+  <h2 id="rsa-key-generation">Key generation</h2>
+  <p>To generate an RSA key pair:</p>
+  <ol>
+    <li>Choose two distinct large primes p and q. Compute n = p · q — this is the <strong>modulus</strong>, and it's published as part of the public key.</li>
+    <li>Compute φ(n) = (p − 1)(q − 1), using the <a href="0001-modular-arithmetic-eulers-theorem.html#eulers-totient-function">totient product formula</a> from lesson 1. φ(n) is <em>not</em> published — knowing it is equivalent to knowing p and q.</li>
+    <li>Choose a public exponent e with 1 &lt; e &lt; φ(n) and gcd(e, φ(n)) = 1 — e must have a <a href="0001-modular-arithmetic-eulers-theorem.html#modular-inverse">modular inverse</a> mod φ(n) for the next step to work. e = 65537 is the near-universal choice in practice; small toy examples often use e = 17 or e = 3.</li>
+    <li>Compute the private exponent d as the modular inverse of e mod φ(n): d ≡ e⁻¹ (mod φ(n)), found with the <a href="https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm" target="_blank">extended Euclidean algorithm</a>.</li>
+  </ol>
+  <p>The <strong>public key</strong> is the pair (n, e). The <strong>private key</strong> is (n, d) — or equivalently just d, since n is already public.</p>
+  <div class="callout">
+    <strong>Worked example: p = 61, q = 53</strong>
+    This is the classic small-number pair used in most textbook RSA walkthroughs — small enough to compute by hand, structurally identical to a real 2048-bit key.
+    <pre><code>n   = p·q       = 61 · 53        = 3233
+φ(n) = (p−1)(q−1) = 60 · 52       = 3120
+
+Choose e = 17.  gcd(17, 3120) = 1, so 17 qualifies.
+Solve 17·d ≡ 1 (mod 3120):   d = 2753
+Check: 17 · 2753 = 46801 = 15·3120 + 1  →  46801 mod 3120 = 1 ✓</code></pre>
+    Public key: (n=3233, e=17). Private key: (n=3233, d=2753). Keep p=61 and q=53 (and φ(n)=3120) secret — everything an attacker needs to forge d is right there.
+  </div>
+
+  <h2 id="rsa-encryption">Encryption</h2>
+  <p>To encrypt a message m (an integer with 0 ≤ m &lt; n — real implementations pad and chunk text into integers in this range), the sender who only knows the public key (n, e) computes:</p>
+  <pre><code>c = m^e mod n</code></pre>
+  <p>using <a href="0001-modular-arithmetic-eulers-theorem.html#fast-modular-exponentiation">square-and-multiply</a>, exactly as in lesson 1.</p>
+  <div class="callout">
+    <strong>Worked example: encrypting m = 65</strong>
+    Using the public key (n=3233, e=17): c = 65<sup>17</sup> mod 3233. Tracing square-and-multiply on the binary expansion of 17 (10001):
+    <pre><code>bit 1: r = 1² · 65 mod 3233   = 65
+bit 0: r = 65² mod 3233       = 992
+bit 0: r = 992² mod 3233      = 1232
+bit 0: r = 1232² mod 3233     = 1547
+bit 1: r = 1547² mod 3233 · 65 = 2790</code></pre>
+    Ciphertext: c = 2790. This is the number that actually gets sent — 2790 reveals nothing about 65 without the private key.
+  </div>
+
+  <h2 id="rsa-decryption">Decryption</h2>
+  <p>The holder of the private key (n, d) recovers the message from the ciphertext with the mirror-image computation:</p>
+  <pre><code>m = c^d mod n</code></pre>
+  <div class="callout">
+    <strong>Worked example: decrypting c = 2790</strong>
+    m = 2790<sup>2753</sup> mod 3233. Squaring 2753 times by hand isn't the point — square-and-multiply again does it in about log₂(2753) ≈ 12 modular multiplications, and the result is exactly m = 65, the original message, recovered exactly.
+  </div>
+
+  <h2 id="rsa-correctness-proof">Why decryption recovers the message: the correctness proof</h2>
+  <p>It's not a coincidence that decryption undoes encryption — it's forced by Euler's theorem. Start from the definitions: c = m<sup>e</sup> mod n, and d was chosen so that e·d ≡ 1 (mod φ(n)), which means e·d = 1 + k·φ(n) for some integer k. Then:</p>
+  <pre><code>c^d mod n = (m^e)^d mod n = m^(e·d) mod n = m^(1 + k·φ(n)) mod n = m · (m^φ(n))^k mod n</code></pre>
+  <p>By <a href="0001-modular-arithmetic-eulers-theorem.html#eulers-theorem">Euler's theorem</a>, m<sup>φ(n)</sup> ≡ 1 (mod n) whenever gcd(m, n) = 1 — which holds for essentially every message, since n's only factors are the two large secret primes p and q, and a random m smaller than n is vanishingly unlikely to happen to be a multiple of either. So (m<sup>φ(n)</sup>)<sup>k</sup> ≡ 1<sup>k</sup> = 1 (mod n), and the whole expression collapses to:</p>
+  <pre><code>c^d mod n = m · 1 mod n = m</code></pre>
+  <p>Decryption recovering the original message isn't a lucky property of the specific numbers above — it's a direct algebraic consequence of e and d being modular inverses mod φ(n), combined with Euler's theorem. Check it against the worked numbers: e·d = 17 · 2753 = 46801 = 1 + 15·3120, so k = 15 — and indeed 2790<sup>2753</sup> mod 3233 computes out to 65.</p>
+  <div class="callout warn">
+    <strong>The edge case: what if gcd(m, n) ≠ 1?</strong>
+    If m happens to be a multiple of p or q (astronomically unlikely for a random message against 300-digit primes, but worth naming), Euler's theorem doesn't directly apply since it requires gcd(m, n) = 1. The proof still goes through using the Chinese Remainder Theorem and Fermat's little theorem applied separately mod p and mod q — the full argument is a short extension of the one above, and is covered in the <a href="#primary-resource">primary resource</a> below rather than repeated here, since it changes no conclusion.
+  </div>
+
+  <h2>Try it: RSA key checks</h2>
+  <p>For each question about the (n=3233, φ(n)=3120) key pair above, pick the correct answer.</p>
+  <div id="rsa-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. What must be true of the public exponent e for RSA key generation to succeed?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q1','Right — e needs a modular inverse mod φ(n) so that d = e⁻¹ mod φ(n) exists at all, and gcd(e, φ(n)) = 1 is exactly the condition for that inverse to exist.')">gcd(e, φ(n)) = 1, so e has a modular inverse mod φ(n)</button>
+        <button onclick="quizAnswer(this,false,'q1','e is chosen well below n in every practical scheme (e=17 or e=65537 against a modulus hundreds of digits long) — nothing requires it to be close to n.')">e must be close in size to n</button>
+        <button onclick="quizAnswer(this,false,'q1','e does not need to be prime — it needs to be coprime to φ(n), which is a different (and weaker) condition than primality.')">e must itself be a prime number</button>
+        <button onclick="quizAnswer(this,false,'q1','e is required to be coprime to φ(n), not to n directly — those are different moduli, and it’s φ(n) that governs whether d = e⁻¹ mod φ(n) exists.')">e must be coprime to n, not to φ(n)</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Why is φ(n) kept secret, while n itself is published as part of the public key?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right — φ(n) = (p−1)(q−1), so anyone who knows φ(n) and n can recover p and q directly (they’re roots of a resulting quadratic), collapsing straight to the private key.')">Knowing φ(n) alongside n lets you recover p and q, and from there the private key d</button>
+        <button onclick="quizAnswer(this,false,'q2','n is published deliberately — it’s half of the public key, needed by anyone who wants to encrypt a message to you.')">n is also secret, exactly like φ(n)</button>
+        <button onclick="quizAnswer(this,false,'q2','φ(n) is very much used in key generation — it is precisely what d is computed as the modular inverse of e against.')">φ(n) plays no role in computing d, so hiding it wouldn’t protect anything</button>
+        <button onclick="quizAnswer(this,false,'q2','φ(n) is a specific integer computed from p and q, not simply e in disguise — it’s (p−1)(q−1), a completely different quantity than the chosen exponent.')">φ(n) is just another name for e</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. In the correctness proof, why does (m^φ(n))^k collapse to 1 mod n?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right — Euler’s theorem says m^φ(n) ≡ 1 (mod n) whenever gcd(m,n)=1, so raising that to any power k stays 1 mod n, which is exactly what lets c^d mod n simplify down to m.')">Euler's theorem makes m^φ(n) ≡ 1 (mod n) whenever gcd(m, n) = 1</button>
+        <button onclick="quizAnswer(this,false,'q3','This isn’t about m being literally 1 — it holds for essentially any message m coprime to n, as the worked example with m=65 (not 1) demonstrated directly.')">Because m is always equal to 1 in RSA</button>
+        <button onclick="quizAnswer(this,false,'q3','k is defined by e·d = 1 + k·φ(n), a specific integer determined by e and d — nothing in the proof allows choosing k=0.')">Because k is always chosen to equal 0</button>
+        <button onclick="quizAnswer(this,false,'q3','Fermat’s little theorem is the special case for prime moduli — here n = p·q is composite, and it’s the more general Euler’s theorem doing the work.')">Because Fermat's little theorem applies directly to the composite modulus n</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. What computational asymmetry is RSA's security ultimately built on?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q4','Right — computing n = p·q from two primes is fast, but the believed-hard reverse direction, factoring n back into p and q, is exactly what lesson 3 examines in depth.')">Multiplying two large primes is easy; factoring the product back apart is believed to be hard</button>
+        <button onclick="quizAnswer(this,false,'q4','Addition has no special role in RSA’s security story at all — the asymmetry is specifically about multiplying primes versus factoring their product.')">Adding two large numbers is easy; subtracting them is hard</button>
+        <button onclick="quizAnswer(this,false,'q4','Square-and-multiply from lesson 1 makes modular exponentiation efficient in both directions of ordinary computation — it’s not the source of RSA’s one-way security property.')">Computing m^e mod n is hard; computing c^d mod n is easy</button>
+        <button onclick="quizAnswer(this,false,'q4','φ(n) is computable in principle from p and q by anyone who generated the key — the asymmetry isn’t about computing φ(n) itself, but about deriving p and q (and hence φ(n)) from n alone.')">Computing φ(n) from p and q is impossible even for the key's owner</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>By hand (calculator allowed for the arithmetic, but do every step): using the same public key (n=3233, e=17), encrypt the message m=100 to get a ciphertext c. Then, taking d=2753 on faith rather than recomputing it, note what c<sup>d</sup> mod n should equal without actually carrying out that exponentiation — you already know the answer must be 100, and now you know exactly <em>why</em> it must be, from the correctness proof above. (For reference: c = 1773.)</p>
+
+  <h2 id="primary-resource">Primary resource</h2>
+  <p>See Dan Boneh &amp; Victor Shoup's <a href="https://toc.cryptobook.us/" target="_blank">A Graduate Course in Applied Cryptography</a> (free, full text), the RSA chapter, for the complete correctness proof including the gcd(m,n)≠1 edge case via the Chinese Remainder Theorem, plus a rigorous treatment of why textbook RSA as taught here isn't safe to use unmodified in production (padding schemes, chosen-ciphertext attacks) — deliberately out of this lesson's scope but essential before writing real code.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> If the correctness proof's algebra moves too fast, ask Claude Code to expand any single step — especially the jump from c^d mod n to m^(e·d) mod n, or exactly how e·d = 1 + k·φ(n) falls out of "d is the modular inverse of e mod φ(n)."
+  </div>
+
+  <div class="nav">
+    <a href="0001-modular-arithmetic-eulers-theorem.html">← Lesson 1: Modular Arithmetic &amp; Euler's Theorem</a>
+    <span class="spacer"></span>
+    <a href="0003-why-factoring-is-hard-shors-algorithm.html">Lesson 3: Why Factoring Is Hard — and What Shor's Algorithm Breaks →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const RSA_ITEMS = [
+  {
+    english: 'Is e = 4 a valid public exponent for φ(n) = 3120?',
+    options: [
+      { text: 'No — gcd(4, 3120) = 4', correct: true, explain: 'Right — 3120 is even, so gcd(4, 3120) is at least 4, not 1, meaning 4 has no inverse mod 3120 and can\'t serve as e.' },
+      { text: 'Yes — 4 is small enough', explain: 'Smallness isn\'t the requirement — coprimality to φ(n) is. gcd(4, 3120) = 4 ≠ 1, so 4 is disqualified regardless of its size.' },
+    ],
+  },
+  {
+    english: 'Is e = 17 a valid public exponent for φ(n) = 3120?',
+    options: [
+      { text: 'Yes — gcd(17, 3120) = 1', correct: true, explain: 'Right — 17 is prime and doesn\'t divide 3120 = 2^4·3·5·13, so gcd(17, 3120) = 1 and 17 qualifies (this is the e used in the worked example above).' },
+      { text: 'No — 17 is too small', explain: 'The size of e isn\'t the criterion — coprimality to φ(n) is, and 17 is coprime to 3120, so it\'s a perfectly valid (if small, toy-example) choice.' },
+    ],
+  },
+  {
+    english: 'Given e·d ≡ 1 (mod φ(n)), what is c^d mod n equal to, for m coprime to n?',
+    options: [
+      { text: 'm', correct: true, explain: 'Right — that\'s exactly the correctness proof above: c^d mod n reduces to m · (m^φ(n))^k mod n, and Euler\'s theorem collapses the second factor to 1.' },
+      { text: 'φ(n)', explain: 'φ(n) is an intermediate quantity used to choose d — it isn\'t what decryption outputs. Decryption outputs the original message m.' },
+    ],
+  },
+];
+
+const rsaDiv = document.getElementById('rsa-exercise');
+RSA_ITEMS.forEach((item, i) => {
+  const cardId = `rsa-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  rsaDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

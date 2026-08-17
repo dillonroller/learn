@@ -1,0 +1,5 @@
+# Baseline: Spinoff of Quantum Computing's Shor's Algorithm Lesson
+
+User's Quantum Computing course reached the Quantum Fourier Transform & phase estimation (lesson 6) with Shor's algorithm queued next as a still-locked lesson 7. Rather than teach Shor's algorithm's cryptographic half inside that course, it opened a dedicated topic: the number theory and public-key cryptography needed to actually understand what Shor's algorithm breaks, not just that it "breaks encryption."
+
+**Implications:** No need to re-teach modular arithmetic mechanics from zero — this user has a strong CS background and just finished a linear-algebra-heavy quantum computing course — but every claim about hardness (factoring, discrete log) should still be grounded in real, small worked examples rather than asserted, matching this workspace's established house style. Lesson 3 is the hinge lesson: it should assume the reader has [[../../quantum-computing/lessons/0006-quantum-fourier-transform-phase-estimation.html|Quantum Computing lesson 6]] available and lean on it directly (period-finding, phase estimation) rather than re-deriving QFT mechanics here.

@@ -1,0 +1,7 @@
+# Teaching Notes
+
+- Companion to a not-yet-built "AI Engineering" course: that one is the practical/systems side (agents, tools, production LLM work), this one is the research/theory side (what's being tried beyond next-token prediction). Neither is a hard prerequisite for the other — link them conceptually if AI Engineering gets built, but don't block on it.
+- Rigor-over-hype is the explicit house style for this entire course, not just one lesson: every lesson separates established results, reasonable-but-unproven bets, and pure marketing framing, and includes a "before repeating this claim" style callout — same discipline as Logic's Gödel-misuse section and Quantum Mechanics' superposition-misuse section.
+- Full 6-lesson roadmap scoped and written into the topic index up front (same shape as Quantum Computing) — lessons 1-3 built this session, 4-6 left as a visible locked roadmap so the shape of the whole course is clear from lesson 1.
+- Strong CS/ML-adjacent background assumed (comfortable with linear algebra, probability, and a working knowledge of how transformers work) — no need to re-derive attention or backprop from scratch.
+- Every external citation must be a real, checkable paper or post — this course is explicitly about teaching source discipline, so a fabricated citation here would undercut the entire mission. Verify titles/arXiv IDs/URLs before using them, every time.

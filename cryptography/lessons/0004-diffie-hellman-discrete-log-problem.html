@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 4 — Diffie-Hellman &amp; the Discrete Log Problem</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Cryptography &amp; Number Theory</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 4 of 8 &nbsp;·&nbsp; Cryptography &amp; Number Theory &nbsp;·&nbsp; ~35 min</p>
+  <h1>Diffie-Hellman &amp; the Discrete Log Problem</h1>
+  <p>RSA's security rests on factoring being hard. This lesson builds a second public-key scheme — older than RSA, actually — resting on a <em>different</em> hard problem: not factoring a number, but inverting exponentiation inside modular arithmetic. Diffie-Hellman doesn't encrypt anything by itself; it solves a narrower, equally fundamental problem: how can two people agree on a shared secret over a channel someone else is listening to?</p>
+
+  <h2 id="discrete-log-problem">The discrete logarithm problem</h2>
+  <p>Fix a prime p and a base g. Given an exponent a, computing A = g<sup>a</sup> mod p is fast — <a href="0001-modular-arithmetic-eulers-theorem.html#fast-modular-exponentiation">square-and-multiply</a> again, exactly as in every modular exponentiation this course has done. The <strong id="discrete-log-problem-def">discrete logarithm problem (DLP)</strong> is the reverse direction: given g, p, and A, find a. No known classical algorithm solves this in time polynomial in the number of digits of p — the best known classical attacks (index calculus and its refinements) are sub-exponential, in the same complexity family as GNFS for <a href="0003-why-factoring-is-hard-shors-algorithm.html#factoring-hardness">factoring</a>, but they are a genuinely different algorithm attacking a genuinely different problem.</p>
+  <div class="callout warn">
+    <strong>A different hardness assumption, not a restatement of factoring</strong>
+    Factoring and the discrete log problem are believed hard for structurally different reasons, and there's no known way to convert a factoring oracle into a discrete-log solver or vice versa in general. That's precisely why Diffie-Hellman is worth learning as its own system rather than as "RSA again" — if one hardness assumption ever turned out to be wrong, the other might still stand.
+  </div>
+
+  <h2 id="primitive-root">Generators and primitive roots</h2>
+  <p>Not every base g is equally useful. The powers g<sup>1</sup>, g<sup>2</sup>, g<sup>3</sup>, ... mod p cycle through some subset of {1, ..., p−1}; the size of that subset is g's <strong>order</strong>, exactly the same notion of order used for <a href="0003-why-factoring-is-hard-shors-algorithm.html#order-finding-def">order-finding</a> in lesson 3. When g's order is the largest possible, p − 1, g is called a <strong id="primitive-root-def">primitive root</strong> (or generator) mod p — its powers hit <em>every</em> nonzero value mod p exactly once before repeating, which is what gives Diffie-Hellman the largest possible space of secrets to draw from.</p>
+  <p>Worked check: is g=5 a primitive root mod p=23? Its order must divide p−1=22, so the candidates are 1, 2, 11, 22. Direct computation gives 5<sup>1</sup>=5, 5<sup>2</sup>=25 mod 23=2, 5<sup>11</sup> mod 23=22, and only at 5<sup>22</sup> mod 23 does the result first equal 1 — so the order is 22, confirming 5 is a primitive root mod 23. That's exactly the (p, g) pair the protocol below uses.</p>
+
+  <h2 id="diffie-hellman-protocol">The protocol</h2>
+  <p>Alice and Bob want a shared secret, over a channel an eavesdropper (call her Eve) can read every message on but not alter (that limitation matters — see the callout below).</p>
+  <ol>
+    <li>Alice and Bob publicly agree on a prime p and a primitive root g. (These aren't secret — Eve knows them too.)</li>
+    <li>Alice picks a secret random a, computes A = g<sup>a</sup> mod p, and sends A to Bob.</li>
+    <li>Bob picks a secret random b, computes B = g<sup>b</sup> mod p, and sends B to Alice.</li>
+    <li>Alice computes B<sup>a</sup> mod p. Bob computes A<sup>b</sup> mod p. Both equal g<sup>ab</sup> mod p — the <strong>shared secret</strong>.</li>
+  </ol>
+  <p>Why do Alice's and Bob's computations agree? B<sup>a</sup> mod p = (g<sup>b</sup>)<sup>a</sup> mod p = g<sup>ba</sup> mod p, and A<sup>b</sup> mod p = (g<sup>a</sup>)<sup>b</sup> mod p = g<sup>ab</sup> mod p — and ba = ab, ordinary integer multiplication commutes, so the two paths land on the identical value. Neither a nor b, the actual secrets, is ever transmitted — only A and B, the public exponentials, cross the wire.</p>
+  <div class="callout">
+    <strong>Worked example: p = 23, g = 5</strong>
+    Alice picks a = 6, computes A = 5<sup>6</sup> mod 23 = 8, sends 8. Bob picks b = 15, computes B = 5<sup>15</sup> mod 23 = 19, sends 19.
+    <pre><code>Alice computes: B^a mod p = 19^6 mod 23  = 2
+Bob computes:   A^b mod p = 8^15 mod 23  = 2</code></pre>
+    Both land on 2 — the shared secret — without either ever seeing the other's private exponent. Eve, watching the whole exchange, sees p=23, g=5, A=8, B=19, and needs to solve the discrete log problem (recover a from A, or b from B) to catch up. For p=23 that's a five-minute brute-force search; for a real 2048-bit prime, it's exactly as infeasible as <a href="0003-why-factoring-is-hard-shors-algorithm.html#factoring-hardness">factoring a 2048-bit RSA modulus</a>.
+  </div>
+  <div class="callout warn">
+    <strong>What Diffie-Hellman alone doesn't give you</strong>
+    Nothing in the protocol above authenticates who Alice and Bob actually are — an active attacker who can intercept and replace messages (not just read them) can run the whole protocol separately with each party, ending up with two different shared secrets and relaying traffic between them undetected: a <strong>man-in-the-middle attack</strong>. Real deployments (like TLS) combine Diffie-Hellman with digital signatures for authentication — the subject of the still-locked <a href="../index.html#lesson-05">lesson 5</a>.
+  </div>
+
+  <h2>Diffie-Hellman and quantum computers</h2>
+  <p>The discrete log problem, like factoring, has period-finding structure a quantum computer can exploit: an appropriately generalized version of the <a href="0003-why-factoring-is-hard-shors-algorithm.html#quantum-order-finding">order-finding subroutine</a> from lesson 3 — still built from <a href="../../quantum-computing/lessons/0006-quantum-fourier-transform-phase-estimation.html">phase estimation and the QFT</a> — solves the discrete log problem in polynomial time too. So a quantum computer capable of running Shor's factoring algorithm threatens Diffie-Hellman on the same timeline it threatens RSA, via a related but distinct application of the same underlying technique, not by "breaking encryption in general." <a href="../index.html#lesson-07">Lesson 7</a> covers what's believed to survive that threat.</p>
+
+  <h2>Try it: discrete log basics</h2>
+  <p>For each question, pick the correct value or answer.</p>
+  <div id="dh-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. What makes g a primitive root mod p?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q1','Right — order p−1 is the maximum possible, and when g achieves it, its powers hit every nonzero residue mod p exactly once before repeating.')">Its order mod p equals p − 1, the maximum possible</button>
+        <button onclick="quizAnswer(this,false,'q1','g=1 has order 1, the smallest possible, not the largest — a primitive root is exactly the opposite case.')">It is equal to 1</button>
+        <button onclick="quizAnswer(this,false,'q1','p itself is not a valid base to exponentiate mod p — g must be a nonzero residue smaller than p, and its order (not its value) is what defines a primitive root.')">It is equal to p itself</button>
+        <button onclick="quizAnswer(this,false,'q1','Primality of g isn’t the criterion — plenty of prime g values aren’t primitive roots mod a given p, and some non-prime residues are. Order is what matters.')">It is a prime number smaller than p</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. In the Diffie-Hellman protocol, what does Alice actually transmit to Bob?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right — A = g^a mod p is sent; the secret exponent a itself never crosses the channel, which is the entire point of the scheme.')">A = g^a mod p, never the secret exponent a itself</button>
+        <button onclick="quizAnswer(this,false,'q2','Sending a directly would let Eve compute the shared secret immediately — the whole protocol exists specifically to avoid ever transmitting the private exponent.')">Her secret exponent a, in the clear</button>
+        <button onclick="quizAnswer(this,false,'q2','The shared secret g^ab mod p can’t be computed until both A and B have been exchanged — it isn’t something Alice can send in the first message.')">The final shared secret g^(ab) mod p directly</button>
+        <button onclick="quizAnswer(this,false,'q2','Bob’s exponent b is Bob’s to generate and keep secret — Alice has no access to it at any point in the protocol.')">Bob's secret exponent b</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Why do Alice's and Bob's final computations, B^a mod p and A^b mod p, always agree?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right — B^a = (g^b)^a = g^(ba) and A^b = (g^a)^b = g^(ab), and ba = ab by ordinary integer multiplication, so both paths reach the identical value.')">Because (g^b)^a and (g^a)^b both equal g^(ab), since integer multiplication commutes</button>
+        <button onclick="quizAnswer(this,false,'q3','a and b are chosen independently at random by each party — nothing in the protocol requires or produces equal secret exponents.')">Because a and b are always chosen to be equal</button>
+        <button onclick="quizAnswer(this,false,'q3','This isn’t a coincidence tied to any particular p — the identity (g^b)^a = (g^a)^b = g^(ab) holds for every valid prime p and base g, by the laws of exponents alone.')">By coincidence, specific to p = 23</button>
+        <button onclick="quizAnswer(this,false,'q3','Eve never participates in the exponent computations at all in an honest run of the protocol — her presence or absence has no bearing on why Alice’s and Bob’s results agree.')">Because Eve computes it for both of them</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Is the hardness of the discrete log problem the same assumption as the hardness of factoring?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q4','Right — they’re different problems with different best-known classical attacks, and no known reduction converts a solver for one into a solver for the other in general, even though both are period/structure problems a quantum computer can attack similarly.')">No — they are distinct hardness assumptions, even though both are attacked by related quantum techniques</button>
+        <button onclick="quizAnswer(this,false,'q4','Distinct best-known classical algorithms (index calculus vs. GNFS) attack the two problems — they are not interchangeable restatements of the same underlying computation.')">Yes — they are exactly the same mathematical problem restated</button>
+        <button onclick="quizAnswer(this,false,'q4','Quantum computers threaten both, via related but distinct applications of phase estimation — quantum vulnerability isn’t what separates them; their classical hardness assumptions are still logically distinct.')">No — discrete log is easy classically, only factoring is hard</button>
+        <button onclick="quizAnswer(this,false,'q4','Nothing about Diffie-Hellman’s hardness is about the size of p alone — it’s the structural difficulty of the discrete log problem itself, present at any sufficiently large prime, not something particular to p=23’s toy size.')">No — discrete log is only hard for the specific small p used in the worked example</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>By hand: using the same p=23, g=5, run the protocol with Alice's secret a=4 and Bob's secret b=3. Compute A = 5<sup>4</sup> mod 23 and B = 5<sup>3</sup> mod 23, then compute the shared secret both ways (B<sup>a</sup> mod 23 and A<sup>b</sup> mod 23) and confirm they match. You should get A=4, B=10, and a shared secret of 18.</p>
+
+  <h2>Primary resource</h2>
+  <p>See Whitfield Diffie &amp; Martin Hellman's original 1976 paper, <a href="https://ee.stanford.edu/~hellman/publications/24.pdf" target="_blank">"New Directions in Cryptography"</a> — the paper that introduced public-key cryptography as a concept, with the key exchange protocol this lesson is named after presented in Section III.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> If it's not obvious why an eavesdropper who sees p, g, A, and B genuinely can't just compute a or b directly, ask Claude Code to try brute-forcing the p=23 example by hand with you — then discuss why that same brute force becomes infeasible the moment p has hundreds of digits instead of two.
+  </div>
+
+  <div class="nav">
+    <a href="0003-why-factoring-is-hard-shors-algorithm.html">← Lesson 3: Why Factoring Is Hard, and What Shor's Algorithm Breaks</a>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-05">Lesson 5: Digital Signatures →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const DH_ITEMS = [
+  {
+    english: '5^2 mod 23 = ?',
+    options: [
+      { text: '2', correct: true, explain: 'Right — 5² = 25, and 25 mod 23 = 2.' },
+      { text: '25', explain: 'That\'s 5² before reducing mod 23 — 25 mod 23 = 2 is the actual residue.' },
+    ],
+  },
+  {
+    english: 'Given A = g^a mod p, is recovering a from A generally easy or hard classically?',
+    options: [
+      { text: 'Hard — this is the discrete log problem', correct: true, explain: 'Right — no known classical polynomial-time algorithm solves this in general; it\'s the entire basis of Diffie-Hellman\'s security.' },
+      { text: 'Easy — just divide A by g', explain: 'Modular exponentiation isn\'t inverted by division — g^a mod p mixes a into the exponent, not as a linear factor, which is exactly why recovering a is hard.' },
+    ],
+  },
+  {
+    english: 'Does Alice ever send her secret exponent a to Bob?',
+    options: [
+      { text: 'No — only A = g^a mod p is sent', correct: true, explain: 'Right — the exponent a stays private forever; only its exponential A crosses the channel.' },
+      { text: 'Yes, encrypted separately', explain: 'The base Diffie-Hellman protocol has no separate encryption step for a — a is simply never transmitted in any form, encrypted or otherwise.' },
+    ],
+  },
+];
+
+const dhDiv = document.getElementById('dh-exercise');
+DH_ITEMS.forEach((item, i) => {
+  const cardId = `dh-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  dhDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

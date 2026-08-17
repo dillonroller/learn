@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 3 — Why Factoring Is Hard, and What Shor's Algorithm Breaks</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Cryptography &amp; Number Theory</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 3 of 8 &nbsp;·&nbsp; Cryptography &amp; Number Theory &nbsp;·&nbsp; ~40 min</p>
+  <h1>Why Factoring Is Hard — and Exactly What Shor's Algorithm Breaks</h1>
+  <p><a href="0002-rsa-key-generation-encryption-correctness-proof.html#public-key-idea">Lesson 2</a> named the computational asymmetry RSA rests on: multiplying two large primes is fast, factoring the product back apart is believed to be slow. This lesson makes that precise — what "slow" actually means classically, and then the exact mechanism (not the pop-science version) by which a quantum computer changes the answer. This is the lesson that connects directly back to <a href="../../quantum-computing/index.html">Quantum Computing</a>'s still-locked Shor's algorithm material.</p>
+
+  <h2 id="factoring-hardness">Classical factoring: no known shortcut</h2>
+  <p>Given n = p·q for two large unknown primes, the obvious algorithm — trial division by every integer up to √n — takes time exponential in the number of digits of n, since √n itself has roughly half as many digits as n but is still astronomically large. Decades of number theory have produced much better classical algorithms: Pollard's rho, the quadratic sieve, and the current champion, the <strong id="gnfs-def">general number field sieve (GNFS)</strong>. GNFS is <strong>sub-exponential</strong> — faster than exponential, but still growing faster than any polynomial in the number of digits of n:</p>
+  <pre><code>GNFS running time ≈ exp( c · (ln n)^(1/3) · (ln ln n)^(2/3) )     for a constant c ≈ 1.9</code></pre>
+  <p>No classical algorithm is known that factors n in time polynomial in its number of digits — and after roughly fifty years of concerted cryptanalytic effort against exactly this problem, most cryptographers treat that absence as strong (though not proven) evidence that no such algorithm exists. RSA's security is a direct bet on that absence continuing to hold classically.</p>
+  <div class="callout warn">
+    <strong>"Believed hard," not "proven hard"</strong>
+    Nobody has proven factoring is classically intractable — that would resolve deep open questions in complexity theory (factoring sits inside NP ∩ co-NP, and isn't known or believed to be NP-complete). RSA's security is a cryptographic assumption, calibrated against the best known attacks and how key sizes have had to grow over time to stay ahead of them, not a mathematical certainty.
+  </div>
+
+  <h2 id="rsa-problem-vs-factoring">Breaking RSA vs. factoring n</h2>
+  <p>Strictly, the problem an attacker needs to solve is the <strong id="rsa-problem-def">RSA problem</strong>: given (n, e, c), recover m, <em>without necessarily factoring n</em>. Every known efficient way to solve the RSA problem goes through factoring n first (recover p and q, then φ(n), then d, exactly reversing <a href="0002-rsa-key-generation-encryption-correctness-proof.html#rsa-key-generation">key generation</a>) — but it remains a technically open question whether some other shortcut could break RSA without factoring. In practice, "RSA is secure" and "factoring is hard" are treated as the same assumption, because no attack exploiting the gap between them has ever been found.</p>
+
+  <h2 id="shors-algorithm">Turning factoring into period-finding</h2>
+  <p>Shor's algorithm doesn't factor n directly. It reduces factoring to a different problem — <strong id="order-finding-def">order-finding</strong> — using number theory that is entirely classical, and then solves <em>that</em> problem efficiently with a quantum subroutine. It helps to see the classical reduction first, since it's a real algorithm you can run by hand on small numbers.</p>
+  <p>Pick a random a with 1 &lt; a &lt; n and gcd(a, n) = 1 (if gcd(a, n) ≠ 1, you've already found a factor by luck — done). The sequence a mod n, a² mod n, a³ mod n, ... is eventually periodic; its period r is called the <strong>order</strong> of a mod n — the smallest r with a<sup>r</sup> ≡ 1 (mod n). If r happens to be even, and a<sup>r/2</sup> ≢ −1 (mod n), then:</p>
+  <pre><code>gcd(a^(r/2) − 1, n)  and  gcd(a^(r/2) + 1, n)</code></pre>
+  <p>are both nontrivial factors of n, computable instantly with the (classical, fast) Euclidean algorithm once you know r.</p>
+  <div class="callout">
+    <strong>Worked example: factoring n = 15</strong>
+    Pick a = 7 (gcd(7, 15) = 1). Compute powers of 7 mod 15 until they cycle back to 1:
+    <pre><code>7^1 mod 15 = 7
+7^2 mod 15 = 49 mod 15 = 4
+7^3 mod 15 = 28 mod 15 = 13
+7^4 mod 15 = 91 mod 15 = 1     ← back to 1: order r = 4</code></pre>
+    r = 4 is even. Compute a<sup>r/2</sup> = 7² mod 15 = 4, and check it isn't −1 ≡ 14 (mod 15) — it isn't. Then:
+    <pre><code>gcd(4 − 1, 15) = gcd(3, 15) = 3
+gcd(4 + 1, 15) = gcd(5, 15) = 5</code></pre>
+    3 and 5 — exactly the two prime factors of 15 — fall out of nothing but the order of 7 mod 15 and two gcd computations. This is the actual example most textbooks (and this course) use to demonstrate Shor's algorithm, precisely because n=15 is small enough to find the order by brute-force listing, the way you'd have to <em>without</em> a quantum computer for any realistically-sized n.
+  </div>
+  <p>Everything above — choosing a, the two gcd computations, even checking whether r is even — is fast, classical arithmetic. The only expensive step, classically, is finding the order r itself: for a real RSA-sized n, the sequence a, a², a³, ... doesn't repeat until roughly n steps in the worst case, which is exactly as infeasible as factoring n directly by brute force. <strong>Order-finding is the one step Shor's algorithm accelerates with a quantum computer</strong> — nothing else in the reduction above needs to change.</p>
+
+  <h2 id="quantum-order-finding">The quantum part: order-finding via phase estimation</h2>
+  <p>Order-finding turns out to be exactly the problem <a href="../../quantum-computing/lessons/0006-quantum-fourier-transform-phase-estimation.html#phase-estimation">phase estimation</a> solves. Define the unitary U|x⟩ = |a·x mod n⟩ (multiplication by a, mod n, is reversible when gcd(a,n)=1, so this really is a valid unitary). U's eigenvalues turn out to be e<sup>2πik/r</sup> for k = 0, ..., r−1 — the order r you're looking for is baked directly into U's eigenvalue structure. Run <a href="../../quantum-computing/lessons/0006-quantum-fourier-transform-phase-estimation.html#phase-estimation">phase estimation</a> against U starting from an appropriate eigenstate, and it reads out one of these eigenvalues' phase k/r to high precision — which, combined with the classical continued-fractions algorithm, reveals r itself with high probability.</p>
+  <p>The reason this needs a quantum computer at all is the same reason <a href="../../quantum-computing/lessons/0006-quantum-fourier-transform-phase-estimation.html#qft-definition">lesson 6 of Quantum Computing</a> built the QFT in the first place: the control register phase estimation produces is exactly the periodic, phase-structured state <code>(1/√2^t) Σ_k e^(2πiφk)|k⟩</code> the QFT is built to decode — decoding periodicity out of a superposition is precisely the QFT's specialty, and no known classical algorithm extracts that same periodicity from a<sup>x</sup> mod n without effectively checking exponentially many values of x.</p>
+  <div class="callout warn">
+    <strong>What this lesson is <em>not</em> claiming</strong>
+    This is a conceptual-level account, not a circuit-level one: it names order-finding as the bottleneck, and phase estimation plus the QFT as the tool that solves it in polynomial time on a fault-tolerant quantum computer — matching what <a href="../../quantum-computing/lessons/0006-quantum-fourier-transform-phase-estimation.html">Quantum Computing lesson 6</a> already built. It does not derive the specific controlled-U<sup>2ʲ</sup> circuit for modular multiplication, nor the continued-fractions step that converts a phase estimate into an exact order r — both are real engineering, covered in the primary resource below, and in <a href="../../quantum-computing/index.html#lesson-07">Quantum Computing's own upcoming Shor's algorithm lesson</a>.
+  </div>
+  <p>Put together: Shor's algorithm is <em>classical reduction</em> (factoring → order-finding, entirely number theory, done above by hand) plus <em>quantum order-finding</em> (phase estimation + QFT, built entirely from machinery <a href="../../quantum-computing/index.html">Quantum Computing</a> lessons 1–6 already cover). Nothing about it "tries every factor at once" — it turns factoring into a period, and reads the period off with interference, the same non-magical mechanism behind every algorithm in that course.</p>
+
+  <h2>Try it: order-finding</h2>
+  <p>For each (a, n) pair, pick the order of a mod n — the smallest r with a<sup>r</sup> ≡ 1 (mod n).</p>
+  <div id="order-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. What is the fastest known classical algorithm for factoring, and how does its running time scale?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q1','Right — the general number field sieve runs in sub-exponential time: faster than brute-force exponential, but still growing faster than any fixed polynomial in the number of digits.')">The general number field sieve, in sub-exponential time</button>
+        <button onclick="quizAnswer(this,false,'q1','No classical polynomial-time factoring algorithm is known — if one existed, RSA as taught in this course would already be broken classically, which it is not.')">A polynomial-time algorithm discovered in the 1990s</button>
+        <button onclick="quizAnswer(this,false,'q1','Trial division is the naive baseline, not the best known algorithm — the general number field sieve is dramatically faster while still not polynomial.')">Trial division by every integer up to n</button>
+        <button onclick="quizAnswer(this,false,'q1','Sub-exponential is strictly faster than exponential — GNFS is a real improvement over brute force, not equivalent to it.')">There is no improvement over exponential-time brute force</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. In the classical reduction, once the order r of a mod n is known and is even, how are the factors of n recovered?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right — this is exactly the n=15 worked example: gcd(a^(r/2) − 1, n) and gcd(a^(r/2) + 1, n) are both nontrivial factors, computed instantly once r is known.')">Via gcd(a^(r/2) − 1, n) and gcd(a^(r/2) + 1, n)</button>
+        <button onclick="quizAnswer(this,false,'q2','r itself is the order of a mod n, not a factor of n — dividing n by r has no number-theoretic justification and generally isn’t even an integer.')">By dividing n directly by r</button>
+        <button onclick="quizAnswer(this,false,'q2','a itself was chosen essentially at random subject to gcd(a,n)=1 — it plays no role as a factor once r is found; the gcd computations above are what extract the factors.')">a is itself already one of the factors</button>
+        <button onclick="quizAnswer(this,false,'q2','φ(n) doesn’t appear anywhere in the order-finding reduction — that quantity belongs to RSA key generation in lesson 2, not to this factoring algorithm.')">By computing φ(n) directly from r</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Which specific step of the factoring reduction does Shor's algorithm use a quantum computer for?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right — choosing a, checking gcd(a,n), and the final gcd extraction are all fast classical steps; only finding the order r itself is classically expensive, and that’s exactly what phase estimation accelerates.')">Finding the order r of a mod n — everything else in the reduction is classical and already fast</button>
+        <button onclick="quizAnswer(this,false,'q3','The gcd computations use the classical Euclidean algorithm, which is already fast on ordinary hardware — there’s no need or benefit to running them on a quantum computer.')">Computing the two gcds at the end of the reduction</button>
+        <button onclick="quizAnswer(this,false,'q3','Picking a random a coprime to n is a cheap classical step (try a value, check the gcd) — it needs no quantum speedup.')">Choosing the random value a at the start</button>
+        <button onclick="quizAnswer(this,false,'q3','n itself is given as public input to the whole problem — there’s no step where n needs to be "computed," quantum or otherwise.')">Computing n from p and q</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Why is phase estimation the right tool for order-finding?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q4','Right — the modular-multiplication unitary’s eigenvalues encode the order r directly as e^(2πik/r), and phase estimation is precisely the subroutine that reads an eigenvalue’s phase off a unitary.')">The unitary U|x⟩ = |ax mod n⟩ has eigenvalues e^(2πik/r), and phase estimation reads out exactly that kind of eigenvalue phase</button>
+        <button onclick="quizAnswer(this,false,'q4','Grover’s algorithm searches an unstructured space for a marked item — order-finding isn’t a search problem, and Shor’s algorithm doesn’t use Grover’s algorithm at all.')">Because it's a special case of Grover's algorithm applied to searching for factors</button>
+        <button onclick="quizAnswer(this,false,'q4','The relevant unitary is modular multiplication by a, U|x⟩=|ax mod n⟩ — the QFT itself, from lesson 6, is a component used inside phase estimation, not the unitary phase estimation is applied to here.')">Because n itself is the unitary being estimated</button>
+        <button onclick="quizAnswer(this,false,'q4','This isn’t a probabilistic guess-and-check — the eigenvalue structure of the modular-multiplication unitary is a specific, provable mathematical fact that phase estimation exploits deterministically (up to the usual measurement statistics).')">It's a heuristic with no proven connection to the order r</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>By hand: factor n = 21 using the same classical reduction, with a = 2. Compute powers of 2 mod 21 until you find the order r, confirm it's even, then compute gcd(2<sup>r/2</sup> − 1, 21) and gcd(2<sup>r/2</sup> + 1, 21). You should recover 3 and 7. This is the entire classical half of Shor's algorithm — the only thing a quantum computer changes is how fast you can find r when n has hundreds of digits instead of two.</p>
+
+  <h2>Primary resource</h2>
+  <p>See Peter Shor's original paper, <a href="https://arxiv.org/abs/quant-ph/9508027" target="_blank">"Polynomial-Time Algorithms for Prime Factorization and Discrete Logarithms on a Quantum Computer"</a> (1997) — surprisingly readable, and it lays out precisely the classical reduction and quantum order-finding split this lesson follows.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> If the jump from "order of a mod n" to "eigenvalues of the multiplication unitary" feels like a leap, ask Claude Code to walk through why U|x⟩ = |ax mod n⟩ being periodic with period r forces its eigenvalues to be r-th roots of unity — it's a short, satisfying argument once you see it.
+  </div>
+
+  <div class="nav">
+    <a href="0002-rsa-key-generation-encryption-correctness-proof.html">← Lesson 2: RSA — Key Generation, Encryption &amp; a Full Correctness Proof</a>
+    <span class="spacer"></span>
+    <a href="0004-diffie-hellman-discrete-log-problem.html">Lesson 4: Diffie-Hellman &amp; the Discrete Log Problem →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const ORDER_ITEMS = [
+  {
+    english: 'Order of 2 mod 7?',
+    options: [
+      { text: '3', correct: true, explain: 'Right — 2^1=2, 2^2=4, 2^3=8 mod 7 = 1, so the order is 3.' },
+      { text: '6', explain: '2^6 mod 7 is indeed 1, but 2^3 mod 7 = 1 already — the order is the *smallest* such exponent, which is 3, not 6.' },
+    ],
+  },
+  {
+    english: 'Order of 4 mod 15?',
+    options: [
+      { text: '2', correct: true, explain: 'Right — 4^1=4, 4^2=16 mod 15 = 1, so the order is 2.' },
+      { text: '4', explain: '4^2 mod 15 already equals 1 — the order is the smallest such exponent, so it\'s 2, not 4.' },
+    ],
+  },
+  {
+    english: 'Order of 5 mod 7?',
+    options: [
+      { text: '6', correct: true, explain: 'Right — 5^1=5, 5^2=4, 5^3=6, 5^4=2, 5^5=3, 5^6=1 (mod 7), so the order is 6 — 5 is a primitive root mod 7.' },
+      { text: '3', explain: '5^3 mod 7 = 6, not 1 — check the full sequence: the order turns out to be 6, not 3.' },
+    ],
+  },
+];
+
+const orderDiv = document.getElementById('order-exercise');
+ORDER_ITEMS.forEach((item, i) => {
+  const cardId = `order-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  orderDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

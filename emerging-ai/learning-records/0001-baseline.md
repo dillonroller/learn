@@ -1,0 +1,5 @@
+# Baseline: New Topic, Strong ML-Adjacent Background, Research/Reading Focus
+
+Started as the theory/research counterpart to a planned AI Engineering course, for a user with a strong CS background and prior work in this hub on Category Theory and Probability (linear algebra and probability already solid) plus Quantum Computing (comfortable with dense, notation-heavy technical material read for precise understanding rather than headline takeaways). No prior deep-learning-specific coursework exists yet in this hub, but the mission assumes rough familiarity with transformer-based LLMs, picked up either from general exposure or from the AI Engineering course once it exists.
+
+**Implications:** Don't re-derive attention, backprop, or transformer basics from scratch — assume the reader can follow "predict the next token via cross-entropy over a large text corpus" without further explanation, and spend the budget instead on what's genuinely new: world models, JEPA, and the paper-reading discipline itself. Given the strong-background signal from adjacent courses, lessons can move at the same technical density as Quantum Computing's rather than a slower on-ramp.

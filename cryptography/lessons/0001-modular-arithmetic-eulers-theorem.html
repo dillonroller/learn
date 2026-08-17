@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 1 — Modular Arithmetic &amp; Euler's Theorem</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Cryptography &amp; Number Theory</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 1 of 8 &nbsp;·&nbsp; Cryptography &amp; Number Theory &nbsp;·&nbsp; ~30 min</p>
+  <h1>Modular Arithmetic &amp; Euler's Theorem</h1>
+  <p>Every public-key cryptosystem this course covers — <a href="../index.html#lesson-02">RSA</a>, <a href="../index.html#lesson-04">Diffie-Hellman</a>, <a href="../index.html#lesson-06">elliptic curves</a> — is built on the same small pile of number theory: arithmetic that wraps around, and one theorem about what happens when you raise a number to a large power inside that wraparound world. This lesson builds that pile from scratch, with every claim backed by a computation you can check by hand.</p>
+
+  <h2 id="congruence">Congruence: arithmetic that wraps around</h2>
+  <p>Two integers a and b are <strong id="congruence-def">congruent modulo n</strong>, written a ≡ b (mod n), if they leave the same remainder when divided by n — equivalently, if n divides (a − b) exactly. Modular addition, subtraction, and multiplication all work exactly like ordinary arithmetic, then reduce the result mod n:</p>
+  <pre><code>23 mod 7 = 2        (23 = 3·7 + 2)
+5 + 6 mod 7  = 11 mod 7 = 4
+5 · 6 mod 7  = 30 mod 7 = 2</code></pre>
+  <p>The whole point of working "mod n" is that you only ever need to keep track of n possible values (0 through n−1), no matter how large the numbers you started with get — which is exactly the property that makes it possible to do cryptographic arithmetic on 600-digit numbers without the intermediate results exploding in size. <a href="#fast-modular-exponentiation">Later in this lesson</a> you'll see this taken to its logical extreme.</p>
+
+  <h2 id="modular-inverse">Modular inverses</h2>
+  <p>In ordinary arithmetic, every nonzero number a has a multiplicative inverse 1/a. Mod n, that's no longer automatic. The <strong id="modular-inverse-def">modular inverse</strong> of a mod n is a number a⁻¹ such that a · a⁻¹ ≡ 1 (mod n) — and it exists <em>if and only if</em> gcd(a, n) = 1, i.e. a and n are <strong id="coprime-def">coprime</strong> (share no common factor bigger than 1).</p>
+  <div class="callout">
+    <strong>Why the gcd condition is exact, not just sufficient</strong>
+    If d = gcd(a, n) &gt; 1, then every multiple of a mod n is also a multiple of d mod n, so a·x mod n can never land exactly on 1 unless d = 1. Conversely, when gcd(a, n) = 1, the <a href="https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm" target="_blank">extended Euclidean algorithm</a> constructs integers x, y with a·x + n·y = 1 directly — reduce that equation mod n and a·x ≡ 1 (mod n) falls out, so x is the inverse. This is the same machinery <a href="0002-rsa-key-generation-encryption-correctness-proof.html#rsa-key-generation">RSA key generation</a> uses to compute the private key.
+  </div>
+  <p>Worked check: is 4 invertible mod 9? gcd(4, 9) = 1, so yes — and indeed 4 · 7 = 28 = 3·9 + 1 ≡ 1 (mod 9), so 4⁻¹ ≡ 7 (mod 9). Is 3 invertible mod 9? gcd(3, 9) = 3 ≠ 1, so no — and you can check by brute force that 3·x mod 9 only ever lands on {0, 3, 6}, never 1, for any x.</p>
+
+  <h2 id="eulers-totient-function">Euler's totient function</h2>
+  <p><strong id="totient-def">Euler's totient function</strong> φ(n) counts how many integers in {1, ..., n} are coprime to n — equivalently, by the section above, how many integers mod n actually have a multiplicative inverse. Two facts make it computable without checking every number by hand:</p>
+  <ul>
+    <li>If p is prime, every one of 1, ..., p−1 is coprime to p (a prime shares no factors with anything smaller), so <strong>φ(p) = p − 1</strong>.</li>
+    <li>If p and q are distinct primes, <strong>φ(pq) = (p − 1)(q − 1)</strong> — this is the specific fact <a href="0002-rsa-key-generation-encryption-correctness-proof.html#rsa-key-generation">RSA key generation</a> is built on.</li>
+  </ul>
+  <p>Worked example: φ(10). The numbers coprime to 10 in {1,...,10} are {1, 3, 7, 9} — four of them — so φ(10) = 4. Check against the prime-factor formula: 10 = 2·5, so φ(10) = (2−1)(5−1) = 1·4 = 4. Matches.</p>
+
+  <h2 id="eulers-theorem">Euler's theorem</h2>
+  <div class="callout">
+    <strong>Euler's theorem</strong>
+    If gcd(a, n) = 1, then a<sup>φ(n)</sup> ≡ 1 (mod n).
+  </div>
+  <p>Raise any number coprime to n to the φ(n)-th power, reduce mod n, and you always land back on 1 — no matter how large a is. This single fact is the engine behind RSA decryption recovering the original message exactly.</p>
+  <div class="callout">
+    <strong>Worked example: a = 3, n = 10</strong>
+    φ(10) = 4 from above. 3<sup>4</sup> = 81 = 8·10 + 1, so 3<sup>4</sup> mod 10 = 1 — exactly as Euler's theorem predicts. Try a = 7: 7<sup>4</sup> = 2401 = 240·10 + 1, so 7<sup>4</sup> mod 10 = 1 as well. It holds for <em>every</em> a coprime to 10, not just one lucky choice.
+  </div>
+  <p>A second, larger check with a composite modulus that isn't just two small primes multiplied together: n = 91 = 7 · 13, so φ(91) = (7−1)(13−1) = 6·12 = 72. Take a = 5 (gcd(5, 91) = 1). Computing 5<sup>72</sup> mod 91 directly by repeated squaring (the technique in the <a href="#fast-modular-exponentiation">next section</a>) gives exactly 1, confirming the theorem on a case too large to check by brute-force multiplication.</p>
+
+  <h2 id="fermats-little-theorem">Fermat's little theorem: the prime special case</h2>
+  <p><strong id="fermat-little-theorem-def">Fermat's little theorem</strong> is Euler's theorem restricted to the case where n is prime: since φ(p) = p − 1 for prime p, Euler's theorem becomes a<sup>p−1</sup> ≡ 1 (mod p) for any a not divisible by p. It's usually taught first, historically, but it's really just Euler's theorem with the totient function plugged in for a prime modulus.</p>
+  <div class="callout">
+    <strong>Worked example: reducing a huge exponent</strong>
+    Compute 7<sup>222</sup> mod 11 without ever forming a 188-digit number. Since 11 is prime, Fermat gives 7<sup>10</sup> ≡ 1 (mod 11). Write 222 = 22·10 + 2, so 7<sup>222</sup> = (7<sup>10</sup>)<sup>22</sup> · 7<sup>2</sup> ≡ 1<sup>22</sup> · 7<sup>2</sup> ≡ 7<sup>2</sup> (mod 11). And 7<sup>2</sup> = 49 = 4·11 + 5, so 7<sup>222</sup> mod 11 = 5. The exponent 222 collapsed to 222 mod 10 = 2 the moment the modulus's structure was used.
+  </div>
+
+  <h2 id="fast-modular-exponentiation">Fast modular exponentiation: square-and-multiply</h2>
+  <p>Cryptography routinely needs a<sup>b</sup> mod n for b hundreds of digits long. Multiplying a by itself b times is out of the question — but you don't have to. <strong id="square-and-multiply-def">Square-and-multiply</strong> computes it in roughly log₂(b) modular multiplications by using the binary expansion of the exponent: scan the exponent's bits left to right, squaring the running result every step and multiplying in an extra factor of a whenever the bit is 1.</p>
+  <div class="callout">
+    <strong>Worked example: 4<sup>13</sup> mod 497</strong>
+    13 in binary is 1101. Track a running result r, starting at 1, processing bits left to right — square every step, multiply by 4 only on a 1-bit:
+    <pre><code>bit 1: r = 1² · 4 = 4
+bit 1: r = 4² · 4 = 64
+bit 0: r = 64² mod 497 = 120        (no multiply — bit is 0)
+bit 1: r = 120² mod 497 · 4 = 445</code></pre>
+    Four squarings and three extra multiplications recovers 4<sup>13</sup> mod 497 = 445 — versus 12 multiplications for the naive approach, and the gap only widens as the exponent grows. This is the exact technique both <a href="0002-rsa-key-generation-encryption-correctness-proof.html#rsa-encryption">RSA encryption/decryption</a> and <a href="0004-diffie-hellman-discrete-log-problem.html#diffie-hellman-protocol">Diffie-Hellman</a> run under the hood — every "compute a<sup>b</sup> mod n" in this course is this algorithm, not literal repeated multiplication.
+  </div>
+  <div class="callout warn">
+    <strong>Fast to compute forward, hard to invert</strong>
+    Square-and-multiply makes a<sup>b</sup> mod n cheap to compute when you know a and b. It says nothing about how to go backward — given a<sup>b</sup> mod n and a, recover b. That's the <strong>discrete logarithm problem</strong>, and its believed hardness is exactly what <a href="0004-diffie-hellman-discrete-log-problem.html#discrete-log-problem">lesson 4</a> builds on.
+  </div>
+
+  <h2>Try it: quick modular arithmetic</h2>
+  <p>For each question, pick the correct value.</p>
+  <div id="mod-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Which condition exactly determines whether a has a multiplicative inverse mod n?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q1','Right — gcd(a,n)=1 is both necessary and sufficient: it is what lets the extended Euclidean algorithm construct a·x + n·y = 1, which reduces mod n to a·x ≡ 1.')">gcd(a, n) equals 1</button>
+        <button onclick="quizAnswer(this,false,'q1','Size alone says nothing about shared factors — a=3, n=9 has a smaller than n but no inverse exists, since gcd(3,9)=3.')">a is smaller than n</button>
+        <button onclick="quizAnswer(this,false,'q1','n being even has no bearing on whether a specific a is coprime to it — a=3 is invertible mod the even number 8, for example.')">n is an even number</button>
+        <button onclick="quizAnswer(this,false,'q1','Primality of a isn’t what matters — a=4 is invertible mod 9 despite not being prime, because gcd(4,9)=1 is what actually governs it.')">a is a prime number</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. What does Euler's theorem state?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right — for any a coprime to n, raising a to the φ(n)-th power and reducing mod n always gives 1, exactly as verified above for n=10 and n=91.')">a raised to φ(n) is congruent to 1 mod n, whenever a and n are coprime</button>
+        <button onclick="quizAnswer(this,false,'q2','That’s not a real general identity — a^n ≡ a (mod n) only holds in restricted cases (it’s closer to a corollary of Fermat’s little theorem for prime n), not as a general statement for any n.')">a raised to n is always congruent to a mod n, for any n</button>
+        <button onclick="quizAnswer(this,false,'q2','φ(n) = n−1 only holds when n is prime — φ(10) = 4, not 9, which is exactly why the totient function needed its own section above.')">φ(n) always equals n minus 1, for any n</button>
+        <button onclick="quizAnswer(this,false,'q2','The exponent is φ(n), not n itself, and the correct hypothesis is gcd(a,n)=1, not primality of a — this conflates Euler’s theorem with Fermat’s special case.')">a raised to n is congruent to 1 mod n, whenever a is prime</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Fermat's little theorem is the special case of Euler's theorem where...</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right — when n is prime, φ(n) = n−1 by definition, so Euler’s a^φ(n) ≡ 1 becomes exactly a^(n−1) ≡ 1, which is Fermat’s statement.')">n is prime, so φ(n) reduces to n minus 1</button>
+        <button onclick="quizAnswer(this,false,'q3','a=1 makes Euler’s theorem trivially true for any n (1 to any power is 1) — that’s not the condition that produces Fermat’s specific statement.')">a is equal to 1</button>
+        <button onclick="quizAnswer(this,false,'q3','Perfect squares have no special role here — φ of a perfect square doesn’t simplify to n−1 in general (e.g. φ(9)=6, not 8).')">n is a perfect square</button>
+        <button onclick="quizAnswer(this,false,'q3','gcd(a,n)≠1 is exactly the case Euler’s theorem excludes entirely — no inverse, no theorem, in either the general or the prime-modulus case.')">gcd(a, n) is not equal to 1</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Roughly how many modular multiplications does square-and-multiply need to compute a^b mod n, compared to naive repeated multiplication?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q4','Right — squaring at every bit and multiplying in a only on 1-bits needs about log₂(b) steps total, versus b−1 multiplications for the naive approach, exactly as the 4^13 mod 497 trace showed.')">About log₂(b) multiplications, instead of about b</button>
+        <button onclick="quizAnswer(this,false,'q4','That has the comparison backwards — log₂(b) is the fast count, b is the slow, naive one, not the other way around.')">About b multiplications, instead of about log₂(b)</button>
+        <button onclick="quizAnswer(this,false,'q4','Square-and-multiply is a genuine asymptotic improvement, not a worse algorithm — b² multiplications would be far more than even the naive b-multiplication approach.')">About b² multiplications, instead of about b</button>
+        <button onclick="quizAnswer(this,false,'q4','The whole point of the binary-exponent trick is doing dramatically fewer multiplications, not the same count reordered — the 4^13 mod 497 example used 7 multiplications total versus 12 for the naive approach.')">Exactly the same number as naive multiplication, just reordered</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>By hand: compute 3<sup>222</sup> mod 11. Don't multiply 3 by itself 222 times — use Fermat's little theorem to reduce the exponent first (11 is prime, so 3<sup>10</sup> ≡ 1 mod 11), the same way the worked example above reduced 7<sup>222</sup> mod 11. You should get 9. This "reduce the exponent mod (p−1) first" move is exactly what makes RSA and Diffie-Hellman practical with real-world key sizes.</p>
+
+  <h2>Primary resource</h2>
+  <p>See Victor Shoup's <a href="https://shoup.net/ntb/ntb-v2.pdf" target="_blank">A Computational Introduction to Number Theory and Algebra</a> (free, full text), chapters 2–3 on modular arithmetic, Euler's totient function, and Euler's theorem — the standard rigorous reference this lesson's material is drawn from.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> If the extended Euclidean algorithm's mechanics aren't clicking, or a square-and-multiply trace doesn't match your own hand computation, ask Claude Code to work through it step by step with your own numbers.
+  </div>
+
+  <div class="nav">
+    <span></span>
+    <span class="spacer"></span>
+    <a href="0002-rsa-key-generation-encryption-correctness-proof.html">Lesson 2: RSA — Key Generation, Encryption &amp; a Full Correctness Proof →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const MOD_ITEMS = [
+  {
+    english: '23 mod 7 = ?',
+    options: [
+      { text: '2', correct: true, explain: 'Right — 23 = 3·7 + 2, so the remainder is 2.' },
+      { text: '3', explain: '3·7 = 21, and 23 − 21 = 2, not 3 — recheck the division.' },
+    ],
+  },
+  {
+    english: 'Is 4 invertible mod 9?',
+    options: [
+      { text: 'Yes — gcd(4, 9) = 1', correct: true, explain: 'Right — 4 and 9 share no common factor, so 4 has an inverse mod 9 (it is 7, since 4·7 = 28 ≡ 1 mod 9).' },
+      { text: 'No — 4 is even', explain: 'Evenness of a is irrelevant on its own — what matters is gcd(a, n), and gcd(4, 9) = 1, so an inverse does exist.' },
+    ],
+  },
+  {
+    english: 'φ(7) = ?',
+    options: [
+      { text: '6', correct: true, explain: 'Right — 7 is prime, so φ(7) = 7 − 1 = 6.' },
+      { text: '7', explain: 'φ(p) = p − 1 for a prime p, not p itself — 7 is not coprime to itself, so it does not count.' },
+    ],
+  },
+];
+
+const modDiv = document.getElementById('mod-exercise');
+MOD_ITEMS.forEach((item, i) => {
+  const cardId = `mod-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  modDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>
