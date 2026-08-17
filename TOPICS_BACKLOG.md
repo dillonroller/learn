@@ -17,18 +17,6 @@ works, and the Buddhist roots as context rather than religious study.
 Agnosticism as a serious epistemological position, not just "I don't know" — Huxley's
 original framing, the limits-of-knowledge argument, and why it matters.
 
-## AI Engineering (`ai-engineering`)
-Designing, building, and debugging complex agent systems from first principles — orchestration
-patterns, tool use, memory, and production-quality agentic code.
-
 ## Finance & Markets (`finance`)
 How markets, the Fed, and the US economy actually work, from first principles, aimed at
 informed personal financial decisions rather than day trading.
-
-## Frontier Science (`frontier-science`)
-Quantum mechanics, relativity, and the Standard Model at a level deeper than pop-science —
-intuition first, math introduced gradually.
-
-## Emerging AI Research (`emerging-ai`)
-The frontier of AI research beyond current LLMs — JEPA, world models, and reading recent
-papers to form an informed opinion on promising directions.

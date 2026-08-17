@@ -317,6 +317,78 @@
     { term: 'QFT Circuit (Hadamards + controlled phase rotations)', kind: 'Reference', topic: 'Quantum Computing', file: 'quantum-computing/lessons/0006-quantum-fourier-transform-phase-estimation.html', anchor: 'qft-circuit', desc: 'O(n²) gates — exponentially cheaper to run, but only samplable, not fully readable.' },
     { term: 'Phase Estimation Algorithm', kind: 'Algorithm', topic: 'Quantum Computing', file: 'quantum-computing/lessons/0006-quantum-fourier-transform-phase-estimation.html', anchor: 'phase-estimation', desc: 'Estimates an eigenvalue\'s phase φ using repeated kickback plus inverse QFT.' },
 
+    // ── Frontier Science: lesson-level entries ──
+    { term: 'The Postulates of Special Relativity & Time Dilation', kind: 'Lesson 1', topic: 'Frontier Science', file: 'frontier-science/lessons/0001-postulates-special-relativity-time-dilation.html', desc: 'Deriving the Lorentz factor from the constancy of light speed, with a worked muon-decay example.' },
+    { term: 'Postulates of Special Relativity', kind: 'Definition', topic: 'Frontier Science', file: 'frontier-science/lessons/0001-postulates-special-relativity-time-dilation.html', anchor: 'postulates', desc: 'Two postulates, no more — the whole basis special relativity is built from.' },
+    { term: 'Lorentz Factor (γ)', kind: 'Definition', topic: 'Frontier Science', file: 'frontier-science/lessons/0001-postulates-special-relativity-time-dilation.html', anchor: 'lorentz-factor', desc: 'γ = 1/√(1−v²/c²) — derived from a light clock, not just quoted.' },
+    { term: 'Time Dilation', kind: 'Theorem', topic: 'Frontier Science', file: 'frontier-science/lessons/0001-postulates-special-relativity-time-dilation.html', anchor: 'time-dilation', desc: 'Moving clocks run slow, by exactly a factor of γ.' },
+
+    { term: 'Length Contraction, Relativity of Simultaneity & Spacetime Diagrams', kind: 'Lesson 2', topic: 'Frontier Science', file: 'frontier-science/lessons/0002-length-contraction-simultaneity-spacetime-diagrams.html', desc: 'The other two classic special-relativity results, plus how to read a Minkowski diagram.' },
+    { term: 'Length Contraction', kind: 'Theorem', topic: 'Frontier Science', file: 'frontier-science/lessons/0002-length-contraction-simultaneity-spacetime-diagrams.html', anchor: 'length-contraction', desc: 'Moving objects measure shorter along their direction of motion, by a factor of γ.' },
+    { term: 'Relativity of Simultaneity', kind: 'Definition', topic: 'Frontier Science', file: 'frontier-science/lessons/0002-length-contraction-simultaneity-spacetime-diagrams.html', anchor: 'relativity-of-simultaneity', desc: 'Events simultaneous in one frame generally aren\'t in another.' },
+    { term: 'Spacetime (Minkowski) Diagrams', kind: 'Technique', topic: 'Frontier Science', file: 'frontier-science/lessons/0002-length-contraction-simultaneity-spacetime-diagrams.html', anchor: 'spacetime-diagrams', desc: 'How to read worldlines and simultaneity slices on a spacetime diagram.' },
+    { term: 'Light Cone', kind: 'Definition', topic: 'Frontier Science', file: 'frontier-science/lessons/0002-length-contraction-simultaneity-spacetime-diagrams.html', anchor: 'light-cone', desc: 'What every observer agrees on: the causal structure of spacetime.' },
+
+    { term: 'E=mc² and Four-Momentum', kind: 'Lesson 3', topic: 'Frontier Science', file: 'frontier-science/lessons/0003-e-equals-mc-squared-four-momentum.html', desc: 'Why mass-energy equivalence falls out of the same two postulates, worked numerically.' },
+    { term: 'Relativistic Momentum', kind: 'Definition', topic: 'Frontier Science', file: 'frontier-science/lessons/0003-e-equals-mc-squared-four-momentum.html', anchor: 'relativistic-momentum', desc: 'p = γmv — why momentum needs a γ factor.' },
+    { term: 'E=mc² (Relativistic Energy)', kind: 'Theorem', topic: 'Frontier Science', file: 'frontier-science/lessons/0003-e-equals-mc-squared-four-momentum.html', anchor: 'relativistic-energy', desc: 'Total energy E = γmc² — where mass-energy equivalence actually comes from.' },
+    { term: 'Four-Momentum', kind: 'Definition', topic: 'Frontier Science', file: 'frontier-science/lessons/0003-e-equals-mc-squared-four-momentum.html', anchor: 'four-momentum', desc: 'The single invariant quantity tying E and p together across all frames.' },
+
+    { term: 'From Special to General: the Equivalence Principle & Curved Spacetime', kind: 'Lesson 4', topic: 'Frontier Science', file: 'frontier-science/lessons/0004-equivalence-principle-curved-spacetime.html', desc: 'Einstein\'s "happiest thought," and the bridge from flat to curved spacetime.' },
+    { term: 'Equivalence Principle', kind: 'Definition', topic: 'Frontier Science', file: 'frontier-science/lessons/0004-equivalence-principle-curved-spacetime.html', anchor: 'equivalence-principle', desc: 'Gravity and acceleration are locally indistinguishable.' },
+    { term: "Einstein's Elevator", kind: 'Technique', topic: 'Frontier Science', file: 'frontier-science/lessons/0004-equivalence-principle-curved-spacetime.html', anchor: 'einsteins-elevator', desc: 'The thought experiment behind the equivalence principle.' },
+    { term: 'Gravity is Geometry (Curved Spacetime)', kind: 'Definition', topic: 'Frontier Science', file: 'frontier-science/lessons/0004-equivalence-principle-curved-spacetime.html', anchor: 'curved-spacetime', desc: 'Why gravity isn\'t a force — it\'s the shape of spacetime itself.' },
+
+    // ── AI Engineering: lesson-level entries ──
+    { term: 'The Agent Loop From Scratch', kind: 'Lesson 1', topic: 'AI Engineering', file: 'ai-engineering/lessons/0001-agent-loop-system-prompt-tool-schemas.html', desc: 'System prompt, tool schemas, and the read-act-observe cycle, built from a minimal worked pseudocode loop.' },
+    { term: 'System Prompt', kind: 'Definition', topic: 'AI Engineering', file: 'ai-engineering/lessons/0001-agent-loop-system-prompt-tool-schemas.html', anchor: 'system-prompt', desc: 'Instructions the user never sees, that shape every response.' },
+    { term: 'Tool Schema', kind: 'Definition', topic: 'AI Engineering', file: 'ai-engineering/lessons/0001-agent-loop-system-prompt-tool-schemas.html', anchor: 'tool-schema', desc: 'A menu the model can actually order from — structured, machine-checkable.' },
+    { term: 'Read-Act-Observe Loop', kind: 'Definition', topic: 'AI Engineering', file: 'ai-engineering/lessons/0001-agent-loop-system-prompt-tool-schemas.html', anchor: 'read-act-observe-loop', desc: 'The core cycle every agent harness runs.' },
+
+    { term: 'Tool Design: Schemas & Error Surfaces', kind: 'Lesson 2', topic: 'AI Engineering', file: 'ai-engineering/lessons/0002-tool-design-schemas-error-surfaces.html', desc: 'Why bad tool descriptions break agents, with before/after examples.' },
+    { term: 'Error Surface', kind: 'Definition', topic: 'AI Engineering', file: 'ai-engineering/lessons/0002-tool-design-schemas-error-surfaces.html', anchor: 'error-surface', desc: 'What a tool says when it fails — and why that shapes agent behavior as much as success does.' },
+
+    { term: 'Context & Memory', kind: 'Lesson 3', topic: 'AI Engineering', file: 'ai-engineering/lessons/0003-context-memory-summarization-retrieval.html', desc: 'Context windows, summarization, and retrieval-augmented state, and when each one applies.' },
+    { term: 'Context Window', kind: 'Definition', topic: 'AI Engineering', file: 'ai-engineering/lessons/0003-context-memory-summarization-retrieval.html', anchor: 'context-window', desc: 'An agent\'s only working memory — everything it "knows" right now.' },
+    { term: 'Context Rot', kind: 'Definition', topic: 'AI Engineering', file: 'ai-engineering/lessons/0003-context-memory-summarization-retrieval.html', anchor: 'context-rot', desc: 'Why bigger context isn\'t free — more tokens can mean worse attention.' },
+    { term: 'Retrieval-Augmented State', kind: 'Technique', topic: 'AI Engineering', file: 'ai-engineering/lessons/0003-context-memory-summarization-retrieval.html', anchor: 'retrieval-augmented-state', desc: 'Index it, and fetch it back on demand instead of keeping it all in context.' },
+
+    { term: 'Failure Modes: Debugging an Agent', kind: 'Lesson 4', topic: 'AI Engineering', file: 'ai-engineering/lessons/0004-failure-modes-debugging-agents.html', desc: 'Diagnosing a broken agent by isolating prompt, tool, memory, or model.' },
+    { term: 'The Four-Layer Diagnosis', kind: 'Technique', topic: 'AI Engineering', file: 'ai-engineering/lessons/0004-failure-modes-debugging-agents.html', anchor: 'four-layer-diagnosis', desc: 'The four places a bug can hide: prompt, tool, memory, or model.' },
+    { term: 'Root Cause vs. Symptom', kind: 'Technique', topic: 'AI Engineering', file: 'ai-engineering/lessons/0004-failure-modes-debugging-agents.html', anchor: 'root-cause-vs-symptom', desc: 'Fixing what actually broke, not the first place the failure showed up.' },
+
+    // ── Emerging AI Research: lesson-level entries ──
+    { term: 'Beyond Next-Token Prediction: What a "World Model" Actually Means', kind: 'Lesson 1', topic: 'Emerging AI Research', file: 'emerging-ai/lessons/0001-beyond-next-token-prediction-world-models.html', desc: 'A precise definition of "world model," and whether LLMs build one implicitly.' },
+    { term: 'World Model (Definition)', kind: 'Definition', topic: 'Emerging AI Research', file: 'emerging-ai/lessons/0001-beyond-next-token-prediction-world-models.html', anchor: 'world-model', desc: 'A precise definition — not just "the AI understands the world."' },
+    { term: 'Does an LLM Have a World Model?', kind: 'Note', topic: 'Emerging AI Research', file: 'emerging-ai/lessons/0001-beyond-next-token-prediction-world-models.html', anchor: 'does-an-llm-have-a-world-model', desc: 'The honest answer: sometimes, partially, and contested.' },
+
+    { term: 'JEPA & Self-Supervised Representation Learning', kind: 'Lesson 2', topic: 'Emerging AI Research', file: 'emerging-ai/lessons/0002-jepa-self-supervised-architecture.html', desc: 'The architecture that predicts in embedding space instead of pixel space, and the bet it\'s making.' },
+    { term: 'JEPA (Joint-Embedding Predictive Architecture)', kind: 'Definition', topic: 'Emerging AI Research', file: 'emerging-ai/lessons/0002-jepa-self-supervised-architecture.html', anchor: 'jepa-architecture', desc: 'Predicting in embedding space rather than reconstructing raw input, piece by piece.' },
+    { term: 'Generative vs. JEPA Pretext Tasks', kind: 'Definition', topic: 'Emerging AI Research', file: 'emerging-ai/lessons/0002-jepa-self-supervised-architecture.html', anchor: 'generative-vs-jepa', desc: 'Two ways to build a self-supervised pretext task: reconstruct, or predict in embedding space.' },
+
+    { term: 'Reading a Real Paper: Claims, Evidence & Abstract-Marketing', kind: 'Lesson 3', topic: 'Emerging AI Research', file: 'emerging-ai/lessons/0003-reading-a-paper-claims-vs-evidence.html', desc: 'Walking a real, current paper\'s structure to separate its actual claim from its framing.' },
+    { term: 'Anatomy of an ML Paper', kind: 'Reference', topic: 'Emerging AI Research', file: 'emerging-ai/lessons/0003-reading-a-paper-claims-vs-evidence.html', anchor: 'paper-anatomy', desc: 'The typical section structure, and which sections carry the real evidence.' },
+    { term: 'Abstract vs. Claim', kind: 'Technique', topic: 'Emerging AI Research', file: 'emerging-ai/lessons/0003-reading-a-paper-claims-vs-evidence.html', anchor: 'abstract-vs-claim', desc: 'Why the abstract is the least reliable section for evaluating evidence.' },
+
+    // ── Cryptography & Number Theory: lesson-level entries ──
+    { term: "Modular Arithmetic & Euler's Theorem", kind: 'Lesson 1', topic: 'Cryptography', file: 'cryptography/lessons/0001-modular-arithmetic-eulers-theorem.html', desc: 'The number theory RSA runs on, worked with real small numbers.' },
+    { term: 'Congruence (mod n)', kind: 'Definition', topic: 'Cryptography', file: 'cryptography/lessons/0001-modular-arithmetic-eulers-theorem.html', anchor: 'congruence', desc: 'Arithmetic that wraps around — the foundation of every result in this course.' },
+    { term: "Euler's Totient Function φ(n)", kind: 'Definition', topic: 'Cryptography', file: 'cryptography/lessons/0001-modular-arithmetic-eulers-theorem.html', anchor: 'eulers-totient-function', desc: 'Counts integers coprime to n — the exponent RSA keys are built from.' },
+    { term: "Euler's Theorem", kind: 'Theorem', topic: 'Cryptography', file: 'cryptography/lessons/0001-modular-arithmetic-eulers-theorem.html', anchor: 'eulers-theorem', desc: 'a^φ(n) ≡ 1 (mod n) — the theorem RSA correctness is built on.' },
+    { term: 'Fast Modular Exponentiation (Square-and-Multiply)', kind: 'Technique', topic: 'Cryptography', file: 'cryptography/lessons/0001-modular-arithmetic-eulers-theorem.html', anchor: 'fast-modular-exponentiation', desc: 'Computing a^b mod n efficiently, without ever forming the full a^b.' },
+
+    { term: 'RSA: Key Generation, Encryption & a Full Correctness Proof', kind: 'Lesson 2', topic: 'Cryptography', file: 'cryptography/lessons/0002-rsa-key-generation-encryption-correctness-proof.html', desc: 'A complete worked example with actual small primes, encrypted and decrypted by hand.' },
+    { term: 'RSA Key Generation', kind: 'Technique', topic: 'Cryptography', file: 'cryptography/lessons/0002-rsa-key-generation-encryption-correctness-proof.html', anchor: 'rsa-key-generation', desc: 'Choosing p, q, e, and computing d — worked with p=61, q=53.' },
+    { term: 'RSA Correctness Proof', kind: 'Theorem', topic: 'Cryptography', file: 'cryptography/lessons/0002-rsa-key-generation-encryption-correctness-proof.html', anchor: 'rsa-correctness-proof', desc: "Why decryption really does recover the original message, via Euler's theorem." },
+
+    { term: "Why Factoring Is Hard — and Exactly What Shor's Algorithm Breaks", kind: 'Lesson 3', topic: 'Cryptography', file: 'cryptography/lessons/0003-why-factoring-is-hard-shors-algorithm.html', desc: 'Classical hardness, and how period-finding turns factoring into a quantum problem.' },
+    { term: 'Factoring Hardness', kind: 'Definition', topic: 'Cryptography', file: 'cryptography/lessons/0003-why-factoring-is-hard-shors-algorithm.html', anchor: 'factoring-hardness', desc: 'Why no known classical shortcut exists for factoring large n.' },
+    { term: "Shor's Algorithm (Factoring via Period-Finding)", kind: 'Algorithm', topic: 'Cryptography', file: 'cryptography/lessons/0003-why-factoring-is-hard-shors-algorithm.html', anchor: 'shors-algorithm', desc: 'Turning factoring into period-finding — cross-links directly into the Quantum Computing course\'s QFT lesson.', keywords: ['shor'] },
+
+    { term: 'Diffie-Hellman & the Discrete Log Problem', kind: 'Lesson 4', topic: 'Cryptography', file: 'cryptography/lessons/0004-diffie-hellman-discrete-log-problem.html', desc: 'A different hardness assumption from factoring, worked with real small numbers.' },
+    { term: 'Discrete Logarithm Problem', kind: 'Definition', topic: 'Cryptography', file: 'cryptography/lessons/0004-diffie-hellman-discrete-log-problem.html', anchor: 'discrete-log-problem', desc: 'The hardness assumption Diffie-Hellman rests on, distinct from factoring.' },
+    { term: 'Diffie-Hellman Protocol', kind: 'Algorithm', topic: 'Cryptography', file: 'cryptography/lessons/0004-diffie-hellman-discrete-log-problem.html', anchor: 'diffie-hellman-protocol', desc: 'Two parties agree on a shared secret over a public channel, without ever sending it.' },
+
     // ── Topic indexes ──
     { term: 'Logic (topic home)', kind: 'Topic', topic: 'Logic', file: 'logic/index.html', desc: 'All Logic lessons and reference docs.' },
     { term: 'Philosophy (topic home)', kind: 'Topic', topic: 'Philosophy', file: 'philosophy/index.html', desc: 'All Philosophy lessons and reference docs.' },
@@ -326,6 +398,10 @@
     { term: 'Probability (topic home)', kind: 'Topic', topic: 'Probability', file: 'probability/index.html', desc: 'All Probability lessons.' },
     { term: 'Quantum Mechanics (topic home)', kind: 'Topic', topic: 'Quantum Mechanics', file: 'quantum-mechanics/index.html', desc: 'All Quantum Mechanics lessons.' },
     { term: 'Quantum Computing (topic home)', kind: 'Topic', topic: 'Quantum Computing', file: 'quantum-computing/index.html', desc: 'All Quantum Computing lessons.' },
+    { term: 'Frontier Science (topic home)', kind: 'Topic', topic: 'Frontier Science', file: 'frontier-science/index.html', desc: 'All Frontier Science lessons.' },
+    { term: 'AI Engineering (topic home)', kind: 'Topic', topic: 'AI Engineering', file: 'ai-engineering/index.html', desc: 'All AI Engineering lessons.' },
+    { term: 'Emerging AI Research (topic home)', kind: 'Topic', topic: 'Emerging AI Research', file: 'emerging-ai/index.html', desc: 'All Emerging AI Research lessons.' },
+    { term: 'Cryptography & Number Theory (topic home)', kind: 'Topic', topic: 'Cryptography', file: 'cryptography/index.html', desc: 'All Cryptography & Number Theory lessons.' },
     { term: 'Category Theory (topic home)', kind: 'Topic', topic: 'Category Theory', file: 'category-theory/index.html', desc: 'All Category Theory lessons.' },
     { term: 'Algorithmic Info Theory (topic home)', kind: 'Topic', topic: 'Algorithmic Info Theory', file: 'algorithmic-info-theory/index.html', desc: 'All Algorithmic Information Theory lessons.' },
     { term: 'Learning Hub (home)', kind: 'Home', topic: '', file: 'index.html', desc: 'All topics.' },
