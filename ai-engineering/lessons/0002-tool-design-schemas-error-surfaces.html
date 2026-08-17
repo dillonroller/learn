@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 2 — Tool Design</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">AI Engineering</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 2 of 8 &nbsp;·&nbsp; AI Engineering &nbsp;·&nbsp; ~30 min</p>
+  <h1>Tool Design</h1>
+  <p>Lesson 1 established that the model never touches the real world directly — it proposes a <a href="0001-agent-loop-system-prompt-tool-schemas.html#tool-schema">tool call</a>, and the harness is the thing that actually acts. Everything the model knows about what a tool does, and everything it has to go on after calling it, comes from two pieces of text you write: the tool's description, and the shape of what it returns. Get those wrong and the model isn't being "dumb" when it misuses a tool — it's making a reasonable guess from an underspecified contract. This lesson is about writing that contract well.</p>
+
+  <h2 id="tool-description">Anatomy of a tool definition</h2>
+  <p>A tool definition communicates four things, only two of which are usually written down carefully:</p>
+  <ul>
+    <li><strong>Name</strong> — usually gets attention; a specific, verb-first name (<code>search_codebase</code>) already does real work over a vague one (<code>search</code>).</li>
+    <li><strong>Description</strong> — a natural-language sentence or two, read by the model on every call where this tool is available. This is the part most often written lazily, and the part this lesson focuses on.</li>
+    <li><strong>Parameter schema</strong> — types and required/optional fields, usually written carefully because omitting it causes an obvious, immediate error.</li>
+    <li><strong>Return shape</strong> — almost never specified in the schema itself, and almost never thought about until something goes wrong. The next section is entirely about this one.</li>
+  </ul>
+
+  <h2 id="bad-vs-good-description">Before and after: the same tool, two descriptions</h2>
+  <p>Here is a tool description that is technically valid JSON and technically documents a real tool — and will still cause an agent to misuse it:</p>
+  <pre><code>{
+  "name": "search",
+  "description": "searches",
+  "parameters": {
+    "query": { "type": "string" }
+  }
+}</code></pre>
+  <p>Nothing here tells the model what's being searched, what it returns, how much it returns, or when to reach for this tool instead of some other one. A model conditioned on this schema has to guess — and a guess baked into a tool call becomes a real action, not a harmless misunderstanding. Compare it with a version that answers those questions up front:</p>
+  <pre><code>{
+  "name": "search_codebase",
+  "description": "Full-text search across tracked source files in the repository. Returns up to 50 matching lines with file path and line number. Does not search binary files, node_modules, or .git. Use this before assuming a symbol doesn't exist in the codebase.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "query":     { "type": "string", "description": "Literal substring or regex pattern to search for." },
+      "path_glob": { "type": "string", "description": "Optional glob to restrict the search, e.g. '**/*.rs'." }
+    },
+    "required": ["query"]
+  }
+}</code></pre>
+  <p>Same underlying tool, radically different odds of being called correctly. The good version states scope ("tracked source files"), a hard limit on output size ("up to 50 matching lines" — which also protects the <a href="0003-context-memory-summarization-retrieval.html#context-window">context window</a>, the subject of the next lesson), an explicit exclusion ("does not search binary files… "), and a cue for when to reach for it at all.</p>
+
+  <h2 id="error-surface">Error surfaces: what a tool says when it fails</h2>
+  <p>The <strong>error surface</strong> of a tool is the shape and content of what it returns when something goes wrong — not just <em>whether</em> it failed, but what the caller should do about it. This matters more for an agent than for a human caller, because a human reading a stack trace brings outside context (they've seen this error before, they can search for it, they can ask a colleague); the model has only what's in the tool result and the rest of the transcript.</p>
+  <pre><code>// Bad — a raw exception leaks straight through
+Traceback (most recent call last):
+  File "tools.py", line 42, in read_file
+    with open(path) as f: ...
+FileNotFoundError: [Errno 2] No such file or directory: 'fpp.txt'
+
+// Good — a structured, actionable error
+{
+  "ok": false,
+  "error": "file_not_found",
+  "message": "No file at 'fpp.txt'. Closest match in this directory: 'foo.txt'."
+}</code></pre>
+  <p>The bad version isn't wrong, exactly — it's true, and a human debugging by hand would find it useful. But it wasn't written <em>for</em> a reader that only gets one shot at the OBSERVE step of the <a href="0001-agent-loop-system-prompt-tool-schemas.html#read-act-observe-loop">read-act-observe loop</a> before deciding what to do next. The good version gives the model a machine-checkable failure kind (<code>file_not_found</code>) it can branch on, plus a concrete, actionable next step (the suggested filename) — turning a dead end into a fact the model can actually use.</p>
+
+  <div class="callout">
+    <strong>A tool description is a contract with a reader who can't ask a clarifying question.</strong>
+    The model reads the schema once per call and has to act on it immediately — it can't message you asking "does <code>path</code> mean absolute or relative?" Whatever's ambiguous in the description is a decision the model has to make on its own, silently, and you won't find out which way it guessed until something breaks.
+  </div>
+  <div class="callout warn">
+    <strong>Ambiguity that's harmless to a human reader can be catastrophic to a model.</strong>
+    A human skimming <code>"amount": {"type": "number"}</code> on a payment tool infers a lot from surrounding context, house conventions, or just asking someone. A model conditions only on the literal schema and description text in front of it, plus whatever else happens to be in the transcript — nothing else. Cents or dollars? Inclusive or exclusive of tax? Any assumption you didn't write down is an assumption the model is free to guess wrong, and a wrong guess here isn't a lint warning — it's a real transaction.
+  </div>
+
+  <h2>Try it: good description, or likely to cause a bad call?</h2>
+  <p>For each tool description snippet, decide whether it's well-specified or likely to get misused.</p>
+  <div id="tool-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Why does a vague tool description like <code>"searches"</code> tend to cause misuse, even though a human reading the function name might correctly guess its behavior?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q1','Right — the model conditions only on the literal schema and description text (plus the transcript), not on the shared context, house conventions, or ability to ask a colleague that a human reader would draw on.')">The model can only condition on the literal schema and description text, not on shared context a human has</button>
+        <button onclick="quizAnswer(this,false,'q1','Models handle structured JSON tool schemas fine — parsing the JSON itself is not the problem a vague description causes.')">The model can't parse JSON at all</button>
+        <button onclick="quizAnswer(this,false,'q1','A vague description is a semantic/behavioral problem, not a typing problem — it doesn\'t by itself cause a runtime type error.')">Vague descriptions cause a runtime type error</button>
+        <button onclick="quizAnswer(this,false,'q1','Descriptions are exactly what informs correct tool usage — the problem with a vague one is that it\'s underspecified, not that it goes unread.')">Descriptions are ignored by the model entirely</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. What's the main benefit of returning a structured error (<code>{"ok": false, "error": "file_not_found", ...}</code>) instead of letting a raw stack trace reach the model?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right — a structured error gives the model a machine-checkable failure kind and an actionable next step it can reason about, rather than unstructured text it has to interpret from scratch.')">It gives the model an actionable, parseable signal it can reason about and act on</button>
+        <button onclick="quizAnswer(this,false,'q2','This is about the shape and content of the error, not the tool\'s execution speed.')">It makes the tool run faster</button>
+        <button onclick="quizAnswer(this,false,'q2','A structured error still reports the failure clearly — it communicates it more usefully than a raw trace, it doesn\'t hide it.')">It hides the failure from the model entirely</button>
+        <button onclick="quizAnswer(this,false,'q2','JSON Schema doesn\'t mandate any particular error response shape — returning a structured error is a design choice you make, not a spec requirement.')">It's required by JSON Schema syntax</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Why should a tool's description state what it does <em>not</em> do, not just what it does — as in "does not search binary files, node_modules, or .git"?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right — stating limits up front prevents the model from assuming capabilities the tool doesn\'t actually have, which would otherwise only surface later as a confusing, hard-to-diagnose failure.')">It prevents the model from assuming capabilities the tool doesn't have, avoiding a confusing later failure</button>
+        <button onclick="quizAnswer(this,false,'q3','JSON Schema does have a "not" keyword, but that\'s unrelated to writing prose limits into a description — this isn\'t a syntax requirement.')">JSON Schema requires a "not" field in every tool definition</button>
+        <button onclick="quizAnswer(this,false,'q3','More text isn\'t automatically better — stating limits helps specifically because it heads off wrong assumptions, not simply because the description got longer.')">Longer descriptions always improve model performance</button>
+        <button onclick="quizAnswer(this,false,'q3','That\'s a reasonable real-world nicety, but it isn\'t why stating limits changes agent behavior here — the mechanism is preventing wrong assumptions, not satisfying a style guide.')">It's required to satisfy documentation style guides</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Beyond documentation, what functional job does a parameter's JSON Schema type (e.g. <code>"type": "string"</code>) do inside the loop from lesson 1?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q4','Right — it lets the harness validate the model\'s proposed arguments before executing the tool, catching a malformed call before it becomes a real side effect.')">It lets the harness validate the model's arguments before executing the tool</button>
+        <button onclick="quizAnswer(this,false,'q4','Schema types describe the shape of the arguments, not what language the tool happens to be implemented in.')">It tells the model which programming language the tool is implemented in</button>
+        <button onclick="quizAnswer(this,false,'q4','Token cost is driven by how much text is in the call, not by parameter type declarations specifically.')">It determines how many tokens the tool call will cost</button>
+        <button onclick="quizAnswer(this,false,'q4','It has a real functional effect — validating arguments before execution, as described above — not just a cosmetic one.')">It's purely cosmetic and has no effect on how the harness processes a call</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Take a tool you use often in your own work — or invent one, like <code>run_lint</code> — and write two versions of its schema: one intentionally vague (name, one-word description, untyped parameters), and one following the name/scope/limits/when-to-use pattern from this lesson. Then imagine you're the model with no other context beyond the schema text itself: which version would you trust to call correctly on the first try, and specifically what question would the vague version leave you guessing at?</p>
+
+  <h2>Primary resource</h2>
+  <p>See <a href="https://json-schema.org/understanding-json-schema/" target="_blank">Understanding JSON Schema</a>, the official guide to the specification that almost every real tool-calling API uses to describe parameters — worth knowing directly rather than through a vendor's wrapper around it.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Ask Claude Code to show you the actual schema for one of the tools available in this session, and critique it together against the name/scope/limits/when-to-use checklist from this lesson.
+  </div>
+
+  <div class="nav">
+    <a href="0001-agent-loop-system-prompt-tool-schemas.html">← Lesson 1: The Agent Loop From Scratch</a>
+    <span class="spacer"></span>
+    <a href="0003-context-memory-summarization-retrieval.html">Lesson 3: Context &amp; Memory →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const TOOL_ITEMS = [
+  {
+    english: '{ "name": "search", "description": "searches", "parameters": { "query": {"type": "string"} } }',
+    options: [
+      { text: 'Well-specified', explain: 'This has a name, a query parameter, and technically valid JSON — but no scope, no limits, no return shape, and no guidance on when to use it. That\'s exactly what causes misuse.' },
+      { text: 'Likely to cause a bad call', correct: true, explain: 'Right — "searches" doesn\'t say what\'s being searched, what comes back, how much, or when to reach for this tool over another one. The model has to guess all of that.' },
+    ],
+  },
+  {
+    english: '{ "name": "search_codebase", "description": "Full-text search across tracked source files. Returns up to 50 matching lines with file path and line number. Does not search binaries, node_modules, or .git. Use before assuming a symbol doesn\'t exist.", ... }',
+    options: [
+      { text: 'Well-specified', correct: true, explain: 'Right — this states scope (tracked source files), a hard output limit (up to 50 lines), explicit exclusions, and when to reach for it.' },
+      { text: 'Likely to cause a bad call', explain: 'This version answers exactly the questions the vague one left open: what\'s searched, what comes back, what\'s excluded, and when to use it.' },
+    ],
+  },
+  {
+    english: '{ "name": "charge_customer", "parameters": { "amount": {"type": "number"} } }  — no description, no units stated',
+    options: [
+      { text: 'Well-specified', explain: 'A bare numeric "amount" with no description leaves units (cents vs. dollars?), currency, and tax handling completely unstated — exactly the kind of silent assumption a model has to guess at.' },
+      { text: 'Likely to cause a bad call', correct: true, explain: 'Right — an ambiguous unit on a payment tool is a textbook case: the cost of guessing wrong here isn\'t a lint warning, it\'s a real transaction.' },
+    ],
+  },
+];
+
+const toolDiv = document.getElementById('tool-exercise');
+TOOL_ITEMS.forEach((item, i) => {
+  const cardId = `tool-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  toolDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

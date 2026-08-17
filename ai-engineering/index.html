@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Engineering — Lessons</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <span class="tn-topic">AI Engineering</span>
+</nav>
+<div class="page">
+  <div class="topic-header">
+    <p class="lesson-meta" style="margin-bottom:.6rem;">Topic overview</p>
+    <h1><span class="topic-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.66-5.66L21 10"/><polyline points="21 4 21 10 15 10"/><path d="M20 12a8 8 0 0 1-13.66 5.66L3 14"/><polyline points="3 20 3 14 9 14"/></svg></span>AI Engineering</h1>
+    <p>Designing, building, and debugging agent systems from first principles: the read-act-observe loop, tool schemas and their failure surfaces, context and memory management, and how to diagnose a broken agent layer by layer. The environment this course is written and read in — a live agentic coding harness — is used throughout as a running, honestly-described example, not a black box to reverse-engineer.</p>
+  </div>
+
+  <p class="section-label">Foundations</p>
+  <div class="lesson-list">
+    <a class="lesson-card" id="lesson-01" href="lessons/0001-agent-loop-system-prompt-tool-schemas.html"><span class="lesson-num">01</span><div class="lesson-info"><div class="lesson-title">The Agent Loop From Scratch</div><div class="lesson-desc">System prompt, tool schemas, and the read-act-observe cycle, built up from a minimal worked pseudocode loop</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="lesson-02" href="lessons/0002-tool-design-schemas-error-surfaces.html"><span class="lesson-num">02</span><div class="lesson-info"><div class="lesson-title">Tool Design</div><div class="lesson-desc">Schemas, error surfaces, and why bad tool descriptions break agents — with before/after examples</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="lesson-03" href="lessons/0003-context-memory-summarization-retrieval.html"><span class="lesson-num">03</span><div class="lesson-info"><div class="lesson-title">Context &amp; Memory</div><div class="lesson-desc">Context windows, summarization, and retrieval-augmented state, and when each one actually applies</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="lesson-04" href="lessons/0004-failure-modes-debugging-agents.html"><span class="lesson-num">04</span><div class="lesson-info"><div class="lesson-title">Failure Modes</div><div class="lesson-desc">Diagnosing a broken agent by isolating prompt, tool, memory, or model — with a worked example</div></div><span class="lesson-arrow">→</span></a>
+  </div>
+
+  <p class="section-label">Systems &amp; Production</p>
+  <div class="lesson-list">
+    <a class="lesson-card locked" id="lesson-05" href="#"><span class="lesson-num">05</span><div class="lesson-info"><div class="lesson-title">Orchestration Patterns: Planner/Worker and Subagent Delegation</div><div class="lesson-desc">Multi-agent architectures, when to split work across agents, and what that costs you</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card locked" id="lesson-06" href="#"><span class="lesson-num">06</span><div class="lesson-info"><div class="lesson-title">Guardrails &amp; Permissions: Sandboxing, Human-in-the-Loop, and Blast Radius</div><div class="lesson-desc">Bounding what an agent can do, and when a human needs to be in the approval path</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card locked" id="lesson-07" href="#"><span class="lesson-num">07</span><div class="lesson-info"><div class="lesson-title">Evaluation: How Do You Know Your Agent Actually Works?</div><div class="lesson-desc">Building evals and regression tests for a system whose output isn't deterministic</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card locked" id="lesson-08" href="#"><span class="lesson-num">08</span><div class="lesson-info"><div class="lesson-title">Production Concerns: Latency, Cost, and Observability for Agentic Systems</div><div class="lesson-desc">Running agents at scale — what to measure, log, and budget for once it's live</div></div><span class="lesson-arrow">→</span></a>
+  </div>
+</div>
+<script src="../assets/search.js"></script>
+</body>
+</html>

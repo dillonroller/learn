@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 3 — Context &amp; Memory</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">AI Engineering</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 3 of 8 &nbsp;·&nbsp; AI Engineering &nbsp;·&nbsp; ~35 min</p>
+  <h1>Context &amp; Memory</h1>
+  <p>Every <a href="0001-agent-loop-system-prompt-tool-schemas.html#read-act-observe-loop">OBSERVE step</a> appends something to the transcript. A long-running agent — one that reads files, runs commands, and calls tools dozens of times in a row — can generate a transcript that's enormous by the time it's actually done. But transcripts don't grow for free, and this lesson is about the fixed budget they grow into, and the three main strategies for managing what happens when they hit it.</p>
+
+  <h2 id="context-window">The context window: your only working memory</h2>
+  <p>The <strong>context window</strong> is the fixed token budget for a single model call. The system prompt, the entire conversation and tool-call history, the tool schemas themselves, and the model's own response all draw from this <em>one</em>, per-call budget. Nothing outside it exists to the model for that call — no matter how important it was three tool calls ago.</p>
+  <p>A useful analogy for a systems background: the context window behaves like a CPU's register file or L1 cache, not like RAM or disk. It's small, and everything in it is directly usable by the model on this call — but anything you want the model to reason about has to be loaded into that window for this specific call, the same way data has to be paged into cache before a CPU instruction can touch it. "It's in the conversation somewhere" isn't the same as "it's in the window right now" if the harness already dropped or compressed it.</p>
+
+  <h2 id="context-rot">Bigger isn't free: context rot</h2>
+  <div class="callout warn">
+    <strong>More context is not free, even when it's all correct.</strong>
+    As a transcript grows, the model's effective ability to make use of any one piece of information tends to degrade — not just the obvious costs of latency and dollars per token, but retrieval accuracy itself, especially for facts sitting in the middle of a long transcript rather than near the very start or the very end. This effect is sometimes called <strong>context rot</strong> or the "lost in the middle" problem. It means stuffing everything into context isn't a safe default — it actively works against the thing you're trying to protect.
+  </div>
+
+  <h2 id="truncation">The naive strategy: truncation</h2>
+  <p>The simplest way to stay under budget: when the window fills up, drop the oldest messages. It's free — no extra model call, no infrastructure — and it's blind. Truncation has no idea whether the oldest message was idle small talk or the one tool result the rest of the task depends on; it drops whatever is oldest, unconditionally.</p>
+
+  <h2 id="summarization">Summarization: compress the past into a shorter present</h2>
+  <p>Instead of dropping old messages outright, <strong>summarization</strong> periodically replaces a run of them with a single, shorter, model-generated message that preserves the gist:</p>
+  <pre><code>if tokens_used(messages) > SUMMARIZE_THRESHOLD:
+    old, recent = messages[:-KEEP_RECENT], messages[-KEEP_RECENT:]
+    summary = call_model(SUMMARIZE_PROMPT, old)   # a call whose only job is
+                                                    # compression, not task progress
+    messages = [system_prompt, summary_message(summary)] + recent</code></pre>
+  <p>This trades a real cost — an extra model call, plus the risk that the summarization prompt itself drops something that mattered — for <em>controlled</em> loss instead of truncation's arbitrary loss: you're choosing, deliberately, what's likely to still matter. In a long-running coding-agent session specifically, this technique is often called <strong id="compaction">compaction</strong>: summarizing to keep a session alive past what would otherwise be a hard context limit, typically preserving things like file paths touched and decisions made while dropping raw tool output that's already been acted on and won't be needed verbatim again.</p>
+
+  <h2 id="retrieval-augmented-state">Retrieval: index it, and fetch it back on demand</h2>
+  <p>The third strategy doesn't try to keep everything — or a lossy summary of everything — resident in the window at once. Instead, information is stored externally (a file, a vector index, a database), and the harness pulls back only the specific pieces relevant to the current step, via a dedicated retrieval tool call, exactly when they're needed. This is <strong>retrieval-augmented generation</strong> (RAG) applied to an agent's own working history, not just to external documents — the same idea, turned inward.</p>
+  <div class="callout">
+    <strong>None of these three strategies is strictly better.</strong>
+    They trade differently along cost, precision, and infrastructure. Truncation is free but arbitrarily lossy. Summarization costs a call and loses detail in a controlled way — good for "gist" material, bad when an exact number or an exact line of code needs to survive intact. Retrieval scales to huge histories with high precision when it hits, but requires building and querying an index, and adds a new failure mode of its own: the retrieval step can simply miss the right thing. A production agent typically runs more than one of these at once — summarizing resolved small talk while retrieving exact file contents on demand rather than pinning every file it's ever touched in the window.
+  </div>
+
+  <h2>Try it: pick the strategy</h2>
+  <p>For each scenario, pick the better-fitting memory strategy.</p>
+  <div id="memory-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. What exactly counts against a single model call's context window budget?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q1','Right — the system prompt, the full history, the tool schemas, tool outputs, and the model\'s own response all share one budget on every call.')">System prompt + full conversation history + tool schemas + tool outputs + the response itself, all together</button>
+        <button onclick="quizAnswer(this,false,'q1','Everything sent to and returned from the call shares the one budget — not just the latest message, which would ignore the system prompt, tool schemas, and earlier history entirely.')">Only the user's most recent message</button>
+        <button onclick="quizAnswer(this,false,'q1','The budget covers the whole call, input and output together — not only the text the model generates in reply.')">Only text the model itself generates in its reply</button>
+        <button onclick="quizAnswer(this,false,'q1','The window is a call-wide budget on everything in the call, not a limit scoped to any single tool\'s output alone.')">Nothing — the window only limits how long a single tool's output can be</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. What is "context rot" (the lost-in-the-middle problem)?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right — as a transcript grows, the model\'s effective use of information tends to degrade, particularly for facts placed away from the very start or end of the transcript.')">The tendency for a model's effective use of information to degrade as the transcript grows, especially for facts buried away from the start or end</button>
+        <button onclick="quizAnswer(this,false,'q2','That would be a data-integrity bug in message storage, not what context rot refers to — context rot is about degraded use of information that\'s still present, not corruption.')">A bug where old messages get corrupted or deleted from storage</button>
+        <button onclick="quizAnswer(this,false,'q2','Context windows are token-budget limits, not wall-clock timers — context rot isn\'t about time passing.')">The literal expiration of a context window after a fixed amount of time</button>
+        <button onclick="quizAnswer(this,false,'q2','It applies to information placement in the transcript generally, including plain conversation text, not only to tool outputs specifically.')">A phenomenon that only affects tool outputs, never plain conversation text</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. What's the key tradeoff summarization makes that pure truncation doesn't?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right — summarization spends an extra model call specifically to choose what to keep, trading cost for controlled rather than arbitrary loss.')">It spends an extra model call to choose what to preserve, trading cost for controlled loss</button>
+        <button onclick="quizAnswer(this,false,'q3','Summarization is still lossy — it\'s chosen loss rather than blind loss, not zero loss.')">It guarantees zero information loss</button>
+        <button onclick="quizAnswer(this,false,'q3','The resulting summary still has to fit inside the same window on future calls — summarization doesn\'t remove the underlying budget constraint.')">It removes the need for a context window entirely</button>
+        <button onclick="quizAnswer(this,false,'q3','Truncation is free (it just drops messages); summarization costs an additional model call, so it is not always cheaper.')">It is always cheaper than truncation</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Why would a production agent reach for retrieval rather than summarization when it might need the exact content of a large file it read many steps ago?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q4','Right — retrieval fetches the original content back exactly on demand, while summarization would compress it and risk losing precisely the exact bytes a later edit might depend on.')">Retrieval fetches the exact original content back on demand, whereas summarization would compress it and risk losing exact detail</button>
+        <button onclick="quizAnswer(this,false,'q4','Retrieval systems add their own latency too — speed alone isn\'t the deciding factor between the two strategies.')">Retrieval is always faster than summarization</button>
+        <button onclick="quizAnswer(this,false,'q4','Retrieval specifically requires building and querying an index — that\'s real infrastructure summarization doesn\'t need, not the reverse.')">Retrieval never requires any extra infrastructure</button>
+        <button onclick="quizAnswer(this,false,'q4','Summarization can in principle be applied to file content too — the real reason to prefer retrieval here is precision loss, not a hard restriction on what summarization can touch.')">Summarization can't be applied to files, only to conversation text</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Recall a long task you've actually done in this environment. Sort what happened into three buckets: things safe to summarize down to their gist, things you'd want retrievable exactly on demand, and things safe to just let fall off the end via plain truncation. Notice how few things end up in that third bucket once you think it through carefully — which is itself the point of this lesson.</p>
+
+  <h2>Primary resource</h2>
+  <p>See Lilian Weng, <a href="https://lilianweng.github.io/posts/2023-06-23-agent/" target="_blank">LLM Powered Autonomous Agents</a> — a widely-cited overview covering planning, memory, and tool use in agent systems, with a section specifically on memory types that pairs well with this lesson.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Ask Claude Code, honestly and without over-claiming specifics it can't verify, what it can tell you in general about how a long session like this one manages growing context — then compare that description to the three strategies in this lesson.
+  </div>
+
+  <div class="nav">
+    <a href="0002-tool-design-schemas-error-surfaces.html">← Lesson 2: Tool Design</a>
+    <span class="spacer"></span>
+    <a href="0004-failure-modes-debugging-agents.html">Lesson 4: Failure Modes →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const MEMORY_ITEMS = [
+  {
+    english: 'A long pair-programming session\'s early messages are mostly clarifying questions that are long since resolved and won\'t need to be recalled precisely.',
+    options: [
+      { text: 'Summarize them', correct: true, explain: 'Right — resolved chit-chat has low precision requirements; a compressed gist is enough, and it frees up real budget for what\'s ahead.' },
+      { text: 'Keep them verbatim forever', explain: 'Pinning resolved, low-value exchanges verbatim just burns context budget on material with no ongoing precision requirement — a poor use of scarce window space.' },
+    ],
+  },
+  {
+    english: 'The agent may need the exact content of a 2,000-line config file it read 40 tool calls ago, but doesn\'t yet know if it\'ll need it again.',
+    options: [
+      { text: 'Retrieve it on demand', correct: true, explain: 'Right — this needs exact bytes, not a gist, and it\'s not yet certain to be needed at all, which is exactly what indexed retrieval is for.' },
+      { text: 'Summarize it now, just in case', explain: 'Summarizing a large config file risks losing precisely the exact values an edit might later depend on — the wrong tradeoff when byte-exact recall might be required.' },
+    ],
+  },
+  {
+    english: 'A user chats casually about weekend plans, then abruptly changes topic; that exchange has no bearing on the task and won\'t be referenced again.',
+    options: [
+      { text: 'Plain truncation is a reasonable default', correct: true, explain: 'Right — low retrieval value and no precision requirement is exactly the case truncation handles fine, without paying for a summarization call or building an index.' },
+      { text: 'Build a retrieval index for it', explain: 'Indexing every casual, low-value exchange is real infrastructure overkill for content nobody will ever need to fetch back precisely.' },
+    ],
+  },
+];
+
+const memoryDiv = document.getElementById('memory-exercise');
+MEMORY_ITEMS.forEach((item, i) => {
+  const cardId = `memory-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  memoryDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

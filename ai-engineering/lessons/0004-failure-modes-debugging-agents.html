@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 4 — Failure Modes</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">AI Engineering</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 4 of 8 &nbsp;·&nbsp; AI Engineering &nbsp;·&nbsp; ~35 min</p>
+  <h1>Failure Modes</h1>
+  <p>The first three lessons gave you three places a bug can live: the <a href="0001-agent-loop-system-prompt-tool-schemas.html#system-prompt">system prompt</a> and <a href="0001-agent-loop-system-prompt-tool-schemas.html#read-act-observe-loop">loop logic</a>, the <a href="0002-tool-design-schemas-error-surfaces.html#tool-description">tool definitions</a> and their <a href="0002-tool-design-schemas-error-surfaces.html#error-surface">error surfaces</a>, and the <a href="0003-context-memory-summarization-retrieval.html#context-window">memory/context strategy</a>. There's a fourth suspect — the underlying model's actual capability — but it should be the last one you reach for, not the first. This lesson turns those four suspects into a discipline: a way to diagnose a broken agent instead of guessing at it.</p>
+
+  <h2 id="four-layer-diagnosis">The four places a bug can hide</h2>
+  <ol>
+    <li><strong>Prompt</strong> — the instructions are missing, ambiguous, or contradictory (e.g. never states what "done" means for this task).</li>
+    <li><strong>Tools</strong> — the schema is under-described, the parameters are ambiguous, or the <a href="0002-tool-design-schemas-error-surfaces.html#error-surface">error surface</a> doesn't return enough for the model to act on.</li>
+    <li><strong>Memory / context</strong> — a fact the model needed got <a href="0003-context-memory-summarization-retrieval.html#truncation">truncated</a>, garbled by a lossy <a href="0003-context-memory-summarization-retrieval.html#summarization">summary</a>, or never got <a href="0003-context-memory-summarization-retrieval.html#retrieval-augmented-state">retrieved</a> in the first place.</li>
+    <li><strong>Model</strong> — the underlying model genuinely lacks the capability the task requires.</li>
+  </ol>
+  <p>The order matters. The first three are things you wrote and can inspect directly — you can read the exact prompt text, the exact schema, the exact transcript the model saw. The fourth is the one thing you can't directly edit your way out of. Cheaper, more inspectable causes should be ruled out first, precisely because they're the ones you have the power to fix immediately if they turn out to be the problem.</p>
+
+  <h2 id="isolate-one-variable">Isolate one variable at a time</h2>
+  <div class="callout warn">
+    <strong>Change one layer, then test — not all three at once.</strong>
+    The prompt, the tool definitions, and the memory strategy can each be changed independently. If you rewrite the system prompt, loosen a tool's schema, <em>and</em> switch from truncation to summarization all in the same attempt, and the failure goes away — you now know something fixed it, but not which of the three actually did. Worse, if it doesn't go away, you've burned an attempt without learning which hypotheses to rule out. This is the same discipline as binary-search debugging in ordinary software: change one thing, observe, then decide the next change.
+  </div>
+
+  <h2 id="worked-example">Worked example: diagnose this broken agent</h2>
+  <p>A coding agent is asked to fix a failing test in <code>auth.rs</code>. It has three tools: <code>read_file</code>, <code>edit_file</code>, and <code>run_tests</code>. Here's what happens: it reads the file, makes a plausible-looking edit, runs the tests, gets back <code>{"passed": false}</code>, edits a completely different, unrelated function, runs the tests again, gets <code>{"passed": false}</code> again, and keeps cycling like this — never converging, never explaining what it thinks is wrong.</p>
+  <p>Walk the checklist in order:</p>
+  <ul>
+    <li><strong>Prompt</strong> — the instructions clearly state the goal ("fix the failing test") and the tool to verify it with. Not obviously the cause; move on.</li>
+    <li><strong>Tools</strong> — look at what <code>run_tests</code> actually returns:</li>
+  </ul>
+  <pre><code>// What run_tests returns today
+{ "passed": false }
+
+// What it should return
+{
+  "passed": false,
+  "failing_test": "auth::tests::rejects_expired_token",
+  "stderr": "assertion failed: token.is_expired() == true, got false — at auth.rs:118"
+}</code></pre>
+  <p>There it is. The tool's <a href="0002-tool-design-schemas-error-surfaces.html#error-surface">error surface</a> is giving the model exactly one bit of information — <code>false</code> — on every failed attempt. Per lesson 1's <a href="0001-agent-loop-system-prompt-tool-schemas.html#read-act-observe-loop">OBSERVE step</a>, that single bit is the <em>entire</em> new information the model gets each iteration. With nothing pointing at which assertion failed or why, the model has no way to converge — it isn't malfunctioning, it's doing the best it can with an OBSERVE step that was never given anything to observe. Fixing the tool's return shape, not the prompt, is what actually resolves this.</p>
+  <p>Memory and model were never the issue here — but notice you didn't need to touch either of them to find that out. You checked the cheapest, most inspectable layers first, in order, and stopped as soon as one produced a concrete, verifiable explanation.</p>
+
+  <h2 id="root-cause-vs-symptom">Root cause vs. symptom</h2>
+  <div class="callout">
+    <strong>A broken agent system is a diagnosis problem before it's a prompt-engineering problem.</strong>
+    The most common mistake in practice is treating every failure as "needs more instructions in the system prompt" — bolting on a new sentence like "make sure to actually read the test failure output carefully" every time something goes wrong, without ever checking whether the tool was giving the model anything to read in the first place. That's patching a symptom, not fixing a root cause.
+  </div>
+  <div class="callout warn">
+    <strong>Symptom-patching has a real cost, not just an aesthetic one.</strong>
+    Every extra prompt sentence added to work around a suspected tool or memory bug is text that now has to be sent — and attended to — on <em>every single call</em>, forever, competing for the same <a href="0003-context-memory-summarization-retrieval.html#context-window">context window</a> budget from lesson 3. A system prompt that's accreted forty special-case instructions over months of symptom-patching is both harder to debug later and actively works against the model, via the same <a href="0003-context-memory-summarization-retrieval.html#context-rot">context rot</a> effect covered last lesson.
+  </div>
+
+  <h2>Try it: which layer to check first?</h2>
+  <p>For each symptom, pick the layer most worth checking first.</p>
+  <div id="debug-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Why should "the model's underlying capability" usually be the last hypothesis you reach for when an agent misbehaves?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q1','Right — the prompt, tools, and memory strategy are parts you wrote and can inspect and fix directly; ruling those out first is both cheaper and more common as an actual cause.')">Because the prompt, tools, and memory strategy are the parts you actually control and can inspect first</button>
+        <button onclick="quizAnswer(this,false,'q1','It can be the cause — just less often than a harness-layer bug, which is why it\'s checked last, not why it\'s ruled out entirely.')">Because the model is never actually the cause of any failure</button>
+        <button onclick="quizAnswer(this,false,'q1','Model capability can be tested, for instance via isolated evals — it\'s just not the first, cheapest place to look, not something untestable.')">Because model capability can't be tested at all</button>
+        <button onclick="quizAnswer(this,false,'q1','The checklist is an ordering grounded in what\'s inspectable and controllable, not a blanket rule that tools are always the guilty party.')">Because tool schemas are always more likely to be the cause by definition</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. In the worked <code>run_tests</code> example, what was the actual root cause of the agent's repeated, unproductive retries?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right — {"passed": false} with no stderr or failing-test detail left the model with a single repeating bit of information and nothing to converge on.')">The tool's error surface returned no diagnostic content, leaving the model nothing to reason from</button>
+        <button onclick="quizAnswer(this,false,'q2','The prompt clearly stated the goal — that wasn\'t identified as the problem in the worked example.')">The system prompt never mentioned the word "tests"</button>
+        <button onclick="quizAnswer(this,false,'q2','This scenario\'s failure was about a tool\'s return value missing content, not about the transcript exceeding a size limit.')">The context window was too small to hold the transcript</button>
+        <button onclick="quizAnswer(this,false,'q2','This was explicitly named as the last-resort hypothesis to rule out, and it wasn\'t the actual cause here.')">The model was incapable of understanding Rust</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Why is changing the prompt, the tools, and the memory strategy all at once a bad debugging move?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right — whether the failure goes away or not, you can\'t tell which of the three changes actually mattered, so you learn nothing you can reuse next time.')">If the failure goes away (or doesn't), you can't tell which of the three changes actually mattered</button>
+        <button onclick="quizAnswer(this,false,'q3','This is a methodology point about attribution, not a technical restriction on how many things can be edited in a session.')">The harness only allows one change to be made per session</button>
+        <button onclick="quizAnswer(this,false,'q3','Speed isn\'t the reason to isolate variables — the reason is being unable to attribute which change caused which outcome.')">It always makes the agent slower</button>
+        <button onclick="quizAnswer(this,false,'q3','They can absolutely be changed independently — that independence is exactly why changing several at once destroys your ability to isolate which one actually mattered.')">Tools and prompts can't be changed independently of each other</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. What's the specific risk called out with "symptom-patching" a system prompt to work around a suspected tool or memory bug?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q4','Right — it can mask the real underlying bug while quietly consuming context-window budget on ever-more special-case instructions, sent on every future call.')">It can mask the real bug while quietly consuming context-window budget on special-case instructions</button>
+        <button onclick="quizAnswer(this,false,'q4','System prompts are routinely edited after deployment — that\'s not the risk this lesson describes.')">System prompts can't be edited after an agent is deployed</button>
+        <button onclick="quizAnswer(this,false,'q4','Editing prose instructions in a system prompt doesn\'t touch a tool\'s JSON schema or its validity at all.')">It immediately breaks the tool schema's JSON validity</button>
+        <button onclick="quizAnswer(this,false,'q4','The lesson\'s specific point is a concrete cost — masked bugs and wasted context budget — not merely a stylistic downside.')">It has no real downside beyond looking messy</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Recall (or invent) a moment an agent in your own environment did something surprising or wrong. Run it through the four-layer checklist in order — prompt, tools, memory, model — and write one sentence for each layer explaining why it is or isn't the likely cause, before concluding which one you'd actually go fix first.</p>
+
+  <h2>Primary resource</h2>
+  <p>See Anthropic, <a href="https://www.anthropic.com/research/building-effective-agents" target="_blank">Building Effective Agents</a> — a practitioner-focused writeup on keeping agent systems simple, transparent, and well-tested, which is exactly the discipline this lesson's diagnostic checklist is built on.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Bring a real, confusing moment from this very session — a tool call that didn't do what you expected — and run it through the four-layer framework together with Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0003-context-memory-summarization-retrieval.html">← Lesson 3: Context &amp; Memory</a>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-05">Lesson 5: Orchestration Patterns →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const DEBUG_ITEMS = [
+  {
+    english: 'The agent calls edit_file with a "line_number" argument that\'s the string "twelve" instead of an integer.',
+    options: [
+      { text: 'Tool schema / parameter typing', correct: true, explain: 'Right — this is exactly what a "type": "integer" constraint and harness-side validation should catch before the call ever executes, per lesson 2.' },
+      { text: 'The underlying model is incapable of counting', explain: 'This jumps straight to the least-inspectable, last-resort hypothesis — check first whether the schema actually enforced an integer type at all.' },
+    ],
+  },
+  {
+    english: 'The agent confidently references a file it read 60 tool calls ago, but gets its contents completely wrong.',
+    options: [
+      { text: 'Memory / context handling', correct: true, explain: 'Right — this pattern (confident but wrong recall of something far back) is a classic signature of a lossy summarization step or a truncated detail, not a tool or prompt bug.' },
+      { text: 'The tool schema is malformed', explain: 'A malformed schema tends to produce call-time errors or validation failures, not confident-but-wrong recall of old content — that symptom points at what got preserved in context instead.' },
+    ],
+  },
+  {
+    english: 'The agent refuses to call any tool at all, even though the tools are correctly defined and the task clearly needs one.',
+    options: [
+      { text: 'System prompt', correct: true, explain: 'Right — check whether the instructions clearly authorize and describe when to use tools; a flat refusal to act at all is a classic prompt-layer symptom.' },
+      { text: 'The context window is too large', explain: 'A too-large or too-small window would show up as degraded recall or truncated content, not as a complete refusal to ever call any tool — that symptom doesn\'t match a context-size explanation.' },
+    ],
+  },
+];
+
+const debugDiv = document.getElementById('debug-exercise');
+DEBUG_ITEMS.forEach((item, i) => {
+  const cardId = `debug-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  debugDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

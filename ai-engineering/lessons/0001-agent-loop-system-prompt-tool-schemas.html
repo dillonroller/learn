@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 1 — The Agent Loop From Scratch</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">AI Engineering</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 1 of 8 &nbsp;·&nbsp; AI Engineering &nbsp;·&nbsp; ~35 min</p>
+  <h1>The Agent Loop From Scratch</h1>
+  <p>You're reading this lesson inside a system that just did something agent-like: it read a request, ran tools (file reads, writes, maybe a search), looked at what came back, and decided what to do next. Strip away the specific product and the branding, and every system like that is built from the same handful of parts: a <strong>system prompt</strong>, a set of <strong>tool schemas</strong>, and a loop that keeps calling the model until the model says it's done. This lesson builds that loop from nothing, in pseudocode, so the rest of the course has a precise, un-mysterious thing to refer back to.</p>
+
+  <h2 id="system-prompt">The system prompt: instructions the user never sees</h2>
+  <p>Every model call in an agent system carries two very different kinds of text. One is the <strong>system prompt</strong> — standing instructions written by whoever built the harness, describing the agent's role, its available tools, and the rules it should follow. It isn't sent once and remembered; it's resent, verbatim, as part of <em>every single call</em>, because — as the next section makes precise — the model has no memory of its own between calls. The other kind of text is the ordinary conversation: what the user asked for, and what happened as a result of each tool call so far.</p>
+  <p>The system prompt is where the harness author encodes things the model has no other way of knowing: what tools exist and roughly when to use them, what "done" looks like for this kind of task, any constraints ("never delete a file without confirming," "always run tests before declaring success"). Get this vague, and everything downstream gets harder to reason about — a concern this whole course keeps coming back to, starting with <a href="0002-tool-design-schemas-error-surfaces.html">tool descriptions</a> in the next lesson.</p>
+
+  <h2 id="tool-schema">Tool schemas: a menu the model can actually order from</h2>
+  <p>A model can't literally reach out and touch a file system, run a command, or query a database — the harness code around it can. A <strong>tool schema</strong> is the structured description that tells the model what actions the harness is willing to perform on its behalf, and exactly what arguments each one needs. In practice this is JSON: a name, a natural-language description, and a parameter schema with types.</p>
+  <pre><code>{
+  "name": "run_tests",
+  "description": "Runs the project's test suite and returns pass/fail per test.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "path": { "type": "string", "description": "Test file or directory to run." }
+    },
+    "required": ["path"]
+  }
+}</code></pre>
+  <p>When the model decides a tool is worth calling, it doesn't run any code itself — it emits a structured request (this tool name, these arguments) as its output for that turn. The harness is the thing that actually validates those arguments against the schema and executes something real. That division of labor — model proposes, harness disposes — is the whole reason a tool schema needs to exist at all: it's the contract the two sides agree to communicate through. Lesson 2 is entirely about <a href="0002-tool-design-schemas-error-surfaces.html">designing that contract well</a>.</p>
+
+  <h2 id="read-act-observe-loop">The read-act-observe loop</h2>
+  <p>Put the system prompt, the tool schemas, and a growing conversation transcript together, and you get the loop that actually makes something feel like an "agent" rather than a single question-answer exchange:</p>
+  <pre><code>SYSTEM_PROMPT = "You are a coding assistant with access to the tools below.
+                 Call a tool by name with JSON arguments matching its schema.
+                 When you are done, respond with plain text and no tool call."
+
+TOOLS = [read_file_schema, edit_file_schema, run_tests_schema]
+
+messages = [ {role: "system", content: SYSTEM_PROMPT},
+             {role: "user",   content: "Fix the failing test in auth.rs"} ]
+
+loop:
+    response = call_model(messages, tools=TOOLS)            # READ — the model reads the transcript so far
+
+    if response.tool_call is None:
+        return response.text                                # done: no tool call this turn, stop the loop
+
+    result = execute(response.tool_call.name,                # ACT — the harness runs real code, not the model
+                      response.tool_call.arguments)
+
+    messages.append({role: "assistant", tool_call: response.tool_call})
+    messages.append({role: "tool", tool_call_id: response.tool_call.id,
+                      content: result})                       # OBSERVE — the result re-enters the transcript
+    # loop repeats — the model "reads" its own last action next iteration</code></pre>
+  <div class="callout">
+    <strong>The agent is the loop, not the model.</strong>
+    A single call to the model is close to a stateless function: transcript in, one message out. There is no persistent "self" living inside the model between calls. Everything that makes a system feel like an agent — remembering what it just did, deciding to keep going, knowing when to stop — is ordinary control-flow code sitting <em>outside</em> the model, written by whoever built the harness. The three-letter acronym (READ / ACT / OBSERVE) names three steps of one loop iteration, not three different components.
+  </div>
+  <p>Three iterations of this loop, concretely: <strong>READ</strong> — the model sees "fix the failing test," has no file contents yet, and calls <code>read_file("auth.rs")</code>. <strong>ACT</strong> — the harness actually opens the file and reads it. <strong>OBSERVE</strong> — the file's contents come back as a tool message, appended to the transcript. The next iteration's READ sees that file content for the first time and can now propose an edit. Nothing about the model changed between iterations — only the transcript it's conditioned on grew.</p>
+
+  <h2 id="stateless-model-call">The model has no memory between calls</h2>
+  <p>This is worth stating as sharply as possible, because almost every later topic in this course — <a href="0003-context-memory-summarization-retrieval.html">context and memory management</a>, <a href="0004-failure-modes-debugging-agents.html">failure diagnosis</a> — depends on taking it literally: if something happened three tool calls ago and its result isn't sitting in <code>messages</code> right now, it is exactly as if it never happened, from the model's point of view. There's no side channel, no persistent scratch space the model quietly keeps for itself between one <code>call_model()</code> invocation and the next. Whatever the harness didn't put in the transcript, the model cannot know.</p>
+
+  <h2 id="termination-condition">Why naive loops don't stop</h2>
+  <div class="callout warn">
+    <strong>A loop needs an explicit reason to stop.</strong>
+    If nothing in the system prompt or the harness logic ever tells the model "you are done, stop calling tools, respond in plain text," a model that's inclined to keep being helpful will happily keep calling tools well past the point of any use — right up until it errors out, exhausts a step budget, or the user gives up watching. A <strong>termination condition</strong> (a "you're done" instruction, a max-iteration cap, a plain-text-response detector like the pseudocode's <code>if response.tool_call is None</code>) is not optional polish. It's a required part of the loop, exactly as required as the loop itself.
+  </div>
+  <p>Two more naive-loop failure modes worth naming now, because they resurface as concrete case studies in <a href="0004-failure-modes-debugging-agents.html#worked-example">lesson 4's worked example</a>: a model can propose a tool call the harness has no schema for (or with arguments that don't match the schema), and a model can receive a tool result and then act as if it hadn't — repeating the same call, or continuing on a plan the observation should have changed. Neither is a mystery once you can see the loop; both are exactly the kind of bug this course spends real time on.</p>
+
+  <h2>Try it: trace the loop</h2>
+  <p>Given a snapshot of loop state, decide what the harness should do next.</p>
+  <div id="loop-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. What is the system prompt's role in the agent loop?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q1','Right — the system prompt is standing instructions resent with every single model call, setting scope and behavior before any user turn is even considered.')">Persistent instructions sent with every model call, setting behavior and scope</button>
+        <button onclick="quizAnswer(this,false,'q1','The model has no persistent memory between calls, so nothing can be configured "permanently" — the system prompt has to be resent as part of every call\'s transcript, not set once and forgotten.')">A one-time setup step that configures the model permanently so it doesn't need to be resent</button>
+        <button onclick="quizAnswer(this,false,'q1','That describes the ordinary conversation history (user and tool messages) — the system prompt is a separate, standing set of instructions, not the record of what the user has typed.')">The transcript of everything the user has typed so far</button>
+        <button onclick="quizAnswer(this,false,'q1','A system prompt is plain instructions, not something invoked with arguments the way a tool is — it isn\'t part of the tools list at all.')">A tool schema that the model can call like any other tool</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Why is a single model call considered "stateless"?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right — nothing persists inside the model from one call to the next; whatever the harness doesn\'t explicitly resend in the transcript is, as far as that call is concerned, exactly as if it never happened.')">The model has no memory of previous calls unless the harness resends the transcript each time</button>
+        <button onclick="quizAnswer(this,false,'q2','Statelessness is about the absence of persisted memory between calls, not about randomness — a call can be made close to deterministic and still be stateless in this sense.')">It produces random, non-deterministic output every time</button>
+        <button onclick="quizAnswer(this,false,'q2','It can be called many times in a row — that\'s exactly why the harness has to resend the growing transcript on every call, not a limit on call count.')">It can only be called once per conversation</button>
+        <button onclick="quizAnswer(this,false,'q2','Tool results are deliberately appended back into the transcript as messages (the OBSERVE step) precisely so they are not discarded.')">Tool results are automatically discarded after each call</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. In a naive agent loop with no termination condition, what's the most likely failure mode?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right — with nothing signaling "task complete," the model keeps proposing tool calls indefinitely, since nothing in the loop ever tells it to stop.')">The model keeps calling tools indefinitely because nothing ever signals the task is done</button>
+        <button onclick="quizAnswer(this,false,'q3','Missing termination logic is a runtime control-flow issue, not something that produces a compile error.')">The model call raises a compile error</button>
+        <button onclick="quizAnswer(this,false,'q3','Termination logic is unrelated to whether the tool schemas themselves are valid JSON — those are independent concerns.')">The tool schemas become invalid JSON</button>
+        <button onclick="quizAnswer(this,false,'q3','Tool results are appended as separate messages in the transcript — they don\'t overwrite the system prompt, which stays intact at the top of every call.')">The system prompt gets overwritten by the last tool result</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. What does the OBSERVE step specifically add to the transcript?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q4','Right — OBSERVE is the harness appending the real, executed result of the tool it just ran, so the next READ has genuinely new information to work from.')">The real-world result of the tool the harness just executed, appended as a new message</button>
+        <button onclick="quizAnswer(this,false,'q4','The system prompt is already present at the top of the transcript from the start — it isn\'t re-added as part of every OBSERVE step.')">A fresh copy of the system prompt</button>
+        <button onclick="quizAnswer(this,false,'q4','That would defeat the purpose of calling a real tool at all — OBSERVE is specifically the actual executed result, not a prediction made before the tool runs.')">The model's own prediction of what the tool would return, generated before the tool runs</button>
+        <button onclick="quizAnswer(this,false,'q4','That describes a context-management technique (covered in lesson 3), not what "observe" refers to in the basic loop — OBSERVE is one tool result, not a rolled-up summary of everything.')">A summary of the entire conversation so far</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Pick one tool you actually use often in your own work (a linter, a database query, a deploy script) and write its schema as JSON, following the <code>run_tests</code> shape above. Then trace three iterations of read-act-observe by hand for a plausible task using that tool: what does the model see at each READ, what does the harness actually do at each ACT, and what specific new fact does each OBSERVE add that the model didn't have before? Finally, write the exact condition that should make the loop stop.</p>
+
+  <h2>Primary resource</h2>
+  <p>See Yao et al., <a href="https://arxiv.org/abs/2210.03629" target="_blank">ReAct: Synergizing Reasoning and Acting in Language Models</a> — the paper that named and formalized interleaving reasoning steps with tool/action steps, which is the academic ancestor of the loop built in this lesson.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> If you want to see this loop in the wild, ask Claude Code to describe — honestly, without overclaiming details it can't actually verify — what its own read-act-observe cycle looked like during the last tool call in this very session.
+  </div>
+
+  <div class="nav">
+    <span></span>
+    <span class="spacer"></span>
+    <a href="0002-tool-design-schemas-error-surfaces.html">Lesson 2: Tool Design →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const LOOP_ITEMS = [
+  {
+    english: 'response.tool_call is None. What does the harness do?',
+    options: [
+      { text: 'Return response.text — the loop ends', correct: true, explain: 'Right — a plain-text response with no tool call is exactly the termination condition in the pseudocode; the harness returns it and stops looping.' },
+      { text: 'Call a tool anyway, since the loop must always act', explain: 'The whole point of checking for tool_call is None is to detect "no action needed" — forcing a tool call here would ignore the model\'s own signal that it\'s done.' },
+    ],
+  },
+  {
+    english: 'response.tool_call names a tool that isn\'t in TOOLS. What should the harness do?',
+    options: [
+      { text: 'Return a structured error so the model can retry with a valid tool', correct: true, explain: 'Right — this keeps the loop going productively: the model gets an OBSERVE it can actually use to correct itself on the next READ.' },
+      { text: 'Crash the harness process', explain: 'A malformed or hallucinated tool call is an expected, recoverable event in a real agent loop, not a reason to crash — it should be handled and reported back like any other tool result.' },
+    ],
+  },
+  {
+    english: 'The model calls run_tests, observes {"passed": false}, then immediately calls run_tests again with identical arguments. What\'s the most likely explanation?',
+    options: [
+      { text: 'The observation didn\'t give the model enough new information to change its plan', correct: true, explain: 'Right — an OBSERVE step that\'s too thin (just pass/fail, no detail) leaves the model with nothing new to act on, so it can end up repeating itself. Lesson 2 and lesson 4 dig into exactly this.' },
+      { text: 'This is normal, healthy loop behavior', explain: 'A tool call repeated with identical arguments right after failing is a classic symptom of a stuck loop, not healthy behavior — something upstream (the tool\'s output, or the plan) needs to change.' },
+    ],
+  },
+];
+
+const loopDiv = document.getElementById('loop-exercise');
+LOOP_ITEMS.forEach((item, i) => {
+  const cardId = `loop-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  loopDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

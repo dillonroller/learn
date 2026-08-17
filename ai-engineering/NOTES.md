@@ -1,0 +1,7 @@
+# Teaching Notes
+
+- Grounded directly in the user's own working environment: this course is being written by (and can be practiced against) a live instance of an agentic coding harness, so lessons draw on that concrete, ongoing example rather than staying abstract — described honestly and generically, never as a fabricated claim about any one vendor's actual internals.
+- Strong CS/systems background (Rust/C, comfortable with real code, architecture diagrams, and formal specs) — lean on real pseudocode, JSON tool schemas, and worked debugging examples rather than prose-only explanations, in the same spirit as Category Theory and Quantum Computing.
+- Systems-level focus, not prompt-engineering: the mission explicitly excludes "10 tips for better prompts" content — every lesson is about the scaffolding and architecture around a model call, not about wording individual prompts.
+- Self-study with an AI teacher. Every lesson's teacher-tip nudges the user to bring a real, concrete moment from their own current session (a tool call, a context-management question, a confusing agent behavior) rather than a hypothetical — the live environment is the best case study available.
+- Full 8-lesson roadmap scoped and written into the topic index up front (lessons 1-4 built this session, 5-8 as a visible locked roadmap), matching the pattern used for Quantum Computing: show the shape of the whole course from lesson 1 rather than growing it one lesson at a time.
