@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 4 — From Special to General: the Equivalence Principle &amp; Curved Spacetime</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Frontier Science</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 4 of 8 &nbsp;·&nbsp; Frontier Science &nbsp;·&nbsp; ~40 min</p>
+  <h1>From Special to General: the Equivalence Principle &amp; Curved Spacetime</h1>
+  <p>Everything so far assumed inertial (non-accelerating) frames and no gravity — special relativity's own name admits it's a special case. Einstein needed another decade to fold gravity in. The bridge is a single observation he later called "the happiest thought of my life": free fall and weightlessness are the same thing, not just similar things. This lesson follows that thought through to its first quantitative payoff — gravity making clocks run at different rates, which real GPS satellites correct for every single day — and to the conceptual picture (curved spacetime, not a force) that <a href="../index.html#lesson-05">lesson 5</a> will make precise with an actual equation.</p>
+
+  <h2 id="equivalence-principle">The equivalence principle</h2>
+  <p>Drop a rock and yourself off a cliff together (purely as a thought experiment): in free fall, you and the rock accelerate identically, so relative to you, the rock just floats — weightless, motionless in your hands, exactly as if there were no gravity at all. This isn't a coincidence of Earth's gravity specifically; it works because of a fact Galileo already knew and Newton's laws just barely fail to explain: <strong id="inertial-vs-gravitational-mass">inertial mass</strong> (the <code>m</code> resisting acceleration in <code>F = ma</code>) and <strong id="gravitational-mass">gravitational mass</strong> (the <code>m</code> that gravity pulls on in <code>F = GMm/r²</code>) are numerically identical for every object ever tested, to extraordinary precision (better than one part in 10¹⁵ in modern torsion-balance experiments) — with no reason in Newtonian physics for them to have to match at all.</p>
+  <p>Einstein promoted that coincidence to a postulate, the <strong id="equivalence-principle-def">equivalence principle</strong>: locally — in a small enough region of space and time that gravity doesn't measurably vary — <strong>free fall in a gravitational field is indistinguishable from floating in empty space with no gravity at all, and being at rest in a gravitational field is indistinguishable from constant acceleration in empty space.</strong> No local experiment, however precise, can tell the two situations apart.</p>
+
+  <h2 id="einsteins-elevator">Einstein's elevator</h2>
+  <p>The classic illustration: you wake up in a sealed, windowless elevator with no way to look outside. You feel your feet pressed to the floor with a force that would read as <code>1g</code> on a scale. Two scenarios produce this identical sensation:</p>
+  <ul>
+    <li>The elevator sits at rest on Earth's surface, and gravity pulls you down.</li>
+    <li>The elevator is in deep space, far from any mass, being accelerated "upward" at <code>1g</code> by a rocket — the floor is pushing up into you, same as standing on the ground.</li>
+  </ul>
+  <p>No experiment performed entirely inside the sealed elevator — dropping a ball, bouncing a laser off the walls, weighing yourself — can tell you which scenario you're in. Conversely, cut the cable (or shut off the rocket): in both cases you become weightless. This is exactly why astronauts in orbit float — they aren't "outside gravity's reach" (at the International Space Station's altitude, Earth's gravity is only about 10% weaker than at the surface); they're in continuous free fall, which by the equivalence principle is locally indistinguishable from no gravity at all.</p>
+
+  <h2 id="gravitational-time-dilation">Gravitational time dilation, derived from the elevator</h2>
+  <p>The equivalence principle turns a special-relativity result you already have into a genuinely new gravitational one. Consider the accelerating-rocket version of the elevator, height <code>h</code>, accelerating at <code>g</code>. A photon is emitted from the floor with frequency <code>f</code>, headed for the ceiling. Light covers the distance <code>h</code> in roughly <code>t ≈ h/c</code>. In that time, the rocket (and the ceiling detector riding with it) has picked up speed <code>v = g·t = gh/c</code>, moving <em>away</em> from the photon's direction of travel relative to where the floor was at emission. That's a receiver moving away from the source — an ordinary special-relativistic Doppler redshift:</p>
+  <pre><code>Δf/f ≈ −v/c = −gh/c²        (photon arrives at the ceiling red-shifted, lower frequency)</code></pre>
+  <p>By the equivalence principle, this has to be exactly what happens to light climbing height <code>h</code> in a genuine, static gravitational field of strength <code>g</code> too — the elevator can't tell the two situations apart, so neither can the photon. Since a lower frequency means a longer period between wave crests, and the period is what a clock built from that light would tick against, the matching statement for time itself is:</p>
+  <pre><code>Δτ/τ ≈ +gh/c²        (a clock higher up, at weaker gravity, ticks faster than one lower down)</code></pre>
+  <p>For a real planet's gravity, which weakens with distance rather than staying uniform, the height-times-g product generalizes to a difference in gravitational potential, <code>Φ = −GM/r</code>:</p>
+  <pre><code>Δτ/τ ≈ ΔΦ/c² = (Φ_high − Φ_low)/c²</code></pre>
+  <div class="callout warn">
+    <strong>Where this derivation stops, honestly</strong>
+    This gets you the correct leading-order (weak-field) formula, and it's genuinely how Einstein first found gravitational time dilation before general relativity was fully worked out. It is not a derivation of the full theory — going from "clocks run at different rates in different potentials" to the actual geometry of curved spacetime, and to an equation that tells you the curvature itself, is <a href="../index.html#lesson-05">lesson 5</a>'s job, and it needs machinery (tensor calculus) this course deliberately doesn't build, per its own scope.
+  </div>
+
+  <div class="callout">
+    <strong>Worked example: GPS satellite clocks</strong>
+    <p style="margin-bottom:.6rem;">GPS satellites orbit at altitude ≈ 20,200 km. Two separate relativistic effects act on their onboard clocks, and both matter at the precision GPS needs.</p>
+    <pre><code>Earth's standard gravitational parameter: GM = 3.986×10¹⁴ m³/s²
+r_surface = 6.371×10⁶ m         r_satellite = 6.371×10⁶ + 2.02×10⁷ = 2.657×10⁷ m
+
+Gravitational potential (Φ = −GM/r):
+  Φ_surface  = −3.986×10¹⁴ / 6.371×10⁶  ≈ −6.257×10⁷ J/kg
+  Φ_satellite = −3.986×10¹⁴ / 2.657×10⁷ ≈ −1.500×10⁷ J/kg
+  ΔΦ = Φ_satellite − Φ_surface ≈ +4.756×10⁷ J/kg   (satellite sits in the weaker field)
+
+GR effect (gravitational time dilation), per day (86,400 s):
+  Δτ/τ ≈ ΔΦ/c² = 4.756×10⁷ / 9×10¹⁶ ≈ 5.28×10⁻¹⁰
+  → 5.28×10⁻¹⁰ × 86,400 s ≈ 4.57×10⁻⁵ s ≈ 45.7 μs/day  (satellite clock runs FAST)
+
+SR effect (velocity time dilation, from lesson 1), orbital speed v = √(GM/r_satellite) ≈ 3873 m/s:
+  γ − 1 ≈ v²/(2c²) = (3873)² / (2×9×10¹⁶) ≈ 8.33×10⁻¹¹
+  → 8.33×10⁻¹¹ × 86,400 s ≈ 7.2×10⁻⁶ s ≈ 7.2 μs/day  (satellite clock runs SLOW)
+
+Net: 45.7 − 7.2 ≈ 38.5 μs/day — the satellite clock runs fast overall.</code></pre>
+    <p style="margin-top:.6rem; margin-bottom:0;">38.5 μs/day sounds negligible until you convert it to a position error: GPS computes distance from light-travel time, so an uncorrected timing drift of 38.5 μs translates to <code>c × 38.5 μs ≈ 3×10⁸ × 3.85×10⁻⁵ ≈ 11,500 m</code> — over 11 km of position error accumulating <em>per day</em>. GPS works only because engineers built both corrections in from the start (see Neil Ashby's authoritative <a href="https://link.springer.com/article/10.12942/lrr-2003-1" target="_blank">"Relativity in the Global Positioning System"</a> for the full accounting). This is general and special relativity, checked against a system you may be carrying in your pocket right now.</p>
+  </div>
+
+  <h2 id="curved-spacetime">Gravity is geometry, not a force</h2>
+  <p>The equivalence principle explains why free-falling objects feel weightless: it's because, locally, free fall <em>is</em> unaccelerated, force-free motion — exactly like a freely drifting object far from any mass, tracing a straight <a href="0002-length-contraction-simultaneity-spacetime-diagrams.html#worldline">worldline</a> through spacetime. What differs near a massive body isn't that some invisible force is now acting on the falling object; it's that "straight" itself has stopped meaning what it meant in the flat spacetime of lessons 1–3. Two nearby free-falling objects, initially moving in parallel, will drift toward or away from each other over time near a massive body (this is <strong id="tidal-effects">tidal</strong> — the actual, physically detectable signature of gravity that the equivalence principle alone can't erase, since it's a difference across a region, not a local effect at a single point). The natural explanation is that spacetime itself is curved by mass and energy, and free-falling objects are simply following the straightest possible paths — called <strong id="geodesics">geodesics</strong> — through that curved geometry.</p>
+  <p>This reframes gravity entirely. Newton's gravity is a force reaching across empty space. Einstein's gravity is the shape of spacetime itself, with matter and energy telling spacetime how to curve, and curved spacetime telling matter how to move (a slogan usually attributed to John Wheeler). A useful, and correct, way to picture the connection to <a href="0002-length-contraction-simultaneity-spacetime-diagrams.html#light-cone">lesson 2's light cones</a>: near a massive body, light cones themselves tilt and narrow, increasingly toward the mass, as you get closer — which is precisely how general relativity encodes "gravity gets stronger here" geometrically instead of as a force vector. <a href="../index.html#lesson-05">Lesson 5</a> introduces the actual equation relating curvature to the matter and energy that causes it.</p>
+
+  <h2>Try it: which scenario is which?</h2>
+  <p>For each described sensation, identify what's actually happening.</p>
+  <div id="equivalence-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. What does the equivalence principle actually claim?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q1','Right — this is the precise statement: locally, free fall in gravity and floating in empty space are indistinguishable, and being at rest in a gravitational field and undergoing constant acceleration in empty space are indistinguishable.')">Locally, free fall in a gravitational field is indistinguishable from floating with no gravity, and rest in a gravitational field is indistinguishable from constant acceleration</button>
+        <button onclick="quizAnswer(this,false,'q1','This gets the two situations exactly backwards — free fall (not rest) is what\'s locally indistinguishable from no gravity at all; an object at rest in a gravitational field is the one that feels a force, matching constant acceleration.')">Gravity and acceleration feel different, but produce the same trajectory</button>
+        <button onclick="quizAnswer(this,false,'q1','The equivalence principle is explicitly a local claim — over a large enough region, tidal effects (the actual physical signature of curvature) make gravity and uniform acceleration distinguishable, which is exactly why "locally" is load-bearing in the correct statement.')">Gravity and acceleration are indistinguishable everywhere, at any scale</button>
+        <button onclick="quizAnswer(this,false,'q1','Inertial and gravitational mass being numerically equal for every tested object is the experimental fact motivating the principle, not a claim about only heavy objects specifically — the principle applies to any object regardless of its mass.')">Only very massive objects experience the same acceleration in free fall</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. In the elevator thought experiment, what happens if you cut the cable of an elevator resting in Earth's gravity?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Cutting the cable removes the floor\'s upward push, which is what was making you feel weight in the first place — you don\'t feel more force, you feel none at all as you and the elevator fall together.')">You feel a much stronger downward force as the elevator accelerates</button>
+        <button onclick="quizAnswer(this,true,'q2','Right — you and the elevator now fall together at the same rate (equal inertial and gravitational mass), so relative to the elevator you\'re weightless, exactly matching the "floating in a non-accelerating rocket in empty space" scenario the equivalence principle equates it to.')">You become weightless, just like floating in a non-accelerating rocket far from any gravity</button>
+        <button onclick="quizAnswer(this,false,'q2','Nothing here involves the speed of light — cutting a cable in an ordinary elevator produces free fall at normal, non-relativistic speeds; light speed plays no role in this scenario.')">Nothing changes, since the elevator is still moving at less than the speed of light</button>
+        <button onclick="quizAnswer(this,false,'q2','This is exactly backwards — a stationary elevator resting on the ground is the one that matches constant rocket acceleration in empty space (both produce a felt force); free fall is the weightless case, matching no acceleration at all.')">You feel exactly what you'd feel in a rocket accelerating through empty space</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. In the GPS worked example, why does the satellite's clock run fast overall, despite also running slow due to its orbital speed?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right — the two effects have opposite signs: the gravitational effect (≈45.7 μs/day, from being higher in a weaker field) is larger in magnitude than the velocity-based special-relativistic slowdown (≈7.2 μs/day), so the net effect (≈38.5 μs/day) is a gain.')">The gravitational (general-relativistic) speed-up from being higher, in weaker gravity, is larger in magnitude than the velocity-based (special-relativistic) slowdown from its orbital speed</button>
+        <button onclick="quizAnswer(this,false,'q3','Special relativity\'s time-dilation effect is present and correctly computed (≈7.2 μs/day, making the clock run slow) — it isn\'t zero at orbital speed, it\'s simply smaller in magnitude than the competing gravitational effect.')">Special relativity doesn't apply to satellites, only general relativity does</button>
+        <button onclick="quizAnswer(this,false,'q3','Nothing here involves any measurement disturbing the clock — both effects (gravitational potential difference and orbital speed) are genuine, predictable physical effects computed directly from the satellite\'s altitude and speed, not measurement artifacts.')">The satellite's clock is simply less accurate than a ground clock due to being observed remotely</button>
+        <button onclick="quizAnswer(this,false,'q3','Distance from the equator plays no role in either the gravitational-potential or orbital-speed calculation used here — both depend only on orbital radius and speed, not on latitude.')">Because the satellite is farther from the equator than the ground station</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. What, precisely, does "gravity is geometry, not a force" mean in general relativity?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','This is the Newtonian picture general relativity replaces, not a restatement of it — the whole point is that no force vector is needed to explain a free-falling object\'s trajectory.')">Gravity is still a force, just one that happens to act through curved space as a medium</button>
+        <button onclick="quizAnswer(this,true,'q4','Right — free-falling objects follow geodesics (the straightest possible paths) through spacetime that mass and energy have curved; no force is being applied to them at all, which is exactly why free fall feels weightless.')">Free-falling objects follow geodesics — the straightest possible paths — through spacetime that mass and energy have curved, with no force acting on them locally</button>
+        <button onclick="quizAnswer(this,false,'q4','Space and time bending like a stretched rubber sheet under a heavy ball is a popular analogy, not the actual claim — among other problems, it secretly uses gravity (pulling the ball down into the sheet) to explain gravity, and only depicts curved space, not curved spacetime, which is what the real effect requires.')">Space physically bends like a rubber sheet under the weight of massive objects</button>
+        <button onclick="quizAnswer(this,false,'q4','Tidal effects — nearby free-falling objects drifting toward or away from each other — are exactly the real, physically detectable signature of spacetime curvature that distinguishes true gravity from uniform acceleration; they aren\'t evidence against the geometric picture, they\'re evidence for it.')">"Geometry" is just a metaphor — gravity has no real physical effect beyond what uniform acceleration already produces</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>By hand: use <code>Δτ/τ ≈ gh/c²</code> to estimate the gravitational time dilation between the ground floor and the top of a 500 m tall building on Earth (g ≈ 9.8 m/s²). Convert your fractional result into how many nanoseconds a clock at the top gains over one full year relative to a clock at the bottom — the effect is tiny but was actually measured this way (with atomic clocks carried up towers and mountains) well before GPS made it operationally important.</p>
+
+  <h2>Primary resource</h2>
+  <p>See Leonard Susskind &amp; André Cabannes's <a href="https://theoreticalminimum.com/courses/general-relativity/2012/fall" target="_blank">General Relativity</a> (Stanford Continuing Studies, free lecture videos and companion book), which develops the equivalence principle and curved-spacetime picture carefully before introducing the tensor machinery this course's lesson 5 deliberately stays conceptual about.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> The jump from "clocks tick at different rates" to "spacetime is curved" is the single biggest conceptual leap in this course so far — if it isn't clicking, ask Claude Code for a different angle on it, or to work through the elevator argument again with different numbers.
+  </div>
+
+  <div class="nav">
+    <a href="0003-e-equals-mc-squared-four-momentum.html">← Lesson 3: E=mc&sup2; and Four-Momentum</a>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-05">Lesson 5: The Einstein Field Equation &amp; What "Gravity is Geometry" Means →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const EQUIV_ITEMS = [
+  {
+    english: 'An astronaut orbiting Earth inside the ISS feels weightless. What is actually happening?',
+    options: [
+      { text: 'The astronaut and the station are in continuous free fall, locally indistinguishable from no gravity at all', correct: true, explain: 'Right — the ISS is constantly falling toward Earth (and constantly missing, due to its sideways orbital speed); by the equivalence principle, that free fall is locally indistinguishable from floating in empty space.' },
+      { text: 'The astronaut has traveled far enough that Earth\'s gravity no longer reaches the ISS', explain: 'At ISS altitude (~400 km), Earth\'s gravity is only about 10% weaker than at the surface — nowhere near zero. Weightlessness there comes from continuous free fall, not from escaping gravity\'s range.' },
+    ],
+  },
+  {
+    english: 'A person stands on a bathroom scale inside a rocket accelerating at exactly 1g through deep space, far from any mass. What does the scale read, compared to standing on Earth?',
+    options: [
+      { text: 'The same reading as on Earth\'s surface', correct: true, explain: 'Right — this is the equivalence principle\'s core claim: uniform acceleration at 1g in empty space is locally indistinguishable from standing at rest in a 1g gravitational field, scale reading included.' },
+      { text: 'Zero — there\'s no gravity in deep space to press against', explain: 'The scale reads a force from the accelerating floor pushing up into the person\'s feet, not from gravity pulling them down — acceleration alone produces the same felt force as standing still in a gravitational field, per the equivalence principle.' },
+    ],
+  },
+  {
+    english: 'A clock sits at the top of a tall tower, another at the base, on Earth. Which one ticks faster?',
+    options: [
+      { text: 'The one at the top — it sits in slightly weaker gravity (higher potential)', correct: true, explain: 'Right — Δτ/τ ≈ gh/c² (or more generally ΔΦ/c²) says a clock higher up, in weaker gravity, runs faster than one lower down, exactly the effect behind the GPS satellite calculation.' },
+      { text: 'They tick at exactly the same rate — height doesn\'t affect clocks on Earth', explain: 'It does, just by a tiny amount for ordinary tower heights — the effect is real and has been experimentally measured with atomic clocks, even though gh/c² for a few hundred meters is a very small fraction.' },
+    ],
+  },
+];
+
+const equivDiv = document.getElementById('equivalence-exercise');
+EQUIV_ITEMS.forEach((item, i) => {
+  const cardId = `equiv-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  equivDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

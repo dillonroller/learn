@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 1 — The Postulates of Special Relativity &amp; Time Dilation</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Frontier Science</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 1 of 8 &nbsp;·&nbsp; Frontier Science &nbsp;·&nbsp; ~40 min</p>
+  <h1>The Postulates of Special Relativity &amp; Time Dilation</h1>
+  <p>Pop-science treatments of relativity tend to hand you "moving clocks run slow" as a bare assertion, usually with a rubber-sheet metaphor nowhere near it (that metaphor is for <a href="../../frontier-science/index.html#lesson-04">general relativity</a> anyway, and a rough one even there). It isn't an assertion. It's a two-line consequence of two very specific, falsifiable postulates, and you can derive the exact factor by which clocks slow down using nothing more than the Pythagorean theorem. This lesson does that derivation in full, then checks the result against a real particle that only reaches the ground because of it.</p>
+
+  <h2 id="postulates">Two postulates, no more</h2>
+  <p>Special relativity (Einstein, 1905) rests on exactly two postulates:</p>
+  <ul>
+    <li><strong id="principle-of-relativity">The principle of relativity</strong>: the laws of physics are identical in every inertial (non-accelerating) reference frame. No experiment performed inside a closed, uniformly-moving lab can tell you your own speed — only your speed relative to something else.</li>
+    <li><strong id="invariance-of-c">Invariance of the speed of light</strong>: light travels at the same speed <code>c ≈ 3×10⁸ m/s</code> in every inertial frame, regardless of the motion of the source or the observer.</li>
+  </ul>
+  <div class="callout warn">
+    <strong>The second postulate is the strange one</strong>
+    For every other velocity you know, speeds add: throw a ball at 10 m/s from a train moving at 20 m/s and a platform observer clocks it at 30 m/s. Light refuses to do this. A flashlight beam from a spaceship moving at 0.9c is still measured at exactly <code>c</code> by <em>both</em> the ship and a "stationary" observer — not <code>1.9c</code>. This was an experimental finding (most famously the 1887 Michelson–Morley experiment, which found no trace of Earth's motion through a hypothesized medium for light), not a convenient assumption. Einstein's move was to take it seriously as an axiom and follow the consequences wherever they led, rather than explain it away.
+  </div>
+  <p>If ordinary velocity addition is wrong for light, something else classical physics assumed absolute — space or time — has to give. It turns out to be time (and, as <a href="0002-length-contraction-simultaneity-spacetime-diagrams.html#length-contraction">lesson 2</a> shows, space and simultaneity too). The rest of this lesson derives exactly how much time gives, starting from nothing but these two postulates and geometry.</p>
+
+  <h2 id="light-clock-derivation">Deriving the Lorentz factor from a light clock</h2>
+  <p>Build the simplest possible clock: two mirrors, a fixed distance <code>L</code> apart, with a single pulse of light bouncing between them. Each one-way trip (bottom mirror to top mirror) is a single "tick."</p>
+  <p>In the clock's own rest frame, the light travels straight up a distance <code>L</code> at speed <code>c</code>, so one tick takes:</p>
+  <pre><code>Δt₀ = L / c        (the "proper time" per tick — measured in the clock's own rest frame)</code></pre>
+  <p>Now watch the same clock fly past you horizontally at speed <code>v</code>, oriented so the mirrors are perpendicular to the direction of motion. By the time the light pulse reaches the top mirror, the whole clock — mirrors and all — has moved horizontally. So <em>in your frame</em>, the light didn't travel straight up; it traced the diagonal hypotenuse of a right triangle: vertical leg <code>L</code> (the mirror separation, unaffected by horizontal motion), horizontal leg <code>vΔt</code> (how far the clock moved during the tick, as you measure it), hypotenuse length <code>cΔt</code> — because the second postulate says light still moves at exactly <code>c</code> in your frame too, diagonal path or not.</p>
+  <pre><code>Pythagorean theorem:      (cΔt)² = L² + (vΔt)²
+
+Expand and collect Δt:    c²Δt² − v²Δt² = L²
+                           Δt²(c² − v²) = L²
+                           Δt² = L² / (c² − v²)
+                           Δt² = (L²/c²) / (1 − v²/c²)
+
+Substitute Δt₀ = L/c:     Δt² = Δt₀² / (1 − v²/c²)
+
+                           Δt = Δt₀ / √(1 − v²/c²)</code></pre>
+  <p>That's the whole derivation. No assumption went in beyond the two postulates and the Pythagorean theorem — the diagonal path is forced by postulate 1 (the clock really did move), and the "light still goes at speed <code>c</code> along that diagonal" is forced by postulate 2.</p>
+
+  <h2 id="lorentz-factor">The Lorentz factor</h2>
+  <p>Give the recurring quantity above a name — the <strong id="lorentz-factor-def">Lorentz factor</strong>:</p>
+  <pre><code>γ = 1 / √(1 − v²/c²) = 1 / √(1 − β²)        where β = v/c</code></pre>
+  <p>so the light-clock result reads <code>Δt = γΔt₀</code>. A few properties worth internalizing directly from the formula, not from a chart:</p>
+  <ul>
+    <li><code>γ ≥ 1</code> always — the square root of a number ≤ 1 is ≤ 1, so 1 divided by it is ≥ 1.</li>
+    <li><code>γ → 1</code> as <code>v → 0</code>: at everyday speeds, <code>Δt ≈ Δt₀</code>, recovering ordinary Newtonian time. This is why you've never noticed time dilation directly — γ for a car at 30 m/s differs from 1 by about 1 part in 10¹⁴.</li>
+    <li><code>γ → ∞</code> as <code>v → c</code>: the closer you push toward the speed of light, the more violently γ blows up. This asymptote is also why nothing with mass can reach <code>c</code> — it would take infinite energy, a fact <a href="0003-e-equals-mc-squared-four-momentum.html#relativistic-momentum">lesson 3</a> makes precise.</li>
+  </ul>
+
+  <h2 id="time-dilation">Time dilation, stated precisely</h2>
+  <p>Generalize the light-clock result to any clock at all (any periodic physical process — a heartbeat, a radioactive decay, an oscillating atom — ticks at the same rate as a light clock built to match it, by postulate 1: the laws of physics, including how fast clocks tick, can't depend on which kind of clock you built). Define <strong id="proper-time">proper time</strong> <code>τ</code> as the time elapsed on a clock, measured in that clock's own rest frame — equivalently, the time between two events that happen at the same place in that frame. An observer watching the clock move past at speed <code>v</code> measures a longer elapsed time <code>t</code>:</p>
+  <pre><code>t = γτ        (γ ≥ 1, so t ≥ τ — the "moving" clock is judged to run slow)</code></pre>
+  <div class="callout">
+    <strong>This is symmetric, and that's the point</strong>
+    Nothing in the derivation privileged either observer — by the first postulate, the clock's own frame is just as valid an inertial frame as yours, and from its point of view, <em>you're</em> the one moving, so it judges <em>your</em> clock to be running slow by the same γ. Both observers are right, in their own frame; there is no absolute fact about whose clock is "really" ticking slower. (The one case where this symmetry famously seems to break — the "twin paradox," where a traveling twin returns younger — is resolved by the traveling twin having to accelerate to turn around, which breaks the symmetry between the two frames. It's a real effect, not a paradox, but working through it properly needs the spacetime-diagram tools from <a href="0002-length-contraction-simultaneity-spacetime-diagrams.html#spacetime-diagrams">lesson 2</a>.)
+  </div>
+
+  <div class="callout">
+    <strong>Worked example: a cosmic-ray muon reaching the ground</strong>
+    <p style="margin-bottom:.6rem;">Muons are created when cosmic rays strike the upper atmosphere, roughly 15 km up, typically moving at <code>v = 0.9998c</code> (β = 0.9998). A muon's proper lifetime — how long it lasts before decaying, measured in its own rest frame — is <code>τ₀ = 2.2 μs</code>. Does it survive the trip to sea level?</p>
+    <pre><code>γ = 1/√(1 − 0.9998²) = 1/√(1 − 0.99960004) = 1/√0.00039996 ≈ 50.0
+
+Non-relativistic (wrong) estimate — no time dilation:
+  d = v·τ₀ = 0.9998 × (3×10⁸ m/s) × (2.2×10⁻⁶ s) ≈ 660 m  (0.66 km)
+  → the muon would decay after well under 1 km. Almost none should reach the ground.
+
+Relativistic (correct) estimate — dilated lifetime as measured from the ground:
+  τ = γτ₀ = 50.0 × 2.2 μs ≈ 110 μs
+  d = v·τ ≈ 0.9998 × (3×10⁸ m/s) × (110×10⁻⁶ s) ≈ 33,000 m  (33 km)
+  → comfortably covers the 15 km fall. Muons should reach the ground in large numbers.</code></pre>
+    <p style="margin-top:.6rem; margin-bottom:0;">The second number is the one nature agrees with — cosmic-ray muons are detected at sea level in exactly the abundance this calculation predicts, and essentially not at all in the abundance the non-relativistic estimate predicts. This is one of the most direct, everyday confirmations of special relativity there is: the muon detector doesn't have to leave the ground.</p>
+  </div>
+
+  <h2>Try it: compute the Lorentz factor</h2>
+  <p>For each speed, work out γ (or the resulting dilated time) before checking.</p>
+  <div id="gamma-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Which of these is one of the two postulates of special relativity?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q1','Right — this is the second postulate exactly: c is the same in every inertial frame, independent of the motion of the source or the observer.')">The speed of light in vacuum is the same in every inertial frame, regardless of the source's motion</button>
+        <button onclick="quizAnswer(this,false,'q1','This is exactly the Newtonian assumption relativity replaces — absolute, frame-independent time is what time dilation shows to be false, not a postulate of the theory.')">Time is absolute and passes at the same rate for every observer</button>
+        <button onclick="quizAnswer(this,false,'q1','Mass increase is an informal, now largely retired way of describing a consequence of relativistic momentum, not one of the two founding postulates — and this lesson derives what actually changes (time, via γ) without ever needing that framing.')">Mass increases without bound as an object approaches the speed of light</button>
+        <button onclick="quizAnswer(this,false,'q1','Light bending under gravity is a prediction of general relativity, covered starting in lesson 4 — it isn\'t one of special relativity\'s two postulates.')">Gravity bends the path of light</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. In the light-clock derivation, why is the light's path a diagonal — not vertical — when viewed from the frame in which the clock is moving?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','No gravity is involved anywhere in this derivation — it\'s a purely kinematic effect of relative motion between inertial frames, not a gravitational one.')">Because light bends under gravity in that frame</button>
+        <button onclick="quizAnswer(this,true,'q2','Right — the mirror carrying the light pulse has itself moved horizontally by the time the pulse arrives, so the path traced out, as seen from this frame, is the diagonal hypotenuse, not the vertical leg.')">Because the mirror the light is traveling toward has itself moved horizontally by the time the light arrives</button>
+        <button onclick="quizAnswer(this,false,'q2','Postulate 2 says light travels at exactly c in every inertial frame — its speed never changes, diagonal path or not; what changes is the distance it has to cover.')">Because light travels slower in that frame</button>
+        <button onclick="quizAnswer(this,false,'q2','The light clock derivation assumes constant relative velocity between two inertial frames throughout — no acceleration is involved.')">Because the derivation assumes the clock is accelerating</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. A clock ticks off exactly 1 second of proper time. According to the derivation, what does an observer watching it move past at speed v measure for that same tick?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','This is the Newtonian assumption the derivation specifically overturns — Δt = Δt₀ only in the limit v → 0, not in general.')">Exactly 1 second — motion doesn't affect time</button>
+        <button onclick="quizAnswer(this,true,'q3','Right — t = γτ, and γ = 1/√(1−v²/c²) ≥ 1 for any v > 0, so the observer always measures more than 1 second: the moving clock is judged to run slow.')">γ seconds, where γ = 1/√(1−v²/c²) ≥ 1 — always more than 1 second</button>
+        <button onclick="quizAnswer(this,false,'q3','That\'s the inverse of the derived relationship (t = γτ, not τ/γ) — it would mean a moving clock runs fast, the opposite of what the light-clock geometry shows.')">1/γ seconds — the moving clock appears to run fast</button>
+        <button onclick="quizAnswer(this,false,'q3','γ depends on v² (via β² = v²/c²), so only the clock\'s speed matters here, not its direction — direction becomes relevant for simultaneity and length contraction, covered in lesson 2, but not for this basic time-dilation relation.')">It depends on the direction of motion relative to the observer</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. The worked example's muon survives roughly 50× longer, as timed from the ground, than its proper lifetime. What's the precise way to describe why?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q4','Right — from the ground frame, the muon\'s internal "clock" (its decay process) runs slow by exactly the factor γ, so more ground-frame time elapses before it decays. The muon\'s own proper lifetime, 2.2 μs, is an intrinsic, unchanging property measured in its own rest frame.')">From the ground frame, the muon's internal clock runs slow by the Lorentz factor, so more ground-frame time passes before it decays — its own proper lifetime never changes</button>
+        <button onclick="quizAnswer(this,false,'q4','Nothing about the muon\'s internal physics changes when it moves fast — only the time relationship between the muon\'s frame and the ground frame changes. It isn\'t "more stable"; it just experiences less time from the ground\'s point of view.')">The muon becomes physically more stable when moving at high speed</button>
+        <button onclick="quizAnswer(this,false,'q4','The 2.2 μs figure is the proper lifetime — measured in the muon\'s own rest frame — and that number is a fixed intrinsic property of the particle, unaffected by how fast it moves relative to anyone else.')">The muon's proper lifetime of 2.2 μs itself increases because it is moving fast</button>
+        <button onclick="quizAnswer(this,false,'q4','The muon has a well-defined nonzero rest mass (about 105.7 MeV/c²) — mass plays no role in this calculation at all; time dilation depends only on speed, via γ.')">The calculation only works because the muon is nearly massless</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>By hand: compute γ for β = 0.9 and again for β = 0.999. Notice how much more steeply γ grows near β = 1 than near β = 0 — that non-linearity is the real reason particle accelerators need enormous amounts of energy to gain the last percent of c, a fact <a href="0003-e-equals-mc-squared-four-momentum.html#relativistic-momentum">lesson 3</a> will make quantitative. Then redo this lesson's muon calculation using β = 0.999 instead of 0.9998, and check whether the muon still comfortably survives its 15 km fall.</p>
+
+  <h2>Primary resource</h2>
+  <p>Read the source itself: <a href="https://www.fourmilab.ch/etexts/einstein/specrel/www/" target="_blank">"On the Electrodynamics of Moving Bodies"</a>, Einstein's original 1905 paper (English translation hosted by Fourmilab), which introduces both postulates and derives time dilation and the Lorentz transformation from them — the same logical structure this lesson just walked through, in Einstein's own words.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> If the light-clock triangle or the algebra collapsing it into γ isn't clicking, ask Claude Code to redraw the diagram step by step, or to plug in a specific β you're curious about and walk the arithmetic through by hand.
+  </div>
+
+  <div class="nav">
+    <span></span>
+    <span class="spacer"></span>
+    <a href="0002-length-contraction-simultaneity-spacetime-diagrams.html">Lesson 2: Length Contraction, Relativity of Simultaneity &amp; Spacetime Diagrams →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const GAMMA_ITEMS = [
+  {
+    english: 'β = v/c = 0.6 → γ = ?',
+    options: [
+      { text: '1.25', correct: true, explain: 'Right — √(1−0.36) = √0.64 = 0.8, and 1/0.8 = 1.25.' },
+      { text: '1.67', explain: 'That\'s the answer for β = 0.8, not 0.6 — check √(1−0.36) = 0.8, not 0.6.' },
+    ],
+  },
+  {
+    english: 'β = v/c = 0.8 → γ = ?',
+    options: [
+      { text: '1.25', explain: 'That\'s the answer for β = 0.6, not 0.8 — for β = 0.8, √(1−0.64) = √0.36 = 0.6, and 1/0.6 ≈ 1.67.' },
+      { text: '1.67', correct: true, explain: 'Right — √(1−0.64) = √0.36 = 0.6, and 1/0.6 ≈ 1.67.' },
+    ],
+  },
+  {
+    english: 'A clock moving at β = 0.99 ticks off 1 second of proper time. How much time passes for a stationary observer?',
+    options: [
+      { text: '≈ 7.1 seconds', correct: true, explain: 'Right — γ = 1/√(1−0.9801) = 1/√0.0199 ≈ 7.09, so t = γτ ≈ 7.1 s.' },
+      { text: '≈ 0.14 seconds', explain: 'That\'s 1/γ, not γ — it would mean the moving clock runs fast rather than slow, the opposite of t = γτ with γ ≥ 1.' },
+    ],
+  },
+];
+
+const gammaDiv = document.getElementById('gamma-exercise');
+GAMMA_ITEMS.forEach((item, i) => {
+  const cardId = `gamma-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  gammaDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

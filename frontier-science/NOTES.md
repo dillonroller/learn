@@ -1,0 +1,8 @@
+# Teaching Notes
+
+- Sibling split from [[../quantum-mechanics/NOTES.md|Quantum Mechanics]] — same user, same strong CS/linear-algebra background, now pointed at relativity and the Standard Model rather than non-relativistic QM. Quantum mechanics grew into its own full course, so this topic was carved out separately rather than bolted onto it.
+- User explicitly wants the real formalism, not pop-science metaphors — no "rubber sheet" gravity, no "everything is tiny billiard balls." Derive results from the postulates with real algebra and real numbers wherever the math is tractable at this level (Lorentz factor, time dilation, E=mc², gravitational time dilation), the same house style as Quantum Mechanics and Quantum Computing's worked examples.
+- Very strong technical/CS background but no assumed physics background — lean on linear algebra and formal notation being comfortable, but don't assume prior exposure to classical mechanics, tensor calculus, or the physics-course sequencing a physics major would have.
+- Keep the line between established physics and open questions sharp, same rigor-over-rhetoric standard as Quantum Mechanics: string theory, quantum gravity candidates, and interpretation debates get presented as the live state of the field, not resolved with a false winner.
+- Conceptual accuracy over computational machinery for GR and QFT specifically — the mission's "out of scope" explicitly excludes tensor calculus and path integrals/renormalization. The goal is precise, non-oversimplified *understanding*, not the ability to solve the field equations or compute a Feynman diagram.
+- Cross-link to Quantum Mechanics rather than re-deriving state vectors, the Born rule, or unitary evolution once the quantum-fields lesson (lesson 6) needs them.

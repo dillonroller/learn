@@ -1,0 +1,5 @@
+# Baseline: New Topic, Split From Quantum Mechanics
+
+Frontier Science was started as a direct sibling to [[../../quantum-mechanics/learning-records/0001-baseline.md|Quantum Mechanics]]'s baseline — same user, same "real formalism, not pop-science metaphors" standard, now applied to special/general relativity and the Standard Model. Quantum mechanics itself grew into a full course (state vectors, the Born rule, entanglement, Bell's theorem, unitary evolution), so this became its own topic rather than a few bolted-on lessons.
+
+**Implications:** No prior-physics assumption beyond general familiarity, but the strong CS/linear-algebra background from Quantum Mechanics and Quantum Computing carries over directly — comfortable with vectors, matrices, and formal notation from lesson 1. The course can lean on Quantum Mechanics's state-vector and Born-rule formalism once it reaches quantum fields (lesson 6) rather than re-deriving it, but special and general relativity (lessons 1-5) are self-contained and don't depend on the QM course at all.

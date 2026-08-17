@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 3 — E=mc&sup2; and Four-Momentum</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Frontier Science</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 3 of 8 &nbsp;·&nbsp; Frontier Science &nbsp;·&nbsp; ~40 min</p>
+  <h1>E=mc&sup2; and Four-Momentum</h1>
+  <p>The most famous equation in physics gets treated as a slogan more often than as a result. It isn't handed down separately from the two postulates you already have — it falls straight out of asking what momentum and energy have to look like for their conservation laws to survive being <a href="0002-length-contraction-simultaneity-spacetime-diagrams.html#lorentz-transformation">Lorentz-transformed</a> between frames, the same demand that produced time dilation and length contraction. This lesson derives it, then gives you the single invariant quantity — four-momentum — that ties energy and momentum together the same way the <a href="0002-length-contraction-simultaneity-spacetime-diagrams.html#invariant-interval">spacetime interval</a> tied together time and space.</p>
+
+  <h2 id="relativistic-momentum">Why momentum needs a γ</h2>
+  <p>Classical momentum, <code>p = mv</code>, is conserved in Newtonian mechanics — but "conserved in every frame" is a much stronger demand once frames are related by the <a href="0002-length-contraction-simultaneity-spacetime-diagrams.html#lorentz-boost">Lorentz boost</a> instead of a Galilean one. Plug ordinary <code>mv</code> into a collision, transform to a boosted frame using last lesson's transformation, and total momentum before and after the collision no longer match — the boost's extra γ factors on space and time throw plain <code>mv</code>'s conservation off. The quantity that <em>does</em> stay conserved across every inertial frame turns out to be:</p>
+  <pre><code>p = γmv        where m is the particle's fixed, frame-independent rest mass</code></pre>
+  <div class="callout warn">
+    <strong>m never changes — this isn't "relativistic mass"</strong>
+    Older treatments sometimes described γm as a new, speed-dependent "relativistic mass." Modern usage (and this course) drops that framing: <code>m</code> is a fixed property of the particle, the same number in every frame — the rest mass, full stop. The γ isn't inflating the mass; it's telling you that <em>momentum itself</em> has to be defined with an extra factor of γ for the conservation law to survive a Lorentz boost. Keeping m fixed is also what makes the invariant mass-shell relation later in this lesson clean rather than circular.
+  </div>
+  <p>One immediate consequence, tying directly back to <a href="0001-postulates-special-relativity-time-dilation.html#lorentz-factor">lesson 1</a>'s asymptote: as <code>v → c</code>, <code>γ → ∞</code>, so <code>p = γmv → ∞</code> for any particle with <code>m > 0</code>. Accelerating a massive particle to exactly <code>c</code> would take infinite momentum — and, as the next section shows, infinite energy. That's the precise reason nothing with mass ever reaches the speed of light, not a rule imposed from outside the theory.</p>
+
+  <h2 id="relativistic-energy">Total energy, and where mc² comes from</h2>
+  <p>The matching definition of energy that stays conserved across every frame, alongside <code>p = γmv</code>, is:</p>
+  <pre><code>E = γmc²</code></pre>
+  <p>Two special cases immediately worth naming:</p>
+  <ul>
+    <li><strong id="rest-energy">Rest energy</strong>: set <code>v = 0</code>, so <code>γ = 1</code>: <code>E₀ = mc²</code>. Even a completely motionless object has energy, purely by virtue of having mass. This is the famous equation — the special case of <code>E = γmc²</code> at zero speed.</li>
+    <li><strong id="relativistic-kinetic-energy">Kinetic energy</strong>: the extra energy an object has from moving, <code>KE = E − E₀ = (γ − 1)mc²</code>. At everyday speeds, a Taylor-series approximation of γ recovers the familiar <code>KE ≈ ½mv²</code> — Newtonian mechanics is what this formula looks like when β is tiny, exactly as with time dilation in lesson 1.</li>
+  </ul>
+
+  <h2 id="four-momentum">Four-momentum: one invariant tying E and p together</h2>
+  <p>Combine energy and momentum into a single object, the <strong id="four-momentum-def">four-momentum</strong> <code>(E/c, pₓ, pᵧ, p_z)</code> — the direct energy-momentum analogue of the <code>(ct, x, y, z)</code> spacetime coordinates from <a href="0002-length-contraction-simultaneity-spacetime-diagrams.html#spacetime-diagrams">lesson 2</a>. Exactly as <code>Δs² = (cΔt)² − Δx²</code> was invariant under a boost, four-momentum has its own frame-independent combination. Derive it directly from the two definitions above:</p>
+  <pre><code>E² − (pc)² = (γmc²)² − (γmvc)²
+           = γ²m²c⁴ − γ²m²v²c²
+           = γ²m²c²(c² − v²)
+           = γ²m²c⁴(1 − v²/c²)
+           = γ²m²c⁴ / γ²                [since γ² = 1/(1 − v²/c²)]
+           = m²c⁴</code></pre>
+  <div class="callout">
+    <strong>The energy–momentum invariant</strong>
+    <code>E² = (pc)² + (mc²)²</code>. This holds for <em>any</em> speed the particle has — the γ's that appear separately in E and p cancel completely, leaving only the particle's fixed rest mass. Every observer, in every frame, computes different E and different p for the same particle, but every observer computes the exact same <code>E² − (pc)²</code>. It's the same trick as <a href="0002-length-contraction-simultaneity-spacetime-diagrams.html#invariant-interval">the spacetime interval</a>, one level up: individual coordinates (or individual E, p) are frame-dependent; a specific combination of them isn't.
+  </div>
+
+  <div class="callout">
+    <strong>Worked example: 1 gram of mass, converted entirely to energy</strong>
+    <pre><code>E₀ = mc² = (0.001 kg) × (3×10⁸ m/s)² = 0.001 × 9×10¹⁶ = 9×10¹³ J
+
+Compare to TNT (1 kiloton TNT ≈ 4.184×10¹² J):
+  9×10¹³ J ÷ 4.184×10¹² J/kt ≈ 21.5 kilotons</code></pre>
+    <p style="margin-top:.6rem; margin-bottom:0;">One gram — about a paperclip — carries roughly the destructive energy of the atomic bomb dropped on Hiroshima (historically estimated around 15 kt, from converting well under a gram of its plutonium's mass into energy). No practical process converts mass to energy with 100% efficiency, but this is the ceiling <code>E = mc²</code> sets, and it's why nuclear reactions (which convert a tiny fraction of a percent of their mass) already dwarf chemical reactions (which convert none, to any measurable precision) by a factor of millions.</p>
+  </div>
+
+  <div class="callout">
+    <strong>Worked example: relativistic vs. classical kinetic energy</strong>
+    <p style="margin-bottom:.6rem;">A 1000 kg spacecraft moving at β = 0.995 (γ ≈ 10.01, from <a href="0002-length-contraction-simultaneity-spacetime-diagrams.html">lesson 2</a>'s exercises):</p>
+    <pre><code>Relativistic:  KE = (γ − 1)mc² = (10.01 − 1) × 1000 × 9×10¹⁶ ≈ 8.11×10²⁰ J
+
+Classical (wrong at this speed):  KE = ½mv² = ½ × 1000 × (0.995×3×10⁸)²
+                                      ≈ 4.46×10¹⁹ J
+
+Ratio:  8.11×10²⁰ / 4.46×10¹⁹ ≈ 18.2</code></pre>
+    <p style="margin-top:.6rem; margin-bottom:0;">The classical formula underestimates the true kinetic energy by more than 18×. This is exactly why particle accelerators pushing protons toward <code>c</code> need vastly more energy per unit speed gained than Newtonian intuition suggests — you're not just fighting friction-like resistance, you're fighting the same γ-blowup from lesson 1.</p>
+  </div>
+
+  <h2>Try it: energy, momentum, or invariant?</h2>
+  <p>Apply E = γmc², p = γmv, and E² = (pc)² + (mc²)² to each case.</p>
+  <div id="momentum-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Why does special relativity use p = γmv instead of the classical p = mv?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q1','Right — plain mv fails to stay conserved once you transform between frames using the Lorentz boost; p = γmv is the definition that does stay conserved in every inertial frame, which is the actual requirement being satisfied.')">Only p = γmv stays conserved consistently across every inertial frame connected by the Lorentz boost</button>
+        <button onclick="quizAnswer(this,false,'q1','This lesson (and modern usage generally) keeps m as a fixed rest mass, the same number in every frame — the γ isn\'t describing the particle getting heavier, it\'s describing what momentum itself has to look like to stay conserved.')">Because mass literally increases with speed, and γm is simply the new, larger mass</button>
+        <button onclick="quizAnswer(this,false,'q1','Newton\'s second law isn\'t the motivation here at all — the γ factor comes specifically from demanding momentum conservation survive a Lorentz transformation between frames, a relativistic requirement with no classical analogue.')">Because Newton's second law requires a velocity-independent constant of proportionality</button>
+        <button onclick="quizAnswer(this,false,'q1','Momentum is defined for both massive and massless particles (a photon has momentum p = E/c despite m = 0) — it isn\'t restricted to massless particles at all.')">Because momentum is only meaningfully defined for massless particles</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. What is the rest energy of a 1 kg mass?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right — E₀ = mc² = 1 × (3×10⁸)² = 1 × 9×10¹⁶ = 9×10¹⁶ J.')">9×10¹⁶ J</button>
+        <button onclick="quizAnswer(this,false,'q2','That\'s mc, not mc² — you\'re missing the second factor of c. E₀ = mc² = 1 × (3×10⁸)² = 9×10¹⁶ J.')">3×10⁸ J</button>
+        <button onclick="quizAnswer(this,false,'q2','Check the exponent on c²: (3×10⁸)² = 9×10¹⁶, not 9×10⁸ — off by eight orders of magnitude.')">9×10⁸ J</button>
+        <button onclick="quizAnswer(this,false,'q2','Rest energy is defined specifically at v = 0 (γ = 1) — it\'s a fixed property of the mass itself, not something that depends on a velocity that, by definition, is zero here.')">It depends on the object's velocity</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Which combination is the same in every inertial frame, for a given particle?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','E alone is frame-dependent — different observers, moving at different speeds relative to the particle, compute different total energies for it.')">E alone</button>
+        <button onclick="quizAnswer(this,false,'q3','p alone is frame-dependent for the same reason E is — different observers measure different velocities for the particle, hence different momenta.')">p alone</button>
+        <button onclick="quizAnswer(this,true,'q3','Right — E² − (pc)² = (mc²)² for any inertial observer, because the γ factors in E and p cancel exactly, leaving only the fixed rest mass. This is the four-momentum\'s invariant, the energy-momentum analogue of the spacetime interval.')">E² − (pc)², which always equals (mc²)²</button>
+        <button onclick="quizAnswer(this,false,'q3','γ itself is frame-dependent — it\'s defined from the particle\'s speed relative to a specific observer, so different observers get different γ for the same particle.')">γ alone</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. A photon has zero rest mass (m = 0). What does E² = (pc)² + (mc²)² say about it?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q4','Right — with m = 0, the invariant collapses to E² = (pc)², so E = pc exactly. A photon\'s energy is entirely "momentum energy"; none of it is rest energy, since it has none to have.')">E = pc exactly — all of a photon's energy comes from its momentum, none from rest energy</button>
+        <button onclick="quizAnswer(this,false,'q4','m = 0 doesn\'t force E to 0 — it only removes the (mc²)² term. E can still be nonzero via the pc term, and photons plainly carry energy (that\'s how light delivers warmth and light delivers photosynthesis\'s energy input).')">E = 0, since a massless particle can have no energy</button>
+        <button onclick="quizAnswer(this,false,'q4','Momentum doesn\'t require mass — the invariant relation itself gives p = E/c for a massless particle, and photons demonstrably carry momentum (radiation pressure, solar sails).')">p = 0, since momentum requires mass to carry it</button>
+        <button onclick="quizAnswer(this,false,'q4','The formula applies at every mass, including exactly m = 0 — that limiting case is precisely what makes it useful for photons and other massless particles, not an exception to it.')">The formula doesn't apply to massless particles at all</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>By hand: verify the invariant directly for the spacecraft worked example above. Compute <code>p = γmv</code> and <code>E = γmc²</code> for the 1000 kg ship at β = 0.995, then check that <code>E² − (pc)²</code> comes out to <code>(mc²)²</code> — you should find the numbers agree to well within rounding error. This is the same "compute both sides, confirm they match" habit lesson 2's practice exercise built for the spacetime interval.</p>
+
+  <h2>Primary resource</h2>
+  <p>Read the source: <a href="https://www.fourmilab.ch/etexts/einstein/E_mc2/www/" target="_blank">"Does the Inertia of a Body Depend Upon Its Energy-Content?"</a>, Einstein's short 1905 follow-up paper (English translation hosted by Fourmilab) that first argued for mass-energy equivalence — three pages, and the entire chain of reasoning is visible in one sitting.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> If the γ² cancellation in the four-momentum derivation feels like it happened too fast, ask Claude Code to expand every algebra step, or to redo the whole derivation with a specific numeric example you pick.
+  </div>
+
+  <div class="nav">
+    <a href="0002-length-contraction-simultaneity-spacetime-diagrams.html">← Lesson 2: Length Contraction, Relativity of Simultaneity &amp; Spacetime Diagrams</a>
+    <span class="spacer"></span>
+    <a href="0004-equivalence-principle-curved-spacetime.html">Lesson 4: From Special to General &#8202;&#8212;&#8202; the Equivalence Principle &amp; Curved Spacetime →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const MOMENTUM_ITEMS = [
+  {
+    english: 'A particle at rest (v = 0) has mass m. What is its total energy E?',
+    options: [
+      { text: 'E = mc²', correct: true, explain: 'Right — at v = 0, γ = 1, so E = γmc² reduces to E = mc², the rest energy.' },
+      { text: 'E = 0', explain: 'Even a motionless particle has energy in special relativity — that\'s the whole content of rest energy, E₀ = mc². Zero speed doesn\'t mean zero energy.' },
+    ],
+  },
+  {
+    english: 'As v → c for a particle with m > 0, what happens to p = γmv?',
+    options: [
+      { text: 'p → ∞', correct: true, explain: 'Right — γ → ∞ as v → c, and m and v stay finite (v approaches but never reaches c), so p = γmv diverges. This is why no massive particle can reach c.' },
+      { text: 'p → mc, a finite value', explain: 'That would be true if γ stayed finite as v → c, but γ = 1/√(1−v²/c²) diverges to infinity right at that limit — p diverges right along with it.' },
+    ],
+  },
+  {
+    english: 'For a photon (m = 0), what does E² = (pc)² + (mc²)² become?',
+    options: [
+      { text: 'E = pc', correct: true, explain: 'Right — the (mc²)² term vanishes entirely when m = 0, leaving E² = (pc)², i.e. E = pc.' },
+      { text: 'E² = (mc²)², independent of p', explain: 'That\'s backwards — with m = 0 it\'s the (mc²)² term that drops out, not the (pc)² term. What survives is E² = (pc)².' },
+    ],
+  },
+];
+
+const momentumDiv = document.getElementById('momentum-exercise');
+MOMENTUM_ITEMS.forEach((item, i) => {
+  const cardId = `momentum-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  momentumDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 2 — Length Contraction, Relativity of Simultaneity &amp; Spacetime Diagrams</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Frontier Science</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 2 of 8 &nbsp;·&nbsp; Frontier Science &nbsp;·&nbsp; ~40 min</p>
+  <h1>Length Contraction, Relativity of Simultaneity &amp; Spacetime Diagrams</h1>
+  <p><a href="0001-postulates-special-relativity-time-dilation.html#time-dilation">Lesson 1</a> showed time isn't absolute. This lesson finishes the job: space isn't absolute either, and neither is "at the same time." Both results fall out of the exact same two postulates and the exact same γ you already derived — no new physics, just following the first result to its logical conclusions. Then you'll get a single picture, the spacetime diagram, that makes all three effects (time dilation, length contraction, relativity of simultaneity) visually obvious at once.</p>
+
+  <h2 id="length-contraction">Length contraction, derived from time dilation</h2>
+  <p>Let a spaceship have <strong id="proper-length">proper length</strong> <code>L₀</code> — its length measured in its own rest frame, by an observer at rest relative to it. It flies past a stationary observer O at speed <code>v</code>. Two events mark the ship's passage:</p>
+  <ul>
+    <li><strong>E1</strong>: the ship's nose passes O.</li>
+    <li><strong>E2</strong>: the ship's tail passes O.</li>
+  </ul>
+  <p>In O's frame, both events happen at the exact same place — right where O is standing — just at different times. A single clock (O's own) is present at both events, so the elapsed time O measures, <code>Δτ_O</code>, is a <a href="0001-postulates-special-relativity-time-dilation.html#proper-time">proper time</a> by definition. During that proper time, the ship — whose length in O's frame is <code>L</code>, the contracted length you're solving for — sweeps entirely past O:</p>
+  <pre><code>L = v · Δτ_O        ⟹        Δτ_O = L / v      …(i)</code></pre>
+  <p>Now switch to the ship's own frame. There, O is the one moving, at speed <code>v</code>, sweeping past the ship's full proper length <code>L₀</code>. The time this takes, as reckoned by the ship's own rulers and clocks, is <code>Δt' = L₀ / v</code>. This is <em>not</em> a proper time — E1 and E2 happen at two different places in the ship's frame (the nose and the tail), so no single clock is present at both. A time interval between two events at different locations is always the <em>dilated</em> (larger) one relative to the proper time between those same two events, by exactly the <a href="0001-postulates-special-relativity-time-dilation.html#lorentz-factor-def">Lorentz factor</a>:</p>
+  <pre><code>Δt' = γ · Δτ_O
+
+Substitute (i) and Δt' = L₀/v:      L₀/v = γ (L/v)
+
+                                      L₀ = γL
+
+                                      L = L₀ / γ</code></pre>
+  <div class="callout">
+    <strong>Length contraction</strong>
+    A moving object's length, measured along its direction of motion, shrinks by exactly the same factor γ that its clocks slow by: <code>L = L₀/γ</code>. Since γ ≥ 1, this is always a contraction, never an expansion — and only along the direction of motion. Lengths perpendicular to the motion (the light clock's mirror separation from lesson 1) are completely unaffected, which is exactly the assumption that made lesson 1's derivation valid in the first place.
+  </div>
+
+  <h2 id="relativity-of-simultaneity">Relativity of simultaneity</h2>
+  <p>Einstein's own version of this thought experiment: a train moves past a platform at speed <code>v</code>. Lightning strikes both ends of the train at once — <em>simultaneously, in the platform's frame</em>. A platform observer standing exactly halfway between the two strike points sees both flashes arrive at the same instant, confirming they were simultaneous for them.</p>
+  <p>Now consider an observer sitting at the train's midpoint. By postulate 2, light from each flash reaches them at speed <code>c</code> — but the train observer is moving <em>toward</em> the flash at the front and <em>away from</em> the flash at the rear. The front flash's light has less distance to cover to catch up with the moving observer; the rear flash's light has more. The train observer therefore sees the front flash first, and concludes — correctly, in their own frame — that the front strike happened <em>before</em> the rear strike. Two inertial observers, both applying the same postulates correctly, disagree about which of two events happened first.</p>
+  <div class="callout warn">
+    <strong>What this does and doesn't break</strong>
+    This isn't a limitation of measurement or a trick of light delay that a "true" simultaneity lurks behind — there is no frame-independent fact about whether the two strikes were simultaneous. "At the same time" is only ever meaningful relative to a chosen frame, for events happening at different places. (Events at the <em>same</em> place have a frame-independent time order — nothing here threatens that.) What it emphatically does not do is let anyone send a signal or a cause backward in time; see the <a href="#light-cone">light cone</a> section below for exactly which event pairs this reordering can and can't happen to.
+  </div>
+
+  <h2 id="lorentz-transformation">One transformation, all three effects</h2>
+  <p>Time dilation, length contraction, and relativity of simultaneity aren't three separate rules to memorize — they're three shadows of a single linear map between two frames' coordinates, the <strong id="lorentz-boost">Lorentz boost</strong>. For a boost along the x-axis at speed <code>v</code> (β = v/c, γ as before):</p>
+  <pre><code>ct' = γ(ct − βx)
+ x' = γ(x − βct)</code></pre>
+  <p>or, if the linear-algebra framing helps more than the two separate lines do, as a matrix acting on the coordinate vector (ct, x):</p>
+  <pre><code>| ct' |   | γ   −γβ | | ct |
+|  x' | = | −γβ   γ | |  x |</code></pre>
+  <p>This is worth comparing directly to a Galilean (Newtonian) boost, <code>t' = t, x' = x − vt</code> — notice the Galilean version leaves time completely alone, which is exactly the assumption special relativity throws out. Setting <code>Δx = 0</code> in the boost above (two events at the same place) recovers time dilation; setting <code>Δt = 0</code> (two events "simultaneous," i.e. same t, in the unprimed frame) gives <code>Δt' = −γβΔx/c ≠ 0</code> whenever <code>Δx ≠ 0</code> — relativity of simultaneity, in one line. Length contraction takes slightly more bookkeeping (tracking the ship's endpoints at equal <code>t'</code>, not equal <code>t</code>) but comes out of the same two equations.</p>
+  <div class="callout">
+    <strong>Worked example: quantifying the train-and-lightning case</strong>
+    <p style="margin-bottom:.6rem;">Take two lightning strikes simultaneous in the platform frame S (Δt = 0), 300 m apart (Δx = 300 m), and a train moving at β = 0.6 (γ = 1.25, from <a href="0001-postulates-special-relativity-time-dilation.html">lesson 1</a>'s exercise).</p>
+    <pre><code>Δt' = γ(Δt − βΔx/c) = 1.25 × (0 − 0.6×300/(3×10⁸))
+    = 1.25 × (−6×10⁻⁷ s) = −7.5×10⁻⁷ s = −750 ns</code></pre>
+    <p style="margin-top:.6rem; margin-bottom:0;">In the train's frame, the two strikes are separated by 750 nanoseconds — not simultaneous at all — with the sign showing the far (in the direction of motion) strike registering first. 750 ns sounds tiny, but it's a real, measured-in-principle effect, not a rounding error: it's what postulate 2 demands once Δx ≠ 0.</p>
+  </div>
+
+  <h2 id="spacetime-diagrams">Reading a spacetime (Minkowski) diagram</h2>
+  <p>Plot time up the vertical axis (conventionally as <code>ct</code>, so it has units of distance like the horizontal axis) and one space dimension along the horizontal axis. Every object traces a curve through this picture called its <strong id="worldline">worldline</strong> — its entire history of where it was at every moment, all at once, in one static picture:</p>
+  <ul>
+    <li>An object at rest traces a <strong>vertical</strong> line (position fixed, time advancing).</li>
+    <li>An object moving at constant velocity traces a <strong>straight, tilted</strong> line — the faster it moves, the closer to horizontal the tilt.</li>
+    <li>A light pulse, moving at exactly <code>c</code>, traces a line at exactly <strong>45°</strong> — this is why plotting <code>ct</code> instead of bare <code>t</code> is the standard convention: it makes light's worldline slope exactly 1 in every diagram, regardless of what units you're using.</li>
+  </ul>
+  <p>A boost to a different inertial frame doesn't redraw the diagram — it <em>tilts the axes</em>. The Lorentz transformation above rotates the <code>ct'</code> and <code>x'</code> axes toward each other (toward the 45° light line, symmetrically) rather than rotating them like ordinary Euclidean axes; this is the geometric picture behind relativity of simultaneity — a line of "constant t" (simultaneity, in one frame) is a different line, at a different tilt, than a line of "constant t'" (simultaneity, in the boosted frame).</p>
+
+  <h2 id="light-cone">The light cone, and what stays absolute</h2>
+  <p>From any single event (a point on the diagram — one place, one time), draw the two 45° lines representing light emitted from it in both directions. In a full 3+1-dimensional picture these form actual cones, opening into the future and into the past — the <strong id="light-cone-def">future light cone</strong> and <strong id="past-light-cone">past light cone</strong> of that event. This structure sorts every other event in spacetime into exactly one of three relationships to the original event, and — unlike simultaneity — this sorting is the same in every frame:</p>
+  <ul>
+    <li><strong id="timelike">Timelike separated</strong>: inside the light cone. One event could cause the other (a signal slower than light can connect them). Their time order is the same in every frame — no boost can reverse it.</li>
+    <li><strong id="spacelike">Spacelike separated</strong>: outside the light cone. No signal, not even light, can connect them. Their time order genuinely depends on the observer's frame — exactly the train-and-lightning pair above, which is why reordering them broke nothing: neither strike could possibly have caused the other anyway.</li>
+    <li><strong id="lightlike">Lightlike separated</strong>: exactly on the cone — connectable only by light itself.</li>
+  </ul>
+  <div class="callout warn">
+    <strong>Why causality survives relativity of simultaneity</strong>
+    The reason nobody can use a fast enough spaceship to make an effect precede its cause is exactly this classification: if E1 causes E2, they're timelike (or lightlike) separated by definition — a causal influence has to travel between them at or below <code>c</code>. And timelike order is frame-invariant. Relativity of simultaneity only ever reorders <em>spacelike</em>-separated pairs, which by construction can't be causally related in the first place. This is the actual content behind "relativity doesn't let you violate causality," stated precisely instead of as a slogan.
+  </div>
+  <p>The invariant way to say all this algebraically: define the <strong id="invariant-interval">spacetime interval</strong> between two events as <code>Δs² = (cΔt)² − Δx²</code>. Unlike Δt or Δx separately, Δs² has the same value in <em>every</em> inertial frame — it's the one thing every observer agrees on, playing the role for spacetime that ordinary distance plays for space alone. Its sign gives you the classification directly: <code>Δs² > 0</code> is timelike, <code>Δs² < 0</code> is spacelike, <code>Δs² = 0</code> is lightlike. (Check it on the train-and-lightning pair: Δt = 0, Δx = 300 m, so Δs² = −(300 m)² &lt; 0 — spacelike, confirming causality was never at risk.) This same invariant quantity reappears, barely disguised, as the core of <a href="0003-e-equals-mc-squared-four-momentum.html#four-momentum">lesson 3</a>'s four-momentum.</p>
+
+  <div class="callout">
+    <strong>Worked example: the muon, seen from its own frame</strong>
+    <p style="margin-bottom:.6rem;"><a href="0001-postulates-special-relativity-time-dilation.html">Lesson 1</a> explained the cosmic-ray muon's survival using time dilation, from Earth's frame. Length contraction gives the exact same experimental prediction from the muon's own frame — a good consistency check on both effects at once.</p>
+    <pre><code>Atmosphere depth, proper length in Earth's frame:   L₀ = 15,000 m
+Muon's Lorentz factor (from lesson 1, β = 0.9998):  γ ≈ 50.0
+
+Contracted atmosphere depth, in the muon's frame:
+  L = L₀/γ = 15,000 / 50.0 ≈ 300 m
+
+Distance the muon can cover in its own (proper) lifetime, own frame:
+  d = v·τ₀ = 0.9998 × (3×10⁸ m/s) × (2.2×10⁻⁶ s) ≈ 660 m</code></pre>
+    <p style="margin-top:.6rem; margin-bottom:0;">In the muon's own frame it never has to survive 15 km at all — the atmosphere is length-contracted down to about 300 m, well inside the ~660 m it can cover before decaying. Earth-frame observers explain the same detected muons via time dilation (the muon's clock runs slow); the muon's own frame explains them via length contraction (the trip is short). Both are correct, in their own frame — this is what it means for the two effects to be two faces of one underlying fact rather than two independent coincidences.</p>
+  </div>
+
+  <h2>Try it: timelike, spacelike, or lightlike?</h2>
+  <p>For each pair of events, classify the separation using Δs² = (cΔt)² − Δx².</p>
+  <div id="interval-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. A ship has proper length L₀ = 100 m and flies past you at γ = 2. How long do you measure the ship to be?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','That would be the ship expanding, but length contraction always shrinks a moving object along its direction of motion (L = L₀/γ, and γ ≥ 1) — it never stretches it.')">200 m — moving objects appear longer</button>
+        <button onclick="quizAnswer(this,true,'q1','Right — L = L₀/γ = 100/2 = 50 m. The ship\'s length, along its direction of motion, contracts by exactly the Lorentz factor.')">50 m — the ship's length contracts by the Lorentz factor</button>
+        <button onclick="quizAnswer(this,false,'q1','100 m is the proper length L₀, measured in the ship\'s own rest frame — an observer watching it move measures a shorter length, not the same one.')">100 m — length is unaffected by motion, only time is</button>
+        <button onclick="quizAnswer(this,false,'q1','Length contraction only affects the dimension along the direction of motion — it isn\'t a uniform shrink in every direction, so there\'s no meaningful "volume divided by γ²" here.')">It depends on the ship's width and height too, not just its length</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Two events are simultaneous (Δt = 0) in your frame but happen at different locations (Δx ≠ 0). In a frame moving relative to yours, are they still simultaneous?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Simultaneity for events at different locations is frame-dependent, not frame-independent — the boosted Δt\' = γ(Δt − βΔx/c) is generally nonzero even when Δt = 0, precisely because Δx ≠ 0.')">Yes — simultaneity is always frame-independent</button>
+        <button onclick="quizAnswer(this,true,'q2','Right — with Δt = 0 and Δx ≠ 0, the Lorentz transformation gives Δt\' = γ(0 − βΔx/c) = −γβΔx/c ≠ 0, so the two events are not simultaneous in the boosted frame.')">No — Δt' = γ(0 − βΔx/c) ≠ 0 whenever Δx ≠ 0, so a different frame generally disagrees</button>
+        <button onclick="quizAnswer(this,false,'q2','Only if the events happen at the same location does simultaneity survive a boost trivially (both Δt and Δx are 0). Here Δx ≠ 0 is explicitly given, so this condition doesn\'t apply.')">Only if the two events also happen at exactly the same location</button>
+        <button onclick="quizAnswer(this,false,'q2','This has nothing to do with the speed of light reaching an observer late — it\'s a genuine disagreement about which coordinate time each event has, built into the Lorentz transformation itself, not a light-travel-time illusion.')">It depends only on how far away the observer watching is standing</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. On a spacetime diagram (ct vertical, x horizontal), what does a light pulse's worldline look like?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','A vertical line represents an object at rest (fixed position as time advances) — light is never at rest, it moves at c in every frame.')">A vertical line</button>
+        <button onclick="quizAnswer(this,false,'q3','A horizontal line would mean covering distance in zero time — infinite speed. Light moves at the finite speed c, not instantaneously.')">A horizontal line</button>
+        <button onclick="quizAnswer(this,true,'q3','Right — plotting ct instead of bare t is exactly why: with that convention, anything moving at c traces a line at exactly 45°, in every frame, which is what makes the light cone construction work.')">A straight line at exactly 45°</button>
+        <button onclick="quizAnswer(this,false,'q3','Worldlines on a spacetime diagram are drawn for constant-velocity, non-accelerating motion in this lesson\'s examples — light moving at constant c traces a straight line, not a curve.')">A curved line, since light bends under its own energy</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Why can relativity of simultaneity reorder the two lightning strikes in the train example without allowing any violation of cause and effect?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','It\'s the opposite — the two strikes are spacelike separated precisely because Δt = 0 while Δx ≠ 0, which gives Δs² = −Δx² < 0.')">Because the two strikes are timelike separated, so their order doesn't matter</button>
+        <button onclick="quizAnswer(this,true,'q4','Right — the two strikes are spacelike separated (Δs² < 0), meaning no signal, causal or otherwise, could connect them at or below light speed. Only spacelike pairs ever have their order flipped by a boost; timelike order is frame-invariant, which is exactly what protects causality.')">Because the two strikes are spacelike separated, so neither could possibly have caused the other — only spacelike order is frame-dependent</button>
+        <button onclick="quizAnswer(this,false,'q4','Boosts can and do change the order of spacelike-separated event pairs — that\'s exactly what the worked 750 ns example showed. What they can\'t do is reorder timelike pairs.')">Because boosts never actually change the order of any pair of events</button>
+        <button onclick="quizAnswer(this,false,'q4','Causality isn\'t protected by an assumption about who\'s watching — it\'s protected by the frame-invariant classification into timelike vs. spacelike separation, which follows directly from Δs² having the same sign in every frame.')">Because causality is simply assumed to hold, independent of the geometry</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>By hand: take two events with Δt = 2×10⁻⁶ s and Δx = 1000 m. Compute Δs² and classify the separation. Then pick a boost speed (any β you like) and use the Lorentz transformation to compute Δt' and Δx' in the boosted frame, and recompute Δs² there — confirm it comes out to the same number, even though Δt' and Δx' individually don't match Δt and Δx. That invariance is the property <a href="0003-e-equals-mc-squared-four-momentum.html">lesson 3</a> leans on directly.</p>
+
+  <h2>Primary resource</h2>
+  <p>See Leonard Susskind &amp; Art Friedman's <a href="https://theoreticalminimum.com/courses/special-relativity-and-electrodynamics/2012/spring" target="_blank">Special Relativity and Electrodynamics</a> (Stanford Continuing Studies, free lecture videos and companion book), which builds the Lorentz transformation and spacetime-diagram picture from exactly this postulates-first, linear-algebra-comfortable starting point.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Spacetime diagrams click faster once you've drawn a few by hand — ask Claude Code to describe (or render as an SVG) a specific scenario's diagram, tilted axes and all, for any pair of events or worldlines you're curious about.
+  </div>
+
+  <div class="nav">
+    <a href="0001-postulates-special-relativity-time-dilation.html">← Lesson 1: The Postulates of Special Relativity &amp; Time Dilation</a>
+    <span class="spacer"></span>
+    <a href="0003-e-equals-mc-squared-four-momentum.html">Lesson 3: E=mc&sup2; and Four-Momentum →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent); }
+.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
+.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
+.mc-fb.good { color: var(--accent); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const INTERVAL_ITEMS = [
+  {
+    english: 'Δt = 1×10⁻⁶ s, Δx = 100 m → classify Δs² = (cΔt)² − Δx²',
+    options: [
+      { text: 'Timelike (Δs² > 0)', correct: true, explain: 'Right — cΔt = 300 m > Δx = 100 m, so Δs² = 300² − 100² = 80,000 > 0: timelike. A light signal easily has time to connect these two events.' },
+      { text: 'Spacelike (Δs² < 0)', explain: 'Check the numbers: cΔt = (3×10⁸)(1×10⁻⁶) = 300 m, which is larger than Δx = 100 m, so Δs² = 300² − 100² is positive, not negative — this pair is timelike.' },
+    ],
+  },
+  {
+    english: 'Δt = 0 s, Δx = 50 m → classify Δs²',
+    options: [
+      { text: 'Timelike (Δs² > 0)', explain: 'With Δt = 0, cΔt = 0, so Δs² = 0² − 50² = −2500, which is negative, not positive — this pair is spacelike, like the train-and-lightning example.' },
+      { text: 'Spacelike (Δs² < 0)', correct: true, explain: 'Right — with Δt = 0, Δs² = −Δx² = −2500 < 0. Simultaneous-but-separated events are always spacelike, exactly the train-and-lightning case above.' },
+    ],
+  },
+  {
+    english: 'Δt = 100 ns, Δx = 30 m → classify Δs²',
+    options: [
+      { text: 'Lightlike (Δs² = 0)', correct: true, explain: 'Right — cΔt = (3×10⁸)(100×10⁻⁹) = 30 m, exactly equal to Δx = 30 m, so Δs² = 30² − 30² = 0: lightlike, connectable only by light itself.' },
+      { text: 'Timelike (Δs² > 0)', explain: 'Check the numbers: cΔt = (3×10⁸)(100×10⁻⁹) = 30 m, which exactly equals Δx = 30 m — Δs² = 0 here, the boundary case (lightlike), not strictly positive.' },
+    ],
+  },
+];
+
+const intervalDiv = document.getElementById('interval-exercise');
+INTERVAL_ITEMS.forEach((item, i) => {
+  const cardId = `interval-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  intervalDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>
