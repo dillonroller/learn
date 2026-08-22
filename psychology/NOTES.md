@@ -1,0 +1,7 @@
+# Teaching Notes
+
+- Brand new topic, created 2026-07-18, arrived via a direct question in conversation ("Is psychology related to logic?") rather than a stated life goal — unlike [[../rationality/NOTES.md|Rationality]]'s relationship-focused mission. Watch for the user narrowing or redirecting the mission once they've engaged with actual lesson content.
+- Deliberately scoped to avoid duplicating Rationality's [[../rationality/lessons/0001-cognitive-biases.html|cognitive biases lesson]] — that lesson already covers confirmation bias, motivated reasoning, fundamental attribution error, and availability heuristic from a practical "catch it in the moment" angle. Psychology's job is the underlying research/theory (dual-process theory, the psychology-of-reasoning experimental tradition), not a second bias catalog.
+- User has completed Logic (14 lessons) and Rationality (3 lessons) — comfortable with formal notation, validity/soundness, and the bias vocabulary already. Don't re-teach those; link back to Logic's [[../logic/lessons/0012-informal-fallacies.html|informal fallacies]] and Rationality's cognitive-biases lesson wherever they connect.
+- Same secular, non-political/non-religious example constraint as Logic and Rationality — keep examples in everyday reasoning/consumer-decision territory.
+- Planned 3-lesson arc: (1) dual-process theory + Wason selection task [built], (2) belief bias and why formal training doesn't fully protect against it, (3) the psychological mechanisms behind why informal fallacies persuade, tying directly back to Logic lesson 12.

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 1 — Dual-Process Theory</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Psychology</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 1 of 3 &nbsp;·&nbsp; Psychology &nbsp;·&nbsp; ~25 min</p>
+  <h1>Dual-Process Theory — Why Logic Isn't How We Actually Think</h1>
+  <p><a href="../../logic/lessons/0001-arguments-validity-soundness.html">Logic</a> is <em>normative</em> — it tells you how an argument should be evaluated, independent of who's evaluating it or what it's about. This topic is the <em>descriptive</em> counterpart: how human reasoning actually behaves, measured in real experiments, including all the ways it quietly ignores logic's rules. The gap between the two turns out to be systematic, well-studied, and — once you see the pattern — predictable.</p>
+
+  <div class="callout" id="dual-process-theory">
+    <strong>Dual-process theory — two systems, one mind</strong>
+    Psychologist Daniel Kahneman's research program splits human thought into two modes. <a href="#system-1">System 1</a> is fast, automatic, and effortless — it's what produces an answer before you've consciously "decided" to think about the question at all. <a href="#system-2">System 2</a> is slow, deliberate, and effortful — the mode you switch into for a hard multiplication problem or a formal proof. Most of the time System 1 runs the show, and System 2 only gets engaged when something feels hard enough, surprising enough, or important enough to justify the effort. Formal <a href="../../logic/index.html">Logic</a> is a pure System 2 activity — which is exactly why it doesn't come naturally.
+  </div>
+
+  <div class="callout" id="system-1">
+    <strong>System 1 — fast, automatic, intuitive</strong>
+    Reading a word, sensing that someone's angry from their tone of voice, answering "2 + 2" — these happen instantly, without any sense of effort or of "working it out." System 1 is brilliant at pattern-matching against experience, but it doesn't check its answers against formal rules. It just produces the first answer that pattern-matches, with high confidence, whether or not that answer is actually correct.
+  </div>
+
+  <div class="callout" id="system-2">
+    <strong>System 2 — slow, deliberate, effortful</strong>
+    Multiplying 17 × 24 in your head, filling out a tax form, working through a <a href="../../logic/lessons/0005-natural-deduction.html">natural deduction proof</a> — these require holding several things in working memory at once and consciously checking each step. System 2 is capable of applying real logical rules, but it's slow, effortful, and — critically — <em>lazy</em>. It tends to accept System 1's fast answer rather than doing the work to check it, unless something forces it to engage.
+  </div>
+
+  <h2>The experiment: the Wason selection task</h2>
+  <p>In 1968, Peter Wason ran what's become the single most-replicated experiment in the psychology of reasoning. Here's the abstract version. You're shown four cards. Each has a letter on one side and a number on the other:</p>
+
+  <div class="complexity">
+    <span class="label">Rule:</span> <span class="val">If a card has a vowel on one side, it has an even number on the other side.</span>
+  </div>
+  <p style="font-family: var(--font-ui); font-size: 1.3rem; letter-spacing: .3em; text-align: center; margin: 1.5rem 0;">E &nbsp; K &nbsp; 4 &nbsp; 7</p>
+
+  <div class="callout" id="wason-selection-task">
+    <strong>Wason selection task — which cards must you flip to test the rule?</strong>
+    The logically correct answer is <strong>E and 7</strong>. You must flip <strong>E</strong> because if its back isn't even, the rule is broken — this is straightforward. But you must also flip <strong>7</strong>: if its back is a vowel, the rule is broken too (a vowel with an odd number). Flipping <strong>4</strong> is pointless — the rule never claims <em>only</em> vowels get even numbers, so an even number's other side is unconstrained. That's <a href="../../logic/lessons/0002-propositional-logic-syntax.html#affirming-the-consequent">affirming the consequent</a> in card form. In Wason's original study, only about <strong>10% of people</strong> got this right. Most picked E and 4 — checking only for <em>confirming</em> cases, never trying to falsify the rule. That's the exact pattern behind Rationality's <a href="../../rationality/lessons/0001-cognitive-biases.html#confirmation-bias">confirmation bias</a>, showing up as a live reasoning error rather than just a tendency in belief.
+  </div>
+
+  <h2>Same logic, different content — and everything changes</h2>
+  <p>Here's the part that made this experiment famous rather than just a curiosity. Keep the exact same logical structure — <em>"if P, then Q"</em>, and you must check P and not-Q — but change the cover story to something socially familiar:</p>
+
+  <div class="complexity">
+    <span class="label">Rule:</span> <span class="val">If a person is drinking alcohol, they must be over 21.</span>
+  </div>
+  <p style="font-family: var(--font-ui); font-size: 1.1rem; text-align: center; margin: 1.5rem 0;">Drinking beer &nbsp;·&nbsp; Drinking soda &nbsp;·&nbsp; Age 25 &nbsp;·&nbsp; Age 16</p>
+
+  <div class="callout" id="social-contract-effect">
+    <strong>The content effect — logically identical, psychologically nothing alike</strong>
+    This is the exact same structure as the vowel/number task: check "drinking beer" (the P case) and "age 16" (the not-Q case). But here, roughly <strong>75% of people</strong> get it right — versus ~10% on the abstract version. Nothing about the logic changed. What changed is that this version evokes a familiar <em>social rule</em> — a permission with an obligation attached, the kind of thing humans are evolutionarily and culturally well-practiced at policing for cheaters. Researchers like Leda Cosmides and John Tooby argued this shows humans carry specialized reasoning machinery for social-contract violations that simply doesn't activate for abstract letters and numbers. The lesson: "can people reason logically" is the wrong question. The real finding is that <em>logical competence depends heavily on content</em> — a fact formal logic, by design, has no way to predict.
+  </div>
+
+  <h2>Where this connects back to Logic and Rationality</h2>
+  <p>The abstract Wason task is a real-world demonstration of <a href="../../logic/lessons/0002-propositional-logic-syntax.html#affirming-the-consequent">affirming the consequent</a> and its logical partner, failing to apply the contrapositive — errors <a href="../../logic/index.html">Logic</a> already named and ruled invalid. What psychology adds is the <em>mechanism</em>: people default to System 1's confirmation-seeking pattern-match unless something (like an evoked social-cheating schema) forces System 2 to actually check the falsifying case. That's the same underlying tendency Rationality's <a href="../../rationality/lessons/0001-cognitive-biases.html#confirmation-bias">confirmation bias</a> describes at the level of everyday belief — this lesson shows it operating in a controlled experiment, on a rule with no emotional stakes at all, which is what makes it such strong evidence that the tendency is basic to how minds work, not just a quirk of motivated topics.</p>
+
+  <h2>Try it: which cards do you flip?</h2>
+  <p>Same task, new rules. For each, pick the two cards that actually test the rule.</p>
+  <div id="wason-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. What's the key functional difference between System 1 and System 2?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Both systems can be involved in false or true beliefs — accuracy isn’t what distinguishes them.')">System 1 produces false beliefs; System 2 produces true ones</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — System 1 is fast, automatic, and effortless; System 2 is slow, deliberate, and effortful, and only engages when something demands it.')">System 1 is fast and automatic; System 2 is slow, effortful, and deliberate</button>
+        <button onclick="quizAnswer(this,false,'q1','Formal logic is specifically a System 2 activity — System 1 doesn’t apply logical rules at all.')">System 1 handles formal logic; System 2 handles intuition</button>
+        <button onclick="quizAnswer(this,false,'q1','Both systems operate in everyday life — System 2 isn’t reserved for emergencies, just for effortful tasks.')">System 1 only runs during emergencies; System 2 runs the rest of the time</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. On the abstract vowel/number Wason task, why is flipping the "4" card pointless?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','The rule says nothing about numbers determining letters — it only constrains what vowels require, not what even numbers require.')">Because the rule says even numbers must have vowels on the back</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — the rule only constrains what a vowel requires (an even number); it places no constraint on what an even number\'s other side must be, so checking 4 can\'t possibly reveal a violation.')">Because the rule never claims only vowels get even numbers — an even number's other side is unconstrained</button>
+        <button onclick="quizAnswer(this,false,'q2','4 is even, so this isn’t about a card being too rare to matter — it’s that checking it structurally cannot reveal a rule violation.')">Because 4 is a rare card that doesn't appear often in the deck</button>
+        <button onclick="quizAnswer(this,false,'q2','Whether 4 is “boring” isn’t the reason — it’s that the rule’s logical structure makes the check uninformative regardless of how the number feels.')">Because people find even numbers less interesting than odd ones</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Why do most people solve the "drinking age" version of the task so much more easily than the abstract vowel/number version?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','The logical structure is identical between versions — if it were simpler, that would show up as a difference in the rule\'s form, not just its topic.')">Because the drinking-age rule has a logically simpler structure</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — the drinking-age version evokes a familiar social-permission/obligation schema (checking for rule violators), which activates a kind of reasoning people are well-practiced at, even though the underlying logic is identical to the abstract version.')">Because it evokes a familiar social-contract / cheater-detection schema, even though the logic is identical</button>
+        <button onclick="quizAnswer(this,false,'q3','Formal logic training isn’t what\'s driving the difference here — most untrained participants show this same gap, which is precisely what makes it a content effect rather than a training effect.')">Because most participants have had formal logic training on legal rules</button>
+        <button onclick="quizAnswer(this,false,'q3','The cards being easier to physically flip isn’t a real variable in this experiment — both versions use the same four-card format.')">Because the cards are easier to physically flip in that version</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. How does the abstract Wason task's typical wrong answer (picking E and 4) relate to Rationality's confirmation bias?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','E and 4 aren’t unrelated to the rule — they’re exactly the cases that could only ever confirm it, never falsify it, which is the connection to confirmation bias.')">It's unrelated — Wason's task is about logic, confirmation bias is about beliefs</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — picking E and 4 means checking only for cases that could confirm the rule, while ignoring 7, the one card that could actually falsify it. That’s confirmation bias operating as a live reasoning error, not just a belief tendency.')">Picking E and 4 means only checking for confirming cases, exactly like confirmation bias's asymmetry toward confirming evidence</button>
+        <button onclick="quizAnswer(this,false,'q4','This isn’t about attributing behavior to character vs. circumstance — that’s the fundamental attribution error, a different bias entirely.')">Picking E and 4 shows the fundamental attribution error at work</button>
+        <button onclick="quizAnswer(this,false,'q4','No vivid or memorable example is involved in a card task — that’s the availability heuristic, a different mechanism.')">Picking E and 4 shows the availability heuristic at work</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Find one "if P, then Q" rule you encounter in ordinary life this week — a policy at work, a rule in a game, a claim someone makes. Before accepting it, ask yourself which two things you'd need to check to actually test it (the P case, and the not-Q case) — not just which two things would confirm it if true. Noticing the pull toward only checking confirming cases <em>is</em> the skill this lesson is teaching.</p>
+
+  <h2>Primary resource</h2>
+  <p>See the <a href="https://en.wikipedia.org/wiki/Wason_selection_task" target="_blank">Wikipedia overview of the Wason selection task</a> for the full experimental literature and the major theoretical explanations (including the social-contract account), and <a href="https://en.wikipedia.org/wiki/Thinking,_Fast_and_Slow" target="_blank">Kahneman's <em>Thinking, Fast and Slow</em></a> for the dual-process framework this lesson builds on.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Not sure why a particular card choice is wrong, or want to work through a new rule together? Describe it to Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="../index.html">← Psychology home</a>
+    <span class="spacer"></span>
+    <a href="../index.html#lesson-02">Lesson 2: Belief Bias →</a>
+  </div>
+
+</div>
+
+<style>
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card { background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: var(--bg-sunken); color: var(--ink); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
+  font-family: var(--font-ui); cursor: pointer;
+}
+.mc-options button:hover { border-color: var(--accent-border); }
+.mc-options button.correct { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-strong); }
+.mc-options button.wrong { background: var(--err-lt); border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: var(--font-ui); }
+.mc-fb.good { color: var(--accent-strong); }
+.mc-fb.bad { color: var(--err); }
+</style>
+
+<script>
+const WASON_ITEMS = [
+  {
+    english: 'Rule: "If a shape is a triangle, its background is red." Cards showing: Triangle · Circle · Red · Blue.',
+    options: [
+      { text: 'Triangle and Circle', explain: 'Circle is irrelevant — the rule constrains triangles, not circles, so checking a circle can\'t reveal a violation either way.' },
+      { text: 'Triangle and Blue', correct: true, explain: 'Right — check Triangle (its back must be red) and Blue (its front must not be a triangle, since a blue-backed triangle would break the rule).' },
+      { text: 'Red and Blue', explain: 'The rule never claims only triangles get red backgrounds, so checking Red is uninformative — and checking Red instead of Triangle misses the one card that could confirm-or-break the rule from the "if" side.' },
+    ],
+  },
+  {
+    english: 'Rule: "If a document is marked confidential, it has a red stamp." Cards showing: Marked confidential · Not marked · Red stamp · No stamp.',
+    options: [
+      { text: 'Marked confidential and No stamp', correct: true, explain: 'Right — check that the confidential document really has a stamp, and check that the unstamped document isn\'t secretly marked confidential.' },
+      { text: 'Marked confidential and Red stamp', explain: 'Checking the stamped document doesn\'t test anything — the rule doesn\'t say only confidential documents get stamps, so an already-stamped document tells you nothing new.' },
+      { text: 'Not marked and Red stamp', explain: 'Neither of these cards can reveal a violation: an unmarked document is unconstrained by the rule, and a stamped document\'s "marked" status isn\'t restricted by it either.' },
+    ],
+  },
+  {
+    english: 'Rule: "If you\'re entering the lab, you must be wearing safety goggles." People shown: Entering the lab · Leaving the lab · Wearing goggles · Not wearing goggles.',
+    options: [
+      { text: 'Entering the lab and Not wearing goggles', correct: true, explain: 'Right — check the person entering the lab (they must have goggles on) and the person without goggles (they must not be entering the lab).' },
+      { text: 'Entering the lab and Wearing goggles', explain: 'The person already wearing goggles doesn\'t test the rule — the rule doesn\'t claim only lab-enterers wear goggles, so this case is uninformative.' },
+      { text: 'Leaving the lab and Wearing goggles', explain: 'Someone leaving the lab isn\'t constrained by this rule at all, and someone already wearing goggles can\'t reveal a violation either — neither card can falsify the rule.' },
+    ],
+  },
+];
+
+const wasonDiv = document.getElementById('wason-exercise');
+WASON_ITEMS.forEach((item, i) => {
+  const cardId = `wason-card-${i}`;
+  const card = document.createElement('div');
+  card.className = 'mc-card';
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="mc-formula"><span class="en">${item.english}</span></div>
+    <div class="mc-options">
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+    </div>
+    <div class="mc-fb"></div>
+  `;
+  wasonDiv.appendChild(card);
+});
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>
