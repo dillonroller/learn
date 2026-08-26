@@ -69,8 +69,11 @@
     <div class="ref-row"><span>Why</span><span>All 4 legs share one rigid body; one leg's correction shifts load on the other three, which then "correct" into a growing sway — an emergent whole-body effect, not a per-joint bug</span></div>
     <div class="ref-row"><span><code>KI=6</code> (shipped)</span><span>Converged cleanly, reproducible: <code>max_joint_error</code> ≈ 0.028 rad over multiple fresh-sim runs</span></div>
     <div class="ref-row"><span>What that does <em>not</em> prove</span><span>The controller is still 12 independent joint loops — nothing tracks CoM or the support polygon. It holds this one symmetric, pre-balanced pose; it is not a general balance controller.</span></div>
-    <div class="ref-row"><span>Source</span><span><a href="https://github.com/dillonroller/robot-feasibility-framework/blob/main/scripts/run_stand_mission.py" target="_blank"><code>run_stand_mission.py</code></a>'s own docstring (full tuning history) and <a href="https://github.com/dillonroller/robot-feasibility-framework/blob/main/examples/stand-mission-report-tuned.json" target="_blank">stand-mission-report-tuned.json</a></span></div>
+    <div class="ref-row"><span>Source</span><span><code>run_stand_mission.py</code>'s own tuning-history docstring and the captured <code>stand-mission-report-tuned.json</code> mission report</span></div>
   </div>
+  <pre><code>KI=20: WORSE than no integral at all (error grew to ~0.29 rad), oscillated.
+KI=6, 35s hold (final): reproducible over 3 fresh-sim runs,
+  max joint error 0.0280, 0.0281, 0.0281 rad.</code></pre>
 
   <div class="callout">
     <strong>Primary sources</strong>

@@ -81,7 +81,14 @@
     <div class="ref-row cols-2"><span>Gains (current)</span><span>same <code>KP=60, KD=5</code>, plus <code>KI=6.0</code> integral gain feeding the <code>tau</code> feedforward field (clamped &plusmn;15 N&middot;m); integral resets to 0 when the ramp ends</span></div>
     <div class="ref-row cols-2"><span>Result (current)</span><span>mission completed &mdash; max joint error &asymp;<code>0.028</code> rad, verified reproducible over 3 fresh-sim runs</span></div>
   </div>
-  <p style="font-size:.85rem; color:var(--muted);">Source (private repo): <a href="https://github.com/dillonroller/robot-feasibility-framework/blob/main/examples/stand-mission-report.json" target="_blank">stand-mission-report.json</a> / <a href="https://github.com/dillonroller/robot-feasibility-framework/blob/main/examples/stand-mission-report-tuned.json" target="_blank">stand-mission-report-tuned.json</a> &mdash; see also the tuning history in <a href="https://github.com/dillonroller/robot-feasibility-framework/blob/main/scripts/run_stand_mission.py" target="_blank"><code>run_stand_mission.py</code></a>'s own docstring.</p>
+  <pre><code>// original run: stand-mission-report.json
+{ "step": "ramp_to_stand_pose", "status": "failed", "max_joint_error": 0.18121 }
+{ "step": "hold_stand_pose",    "status": "failed", "max_joint_error": 0.16856 }
+
+// tuned run: stand-mission-report-tuned.json
+{ "step": "ramp_to_stand_pose", "status": "failed",    "max_joint_error": 0.14374 }
+{ "step": "hold_stand_pose",    "status": "completed", "max_joint_error": 0.02800 }</code></pre>
+  <p style="font-size:.85rem; color:var(--muted);">Source: the reference project's captured mission-report JSON and <code>run_stand_mission.py</code>'s own tuning-history docstring.</p>
 
   <p style="font-size:.85rem; color:var(--muted);">The original numbers are still worth keeping: they're the honest baseline this whole lesson is built on &mdash; the point where raising Kp/Kd alone runs into a hard limit, and where adding <em>something</em> beyond pure PD (feedforward or integral) becomes necessary.</p>
 

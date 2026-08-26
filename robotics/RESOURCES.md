@@ -21,7 +21,10 @@
   Unitree's own official "stand up" example — uses the identical
   `Kp = 60.0, Kd = 5.0` that the source project's script started from.
 
-- The source project's `scripts/run_stand_mission.py` (private repo — read its docstring directly)
+- The source project's `scripts/run_stand_mission.py` (private repo — not
+  linked; relevant excerpts of its docstring and command loop are quoted
+  directly in Lesson 4 and the PD-control/locomotion-balance cheatsheets so
+  the lessons don't depend on external access to that repo)
   The script itself documents its own tuning history in prose (KI=0 droop →
   KI=20 makes things worse → KI=6 verified over 3 runs), including a real
   "one clean run isn't evidence" incident.
@@ -77,7 +80,8 @@
 
 - [Zhao, Peña Queralta & Westerlund, "Sim-to-Real Transfer in Deep RL for Robotics: a Survey" (arXiv:2009.13303)](https://arxiv.org/abs/2009.13303)
   Primary source for the sim-to-real gap as a named, studied problem.
-- The source project's own architecture and telemetry-contract docs (private repo)
+- The source project's own architecture and telemetry-contract docs (private
+  repo — not linked; quoted verbatim in the sim-to-real cheatsheet instead)
   Quoted directly — that project's own stated verification thesis.
 
 ## Gaps

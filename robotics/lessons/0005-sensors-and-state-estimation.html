@@ -64,7 +64,12 @@
   </div>
 
   <h2>Practice before next lesson</h2>
-  <p>Open a captured telemetry sample — <a href="https://github.com/dillonroller/robot-feasibility-framework/blob/main/examples/stand-mission-log-tuned.jsonl" target="_blank">stand-mission-log-tuned.jsonl</a> — and find one raw/estimated pair yourself (e.g. compare a joint's <code>q</code> across two consecutive samples to its commanded target). Ask: is the gap you see consistent with sensor noise, or with a real tracking lag? That distinction is the whole skill this lesson is building.</p>
+  <p>Here are four real, consecutive <code>telemetry_sample</code> readings of the same joint (rear-right hip, target <code>0.0</code> rad) from a captured hold phase:</p>
+  <pre><code>t_hold=0.001  q=-0.1437  max_error=0.1437
+t_hold=3.075  q=-0.1132  max_error=0.1132
+t_hold=6.136  q=-0.1094  max_error=0.1094
+t_hold=9.194  q=-0.0851  max_error=0.0853</code></pre>
+  <p>Is that gap consistent with sensor noise, or with a real tracking lag? Notice it doesn't jitter around one value — it moves steadily in one direction, sample after sample. Sensor noise looks like scatter around the true value; this looks like the integral term (Lesson 4) slowly discovering the right feedforward torque. That distinction is the whole skill this lesson is building.</p>
 
   <div class="quiz">
     <h3>Check your understanding</h3>

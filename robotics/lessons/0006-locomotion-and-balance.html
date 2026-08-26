@@ -20,7 +20,9 @@
 
   <div class="callout warn">
     <strong>Real data: looked upright, still failed</strong>
-    The first captured <code>stand_up</code> run (<a href="https://github.com/dillonroller/robot-feasibility-framework/blob/main/examples/stand-mission-report.json" target="_blank">stand-mission-report.json</a>) aborted: the rear-right hip settled 0.181 rad short of target (Lesson 4). But its IMU quaternion (Lesson 1) showed the torso only a few degrees off level — nearly upright. Two different claims: "the torso orientation looks fine" and "every joint reached its commanded target" can disagree, because <code>run_stand_mission.py</code>'s controller only ever checks the second one, per joint, in isolation.
+    The first captured <code>stand_up</code> run aborted: the rear-right hip settled 0.181 rad short of target (Lesson 4). But its captured IMU quaternion (Lesson 1) told a different story:
+    <pre><code>imu_quat = [0.99985, -0.0000213, -0.01756, -0.0000564]  # [w, x, y, z]</code></pre>
+    <code>w &asymp; 0.9998</code> is nearly the identity quaternion &mdash; the torso was only a couple of degrees off level, nearly upright. Two different claims: "the torso orientation looks fine" and "every joint reached its commanded target" can disagree, because <code>run_stand_mission.py</code>'s controller only ever checks the second one, per joint, in isolation.
   </div>
 
   <h2 id="stable">What "stable" actually means</h2>
@@ -34,9 +36,15 @@
 
   <div class="callout">
     <strong>A real instance of this, from this project's own tuning log</strong>
-    When the script's author (see <a href="https://github.com/dillonroller/robot-feasibility-framework/blob/main/scripts/run_stand_mission.py" target="_blank"><code>run_stand_mission.py</code></a>'s docstring) first added an integral term to fix the steady-state droop, they tried <code>KI=20</code>. Every joint's own PID math was still individually correct — but the result was <em>worse</em> than no integral term at all: error grew to ~0.29 rad and the robot oscillated. Why: the four legs aren't 12 independent systems: they're 12 loops sharing one rigid body standing on the ground. A small correction from one leg shifts how much weight the other three feet carry, which shifts what <em>their</em> error looks like, which they then "correct," which shifts the first leg's load again. Every individual loop was tuned fine in isolation; the emergent, whole-robot behavior still went unstable. That's balance coupling, showing up as a real bug, not a hypothetical.
-    <br><br>
-    The eventual fix (<code>KI=6</code>, resetting the integral when the ramp ends) got the <em>hold</em> phase to converge cleanly — 0.028 rad, reproducible over multiple runs (<a href="https://github.com/dillonroller/robot-feasibility-framework/blob/main/examples/stand-mission-report-tuned.json" target="_blank">stand-mission-report-tuned.json</a>). Worth being precise about what that does and doesn't prove: it shows 12 well-tuned per-joint loops <em>can</em> hold this one specific, symmetric, already-balanced pose. It's still not a balance controller — nothing in it tracks the center of mass or the support polygon. Push the robot sideways, or ask it to reach a pose where the support polygon actually matters, and there's still nothing watching for that.
+    When the script's author first added an integral term to fix the steady-state droop, they tried <code>KI=20</code>. Every joint's own PID math was still individually correct — but the result was <em>worse</em> than no integral term at all: error grew to ~0.29 rad and the robot oscillated. Why: the four legs aren't 12 independent systems: they're 12 loops sharing one rigid body standing on the ground. A small correction from one leg shifts how much weight the other three feet carry, which shifts what <em>their</em> error looks like, which they then "correct," which shifts the first leg's load again. Every individual loop was tuned fine in isolation; the emergent, whole-robot behavior still went unstable. That's balance coupling, showing up as a real bug, not a hypothetical. From the script's own tuning-history docstring:
+    <pre><code>KI=20, integral active during the ramp too: WORSE than no integral at all
+  (error grew to ~0.29 rad) and oscillated. Two bugs compounded: the ramp's
+  transient tracking-lag error got integrated as if it were a real
+  disturbance ... and 20 is just too high a gain for this coupled,
+  four-legs-on-the-ground system.
+KI=6, 35s hold (final): verified reproducible over 3 consecutive fresh-sim
+  runs: max joint error 0.0280, 0.0281, 0.0281 rad.</code></pre>
+    The eventual fix (<code>KI=6</code>, resetting the integral when the ramp ends) got the <em>hold</em> phase to converge cleanly — 0.028 rad, reproducible over multiple runs. Worth being precise about what that does and doesn't prove: it shows 12 well-tuned per-joint loops <em>can</em> hold this one specific, symmetric, already-balanced pose. It's still not a balance controller — nothing in it tracks the center of mass or the support polygon. Push the robot sideways, or ask it to reach a pose where the support polygon actually matters, and there's still nothing watching for that.
   </div>
 
   <h2 id="walking">Why walking is the same problem, continuously</h2>
