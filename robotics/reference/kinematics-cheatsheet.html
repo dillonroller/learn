@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reference — Robot Kinematics Cheat Sheet</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    body { font-size: 16px; }
+    .page { max-width: 780px; }
+    h2 { margin-top: 2rem; }
+    table { border-collapse: collapse; width: 100%; margin: .75rem 0 1.25rem; font-size: .85rem; }
+    th, td { text-align: left; padding: .5rem .7rem; border-bottom: 1px solid var(--border); }
+    th { font-family: var(--font-ui); font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Robotics</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Reference &nbsp;·&nbsp; Robotics &nbsp;·&nbsp; from <a href="../lessons/0003-robot-kinematics-basics.html">Lesson 3</a></p>
+  <h1>Robot Kinematics Cheat Sheet</h1>
+  <p>Joints, links, DOF, and the Go2's real joint layout — compressed from Lesson 3.</p>
+
+  <h2>Vocabulary</h2>
+  <table>
+    <thead><tr><th>Term</th><th>Definition</th></tr></thead>
+    <tbody>
+      <tr><td>Link</td><td>A rigid segment of the robot's body — doesn't bend.</td></tr>
+      <tr><td>Joint</td><td>A connection between two links that allows relative motion. Every Go2 joint is <strong>revolute</strong> (rotates around one fixed axis).</td></tr>
+      <tr><td>Degree of freedom (DOF)</td><td>One independent way something can move. One revolute joint = one rotational DOF.</td></tr>
+      <tr><td>Kinematic chain</td><td>A sequence of links connected by joints, one after another — each Go2 leg is a 3-joint chain.</td></tr>
+      <tr><td>Floating base</td><td>The 6 unactuated DOF (3 translation + 3 rotation) any free rigid body has in 3D — here, the robot's own trunk.</td></tr>
+      <tr><td>Forward kinematics</td><td>Joint angles &rarr; end-effector (foot) position. The easy direction.</td></tr>
+      <tr><td>Inverse kinematics</td><td>End-effector position &rarr; joint angles. The hard direction — not covered in Lesson 3.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>The Go2's real joint layout (verified from <code>go2.xml</code>)</h2>
+  <table>
+    <thead><tr><th>Joint</th><th>Rotation axis</th><th>Motion</th><th>Range (rad / deg)</th></tr></thead>
+    <tbody>
+      <tr><td><code>*_hip_joint</code></td><td>front-back (X)</td><td>abduction/adduction (sideways swing)</td><td>-1.047 to 1.047 / -60&deg; to 60&deg;</td></tr>
+      <tr><td><code>*_thigh_joint</code></td><td>left-right (Y)</td><td>pitch (fore-aft swing)</td><td>front legs: -1.571 to 3.491 / -90&deg; to 200&deg;</td></tr>
+      <tr><td><code>*_calf_joint</code></td><td>left-right (Y), same as thigh</td><td>pitch (knee bend)</td><td>-2.723 to -0.838 / -156&deg; to -48&deg;</td></tr>
+    </tbody>
+  </table>
+  <p>Thigh and calf share a rotation axis, so a single 2D side view can show both. Hip rotates around a different axis and cannot be shown correctly in that same flat view.</p>
+
+  <h2>DOF accounting</h2>
+  <table>
+    <tbody>
+      <tr><td>Per leg</td><td>3 joints &times; 1 DOF each = 3 DOF</td></tr>
+      <tr><td>All 4 legs</td><td>4 &times; 3 = <strong>12 actuated DOF</strong></td></tr>
+      <tr><td>Floating base (the trunk itself)</td><td><strong>6 unactuated DOF</strong> (3 translation + 3 rotation) — not driven by any motor</td></tr>
+      <tr><td>Whole robot</td><td><strong>18 total DOF</strong>, 12 commandable</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Real <code>motor_state[0..11]</code> index order</h2>
+  <p>Verified from <code>go2.xml</code>'s <code>&lt;sensor&gt;</code> block (the order that actually determines DDS index order via the MuJoCo→SDK bridge) — <strong>not</strong> the order joints are declared in the <code>&lt;actuator&gt;</code>/<code>&lt;worldbody&gt;</code> sections:</p>
+  <table>
+    <thead><tr><th>Indices</th><th>Leg</th></tr></thead>
+    <tbody>
+      <tr><td>0, 1, 2</td><td>Front-right (FR): hip, thigh, calf</td></tr>
+      <tr><td>3, 4, 5</td><td>Front-left (FL): hip, thigh, calf</td></tr>
+      <tr><td>6, 7, 8</td><td>Rear-right (RR): hip, thigh, calf</td></tr>
+      <tr><td>9, 10, 11</td><td>Rear-left (RL): hip, thigh, calf</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn">
+    <strong>Worth remembering</strong>
+    This exact mapping already caused one real mistake in this curriculum — the PD control lesson originally mislabeled index 6 as "front-right" when it's actually rear-right. Double-check against <code>go2.xml</code> before trusting any index-to-leg claim, including this table.
+  </div>
+
+  <h2><code>STAND_POSE</code> (real, from <code>run_stand_mission.py</code>)</h2>
+  <table>
+    <tbody>
+      <tr><td>Per-leg pattern</td><td>hip = <code>0.0</code> rad, thigh = <code>0.67</code> rad (38.4&deg;), calf = <code>-1.3</code> rad (-74.5&deg;)</td></tr>
+      <tr><td>Applied to</td><td>all 4 legs identically, in the FR/FL/RR/RL order above</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>Primary sources</strong>
+    <a href="https://modernrobotics.northwestern.edu/nu-gm-book-resource/2-2-degrees-of-freedom-of-a-robot/" target="_blank">"Degrees of Freedom of a Robot" — Lynch &amp; Park, Modern Robotics</a> ·
+    <a href="https://underactuated.csail.mit.edu/index.html" target="_blank">MIT Underactuated Robotics (Tedrake) — floating-base framing</a>
+  </div>
+
+  <p style="margin-top:2rem; font-size:.8rem; color:var(--muted);">From <a href="../index.html">Robotics</a> — <a href="../lessons/0003-robot-kinematics-basics.html">Lesson 3 (Joints, Links &amp; Degrees of Freedom)</a>.</p>
+
+</div>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

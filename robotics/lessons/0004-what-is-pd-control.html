@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 4 — What Kp and Kd Actually Do</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Robotics</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 4 of 7 &nbsp;·&nbsp; Robotics &nbsp;·&nbsp; ~20 min</p>
+  <h1>What Kp and Kd Actually Do</h1>
+  <p>Zero-background rundown of proportional&ndash;derivative control, using a real Go2 stand-up failure as the running example &mdash; and a toy simulator that reproduces it almost exactly.</p>
+
+  <div class="callout warn">
+    <strong>The real failure that started this</strong>
+    On 2026-08-24, a mission script commanded a simulated Unitree Go2 to ramp all 12 joints to a standing pose over 3 seconds, then hold. It defined its own success bar: every joint within <code>0.05</code> rad of target. It missed &mdash; the rear-right hip joint settled <code>0.181</code> rad short and stayed there. The IMU said the robot looked nearly upright. The mission still failed its own test. That's in <a href="https://github.com/dillonroller/robot-feasibility-framework/blob/main/examples/stand-mission-report.json" target="_blank">examples/stand-mission-report.json</a>, and it's real data, not a made-up example.
+  </div>
+
+  <p>By the end of this lesson you'll know why that 0.181 rad number showed up, and roughly what has to change to make it go away. This lesson is about building the intuition from nothing &mdash; actually editing the script yourself is the natural next step once you're confident here.</p>
+
+  <h2 id="feedback-control">1. Feedback control, the idea underneath everything</h2>
+  <p>Every joint on the Go2 is driven by a controller running roughly 500 times a second, doing the same simple thing each tick: look at where the joint <em>is</em>, compare it to where it's <em>supposed to be</em>, and push proportionally to close that gap. That's the entire idea of <strong>feedback control</strong> &mdash; no different in spirit from a thermostat, which measures room temperature, compares it to the setting, and turns the heat up or down accordingly.</p>
+  <p>Define the <strong>error</strong> as <code>e = desired &minus; actual</code>. Every controller in this lesson is just a different way of turning <code>e</code> (and how fast <code>e</code> is changing) into an output.</p>
+
+  <h2 id="p-term">2. The P term: push proportional to how wrong you are</h2>
+  <p>The simplest possible controller: output a force proportional to the error. Big gap, big push. Small gap, small push. Zero gap, no push. The constant of proportionality is called <strong>Kp</strong> (position gain):</p>
+  <pre><code>push = Kp * (q_desired - q_actual)</code></pre>
+  <p>This behaves exactly like a spring pulling the joint toward its target &mdash; the higher the Kp, the stiffer the spring. That already explains two things that go wrong:</p>
+  <ul>
+    <li><strong>It can overshoot and oscillate.</strong> A spring pulled and released doesn't stop at the target &mdash; it swings past, gets pulled back the other way, and rings back and forth. A P-only controller can do the same.</li>
+    <li><strong>It droops under a steady load.</strong> If something is constantly pushing back &mdash; like gravity pulling a leg down &mdash; the joint settles wherever the spring's pull exactly balances that load, which is <em>short</em> of the actual target. More on this in &sect;4, because it's exactly what happened to the Go2's hip joint.</li>
+  </ul>
+
+  <h2 id="d-term">3. The D term: push against how fast things are changing</h2>
+  <p>To stop the ringing, add a second term that responds not to the error itself, but to <em>velocity</em> &mdash; how fast the joint is already moving. This is <strong>Kd</strong> (velocity gain), and it acts like a shock absorber: the faster the joint moves, the harder Kd pushes back against that motion, dissipating energy instead of storing it like a spring does.</p>
+  <pre><code>push = Kp * (q_desired - q_actual) + Kd * (0 - q_velocity)</code></pre>
+  <p>Put the spring (Kp) and the shock absorber (Kd) together and you have a <strong>PD controller</strong> &mdash; exactly what's running on every one of the Go2's 12 joints. Too little Kd and it rings like an undamped spring; too much and it becomes sluggish, since it's now fighting its own motion even when that motion is headed the right way.</p>
+
+  <div class="callout">
+    <strong>Primary source</strong>
+    This section compresses <a href="https://www.mathworks.com/videos/understanding-pid-control-part-1-what-is-pid-control--1527089264373.html" target="_blank">"What Is PID Control? &mdash; Brian Douglas, MATLAB Tech Talks"</a>, which deliberately skips the math and builds the same P/I/D intuition visually. Ten minutes, worth watching &mdash; it also covers the I (integral) term, which this lesson skips at first to keep the initial pass to just two knobs. (Update below: the real script has since grown an I term of its own.)
+  </div>
+
+  <h2 id="try-it-yourself">4. Try it yourself</h2>
+  <p>Below is a toy version of one Go2 leg joint, obeying the exact same equation the robot's motor firmware runs. It starts at <code>0</code> rad and gets commanded to step straight to <code>0.67</code> rad &mdash; the thigh joint's angle in the real standing pose. A constant load (gravity, fighting to pull the leg back down) is always pushing back with about <code>10.9</code> N&middot;m &mdash; sized so this toy reproduces the real 0.181 rad droop almost exactly at the real gains. It is not a physically exact model of the Go2's leg; it's built to make the numbers line up so the intuition transfers.</p>
+  <p>Try, in order:</p>
+  <ol>
+    <li>Leave Kp and Kd at 0 and press the button. Nothing holds the joint up &mdash; pure gravity.</li>
+    <li>Raise Kp alone (Kd still 0). It moves toward target, but rings &mdash; and settles short.</li>
+    <li>Add some Kd. The ringing damps out. It still settles short.</li>
+    <li>Set Kp = 60, Kd = 5 &mdash; the Go2's actual gains. Compare the settled error to 0.181 rad.</li>
+    <li>Now tick "add gravity feedforward" at Kp=60, Kd=5. Watch the steady error disappear.</li>
+  </ol>
+
+  <div id="sim"></div>
+
+  <div class="callout">
+    <strong>The key insight this demo is built to show</strong>
+    Raising Kp shrinks the steady droop but never zeroes it &mdash; there's always <em>some</em> leftover error needed to generate enough spring force to balance the load. The only way to fully cancel a <em>known, steady</em> load is to add it directly as a feedforward term (<code>tau_ff</code>) instead of asking the position error to supply it indirectly. That's the fourth term in the full control law:
+    <pre><code>tau = Kp*(q_des - q) + Kd*(dq_des - dq) + tau_ff</code></pre>
+    This is exactly the field layout in the Go2's <code>motor_cmd</code> struct (<code>q</code>, <code>dq</code>, <code>kp</code>, <code>kd</code>, <code>tau</code>) &mdash; see <a href="https://dspace.mit.edu/bitstream/handle/1721.1/105580/964525489-MIT.pdf" target="_blank">Ben Katz's MIT thesis</a>, which is where this convention originates for this whole family of legged-robot actuators.
+  </div>
+
+  <h2 id="why-these-gains">5. Why the real robot used Kp=60, Kd=5 at all</h2>
+  <p>These aren't arbitrary. They're copied &mdash; correctly &mdash; from Unitree's own official <a href="https://github.com/unitreerobotics/unitree_sdk2/blob/main/example/go2/go2_stand_example.cpp" target="_blank"><code>go2_stand_example.cpp</code></a>. That makes them a reasonable generic starting point, not gains anyone tuned for this specific ramp-then-hold mission and its <code>0.05</code> rad tolerance. Copying a working example is a completely normal first move &mdash; the goal is to be able to look at the result, understand why it fell short, and adjust it with reasons instead of guesses.</p>
+
+  <div class="callout">
+    <strong>Update &mdash; the real script has since moved past pure PD</strong>
+    This lesson was written against the honest failure captured above. Since then, the mission script gained a third term: a per-joint <strong>integral</strong> gain (<code>KI=6</code>), fed through the same <code>tau</code> feedforward field this lesson's simulator uses. It's the <em>other</em> classic fix for steady-state droop &mdash; instead of you supplying the load torque directly (what the "add feedforward" toggle above does), the integral term accumulates the error over time and discovers whatever feedforward torque cancels the load on its own, with no need to know it in advance. Two things from its tuning history are worth knowing:
+    <ul>
+      <li>An untuned integral (<code>KI=20</code>, active during the ramp too) made things <em>worse</em> than no integral at all &mdash; 0.29 rad error, oscillating. Partly because ramp tracking-lag got integrated as if it were a real disturbance, partly because standing on four legs is a coupled whole-body balance problem, not 12 independent joint loops &mdash; a preview of Lesson 6.</li>
+      <li>An intermediate <code>KI=9</code> converged cleanly on its first run (0.042 rad) &mdash; then oscillated and failed on an identical second run. One successful run wasn't evidence it worked. The final <code>KI=6</code> was verified over 3 consecutive fresh runs before being accepted. That distinction &mdash; a single good run vs. a verified, reproducible one &mdash; is exactly what Lesson 7 (the sim-to-real gap) is about.</li>
+    </ul>
+    Final result: mission completed, max joint error &asymp;0.028 rad over 3 consecutive fresh-sim runs, comfortably under the 0.05 rad tolerance.
+  </div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. In <code>tau = Kp&middot;(q_des &minus; q) + Kd&middot;(q&#775;_des &minus; q&#775;)</code>, which term responds to the current position error?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q1','Right — Kp multiplies the position error (q_des - q) directly. That’s the whole definition of a proportional term.')">The Kp term</button>
+        <button onclick="quizAnswer(this,false,'q1','Kd multiplies the velocity error instead, which is exactly why raising Kd doesn’t fix steady-state droop — it only reacts to motion, not position.')">The Kd term</button>
+        <button onclick="quizAnswer(this,false,'q1','tau_ff is a constant, pre-known torque added directly — it doesn’t respond to the position error at all, which is the whole point of feedforward.')">The tau_ff term</button>
+        <button onclick="quizAnswer(this,false,'q1','dq is the joint’s current velocity, a measured quantity, not a term that responds to position error.')">The dq term</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. The real Go2 hip joint settled 0.18 rad short of target and stayed there. What actually eliminates that steady error?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Raising Kp only shrinks the droop asymptotically — the spring still needs some leftover error to generate enough force to balance the load. It gets smaller, never zero.')">Raising Kp further</button>
+        <button onclick="quizAnswer(this,false,'q2','Kd reacts to velocity, not position — it changes how the joint gets to its resting point, not where that resting point is under a constant load.')">Raising Kd further</button>
+        <button onclick="quizAnswer(this,true,'q2','Right — feedforward (or, as the update above shows, an integral term that discovers the same thing) supplies the load’s torque directly, so the position error doesn’t have to.')">Adding feedforward torque</button>
+        <button onclick="quizAnswer(this,false,'q2','Lowering Kd makes the response more oscillatory (or slower to settle), but doesn’t touch the final resting error under a steady load at all.')">Lowering Kd further</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. What does raising Kd mainly change in the joint's response?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right — Kd damps velocity, so it mainly controls ringing/overshoot on the way to the target.')">Oscillation and overshoot</button>
+        <button onclick="quizAnswer(this,false,'q3','Kd doesn’t change where the joint settles once it stops moving — that’s governed by Kp and any feedforward/integral term, not damping.')">Final resting error</button>
+        <button onclick="quizAnswer(this,false,'q3','The commanded target angle is set by whatever mission code calls the controller — Kd has no influence over what target is requested.')">Commanded target angle</button>
+        <button onclick="quizAnswer(this,false,'q3','Kd is a control gain, a tuning parameter — it doesn’t change the joint’s actual physical inertia.')">Total joint inertia</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Take these real captured numbers (Kp=60, Kd=5, 0.181 rad droop on the rear-right hip) and, if you have <code>unitree_mujoco</code> running, try editing <a href="https://github.com/dillonroller/robot-feasibility-framework/blob/main/scripts/run_stand_mission.py" target="_blank"><code>run_stand_mission.py</code></a> yourself &mdash; raise Kp, then try adding a feedforward term &mdash; and see how the real captured error changes. Compare it against what the update box above says actually shipped.</p>
+
+  <h2>Primary resource</h2>
+  <p>Watch <a href="https://www.mathworks.com/videos/understanding-pid-control-part-1-what-is-pid-control--1527089264373.html" target="_blank">"What Is PID Control? &mdash; Brian Douglas, MATLAB Tech Talks"</a> for the fuller P/I/D picture, and read <a href="https://dspace.mit.edu/bitstream/handle/1721.1/105580/964525489-MIT.pdf" target="_blank">Ben Katz's MIT thesis</a> for where the feedforward-torque convention in the Go2's own command interface comes from.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Good questions right now: "why does gravity feedforward need to be constant instead of also scaling with something?", or "what would happen if Kd were negative?"
+  </div>
+
+  <div class="nav">
+    <a href="0003-robot-kinematics-basics.html">&larr; Lesson 3: Robot Kinematics</a>
+    <span class="spacer"></span>
+    <a href="0005-sensors-and-state-estimation.html">Lesson 5: Sensors &amp; State Estimation &rarr;</a>
+  </div>
+
+</div>
+
+<style>
+.pdsim {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+  margin: 1.5rem 0;
+}
+.pdsim-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 0.8rem;
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+}
+.pdsim-slider { display: flex; flex-direction: column; gap: 0.25rem; min-width: 190px; }
+.pdsim-slider input[type="range"] { width: 100%; }
+.pdsim-ff { display: flex; align-items: center; gap: 0.4rem; }
+.pdsim-run {
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  font-weight: 600;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.9rem;
+  cursor: pointer;
+}
+.pdsim-run:hover { background: var(--accent-strong); }
+.pdsim-canvas { width: 100%; max-width: 640px; height: auto; background: var(--bg); border-radius: var(--radius-sm); display: block; }
+.pdsim-readout { font-family: var(--font-ui); font-size: 0.88rem; margin-top: 0.6rem; color: var(--muted); }
+.pdsim-good { color: var(--accent-strong); font-weight: 600; }
+.pdsim-bad { color: var(--err); font-weight: 600; }
+</style>
+
+<script>
+// ── PD simulator (single-joint step response), ported inline from pd-sim.js ──
+(function () {
+  const cfg = {
+    targetAngle: 0.67,
+    tauLoad: 10.9,
+    inertia: 1.5,
+    naturalDamping: 0.2,
+    kpMax: 120,
+    kdMax: 30,
+    durationSeconds: 6,
+    tolerance: 0.05,
+  };
+
+  const container = document.getElementById('sim');
+  container.innerHTML = `
+    <div class="pdsim">
+      <div class="pdsim-controls">
+        <label class="pdsim-slider">
+          <span>Kp <b class="pdsim-kp-val">0</b> N&middot;m/rad</span>
+          <input type="range" class="pdsim-kp" min="0" max="${cfg.kpMax}" step="1" value="0">
+        </label>
+        <label class="pdsim-slider">
+          <span>Kd <b class="pdsim-kd-val">0.0</b> N&middot;m/(rad/s)</span>
+          <input type="range" class="pdsim-kd" min="0" max="${cfg.kdMax}" step="0.5" value="0">
+        </label>
+        <label class="pdsim-ff">
+          <input type="checkbox" class="pdsim-ff-toggle">
+          add gravity feedforward (tau_ff = ${cfg.tauLoad.toFixed(1)} N&middot;m)
+        </label>
+        <button class="pdsim-run" type="button">Command stand (step to ${cfg.targetAngle.toFixed(2)} rad)</button>
+      </div>
+      <canvas class="pdsim-canvas" width="640" height="260"></canvas>
+      <div class="pdsim-readout">Move Kp above 0 and press the button.</div>
+    </div>
+  `;
+
+  const kpSlider = container.querySelector(".pdsim-kp");
+  const kdSlider = container.querySelector(".pdsim-kd");
+  const kpVal = container.querySelector(".pdsim-kp-val");
+  const kdVal = container.querySelector(".pdsim-kd-val");
+  const ffToggle = container.querySelector(".pdsim-ff-toggle");
+  const runBtn = container.querySelector(".pdsim-run");
+  const canvas = container.querySelector(".pdsim-canvas");
+  const readout = container.querySelector(".pdsim-readout");
+  const ctx = canvas.getContext("2d");
+
+  kpSlider.addEventListener("input", () => (kpVal.textContent = kpSlider.value));
+  kdSlider.addEventListener("input", () => (kdVal.textContent = parseFloat(kdSlider.value).toFixed(1)));
+
+  let raf = null;
+
+  function draw(history, done) {
+    const w = canvas.width, h = canvas.height;
+    const padL = 46, padR = 12, padT = 16, padB = 28;
+    const plotW = w - padL - padR, plotH = h - padT - padB;
+    ctx.clearRect(0, 0, w, h);
+
+    const style = getComputedStyle(document.documentElement);
+    const ink = style.getPropertyValue("--muted").trim() || "#7c848a";
+    const accent = style.getPropertyValue("--accent").trim() || "#4fae7d";
+    const rule = style.getPropertyValue("--border").trim() || "#262c30";
+
+    const yMax = Math.max(cfg.targetAngle * 1.4, 0.9);
+    const yMin = -1.0;
+    const xMax = cfg.durationSeconds;
+
+    function px(t) { return padL + (t / xMax) * plotW; }
+    function py(q) { return padT + plotH - ((q - yMin) / (yMax - yMin)) * plotH; }
+
+    ctx.strokeStyle = rule;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(padL, padT, plotW, plotH);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(padL, padT, plotW, plotH);
+    ctx.clip();
+
+    ctx.setLineDash([5, 4]);
+    ctx.strokeStyle = ink;
+    ctx.beginPath();
+    ctx.moveTo(px(0), py(cfg.targetAngle));
+    ctx.lineTo(px(xMax), py(cfg.targetAngle));
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = ink;
+    ctx.globalAlpha = 0.08;
+    ctx.fillRect(px(0), py(cfg.targetAngle + cfg.tolerance), plotW, py(cfg.targetAngle - cfg.tolerance) - py(cfg.targetAngle + cfg.tolerance));
+    ctx.globalAlpha = 1;
+
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    history.forEach((pt, i) => {
+      const x = px(pt.t), y = py(pt.q);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.fillStyle = ink;
+    ctx.font = "11px -apple-system, sans-serif";
+    ctx.fillText("angle (rad)", 4, 12);
+    ctx.fillText("0s", padL - 6, h - 8);
+    ctx.fillText(xMax + "s", w - padR - 16, h - 8);
+    ctx.fillText("target " + cfg.targetAngle.toFixed(2), px(xMax) - 90, py(cfg.targetAngle) - 6);
+
+    if (done) {
+      const last = history[history.length - 1];
+      const err = cfg.targetAngle - last.q;
+      const settled = Math.abs(err) < 0.005 ? "no measurable error" : `steady error of ${err.toFixed(3)} rad`;
+      const verdict = Math.abs(err) <= cfg.tolerance
+        ? `<span class="pdsim-good">within the ${cfg.tolerance} rad tolerance</span>`
+        : `<span class="pdsim-bad">outside the ${cfg.tolerance} rad tolerance</span>`;
+      readout.innerHTML = `Kp=${kpSlider.value}, Kd=${parseFloat(kdSlider.value).toFixed(1)}` +
+        (ffToggle.checked ? ", feedforward on" : "") +
+        ` &rarr; settled with ${settled} — ${verdict}.`;
+    }
+  }
+
+  function run() {
+    if (raf) cancelAnimationFrame(raf);
+    const Kp = parseFloat(kpSlider.value);
+    const Kd = parseFloat(kdSlider.value);
+    const ff = ffToggle.checked ? cfg.tauLoad : 0;
+    const dt = 1 / 120;
+    let q = 0, qd = 0, t = 0;
+    const history = [{ t: 0, q: 0 }];
+    readout.textContent = "Running...";
+
+    function step() {
+      for (let i = 0; i < 4 && t < cfg.durationSeconds; i++) {
+        const qdd = (Kp * (cfg.targetAngle - q) + Kd * (0 - qd) - cfg.naturalDamping * qd - cfg.tauLoad + ff) / cfg.inertia;
+        qd += qdd * dt;
+        q += qd * dt;
+        t += dt;
+        history.push({ t, q });
+      }
+      const done = t >= cfg.durationSeconds;
+      draw(history, done);
+      if (!done) raf = requestAnimationFrame(step);
+    }
+    step();
+  }
+
+  runBtn.addEventListener("click", run);
+  draw([{ t: 0, q: 0 }], false);
+})();
+</script>
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

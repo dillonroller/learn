@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 6 — Why Standing Up Is Already Hard</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Robotics</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 6 of 7 &nbsp;·&nbsp; Robotics &nbsp;·&nbsp; ~15 min</p>
+  <h1>Why Standing Up Is Already Hard</h1>
+  <p>Twelve joints each hitting their target angle is not the same claim as "the robot is stably standing." This lesson is about the gap between those two things — using a real bug this project already hit.</p>
+
+  <div class="callout warn">
+    <strong>Real data: looked upright, still failed</strong>
+    The first captured <code>stand_up</code> run (<a href="https://github.com/dillonroller/robot-feasibility-framework/blob/main/examples/stand-mission-report.json" target="_blank">stand-mission-report.json</a>) aborted: the rear-right hip settled 0.181 rad short of target (Lesson 4). But its IMU quaternion (Lesson 1) showed the torso only a few degrees off level — nearly upright. Two different claims: "the torso orientation looks fine" and "every joint reached its commanded target" can disagree, because <code>run_stand_mission.py</code>'s controller only ever checks the second one, per joint, in isolation.
+  </div>
+
+  <h2 id="stable">What "stable" actually means</h2>
+  <p>For a robot standing still, the classical test is simple to state: take the robot's <strong>center of mass</strong> (roughly, the average position of all its mass, torso plus legs) and drop a line straight down to the ground. Draw the <strong>support polygon</strong> — the shape formed by connecting the feet currently touching the ground. If that dropped point lands inside the support polygon, gravity's pull is balanced by the ground pushing back through the feet, and the robot stays up. If it lands outside, gravity produces a net torque that nothing is countering, and the robot tips.</p>
+  <p>This is the standard definition used across the legged-robotics literature — see the primary source below for where to read it more rigorously. For a robot standing on four feet, the support polygon is (roughly) the quadrilateral connecting all four foot positions, which is why standing on four legs is comfortably stable and standing on two is not: the polygon is bigger, and it's much harder to push the center of mass outside it by accident.</p>
+
+  <div id="balance"></div>
+
+  <h2 id="doesnt-guarantee">Why hitting 12 target angles doesn't guarantee this</h2>
+  <p><code>run_stand_mission.py</code>'s controller (Lesson 4) is 12 independent PD-plus-integral loops, one per joint. Each loop only ever asks "is <em>my</em> angle close to <em>my</em> target?" None of them ever compute where the center of mass actually is, or check it against the support polygon. It's entirely possible for every joint to be exactly on target and for the resulting whole-body pose to still be off-balance — or, as the real log shows, for the joints to be <em>off</em> target while the torso still happens to look level. Joint tracking and whole-body balance are different quantities; a controller that only watches one of them can't promise the other.</p>
+
+  <div class="callout">
+    <strong>A real instance of this, from this project's own tuning log</strong>
+    When the script's author (see <a href="https://github.com/dillonroller/robot-feasibility-framework/blob/main/scripts/run_stand_mission.py" target="_blank"><code>run_stand_mission.py</code></a>'s docstring) first added an integral term to fix the steady-state droop, they tried <code>KI=20</code>. Every joint's own PID math was still individually correct — but the result was <em>worse</em> than no integral term at all: error grew to ~0.29 rad and the robot oscillated. Why: the four legs aren't 12 independent systems: they're 12 loops sharing one rigid body standing on the ground. A small correction from one leg shifts how much weight the other three feet carry, which shifts what <em>their</em> error looks like, which they then "correct," which shifts the first leg's load again. Every individual loop was tuned fine in isolation; the emergent, whole-robot behavior still went unstable. That's balance coupling, showing up as a real bug, not a hypothetical.
+    <br><br>
+    The eventual fix (<code>KI=6</code>, resetting the integral when the ramp ends) got the <em>hold</em> phase to converge cleanly — 0.028 rad, reproducible over multiple runs (<a href="https://github.com/dillonroller/robot-feasibility-framework/blob/main/examples/stand-mission-report-tuned.json" target="_blank">stand-mission-report-tuned.json</a>). Worth being precise about what that does and doesn't prove: it shows 12 well-tuned per-joint loops <em>can</em> hold this one specific, symmetric, already-balanced pose. It's still not a balance controller — nothing in it tracks the center of mass or the support polygon. Push the robot sideways, or ask it to reach a pose where the support polygon actually matters, and there's still nothing watching for that.
+  </div>
+
+  <h2 id="walking">Why walking is the same problem, continuously</h2>
+  <p>Standing still is a <em>static</em> balance problem: one fixed support polygon (four feet down), hold the center of mass inside it, forever. Walking is the same underlying rule applied while the support polygon itself keeps changing shape — every time a foot lifts off to swing forward, the polygon shrinks to whatever feet are still down, and the center of mass has to already be positioned (or actively moving) to stay inside <em>that</em> smaller, temporary shape before the foot lands again. This is exactly the sequencing this project's own Unitree learning-path notes treat as a separate, later milestone from "get a robot standing" — not a matter of degree, a qualitatively different control problem: static balance at one pose vs. continuous balance across a moving sequence of poses.</p>
+  <p>A common first model for that continuous version treats the whole robot as a single point mass on a massless pendulum at constant height — the <strong>Linear Inverted Pendulum Model (LIPM)</strong> — because it makes the center-of-mass trajectory solvable in closed form, which is exactly what you need to plan where the CoM must be, moment to moment, as the support polygon keeps changing under it. See the primary source below if you want to see it used in real gait-planning research; this lesson only needs you to know it exists and why.</p>
+
+  <h2>Primary resource</h2>
+  <p><a href="https://underactuated.mit.edu/humanoids.html" target="_blank">"Ch. 5 — Highly-Articulated Legged Robots," MIT's <em>Underactuated Robotics</em></a> (Russ Tedrake, freely available) is the rigorous version of the section above — it frames the same "keep something inside the convex hull of ground contacts" rule in terms of the <em>center of pressure</em>/zero-moment point rather than plain center of mass, which is the more general form real controllers use once the robot is moving (not just standing still). For a standing, motionless robot the two framings agree. For LIPM specifically: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7916107/" target="_blank">Li, Xie, Luo &amp; Li, "Trajectory Planning of Flexible Walking for Biped Robots Using LIPM and LPM," <em>Sensors</em> 2021 (open access)</a>.</p>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. The first captured stand_up run had a nearly-level IMU reading but still failed. Why doesn't a level IMU alone prove the robot is stably standing?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q1','Right — the IMU reports orientation (tilt), not joint positions or center-of-mass location. A robot can have a level torso while individual joints, and therefore its actual limb geometry, are off from the intended stance.')">It only reports torso tilt, not joint angles or center of mass</button>
+        <button onclick="quizAnswer(this,false,'q1','The IMU has nothing to do with battery charge — it's an inertial sensor reporting orientation and motion, not power state.')">It only reports battery charge</button>
+        <button onclick="quizAnswer(this,false,'q1','Foot-force sensing is a separate sensor entirely; the IMU doesn't read ground contact force.')">It only reports foot contact force</button>
+        <button onclick="quizAnswer(this,false,'q1','Network delay isn't something an IMU measures — that's a DDS/transport-layer concern, unrelated to this sensor.')">It only reports network delay</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. In the KI=20 tuning incident, every individual joint's PID math was correct, yet the whole robot oscillated. What does that show?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right — 12 individually well-tuned loops still went unstable together, because each leg\'s correction physically shifts the load the other three legs carry: a coupling no single joint\'s controller can see.')">Balance is a whole-body property, not a per-joint one</button>
+        <button onclick="quizAnswer(this,false,'q2','The incident was reproduced across identical hardware/sim conditions with only the gain changed — nothing points to a broken IMU.')">The IMU sensor was broken</button>
+        <button onclick="quizAnswer(this,false,'q2','Quaternion scalar order is a Lesson 1 topic and unrelated to this integral-gain tuning story.')">The quaternion order was wrong</button>
+        <button onclick="quizAnswer(this,false,'q2','The DDS topic names (rt/lowcmd, rt/lowstate) were unchanged throughout this tuning history — that's not what caused the oscillation.')">The DDS topic was misnamed</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. What's the key structural difference between standing and walking, in terms of the support polygon?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right — standing holds one fixed support polygon indefinitely. Walking continuously shrinks and reshapes it as feet lift and land, so the center of mass has to be actively managed, not just placed once.')">Walking's polygon keeps changing shape as feet lift and land</button>
+        <button onclick="quizAnswer(this,false,'q3','Polygon size isn\'t the distinguishing factor here — a stationary quadruped\'s polygon doesn\'t change size at all while standing; the real difference is whether it changes shape over time.')">Walking simply uses a bigger polygon</button>
+        <button onclick="quizAnswer(this,false,'q3','Standing still has a support polygon too — it's just fixed, formed by whichever feet are on the ground.')">Standing has no support polygon at all</button>
+        <button onclick="quizAnswer(this,false,'q3','A quadruped can stand stably on three or even two feet with a smaller polygon — four feet just makes the margin larger, it isn't a requirement.')">Standing requires exactly four feet down</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Good questions right now: "what would it actually take to add center-of-mass feedback to <code>run_stand_mission.py</code>?", or "why does a wider stance make standing easier, concretely?"
+  </div>
+
+  <div class="nav">
+    <a href="0005-sensors-and-state-estimation.html">← Lesson 5: Sensors &amp; State Estimation</a>
+    <span class="spacer"></span>
+    <a href="0007-sim-to-real-gap.html">Lesson 7: The Sim-to-Real Gap →</a>
+  </div>
+
+</div>
+
+<style>
+.balancesim {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+  margin: 1.5rem 0;
+}
+.balancesim-controls {
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  margin-bottom: 0.6rem;
+}
+.balancesim-slider { display: flex; flex-direction: column; gap: 0.3rem; }
+.balancesim-slider input[type="range"] { width: 100%; }
+.balancesim-canvas {
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  display: block;
+}
+.balancesim-readout {
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  margin-top: 0.6rem;
+  color: var(--muted);
+}
+.balancesim-good { color: var(--accent-strong); font-weight: 600; }
+.balancesim-bad { color: var(--err); font-weight: 600; }
+</style>
+
+<script>
+(function () {
+  function mount(container, opts) {
+    const cfg = Object.assign({ supportHalfWidth: 70 }, opts);
+
+    container.innerHTML = `
+      <div class="balancesim">
+        <div class="balancesim-controls">
+          <label class="balancesim-slider">
+            <span>Shift center of mass: <b class="balancesim-val">0</b></span>
+            <input type="range" class="balancesim-range" min="-140" max="140" step="1" value="0">
+          </label>
+        </div>
+        <canvas class="balancesim-canvas" width="640" height="220"></canvas>
+        <div class="balancesim-readout"></div>
+      </div>
+    `;
+
+    const range = container.querySelector(".balancesim-range");
+    const valLabel = container.querySelector(".balancesim-val");
+    const canvas = container.querySelector(".balancesim-canvas");
+    const readout = container.querySelector(".balancesim-readout");
+    const ctx = canvas.getContext("2d");
+
+    function draw() {
+      const shift = parseFloat(range.value);
+      valLabel.textContent = shift.toFixed(0);
+
+      const w = canvas.width, h = canvas.height;
+      const cx = w / 2;
+      const groundY = h - 40;
+      const style = getComputedStyle(document.documentElement);
+      const ink = style.getPropertyValue("--muted").trim() || "#7c848a";
+      const good = style.getPropertyValue("--accent-strong").trim() || "#75d1a1";
+      const bad = style.getPropertyValue("--err").trim() || "#dd6b5d";
+      const rule = style.getPropertyValue("--border").trim() || "#262c30";
+
+      ctx.clearRect(0, 0, w, h);
+
+      ctx.strokeStyle = rule;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(40, groundY);
+      ctx.lineTo(w - 40, groundY);
+      ctx.stroke();
+
+      const frontX = cx - cfg.supportHalfWidth;
+      const rearX = cx + cfg.supportHalfWidth;
+      const stable = shift >= -cfg.supportHalfWidth && shift <= cfg.supportHalfWidth;
+      const color = stable ? good : bad;
+
+      ctx.fillStyle = ink;
+      ctx.globalAlpha = 0.15;
+      ctx.fillRect(frontX, groundY - 4, rearX - frontX, 8);
+      ctx.globalAlpha = 1;
+
+      [frontX, rearX].forEach((fx) => {
+        ctx.fillStyle = ink;
+        ctx.beginPath();
+        ctx.arc(fx, groundY, 6, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.fillStyle = ink;
+      ctx.font = "11px -apple-system, sans-serif";
+      ctx.fillText("front foot", frontX - 30, groundY + 20);
+      ctx.fillText("rear foot", rearX - 25, groundY + 20);
+
+      const comX = cx + shift;
+      const bodyTopY = groundY - 120;
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(cx, groundY);
+      ctx.lineTo(comX, bodyTopY);
+      ctx.stroke();
+
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(comX, bodyTopY, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = ink;
+      ctx.font = "11px -apple-system, sans-serif";
+      ctx.fillText("center of mass", comX - 34, bodyTopY - 16);
+
+      ctx.strokeStyle = color;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(comX, bodyTopY);
+      ctx.lineTo(comX, groundY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      readout.innerHTML = stable
+        ? `<span class="balancesim-good">Stable</span> — the center of mass's ground projection is still between the two feet.`
+        : `<span class="balancesim-bad">Unstable</span> — the projection has moved outside the support base. Nothing is holding this up; gravity now produces a net tipping torque.`;
+    }
+
+    range.addEventListener("input", draw);
+    draw();
+  }
+
+  window.BalanceSim = { mount };
+})();
+
+BalanceSim.mount(document.getElementById('balance'), { supportHalfWidth: 70 });
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

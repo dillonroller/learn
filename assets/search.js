@@ -398,7 +398,56 @@
     { term: 'Discrete Logarithm Problem', kind: 'Definition', topic: 'Cryptography', file: 'cryptography/lessons/0004-diffie-hellman-discrete-log-problem.html', anchor: 'discrete-log-problem', desc: 'The hardness assumption Diffie-Hellman rests on, distinct from factoring.' },
     { term: 'Diffie-Hellman Protocol', kind: 'Algorithm', topic: 'Cryptography', file: 'cryptography/lessons/0004-diffie-hellman-discrete-log-problem.html', anchor: 'diffie-hellman-protocol', desc: 'Two parties agree on a shared secret over a public channel, without ever sending it.' },
 
+    // ── Robotics: lesson-level entries ──
+    { term: 'Position, Orientation, and Why Order Matters', kind: 'Lesson 1', topic: 'Robotics', file: 'robotics/lessons/0001-coordinate-frames-and-orientation.html', desc: 'Pose, quaternions, and a real scalar-first/scalar-last bug in captured telemetry.' },
+    { term: 'Pose', kind: 'Definition', topic: 'Robotics', file: 'robotics/lessons/0001-coordinate-frames-and-orientation.html', anchor: 'pose', desc: 'Position + orientation, relative to some reference frame.' },
+    { term: 'Gimbal Lock', kind: 'Definition', topic: 'Robotics', file: 'robotics/lessons/0001-coordinate-frames-and-orientation.html', anchor: 'why-quaternion', desc: 'Euler-angle singularity that quaternions avoid.' },
+    { term: 'Scalar-First vs Scalar-Last Quaternions', kind: 'Reference', topic: 'Robotics', file: 'robotics/lessons/0001-coordinate-frames-and-orientation.html', anchor: 'scalar-order', desc: 'MuJoCo (w,x,y,z) vs ROS2 (x,y,z,w) — same array, different meaning.', keywords: ['quaternion order', 'wxyz', 'xyzw'] },
+    { term: 'Coordinate Frames & Orientation Cheat Sheet', kind: 'Reference', topic: 'Robotics', file: 'robotics/reference/coordinate-frames-cheatsheet.html', desc: 'Pose, quaternion decoding, scalar order table.' },
+
+    { term: 'DDS, Topics, and Where ROS2 Fits', kind: 'Lesson 2', topic: 'Robotics', file: 'robotics/lessons/0002-dds-pubsub-and-ros2.html', desc: 'Publish/subscribe, domains, and where ROS2 fits on top of raw DDS.' },
+    { term: 'Publish/Subscribe Pattern', kind: 'Definition', topic: 'Robotics', file: 'robotics/lessons/0002-dds-pubsub-and-ros2.html', anchor: 'pubsub-pattern', desc: 'Decoupled messaging — no central broker, no direct references between sender and receiver.' },
+    { term: 'DDS Domain', kind: 'Definition', topic: 'Robotics', file: 'robotics/lessons/0002-dds-pubsub-and-ros2.html', anchor: 'domains', desc: 'Isolation boundary — different domain ids map to different discovery ports.' },
+    { term: 'rt/lowcmd and rt/lowstate', kind: 'Reference', topic: 'Robotics', file: 'robotics/lessons/0002-dds-pubsub-and-ros2.html', anchor: 'try-it', desc: "This project's real DDS topics for commanding and reading the Go2." },
+    { term: 'ROS2 on DDS', kind: 'Definition', topic: 'Robotics', file: 'robotics/lessons/0002-dds-pubsub-and-ros2.html', anchor: 'ros2-fits', desc: 'ROS2 uses DDS/RTPS as its default transport; unitree_ros2 is a bridge, not a new wire format.' },
+
+    { term: 'Joints, Links, and 12 Degrees of Freedom', kind: 'Lesson 3', topic: 'Robotics', file: 'robotics/lessons/0003-robot-kinematics-basics.html', desc: 'What 12 joints, 3 per leg actually means mechanically.' },
+    { term: 'Degree of Freedom (DOF)', kind: 'Definition', topic: 'Robotics', file: 'robotics/lessons/0003-robot-kinematics-basics.html', anchor: 'links-joints-dof', desc: 'One independent way something can move; one revolute joint = one DOF.' },
+    { term: 'Kinematic Chain', kind: 'Definition', topic: 'Robotics', file: 'robotics/lessons/0003-robot-kinematics-basics.html', anchor: 'links-joints-dof', desc: 'A sequence of links connected by joints, one after another.' },
+    { term: 'Go2 Joint Index Mapping (FR/FL/RR/RL)', kind: 'Reference', topic: 'Robotics', file: 'robotics/lessons/0003-robot-kinematics-basics.html', anchor: 'three-joints-per-leg', desc: 'motor_state[0-11] order: FR=0-2, FL=3-5, RR=6-8, RL=9-11.' },
+    { term: 'Floating Base', kind: 'Definition', topic: 'Robotics', file: 'robotics/lessons/0003-robot-kinematics-basics.html', anchor: '18-dof-floating-base', desc: "The robot's own 6 unactuated DOF (3 translation + 3 rotation)." },
+    { term: 'Forward Kinematics', kind: 'Definition', topic: 'Robotics', file: 'robotics/lessons/0003-robot-kinematics-basics.html', anchor: 'forward-kinematics', desc: 'Joint angles → foot position — the easy direction.' },
+
+    { term: 'What Kp and Kd Actually Do', kind: 'Lesson 4', topic: 'Robotics', file: 'robotics/lessons/0004-what-is-pd-control.html', desc: 'Proportional-derivative control from scratch, using a real Go2 stand-up failure.' },
+    { term: 'Feedback Control', kind: 'Definition', topic: 'Robotics', file: 'robotics/lessons/0004-what-is-pd-control.html', anchor: 'feedback-control', desc: 'Comparing actual to desired and pushing proportionally to close the gap.' },
+    { term: 'P Term / Proportional Gain (Kp)', kind: 'Definition', topic: 'Robotics', file: 'robotics/lessons/0004-what-is-pd-control.html', anchor: 'p-term', desc: 'Push proportional to position error — like a spring; droops under steady load.' },
+    { term: 'D Term / Derivative Gain (Kd)', kind: 'Definition', topic: 'Robotics', file: 'robotics/lessons/0004-what-is-pd-control.html', anchor: 'd-term', desc: 'Push proportional to velocity — damps oscillation like a shock absorber.' },
+    { term: 'Feedforward Torque', kind: 'Definition', topic: 'Robotics', file: 'robotics/lessons/0004-what-is-pd-control.html', anchor: 'why-these-gains', desc: 'Supplying a known load directly instead of via position error — the only way to fully zero steady-state droop.' },
+    { term: 'PD Control Cheat Sheet', kind: 'Reference', topic: 'Robotics', file: 'robotics/reference/pd-control-cheatsheet.html', desc: 'Control law, units, and a symptom-to-fix tuning table.' },
+
+    { term: 'What Your Sensors Actually Tell You', kind: 'Lesson 5', topic: 'Robotics', file: 'robotics/lessons/0005-sensors-and-state-estimation.html', desc: "What each sensor answers, why raw isn't ground truth, and the noise/lag trade." },
+    { term: 'Sensor Fusion', kind: 'Definition', topic: 'Robotics', file: 'robotics/lessons/0005-sensors-and-state-estimation.html', anchor: 'gyro-drift', desc: "Combining gyroscope + accelerometer so each covers the other's weak spot." },
+    { term: 'Gyroscope Drift', kind: 'Definition', topic: 'Robotics', file: 'robotics/lessons/0005-sensors-and-state-estimation.html', anchor: 'gyro-drift', desc: 'Bias accumulating under integration over time.' },
+    { term: 'State Estimation', kind: 'Definition', topic: 'Robotics', file: 'robotics/lessons/0005-sensors-and-state-estimation.html', anchor: 'state-estimation', desc: 'Combining imperfect sensor readings into a best guess of the true state.' },
+    { term: 'Noise vs. Lag Trade-off', kind: 'Reference', topic: 'Robotics', file: 'robotics/lessons/0005-sensors-and-state-estimation.html', anchor: 'noise-lag-tradeoff', desc: 'Why no smoothing filter setting gives both zero noise and zero delay.' },
+    { term: 'Sensors & State Estimation Cheat Sheet', kind: 'Reference', topic: 'Robotics', file: 'robotics/reference/sensors-cheatsheet.html', desc: 'Sensor answers, raw vs. estimated fields, key rules of thumb.' },
+
+    { term: 'Why Standing Up Is Already Hard', kind: 'Lesson 6', topic: 'Robotics', file: 'robotics/lessons/0006-locomotion-and-balance.html', desc: '12 correctly-tuned joint loops still went unstable together — balance is whole-body, not per-joint.' },
+    { term: 'Support Polygon', kind: 'Definition', topic: 'Robotics', file: 'robotics/lessons/0006-locomotion-and-balance.html', anchor: 'stable', desc: 'The convex shape formed by connecting the ground-contact points of every planted foot.' },
+    { term: 'Center of Mass Stability Test', kind: 'Definition', topic: 'Robotics', file: 'robotics/lessons/0006-locomotion-and-balance.html', anchor: 'stable', desc: "CoM's ground projection must fall inside the support polygon." },
+    { term: 'Balance Coupling (KI=20 incident)', kind: 'Reference', topic: 'Robotics', file: 'robotics/lessons/0006-locomotion-and-balance.html', anchor: 'doesnt-guarantee', desc: '12 individually correct joint loops went unstable together — a real bug, not hypothetical.' },
+    { term: 'Static vs Dynamic Balance', kind: 'Definition', topic: 'Robotics', file: 'robotics/lessons/0006-locomotion-and-balance.html', anchor: 'walking', desc: 'Standing = one fixed support polygon; walking = continuously reshaping one.' },
+    { term: 'Linear Inverted Pendulum Model (LIPM)', kind: 'Definition', topic: 'Robotics', file: 'robotics/lessons/0006-locomotion-and-balance.html', anchor: 'walking', desc: 'Point-mass-on-a-rod model used to plan CoM trajectory during walking.' },
+    { term: 'Locomotion & Balance Cheat Sheet', kind: 'Reference', topic: 'Robotics', file: 'robotics/reference/locomotion-balance-cheatsheet.html', desc: 'Support polygon, static vs. dynamic balance.' },
+
+    { term: 'The Sim-to-Real Gap', kind: 'Lesson 7', topic: 'Robotics', file: 'robotics/lessons/0007-sim-to-real-gap.html', desc: "MuJoCo approximates, it doesn't replicate — and this project's staged verification answer." },
+    { term: 'Sim-to-Real Gap', kind: 'Definition', topic: 'Robotics', file: 'robotics/lessons/0007-sim-to-real-gap.html', anchor: 'what-a-simulator-is', desc: 'The gap between "works simulated" and "works on the physical robot."' },
+    { term: 'Verification Staging', kind: 'Definition', topic: 'Robotics', file: 'robotics/lessons/0007-sim-to-real-gap.html', anchor: 'verification-not-vibes', desc: 'Simulation → controlled real-hardware trial → field trial.' },
+    { term: 'Concrete Sim-to-Real Divergences', kind: 'Reference', topic: 'Robotics', file: 'robotics/lessons/0007-sim-to-real-gap.html', anchor: 'concrete-divergences', desc: 'Friction, actuator dynamics, sensor noise, latency, power, mechanical wear.' },
+    { term: 'Sim-to-Real Cheat Sheet', kind: 'Reference', topic: 'Robotics', file: 'robotics/reference/sim-to-real-cheatsheet.html', desc: 'MuJoCo approximation table, verification stages, quotable framing.' },
+
     // ── Topic indexes ──
+    { term: 'Robotics (topic home)', kind: 'Topic', topic: 'Robotics', file: 'robotics/index.html', desc: 'All Robotics lessons and reference docs.' },
     { term: 'Logic (topic home)', kind: 'Topic', topic: 'Logic', file: 'logic/index.html', desc: 'All Logic lessons and reference docs.' },
     { term: 'Philosophy (topic home)', kind: 'Topic', topic: 'Philosophy', file: 'philosophy/index.html', desc: 'All Philosophy lessons and reference docs.' },
     { term: 'Rationality (topic home)', kind: 'Topic', topic: 'Rationality', file: 'rationality/index.html', desc: 'All Rationality lessons and reference docs.' },

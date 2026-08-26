@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 5 — What Your Sensors Actually Tell You</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Robotics</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 5 of 7 &nbsp;·&nbsp; Robotics &nbsp;·&nbsp; ~15 min</p>
+  <h1>What Your Sensors Actually Tell You</h1>
+  <p>No sensor hands you ground truth. Every number your code reads is already a best guess, built from something noisier underneath.</p>
+
+  <div class="callout">
+    <strong>Already true in this robot, before any theory</strong>
+    Look at the Go2's own <code>MotorState_</code> struct: it has <code>q</code> <em>and</em> <code>q_raw</code>. Same for <code>dq</code>/<code>dq_raw</code> and <code>ddq</code>/<code>ddq_raw</code>. The firmware itself distinguishes "the raw encoder signal" from "the value we're actually giving you" — because even the simplest sensor on this robot, a joint encoder, doesn't hand your script a clean number straight off the wire. <code>run_stand_mission.py</code> reads <code>motor_state[i].q</code> — the processed value — to check against the stand pose. The real 0.181 rad error from <a href="0004-what-is-pd-control.html">Lesson 4</a> was a disagreement in that processed reading, not a raw wire glitch.
+  </div>
+
+  <h2 id="sensor-types">Three sensors, three different questions answered</h2>
+  <p>The Go2's <code>LowState_</code> message carries several distinct sensor families. Each answers a narrow question — and only that one:</p>
+  <table class="ref-table-simple">
+    <thead><tr><th>Sensor</th><th>Directly measures</th><th>Cannot tell you</th></tr></thead>
+    <tbody>
+      <tr><td>Joint encoder</td><td>This one joint's angle (<code>q</code>) — and angle-over-time gives velocity (<code>dq</code>)</td><td>Anything about the robot's position or tilt in the world</td></tr>
+      <tr><td>IMU — gyroscope</td><td>How fast the body is currently rotating (angular velocity, rad/s)</td><td>Absolute orientation directly — you'd have to integrate it, and that drifts (below)</td></tr>
+      <tr><td>IMU — accelerometer</td><td>Linear acceleration, including gravity's pull</td><td>Orientation cleanly by itself — it's jittery, and can't distinguish "tilted" from "accelerating sideways"</td></tr>
+      <tr><td>Foot-force sensor</td><td>Ground-reaction force at one foot — is it bearing weight right now?</td><td>Anything about joints or orientation — it only knows contact vs. no contact</td></tr>
+    </tbody>
+  </table>
+  <p>Notice none of these, alone, tells you "is the robot standing up correctly?" That's exactly why <code>LowState_</code> reports both <code>foot_force</code> (raw) and <code>foot_force_est</code> (estimated) — the same raw/estimate split as the joint encoders, this time for contact sensing. Foot-force is what tells a leg controller "this foot is on the ground, bear weight" vs. "this foot is mid-swing" — the exact distinction the next lesson (locomotion &amp; balance) depends on.</p>
+
+  <h2 id="gyro-drift">Why you can't just trust the gyroscope</h2>
+  <p>The gyroscope is precise moment-to-moment, so it's tempting to get orientation by just adding up ("integrating") its readings over time. The problem: every real gyroscope has a tiny constant bias — a small reading even when it's perfectly still. Add that same small error up every timestep, and the error doesn't stay small — it grows without bound, the way a barely-off compass heading, followed for miles, lands you far from where you meant to go. <a href="https://www.analog.com/en/resources/analog-dialogue/raqs/raq-issue-139.html" target="_blank">Analog Devices' "The Case of the Misguided Gyro"</a> walks through exactly this failure mode.</p>
+  <p>The accelerometer doesn't drift that way — but on its own it's noisy, and it can't tell "tilted 10°" apart from "accelerating sideways," since gravity and acceleration both just show up as a force. Neither sensor alone is trustworthy for orientation. Combining them — <strong>sensor fusion</strong> — is standard practice specifically because each one covers the other's weak spot: gyroscope for the short term, accelerometer to keep it honest over the long term. The simplest version of this idea is called a <strong>complementary filter</strong>; more capable (and more complex) versions use a <strong>Kalman filter</strong>. Neither is covered in depth here — see the primary source below if you want to go further.</p>
+
+  <div class="callout">
+    <strong>Primary source</strong>
+    <a href="https://www.mathworks.com/help/fusion/ug/estimate-orientation-with-a-complementary-filter-and-imu-data.html" target="_blank">"Estimate Orientation with a Complementary Filter and IMU Data" — MathWorks</a> walks through exactly this gyroscope + accelerometer fusion, at a beginner-appropriate level, from the same trusted documentation family as Lesson 4's PID video.
+  </div>
+
+  <h2 id="state-estimation">State estimation, in one sentence</h2>
+  <p><strong>State estimation</strong> is the general name for "combine imperfect sensor readings into the best available guess of what's actually true right now." The Go2's fused <code>quaternion</code> orientation (from <a href="0001-coordinate-frames-and-orientation.html">Lesson 1</a>) and its processed <code>q</code> joint angles are both products of this — neither is raw sensor data, both are estimates. This reframes something important: when the stand-up mission's IMU looked "nearly upright" while the joint check still failed, that wasn't a contradiction — orientation estimation and joint-angle sensing are two separate estimates, each with their own residual error, and they don't have to agree.</p>
+
+  <h2 id="noise-lag-tradeoff">Try it: noise vs. delay, the fundamental trade</h2>
+  <p>Below, a "sensor" reads a signal that steps to a new value at <code>t=2s</code> and holds — like a joint suddenly commanded to a new angle. The raw trace is noisy every frame. The filtered trace runs a simple smoothing filter (an exponential moving average): each new estimate nudges partway toward the latest raw reading, controlled by <code>alpha</code>.</p>
+  <ol>
+    <li>Set alpha near 1 (barely any smoothing) and run it. Filtered ≈ raw: fast, but jittery.</li>
+    <li>Set alpha near 0.05 (heavy smoothing) and run it. Much smoother — but watch how long it takes to catch up after the step.</li>
+    <li>Try something in between and compare the readout's two numbers.</li>
+  </ol>
+
+  <div id="sim"></div>
+
+  <div class="callout warn">
+    <strong>The trade-off this demo is built to show</strong>
+    There's no free setting that gives you both zero noise and zero delay. More smoothing (lower alpha) rejects more noise but reacts slower to genuine changes — a real, well-known limitation of this class of filter (<a href="https://www.luisllamas.es/en/arduino-exponential-low-pass/" target="_blank">EMA low-pass filtering</a>). Choosing a filter is choosing which failure you'd rather have: a jumpy reading, or a sluggish one.
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Open a captured telemetry sample — <a href="https://github.com/dillonroller/robot-feasibility-framework/blob/main/examples/stand-mission-log-tuned.jsonl" target="_blank">stand-mission-log-tuned.jsonl</a> — and find one raw/estimated pair yourself (e.g. compare a joint's <code>q</code> across two consecutive samples to its commanded target). Ask: is the gap you see consistent with sensor noise, or with a real tracking lag? That distinction is the whole skill this lesson is building.</p>
+
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Why does trusting only the gyroscope for orientation eventually fail?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q1','Right — a tiny constant bias, integrated every timestep, grows without bound. That\'s drift, not a speed problem.')">Small bias accumulates</button>
+        <button onclick="quizAnswer(this,false,'q1','Speed isn\'t the issue — gyroscopes sample plenty fast. The failure is accumulated bias from integrating over time, not update rate.')">Readings are too fast</button>
+        <button onclick="quizAnswer(this,false,'q1','Gyroscopes don\'t measure gravity at all — they measure angular velocity, not linear acceleration. That\'s the accelerometer\'s job.')">It ignores gravity fully</button>
+        <button onclick="quizAnswer(this,false,'q1','A gyroscope actually measures angular velocity, not angle directly — you\'d have to integrate to get angle, which is exactly where the drift comes from.')">It only measures angle</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. What does a foot-force sensor tell you that nothing else in this table does?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right — foot-force is the only sensor here reporting stance vs. swing (ground contact).')">Ground contact state</button>
+        <button onclick="quizAnswer(this,false,'q2','That\'s closer to what the fused IMU quaternion tells you (Lesson 1) — foot-force says nothing about tilt, only ground contact.')">Absolute body tilt</button>
+        <button onclick="quizAnswer(this,false,'q2','That\'s the joint encoder\'s job, not foot-force — foot-force only reports contact vs. no contact.')">Precise joint angle</button>
+        <button onclick="quizAnswer(this,false,'q2','That\'s the gyroscope\'s job — foot-force has nothing to do with rotation, only ground-reaction force.')">Rotational velocity</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. In the filter demo, what does lowering alpha trade away in exchange for less noise?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right — lower alpha means heavier smoothing: less noise in steady state, but slower to catch up when the true value changes.')">Reaction speed</button>
+        <button onclick="quizAnswer(this,false,'q3','The underlying sensor\'s accuracy doesn\'t change — only how quickly the filtered estimate catches up to a real change.')">Sensor accuracy</button>
+        <button onclick="quizAnswer(this,false,'q3','This filter is pure software smoothing on already-collected readings — it doesn\'t touch power draw at all.')">Battery lifetime</button>
+        <button onclick="quizAnswer(this,false,'q3','Alpha is a property of the filter, not the sensor — the encoder\'s own precision is unaffected either way.')">Encoder precision</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Good questions right now: "why does the accelerometer confuse gravity with sideways acceleration?", or "what would a Kalman filter add that a complementary filter doesn't have?"
+  </div>
+
+  <div class="nav">
+    <a href="0004-what-is-pd-control.html">← Lesson 4: PD Control</a>
+    <span class="spacer"></span>
+    <a href="0006-locomotion-and-balance.html">Lesson 6: Locomotion &amp; Balance →</a>
+  </div>
+
+</div>
+
+<style>
+.ref-table-simple { width: 100%; border-collapse: collapse; margin: .75rem 0 1.25rem; font-size: .88rem; }
+.ref-table-simple th, .ref-table-simple td { text-align: left; padding: .5rem .7rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+.ref-table-simple th { font-family: var(--font-ui); font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+
+.noisesim {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+  margin: 1.5rem 0;
+}
+.noisesim-controls {
+  display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;
+  margin-bottom: .8rem; font-family: var(--font-ui); font-size: .88rem;
+}
+.noisesim-slider { display: flex; flex-direction: column; gap: .25rem; min-width: 220px; }
+.noisesim-slider input[type="range"] { width: 100%; }
+.noisesim-run {
+  font-family: var(--font-ui); font-size: .88rem; font-weight: 600;
+  background: var(--accent); color: var(--bg); border: none;
+  border-radius: 6px; padding: .55rem .9rem; cursor: pointer;
+}
+.noisesim-run:hover { background: var(--accent-strong); }
+.noisesim-canvas { width: 100%; max-width: 640px; height: auto; background: var(--bg); border-radius: 6px; display: block; }
+.noisesim-legend { display: flex; gap: 1rem; margin-top: .5rem; font-family: var(--font-ui); font-size: .78rem; color: var(--muted); }
+.noisesim-tag { display: flex; align-items: center; gap: .35rem; }
+.noisesim-tag::before { content: ""; display: inline-block; width: 14px; height: 3px; border-radius: 2px; }
+.noisesim-true::before { background: var(--muted); }
+.noisesim-raw::before { background: var(--amber); }
+.noisesim-filtered::before { background: var(--accent); }
+.noisesim-readout { font-family: var(--font-ui); font-size: .88rem; margin-top: .6rem; color: var(--muted); }
+.noisesim-readout b { color: var(--ink); }
+</style>
+
+<script>
+// ── Noisy signal vs. EMA filter demo ─────────────────────────
+(function () {
+  const cfg = { stepAt: 2, trueBefore: 0, trueAfter: 0.4, noiseStd: 0.06, durationSeconds: 8 };
+
+  function gaussianNoise(std) {
+    let s = 0;
+    for (let i = 0; i < 4; i++) s += Math.random();
+    return (s - 2) * std * 1.2;
+  }
+
+  const container = document.getElementById('sim');
+  container.innerHTML = `
+    <div class="noisesim">
+      <div class="noisesim-controls">
+        <label class="noisesim-slider">
+          <span>Filter strength (alpha) <b class="noisesim-alpha-val">0.15</b></span>
+          <input type="range" class="noisesim-alpha" min="0.02" max="1" step="0.01" value="0.15">
+        </label>
+        <button class="noisesim-run" type="button">Run (signal steps at t=${cfg.stepAt}s)</button>
+      </div>
+      <canvas class="noisesim-canvas" width="640" height="260"></canvas>
+      <div class="noisesim-legend">
+        <span class="noisesim-tag noisesim-true">true signal</span>
+        <span class="noisesim-tag noisesim-raw">raw (noisy)</span>
+        <span class="noisesim-tag noisesim-filtered">filtered (EMA)</span>
+      </div>
+      <div class="noisesim-readout">Set alpha, then press Run.</div>
+    </div>
+  `;
+
+  const alphaSlider = container.querySelector(".noisesim-alpha");
+  const alphaVal = container.querySelector(".noisesim-alpha-val");
+  const runBtn = container.querySelector(".noisesim-run");
+  const canvas = container.querySelector(".noisesim-canvas");
+  const readout = container.querySelector(".noisesim-readout");
+  const ctx = canvas.getContext("2d");
+
+  alphaSlider.addEventListener("input", () => (alphaVal.textContent = parseFloat(alphaSlider.value).toFixed(2)));
+
+  let raf = null;
+
+  function draw(history, done) {
+    const w = canvas.width, h = canvas.height;
+    const padL = 46, padR = 12, padT = 16, padB = 28;
+    const plotW = w - padL - padR, plotH = h - padT - padB;
+    ctx.clearRect(0, 0, w, h);
+
+    const style = getComputedStyle(document.documentElement);
+    const ink = style.getPropertyValue("--muted").trim() || "#7c848a";
+    const accent = style.getPropertyValue("--accent").trim() || "#4fae7d";
+    const rule = style.getPropertyValue("--border").trim() || "#262c30";
+    const amber = style.getPropertyValue("--amber").trim() || "#c9924f";
+
+    const yMax = Math.max(cfg.trueAfter, cfg.trueBefore) + cfg.noiseStd * 3.5;
+    const yMin = Math.min(cfg.trueAfter, cfg.trueBefore) - cfg.noiseStd * 3.5;
+    const xMax = cfg.durationSeconds;
+
+    function px(t) { return padL + (t / xMax) * plotW; }
+    function py(q) { return padT + plotH - ((q - yMin) / (yMax - yMin)) * plotH; }
+
+    ctx.strokeStyle = rule;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(padL, padT, plotW, plotH);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(padL, padT, plotW, plotH);
+    ctx.clip();
+
+    function plot(key, color, width, alphaVal2) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.globalAlpha = alphaVal2;
+      ctx.beginPath();
+      history.forEach((pt, i) => {
+        const x = px(pt.t), y = py(pt[key]);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    plot("raw", amber, 1.3, 0.75);
+    ctx.setLineDash([5, 4]);
+    plot("true", ink, 2, 1);
+    ctx.setLineDash([]);
+    plot("filtered", accent, 2.4, 1);
+
+    ctx.restore();
+
+    ctx.fillStyle = ink;
+    ctx.font = "11px -apple-system, sans-serif";
+    ctx.fillText("reading (rad)", 4, 12);
+    ctx.fillText("0s", padL - 6, h - 8);
+    ctx.fillText(xMax + "s", w - padR - 16, h - 8);
+
+    if (done) {
+      const postStep = history.filter((p) => p.t >= cfg.stepAt);
+      const rawErr = Math.sqrt(postStep.reduce((s, p) => s + (p.raw - p.true) ** 2, 0) / postStep.length);
+      const filtErrTail = postStep.filter((p) => p.t >= cfg.durationSeconds - 2);
+      const filtErr = Math.sqrt(filtErrTail.reduce((s, p) => s + (p.filtered - p.true) ** 2, 0) / filtErrTail.length);
+      const checkT = cfg.stepAt + 0.15;
+      const atCheck = history.reduce((best, p) => (Math.abs(p.t - checkT) < Math.abs(best.t - checkT) ? p : best));
+      const span = cfg.trueAfter - cfg.trueBefore;
+      const pctClosed = span !== 0 ? Math.round(100 * (atCheck.filtered - cfg.trueBefore) / span) : 100;
+      readout.innerHTML =
+        `alpha=${alphaSlider.value} &rarr; raw noise (RMS) <b>${rawErr.toFixed(3)}</b> rad, ` +
+        `filtered noise (RMS, once settled) <b>${filtErr.toFixed(3)}</b> rad. ` +
+        `0.15s after the step, the filtered trace had only closed <b>${pctClosed}%</b> of the gap ` +
+        `— that delay is the cost of the smoothing.`;
+    }
+  }
+
+  function run() {
+    if (raf) cancelAnimationFrame(raf);
+    const alpha = parseFloat(alphaSlider.value);
+    const dt = 1 / 60;
+    let t = 0;
+    let filtered = cfg.trueBefore;
+    const history = [];
+
+    function trueAt(tt) { return tt < cfg.stepAt ? cfg.trueBefore : cfg.trueAfter; }
+
+    readout.textContent = "Running...";
+
+    function step() {
+      for (let i = 0; i < 2 && t < cfg.durationSeconds; i++) {
+        const trueVal = trueAt(t);
+        const raw = trueVal + gaussianNoise(cfg.noiseStd);
+        filtered += alpha * (raw - filtered);
+        history.push({ t, true: trueVal, raw, filtered });
+        t += dt;
+      }
+      const done = t >= cfg.durationSeconds;
+      draw(history, done);
+      if (!done) raf = requestAnimationFrame(step);
+    }
+    step();
+  }
+
+  runBtn.addEventListener("click", run);
+  draw([{ t: 0, true: cfg.trueBefore, raw: cfg.trueBefore, filtered: cfg.trueBefore }], false);
+})();
+</script>
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

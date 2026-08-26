@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Robotics — Lessons</title>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <span class="tn-topic">Robotics</span>
+</nav>
+<div class="page">
+  <div class="topic-header">
+    <p class="lesson-meta" style="margin-bottom:.6rem;">Topic overview</p>
+    <h1><span class="topic-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="8" width="12" height="6" rx="2"/><polyline points="8,14 7.3,16.5 7,19"/><polyline points="16,14 16.7,16.5 17,19"/><line x1="12" y1="8" x2="12" y2="6.3"/><circle cx="12" cy="5.3" r="1" fill="currentColor" stroke="none"/></svg></span>Robotics</h1>
+    <p>First-principles robotics for a real Unitree Go2 project — coordinate frames, kinematics, PD control, sensing, DDS/ROS2, and the sim-to-real gap. Every lesson is grounded in real captured telemetry and real bugs from an actual robot, not synthetic examples.</p>
+  </div>
+
+  <p class="section-label">Reference</p>
+  <div class="lesson-list">
+    <a class="lesson-card" id="reference-coordinate-frames" href="reference/coordinate-frames-cheatsheet.html"><span class="lesson-num">REF</span><div class="lesson-info"><div class="lesson-title">Coordinate Frames &amp; Orientation Cheat Sheet</div><div class="lesson-desc">Pose, quaternion decoding, scalar-order table</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="reference-dds-ros2" href="reference/dds-ros2-cheatsheet.html"><span class="lesson-num">REF</span><div class="lesson-info"><div class="lesson-title">DDS &amp; ROS2 Cheat Sheet</div><div class="lesson-desc">Topics, domains, and this project's real channel names</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="reference-kinematics" href="reference/kinematics-cheatsheet.html"><span class="lesson-num">REF</span><div class="lesson-info"><div class="lesson-title">Robot Kinematics Cheat Sheet</div><div class="lesson-desc">Joint/link/DOF vocabulary and the real index mapping</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="reference-pd-control" href="reference/pd-control-cheatsheet.html"><span class="lesson-num">REF</span><div class="lesson-info"><div class="lesson-title">PD Control Cheat Sheet</div><div class="lesson-desc">Control law, units, and a symptom-to-fix tuning table</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="reference-sensors" href="reference/sensors-cheatsheet.html"><span class="lesson-num">REF</span><div class="lesson-info"><div class="lesson-title">Sensors &amp; State Estimation Cheat Sheet</div><div class="lesson-desc">Sensor answers, raw vs. estimated fields, rules of thumb</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="reference-locomotion-balance" href="reference/locomotion-balance-cheatsheet.html"><span class="lesson-num">REF</span><div class="lesson-info"><div class="lesson-title">Locomotion &amp; Balance Cheat Sheet</div><div class="lesson-desc">Support polygon, static vs. dynamic balance</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="reference-sim-to-real" href="reference/sim-to-real-cheatsheet.html"><span class="lesson-num">REF</span><div class="lesson-info"><div class="lesson-title">Sim-to-Real Cheat Sheet</div><div class="lesson-desc">Approximation table, verification stages, quotable framing</div></div><span class="lesson-arrow">→</span></a>
+  </div>
+
+  <p class="section-label">Lessons</p>
+  <div class="lesson-list">
+    <a class="lesson-card" id="lesson-01" href="lessons/0001-coordinate-frames-and-orientation.html"><span class="lesson-num">01</span><div class="lesson-info"><div class="lesson-title">Position, Orientation, and Why Order Matters</div><div class="lesson-desc">Pose, quaternions, and a real scalar-first vs. scalar-last bug in captured telemetry</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="lesson-02" href="lessons/0002-dds-pubsub-and-ros2.html"><span class="lesson-num">02</span><div class="lesson-info"><div class="lesson-title">DDS, Topics, and Where ROS2 Fits</div><div class="lesson-desc">Topics, domains, and pub/sub — the transport every script already uses</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="lesson-03" href="lessons/0003-robot-kinematics-basics.html"><span class="lesson-num">03</span><div class="lesson-info"><div class="lesson-title">Joints, Links, and 12 Degrees of Freedom</div><div class="lesson-desc">What "12 joints, 3 per leg" means mechanically, and the real FR/FL/RR/RL mapping</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="lesson-04" href="lessons/0004-what-is-pd-control.html"><span class="lesson-num">04</span><div class="lesson-info"><div class="lesson-title">What Kp and Kd Actually Do</div><div class="lesson-desc">PD control from scratch, grounded in a real Go2 stand-up failure</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="lesson-05" href="lessons/0005-sensors-and-state-estimation.html"><span class="lesson-num">05</span><div class="lesson-info"><div class="lesson-title">What Your Sensors Actually Tell You</div><div class="lesson-desc">What each sensor measures, and why raw isn't ground truth</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="lesson-06" href="lessons/0006-locomotion-and-balance.html"><span class="lesson-num">06</span><div class="lesson-info"><div class="lesson-title">Why Standing Up Is Already Hard</div><div class="lesson-desc">Why standing is a whole-body balance problem, not 12 independent joints</div></div><span class="lesson-arrow">→</span></a>
+    <a class="lesson-card" id="lesson-07" href="lessons/0007-sim-to-real-gap.html"><span class="lesson-num">07</span><div class="lesson-info"><div class="lesson-title">The Sim-to-Real Gap</div><div class="lesson-desc">MuJoCo approximates, it doesn't replicate — staged verification instead</div></div><span class="lesson-arrow">→</span></a>
+  </div>
+</div>
+<script src="../assets/search.js"></script>
+</body>
+</html>

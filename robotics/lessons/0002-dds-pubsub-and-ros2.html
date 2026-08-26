@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DDS, Topics, and Where ROS2 Fits</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Robotics</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 2 of 7 &nbsp;·&nbsp; Robotics &nbsp;·&nbsp; ~12 min</p>
+  <h1>DDS, Topics, and Where ROS2 Fits</h1>
+  <p>You've already used this. Every script that talked to the Go2 in this project has been doing pub/sub messaging over DDS — this lesson just names what you were already doing.</p>
+
+  <div class="callout">
+    <strong>Code you've already run</strong>
+    Open <code>scripts/run_stand_mission.py</code> and look near the top of <code>main()</code>:
+  </div>
+  <pre><code>ChannelFactoryInitialize(domain_id, interface)
+
+pub = ChannelPublisher("rt/lowcmd", LowCmd_)
+pub.Init()
+
+sub = ChannelSubscriber("rt/lowstate", LowState_)
+sub.Init(handler, 10)</code></pre>
+  <p>That's the whole pattern this lesson explains: a <strong>publisher</strong> sending on a named channel, a <strong>subscriber</strong> listening on one, and a <strong>domain</strong> scoping who can hear whom. The earlier lesson on <a href="0001-coordinate-frames-and-orientation.html">coordinate frames</a> was about what one telemetry sample <em>means</em>. This one is about how that sample physically gets from the robot into your script's <code>handler</code> callback at all.</p>
+
+  <h2 id="pubsub-pattern">1. Publish/subscribe, the pattern underneath</h2>
+  <p>If you've used any event bus, message queue, or observer pattern, the shape will feel familiar — with one important difference. A <strong>publisher</strong> sends messages tagged with a channel name (a <strong>topic</strong>), like <code>rt/lowcmd</code>. A <strong>subscriber</strong> declares "I want messages on that topic." Neither one holds a reference to the other, calls the other directly, or even needs to know the other exists. They only agree on the topic name and the message type.</p>
+  <p>The difference from something like a typical message-broker queue (Kafka, RabbitMQ, SQS): DDS has <strong>no central broker</strong> to route through. Every participant on the network runs its own copy of the DDS stack and discovers publishers/subscribers directly, peer-to-peer. There's no single server whose downtime takes the whole system out — which matters for a robot, where "the message broker is down" is not an acceptable failure mode mid-mission.</p>
+
+  <h2 id="domains">2. Domains: the isolation boundary</h2>
+  <p>Before any of that discovery happens, every participant picks a <strong>domain id</strong> — in <code>run_stand_mission.py</code>, that's the <code>domain_id</code> argument, defaulting to <code>1</code>. Concretely, in the DDS implementation this project uses (<a href="https://cyclonedds.io/docs/cyclonedds/0.10.2/config/ddsi_concepts.html">Eclipse Cyclone DDS</a>, the same one <code>unitree_sdk2py</code> is built on), each domain id maps to its own UDP port range for discovery traffic — Cyclone's own docs put it plainly: <em>"this mapping of domain ids to UDP/IP port numbers ensures that accidental cross-domain communication is impossible with the default mapping."</em> Two processes on domain 1 and domain 2 aren't just "not subscribed to each other" — they never even discover that the other exists. This is why your simulated Go2 and someone else's, on the same Wi-Fi, don't interfere: different domain ids, invisible to each other by construction, not by convention.</p>
+
+  <h2 id="try-it">3. Try it: publish, subscribe, then break it on purpose</h2>
+  <p>This mirrors <code>run_stand_mission.py</code> exactly: your script publishes commands on <code>rt/lowcmd</code> and the robot publishes state back on <code>rt/lowstate</code> — two independent topics, each with its own publisher and subscriber. Try sending a few messages, then change one side's <code>domain_id</code> and send again.</p>
+
+  <div class="pubsub">
+    <div class="pubsub-row">
+      <div class="pubsub-node">
+        <div class="pubsub-node-label">Your script</div>
+        <label class="pubsub-domain">domain_id <input type="number" class="pubsub-domain-left" value="1" min="0" max="9" style="width:2.5em"></label>
+        <button type="button" class="pubsub-send-out">Publish to <code>rt/lowcmd</code></button>
+      </div>
+      <div class="pubsub-wire">
+        <div class="pubsub-topic">rt/lowcmd</div>
+        <div class="pubsub-packet pubsub-packet-out">&#9679;</div>
+      </div>
+      <div class="pubsub-node">
+        <div class="pubsub-node-label">Robot (sim)</div>
+        <label class="pubsub-domain">domain_id <input type="number" class="pubsub-domain-right" value="1" min="0" max="9" style="width:2.5em"></label>
+        <div class="pubsub-status pubsub-status-right">listening on <code>rt/lowcmd</code>&hellip;</div>
+      </div>
+    </div>
+    <div class="pubsub-row pubsub-row-reverse">
+      <div class="pubsub-node">
+        <div class="pubsub-status pubsub-status-left">listening on <code>rt/lowstate</code>&hellip;</div>
+      </div>
+      <div class="pubsub-wire">
+        <div class="pubsub-topic">rt/lowstate</div>
+        <div class="pubsub-packet pubsub-packet-in">&#9679;</div>
+      </div>
+      <div class="pubsub-node">
+        <button type="button" class="pubsub-send-in">Publish to <code>rt/lowstate</code></button>
+      </div>
+    </div>
+    <div class="pubsub-note"></div>
+  </div>
+
+  <h2 id="ros2-fits">4. Where ROS2 fits on top of this</h2>
+  <p><code>unitree_sdk2py</code> talks raw DDS — no ROS2 involved yet. ROS2 is a separate layer that happens to use DDS as its own default transport: per ROS2's own design documentation, <a href="https://design.ros2.org/articles/ros_on_dds.html">"ROS on DDS"</a>, DDS and its wire protocol (RTPS) were adopted as the underlying communication standard for ROS2 itself. So a ROS2 "topic" is the exact same publish/subscribe idea you just used above, plus a layer of conventions on top: named <strong>nodes</strong> (one process, one job — a driver, a planner, a logger), standardized message types, and two extra communication shapes for things that aren't a continuous stream — <strong>services</strong> (request/response, e.g. "reset the map") and <strong>actions</strong> (long-running and cancelable, e.g. "navigate to this waypoint").</p>
+  <p><code>unitree_ros2</code> is the bridge: it takes the same DDS traffic you just published/subscribed to directly, and re-exposes it as proper ROS2 topics/nodes so standard tooling (RViz, <code>ros2 bag</code>, <code>nav2</code>) can point at a Unitree robot without knowing anything Unitree-specific. Nothing about the wire format changes — you're just adding a naming/tooling convention on top of the same publish/subscribe mechanism.</p>
+
+  <div class="callout">
+    <strong>Primary resource</strong>
+    <a href="https://docs.ros.org/en/humble/Tutorials/Topics/Understanding-ROS2-Topics.html">"Understanding ROS 2 topics" — official ROS 2 documentation</a>. Short, hands-on, and uses the exact vocabulary (nodes, topics, publishers, subscribers) this lesson used above — worth doing the CLI walkthrough once you have ROS2 installed alongside <code>unitree_ros2</code>.
+  </div>
+
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. In <code>ChannelPublisher("rt/lowcmd", LowCmd_)</code>, what does the publisher need to know about its subscribers?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q1','Right — pub/sub is decoupled by design. The publisher only addresses a topic name and message type; it has no reference to, and no knowledge of, whoever is subscribed.')">Nothing at all</button>
+        <button onclick="quizAnswer(this,false,'q1','There is no process-level addressing in DDS pub/sub — the publisher never looks up or references a subscriber\'s process at all.')">Their process ID</button>
+        <button onclick="quizAnswer(this,false,'q1','Domains scope who can discover whom, but the publisher doesn\'t look up or target a specific domain owner — it just publishes on its own domain and topic.')">Their domain owner</button>
+        <button onclick="quizAnswer(this,false,'q1','The callback (like handler in this project\'s scripts) is purely local to the subscriber\'s own process — the publisher never sees or references it.')">Their callback name</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Your script runs with domain_id=1 and the simulator runs with domain_id=2. What happens when you publish?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right — different domain ids map to different discovery ports, so the two sides never even discover each other exists. No error, no delay, just silence.')">Nothing is received</button>
+        <button onclick="quizAnswer(this,false,'q2','There\'s no queuing or retry across domains — it\'s not a timing problem, the message never reaches a participant on a different domain at all.')">Message arrives delayed</button>
+        <button onclick="quizAnswer(this,false,'q2','Domain mismatch isn\'t a corruption problem — the message would be perfectly well-formed, it simply never arrives at a participant that was never discovered.')">Message arrives garbled</button>
+        <button onclick="quizAnswer(this,false,'q2','DDS doesn\'t raise an error for this — that\'s the dangerous part. A domain mismatch fails silently, which is why matching domain_id is worth double-checking by hand.')">An exception is raised</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. What does unitree_ros2 actually change about the underlying messages?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right — ROS2 itself runs on DDS/RTPS as its default transport, so unitree_ros2 re-exposes the same DDS traffic as ROS2 nodes/topics. It adds a tooling and naming convention, not a new transport.')">Nothing on the wire</button>
+        <button onclick="quizAnswer(this,false,'q3','Domain ids and their isolation behavior come from the underlying DDS implementation (Cyclone DDS here), not from the ROS2 bridge — unitree_ros2 doesn\'t change how domains work.')">The DDS domain scheme</button>
+        <button onclick="quizAnswer(this,false,'q3','The underlying message content and format are unchanged — unitree_ros2 just re-labels the same DDS traffic with ROS2-style topic/node conventions on top.')">The topic message format</button>
+        <button onclick="quizAnswer(this,false,'q3','The bridge doesn\'t throttle or resample anything — messages pass through at whatever rate the original DDS publisher (e.g. the robot\'s low-level control loop) is already running.')">The publish frequency</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Good questions right now: "why doesn't rt/lowcmd need a reply back from the robot?", or "what happens if two of my own scripts publish to rt/lowcmd at the same time?"
+  </div>
+
+  <div class="nav">
+    <a href="0001-coordinate-frames-and-orientation.html">← Lesson 1: Coordinate Frames & Orientation</a>
+    <span class="spacer"></span>
+    <a href="0003-robot-kinematics-basics.html">Lesson 3: Robot Kinematics →</a>
+  </div>
+
+</div>
+
+<style>
+.pubsub {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+  margin: 1.5rem 0;
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+}
+.pubsub-row { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.6rem; }
+.pubsub-node {
+  flex: 0 0 auto;
+  min-width: 150px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.8rem;
+  text-align: center;
+}
+.pubsub-node-label { font-weight: 700; margin-bottom: 0.3rem; }
+.pubsub-domain { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 0.4rem; }
+.pubsub-send-out, .pubsub-send-in {
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+}
+.pubsub-send-out:hover, .pubsub-send-in:hover { background: var(--accent-strong); }
+.pubsub-status { font-size: 0.82rem; color: var(--muted); }
+.pubsub-status.pubsub-got-it { color: var(--accent-strong); font-weight: 700; }
+.pubsub-wire {
+  flex: 1 1 auto;
+  position: relative;
+  height: 2.4rem;
+  border-top: 2px dashed var(--border);
+  margin-top: 1.1rem;
+}
+.pubsub-topic {
+  position: absolute;
+  left: 50%;
+  top: -0.85rem;
+  transform: translateX(-50%);
+  background: var(--bg-raised);
+  padding: 0 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--accent-strong);
+  white-space: nowrap;
+}
+.pubsub-packet { position: absolute; top: -0.7rem; left: 0; color: var(--accent-strong); opacity: 0; font-size: 0.9rem; }
+.pubsub-row-reverse .pubsub-packet { left: auto; right: 0; }
+.pubsub-packet.fly { animation: pubsub-fly-right 0.65s ease-in-out; }
+.pubsub-row-reverse .pubsub-packet.fly { animation: pubsub-fly-left 0.65s ease-in-out; }
+@keyframes pubsub-fly-right { 0% { left: 0; opacity: 1; } 90% { opacity: 1; } 100% { left: calc(100% - 1em); opacity: 0; } }
+@keyframes pubsub-fly-left { 0% { right: 0; opacity: 1; } 90% { opacity: 1; } 100% { right: calc(100% - 1em); opacity: 0; } }
+.pubsub-note { min-height: 1.4em; font-size: 0.82rem; color: var(--err); margin-top: 0.4rem; }
+</style>
+
+<script>
+(function () {
+  const domainLeft = document.querySelector(".pubsub-domain-left");
+  const domainRight = document.querySelector(".pubsub-domain-right");
+  const note = document.querySelector(".pubsub-note");
+
+  function fire(packetEl, statusEl, fromDomainInput, toDomainInput, topic) {
+    const fromDomain = fromDomainInput.value;
+    const toDomain = toDomainInput.value;
+    const sameDomain = fromDomain === toDomain;
+
+    packetEl.classList.remove("fly");
+    void packetEl.offsetWidth;
+    if (sameDomain) packetEl.classList.add("fly");
+
+    if (sameDomain) {
+      note.textContent = "";
+      setTimeout(() => {
+        statusEl.textContent = `received on ${topic}`;
+        statusEl.classList.add("pubsub-got-it");
+        setTimeout(() => {
+          statusEl.classList.remove("pubsub-got-it");
+          statusEl.innerHTML = `listening on <code>${topic}</code>&hellip;`;
+        }, 1100);
+      }, 650);
+    } else {
+      note.textContent = `Published on domain ${fromDomain}, but the other side is listening on domain ${toDomain} — different domains never discover each other, so nothing arrives. No error, no timeout: it just never happens.`;
+    }
+  }
+
+  document.querySelector(".pubsub-send-out").addEventListener("click", () => {
+    fire(
+      document.querySelector(".pubsub-packet-out"),
+      document.querySelector(".pubsub-status-right"),
+      domainLeft,
+      domainRight,
+      "rt/lowcmd"
+    );
+  });
+
+  document.querySelector(".pubsub-send-in").addEventListener("click", () => {
+    fire(
+      document.querySelector(".pubsub-packet-in"),
+      document.querySelector(".pubsub-status-left"),
+      domainRight,
+      domainLeft,
+      "rt/lowstate"
+    );
+  });
+})();
+</script>
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

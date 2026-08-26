@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reference — Sensors &amp; State Estimation Cheat Sheet</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    body { font-size: 16px; }
+    .page { max-width: 780px; }
+    h2 { margin-top: 2rem; }
+    .ref-table {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: .82rem;
+      margin: .75rem 0 1.25rem;
+    }
+    .ref-row {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      padding: .45rem .8rem;
+      border-bottom: 1px solid var(--border);
+      gap: .5rem;
+      align-items: center;
+    }
+    .ref-row:last-child { border-bottom: none; }
+    .ref-row.header { background: #111; color: var(--muted); text-transform: uppercase; font-size: .7rem; letter-spacing: .05em; }
+    .ref-row:not(.header):nth-child(even) { background: #1e1e1e; }
+    @media print {
+      body { background: #fff; color: #000; padding-top: 1rem; }
+      .topnav, .teacher-tip { display: none; }
+    }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Robotics</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Reference &nbsp;·&nbsp; Robotics &nbsp;·&nbsp; Covers lesson 5</p>
+  <h1>Sensors &amp; State Estimation Cheat Sheet</h1>
+  <p style="color:var(--muted);">The compressed version of <a href="../lessons/0005-sensors-and-state-estimation.html">lesson 5</a>. What each sensor answers, why raw isn't ground truth, and the noise/lag trade.</p>
+
+  <h2>Sensor → question answered</h2>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Sensor</span><span>Answers / doesn't answer</span></div>
+    <div class="ref-row"><span>Joint encoder</span><span>This joint's angle/velocity — not body position or tilt</span></div>
+    <div class="ref-row"><span>Gyroscope</span><span>Current angular velocity — not absolute orientation (drifts if integrated)</span></div>
+    <div class="ref-row"><span>Accelerometer</span><span>Linear acceleration incl. gravity — not tilt vs. sideways acceleration, cleanly</span></div>
+    <div class="ref-row"><span>Foot-force</span><span>Ground contact (stance/swing) — not joints or orientation</span></div>
+  </div>
+
+  <h2>Go2 raw vs. estimated fields</h2>
+  <p style="font-size:.85rem; color:var(--muted);"><code>LowState_</code> / <code>MotorState_</code> / <code>IMUState_</code>:</p>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Fields</span><span>Meaning</span></div>
+    <div class="ref-row"><span><code>q_raw</code> / <code>q</code></span><span>encoder signal vs. processed joint angle</span></div>
+    <div class="ref-row"><span><code>dq_raw</code> / <code>dq</code></span><span>raw vs. processed joint velocity</span></div>
+    <div class="ref-row"><span><code>foot_force</code> / <code>foot_force_est</code></span><span>raw vs. estimated ground-reaction force, per foot</span></div>
+    <div class="ref-row"><span><code>gyroscope</code>, <code>accelerometer</code></span><span>raw IMU channels — fused into <code>quaternion</code></span></div>
+  </div>
+
+  <h2>Key rules of thumb</h2>
+  <ul>
+    <li>No single sensor gives ground truth. What your code reads is already an estimate.</li>
+    <li>Gyroscope: trustworthy short-term, drifts long-term (bias accumulates under integration).</li>
+    <li>Accelerometer: no drift, but noisy and gravity-confounded moment-to-moment.</li>
+    <li>Fusing both (complementary/Kalman filter) covers each one's weak spot.</li>
+    <li>Any smoothing filter trades noise rejection against reaction lag — there's no setting with both.</li>
+  </ul>
+
+  <p style="margin-top:2rem; font-size:.8rem; color:#444;">From <a href="../index.html">Robotics</a> — <a href="../lessons/0005-sensors-and-state-estimation.html">lesson 5 (Sensors &amp; State Estimation)</a>. Primary sources: <a href="https://www.mathworks.com/help/fusion/ug/estimate-orientation-with-a-complementary-filter-and-imu-data.html" target="_blank">MathWorks — complementary filter for IMU orientation</a>, <a href="https://www.analog.com/en/resources/analog-dialogue/raqs/raq-issue-139.html" target="_blank">Analog Devices — gyroscope drift</a>, <a href="https://www.luisllamas.es/en/arduino-exponential-low-pass/" target="_blank">EMA low-pass filtering, noise vs. lag</a>.</p>
+
+</div>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

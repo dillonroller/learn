@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reference — DDS &amp; ROS2 Cheat Sheet</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    body { font-size: 16px; }
+    .page { max-width: 780px; }
+    h2 { margin-top: 2rem; }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Robotics</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Reference &nbsp;·&nbsp; Robotics</p>
+  <h1>DDS &amp; ROS2 Cheat Sheet</h1>
+  <p>The compressed version of <a href="../lessons/0002-dds-pubsub-and-ros2.html">Lesson 2</a> — vocabulary, the stack, and the real topic names this project uses.</p>
+
+  <h2>Vocabulary</h2>
+  <table class="ref-table" style="width:100%; border-collapse:collapse;">
+    <thead><tr><th style="text-align:left; border-bottom:1px solid var(--border); padding:.4rem;">Term</th><th style="text-align:left; border-bottom:1px solid var(--border); padding:.4rem;">Meaning here</th></tr></thead>
+    <tbody>
+      <tr><td style="padding:.4rem; border-bottom:1px solid var(--border-soft);">Publisher</td><td style="padding:.4rem; border-bottom:1px solid var(--border-soft);">Sends messages tagged with a topic name; doesn't know or care who's listening</td></tr>
+      <tr><td style="padding:.4rem; border-bottom:1px solid var(--border-soft);">Subscriber</td><td style="padding:.4rem; border-bottom:1px solid var(--border-soft);">Registers interest in a topic name; doesn't know or care who's sending</td></tr>
+      <tr><td style="padding:.4rem; border-bottom:1px solid var(--border-soft);">Topic</td><td style="padding:.4rem; border-bottom:1px solid var(--border-soft);">A named channel both sides agree on, e.g. <code>rt/lowcmd</code></td></tr>
+      <tr><td style="padding:.4rem; border-bottom:1px solid var(--border-soft);">Domain (domain_id)</td><td style="padding:.4rem; border-bottom:1px solid var(--border-soft);">An isolation boundary — different domain ids map to different discovery ports, so participants on different domains never discover each other</td></tr>
+      <tr><td style="padding:.4rem; border-bottom:1px solid var(--border-soft);">DDS</td><td style="padding:.4rem; border-bottom:1px solid var(--border-soft);">Data Distribution Service — the decentralized (no broker) pub/sub middleware standard this project's SDK and ROS2 itself both use</td></tr>
+      <tr><td style="padding:.4rem; border-bottom:1px solid var(--border-soft);">Node (ROS2)</td><td style="padding:.4rem; border-bottom:1px solid var(--border-soft);">One process, one job — a driver, a planner, a logger</td></tr>
+      <tr><td style="padding:.4rem; border-bottom:1px solid var(--border-soft);">Service (ROS2)</td><td style="padding:.4rem; border-bottom:1px solid var(--border-soft);">Request/response call, for one-off actions (e.g. "reset the map")</td></tr>
+      <tr><td style="padding:.4rem;">Action (ROS2)</td><td style="padding:.4rem;">Long-running, cancelable, progress-reporting call (e.g. "navigate to this waypoint")</td></tr>
+    </tbody>
+  </table>
+
+  <h2>The stack, bottom to top</h2>
+  <table style="width:100%; border-collapse:collapse;">
+    <thead><tr><th style="text-align:left; border-bottom:1px solid var(--border); padding:.4rem;">Layer</th><th style="text-align:left; border-bottom:1px solid var(--border); padding:.4rem;">What it is</th></tr></thead>
+    <tbody>
+      <tr><td style="padding:.4rem; border-bottom:1px solid var(--border-soft);">Cyclone DDS</td><td style="padding:.4rem; border-bottom:1px solid var(--border-soft);">The wire protocol/middleware — decentralized pub/sub over UDP, domain-scoped</td></tr>
+      <tr><td style="padding:.4rem; border-bottom:1px solid var(--border-soft);"><code>unitree_sdk2py</code></td><td style="padding:.4rem; border-bottom:1px solid var(--border-soft);">Python bindings that talk this DDS interface directly — <code>ChannelPublisher</code> / <code>ChannelSubscriber</code></td></tr>
+      <tr><td style="padding:.4rem; border-bottom:1px solid var(--border-soft);"><code>unitree_ros2</code></td><td style="padding:.4rem; border-bottom:1px solid var(--border-soft);">Bridges the same DDS traffic into ROS2 nodes/topics — no new transport, just ROS2 conventions on top</td></tr>
+      <tr><td style="padding:.4rem;">ROS2 tooling</td><td style="padding:.4rem;">RViz, <code>ros2 bag</code>, <code>nav2</code> — standard tools that only understand the ROS2 layer</td></tr>
+    </tbody>
+  </table>
+
+  <h2>This project's real topics</h2>
+  <table style="width:100%; border-collapse:collapse;">
+    <tbody>
+      <tr><td style="padding:.4rem; border-bottom:1px solid var(--border-soft);"><code>rt/lowcmd</code></td><td style="padding:.4rem; border-bottom:1px solid var(--border-soft);">Your script → robot. Per-joint <code>q, dq, kp, kd, tau</code> commands (see the <a href="pd-control-cheatsheet.html">PD cheat sheet</a>)</td></tr>
+      <tr><td style="padding:.4rem; border-bottom:1px solid var(--border-soft);"><code>rt/lowstate</code></td><td style="padding:.4rem; border-bottom:1px solid var(--border-soft);">Robot → your script. IMU, all 12 <code>motor_state</code> entries, <code>foot_force</code>, battery, etc.</td></tr>
+      <tr><td style="padding:.4rem;">Default domain</td><td style="padding:.4rem;"><code>domain_id=1</code>, interface <code>lo0</code> on macOS (loopback)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>Primary sources</strong>
+    <a href="https://docs.ros.org/en/humble/Tutorials/Topics/Understanding-ROS2-Topics.html">"Understanding ROS 2 topics" — official ROS 2 docs</a> ·
+    <a href="https://design.ros2.org/articles/ros_on_dds.html">"ROS on DDS" — ROS2 design docs</a> ·
+    <a href="https://cyclonedds.io/docs/cyclonedds/0.10.2/config/ddsi_concepts.html">Cyclone DDS: DDSI concepts (domains)</a>
+  </div>
+
+  <p style="margin-top:2rem; font-size:.8rem; color:var(--faint);">From <a href="../index.html">Robotics</a> — <a href="../lessons/0002-dds-pubsub-and-ros2.html">Lesson 2 (DDS &amp; ROS2)</a>.</p>
+
+</div>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

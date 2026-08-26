@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reference — Locomotion &amp; Balance Cheat Sheet</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    body { font-size: 16px; }
+    .page { max-width: 780px; }
+    h2 { margin-top: 2rem; }
+    .ref-table {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      font-family: var(--font-ui);
+      font-size: .82rem;
+      margin: .75rem 0 1.25rem;
+    }
+    .ref-row {
+      display: grid;
+      grid-template-columns: 1fr 1.6fr;
+      padding: .5rem .8rem;
+      border-bottom: 1px solid var(--border);
+      gap: .6rem;
+      align-items: center;
+    }
+    .ref-row:last-child { border-bottom: none; }
+    .ref-row.header { background: var(--bg-sunken); color: var(--muted); text-transform: uppercase; font-size: .7rem; letter-spacing: .05em; }
+    .ref-row:not(.header):nth-child(even) { background: var(--bg-raised); }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Robotics</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Reference &nbsp;·&nbsp; Robotics</p>
+  <h1>Locomotion &amp; Balance Cheat Sheet</h1>
+  <p>The compressed version of <a href="../lessons/0006-locomotion-and-balance.html">Lesson 6</a> — definitions, the static-vs-dynamic distinction, and this project's own real balance-coupling bug.</p>
+
+  <h2>Core definitions</h2>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Term</span><span>Definition</span></div>
+    <div class="ref-row"><span>Center of mass (CoM)</span><span>Roughly, the average position of all the robot's mass (torso + legs), weighted by where that mass actually is.</span></div>
+    <div class="ref-row"><span>Support polygon</span><span>The convex shape formed by connecting the ground-contact points of every foot currently touching the ground.</span></div>
+    <div class="ref-row"><span>Statically stable</span><span>The CoM's straight-down projection onto the ground falls inside the current support polygon.</span></div>
+    <div class="ref-row"><span>Stability margin</span><span>The distance from that projection to the nearest edge of the support polygon. Bigger margin = more disturbance the robot can absorb before tipping.</span></div>
+    <div class="ref-row"><span>Zero-moment point (ZMP) / center of pressure (CoP)</span><span>The more general, moving-robot version of the same test — used instead of plain CoM once the robot isn't standing still. Coincides with the CoM projection when the robot is motionless.</span></div>
+    <div class="ref-row"><span>Linear Inverted Pendulum Model (LIPM)</span><span>A simplified model — robot as one point mass on a massless rod at constant height — used to plan how the CoM should move during walking, because its trajectory has a closed-form solution.</span></div>
+  </div>
+
+  <h2>Static vs. dynamic balance</h2>
+  <div class="ref-table">
+    <div class="ref-row header"><span></span><span>Standing &nbsp;/&nbsp; Walking</span></div>
+    <div class="ref-row"><span>Support polygon</span><span>Fixed (all feet down) &nbsp;/&nbsp; Continuously reshaping as feet lift/land</span></div>
+    <div class="ref-row"><span>What's required</span><span>Keep CoM inside one fixed polygon &nbsp;/&nbsp; Keep CoM inside a moving target, planned ahead of each footstep</span></div>
+    <div class="ref-row"><span>Failure mode</span><span>CoM drifts outside a static base &nbsp;/&nbsp; CoM isn't positioned correctly before the next foot lifts</span></div>
+    <div class="ref-row"><span>This project's status</span><span>Per-joint PID+I holds one tuned pose (see below) — not CoM-aware &nbsp;/&nbsp; Not attempted yet</span></div>
+  </div>
+
+  <h2>This project's real balance-coupling bug</h2>
+  <div class="ref-table">
+    <div class="ref-row"><span>What was tried</span><span>Added an integral gain (<code>KI</code>) per joint to <code>run_stand_mission.py</code> to fix steady-state droop (Lesson 4)</span></div>
+    <div class="ref-row"><span><code>KI=20</code></span><span>Every joint's own PID math still correct in isolation — but max error grew to ~0.29 rad and the robot oscillated</span></div>
+    <div class="ref-row"><span>Why</span><span>All 4 legs share one rigid body; one leg's correction shifts load on the other three, which then "correct" into a growing sway — an emergent whole-body effect, not a per-joint bug</span></div>
+    <div class="ref-row"><span><code>KI=6</code> (shipped)</span><span>Converged cleanly, reproducible: <code>max_joint_error</code> ≈ 0.028 rad over multiple fresh-sim runs</span></div>
+    <div class="ref-row"><span>What that does <em>not</em> prove</span><span>The controller is still 12 independent joint loops — nothing tracks CoM or the support polygon. It holds this one symmetric, pre-balanced pose; it is not a general balance controller.</span></div>
+    <div class="ref-row"><span>Source</span><span><a href="https://github.com/dillonroller/robot-feasibility-framework/blob/main/scripts/run_stand_mission.py" target="_blank"><code>run_stand_mission.py</code></a>'s own docstring (full tuning history) and <a href="https://github.com/dillonroller/robot-feasibility-framework/blob/main/examples/stand-mission-report-tuned.json" target="_blank">stand-mission-report-tuned.json</a></span></div>
+  </div>
+
+  <div class="callout">
+    <strong>Primary sources</strong>
+    <a href="https://underactuated.mit.edu/humanoids.html" target="_blank">"Ch. 5 — Highly-Articulated Legged Robots," MIT <em>Underactuated Robotics</em> (Tedrake, free)</a> — rigorous version, frames stability via ZMP/CoP rather than plain CoM. ·
+    <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7916107/" target="_blank">Li, Xie, Luo &amp; Li, <em>Sensors</em> 2021 (open access)</a> — LIPM used in real gait planning.
+  </div>
+
+  <p style="margin-top:2rem; font-size:.8rem; color:var(--faint);">From <a href="../index.html">Robotics</a> — <a href="../lessons/0006-locomotion-and-balance.html">Lesson 6 (Locomotion &amp; Balance)</a>.</p>
+
+</div>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 1 — Position, Orientation, and Why Order Matters</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Robotics</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 1 of 7 &nbsp;·&nbsp; Robotics &nbsp;·&nbsp; ~15 min</p>
+  <h1>Position, Orientation, and Why Order Matters</h1>
+  <p>What a quaternion actually is, why the Go2 reports one, and a real bug hiding in plain sight in captured telemetry from a real robot.</p>
+
+  <p>A single robot joint only needs one number to describe: <code>q</code>, in radians — "how bent is this one hinge." (You'll see exactly that in Lesson 4, tuning one joint's Kp/Kd.) That's enough for a joint, which only rotates one way. The robot's whole body is different: it can face any direction and tilt any way, all at once. Describing that fully is what this lesson is about.</p>
+
+  <h2 id="pose">Pose = position + orientation</h2>
+  <p>A robot's full <strong>pose</strong> is two things bolted together:</p>
+  <ul>
+    <li><strong>Position</strong> — where it is: 3 numbers (x, y, z) in some reference frame.</li>
+    <li><strong>Orientation</strong> — which way it's facing/tilted, relative to that same frame.</li>
+  </ul>
+  <p>"Relative to some frame" matters: a <strong>reference frame</strong> is just an agreed-upon origin and set of axes everyone's numbers are measured against. The Go2's IMU reports orientation relative to the <strong>world frame</strong> (roughly: gravity points straight down, a fixed compass direction is "forward"). A robot with multiple sensors also has a <strong>body frame</strong> (attached to the robot itself, moving with it) and needs to track how the two relate — this is exactly what ROS2's <code>tf2</code> system exists to manage, and it's real, standard robotics infrastructure, not something invented for this lesson.</p>
+
+  <h2 id="why-quaternion">Why orientation needs a quaternion, not just 3 numbers</h2>
+  <p>The obvious way to describe "which way is it facing" is three angles — roll, pitch, yaw — how much it's tilted around each axis. The Go2 actually reports this too, as <code>rpy</code>, right alongside the quaternion. Three numbers, easy to picture. So why bother with four?</p>
+  <p>Because roll/pitch/yaw (Euler angles) have a well-known failure mode called <strong>gimbal lock</strong>: at certain orientations (pitch at ±90°), two of the three rotation axes line up on top of each other, and you permanently lose the ability to represent rotation around one of the original directions — not a rounding error, a real loss of a degree of freedom. A <strong>quaternion</strong> — four numbers, one "scalar" part and a 3-part "vector" — represents the same orientation without that singularity, at the cost of being a little less immediately intuitive to read.</p>
+
+  <div class="callout">
+    <strong>Primary source</strong>
+    Don't just take that claim from this lesson — <a href="https://eater.net/quaternions" target="_blank">"Quaternions and 3D rotation, explained interactively" (3Blue1Brown &amp; Ben Eater)</a> is the best beginner-accessible, genuinely interactive treatment of this available, and is worth the time before the next lesson. It builds the intuition for what a quaternion's four numbers mean geometrically, which this lesson deliberately keeps light.
+  </div>
+
+  <h2 id="scalar-order">Scalar-first vs. scalar-last — the gotcha</h2>
+  <p>Here's the part that isn't a math curiosity — it's a real bug waiting to happen. A unit quaternion is conventionally written <code>(w, x, y, z)</code>, where <code>w</code> is the scalar part. But <strong>not every library agrees on the order those four numbers are stored in</strong>, and nothing about a bare array of 4 floats tells you which convention you're looking at.</p>
+
+  <div class="ref-table">
+    <div class="ref-row header"><span>Library</span><span>Order</span></div>
+    <div class="ref-row"><span>MuJoCo (what the Go2 sim uses)</span><span><code>(w, x, y, z)</code> — scalar first</span></div>
+    <div class="ref-row"><span>ROS2 <code>geometry_msgs/Quaternion</code></span><span><code>(x, y, z, w)</code> — scalar last</span></div>
+  </div>
+  <p style="font-size:.85rem; color:var(--muted);">Per the <a href="https://mujoco.readthedocs.io/en/stable/modeling.html" target="_blank">MuJoCo docs</a>, a rotation by angle <code>a</code> around axis <code>(x,y,z)</code> "corresponds to the quaternion <code>(cos(a/2), sin(a/2)&middot;(x,y,z))</code>" — scalar first, identity written <code>"1 0 0 0"</code>. Per the <a href="https://github.com/ros2/common_interfaces/blob/rolling/geometry_msgs/msg/Quaternion.msg" target="_blank">official ROS2 message definition</a>, fields are declared <code>x, y, z, w</code>, identity <code>(0, 0, 0, 1)</code>.</p>
+
+  <p>The Go2's <code>imu_state.quaternion</code> field comes from a MuJoCo <code>&lt;framequat&gt;</code> sensor, copied straight into the DDS message with no reordering (verified in <code>unitree_mujoco</code>'s bridge code, both the Python and C++ versions). So <strong>this project's own telemetry is in <code>(w, x, y, z)</code> order</strong> — the MuJoCo/Unitree convention, not the ROS one. If you ever pipe this into ROS2 tooling, that reordering has to happen somewhere, explicitly — silently assuming the wrong order doesn't crash anything, it just quietly computes the wrong orientation.</p>
+
+  <h2>Try it: guess the orientation, then reveal it</h2>
+  <p>Each of these is a real, valid unit quaternion representing a rotation around a single axis. Guess what it represents before revealing — guessing wrong is fine, that's the point.</p>
+  <div id="qviz"></div>
+
+  <div class="callout warn">
+    <strong>Same 4 numbers, read the wrong way</strong>
+    Steps 4 and 5 above use the <em>exact same four numbers</em> — a real sample from this project's captured telemetry at the end of a stand-up ramp (<code>pct: 1.0</code>): <code>[0.99985, -0.0000213, -0.017562, -0.0000564]</code>. Read correctly as <code>(w,x,y,z)</code>, that decodes to a <strong>2.0° tilt</strong> — essentially upright, matching this project's own notes that "the robot's IMU orientation was nearly upright" even while the joint tracking failed (that joint-vs-orientation contrast is the whole subject of Lesson 6, on locomotion &amp; balance). Read the <em>same four numbers</em> as <code>(x,y,z,w)</code> instead, and they decode to a <strong>180.0° roll</strong> — completely upside-down. Nothing about the array itself would warn you which one you're looking at.
+  </div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Why do robots typically use quaternions instead of roll/pitch/yaw for orientation?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q1','Right — Euler angles can hit gimbal lock, where two rotation axes align and a degree of freedom is lost. Quaternions use one extra number specifically to avoid that singularity.')">They avoid gimbal lock</button>
+        <button onclick="quizAnswer(this,false,'q1','Not the reason — quaternion math isn\'t dramatically faster than Euler angles; the real motivation is avoiding gimbal lock, not speed.')">They compute much faster</button>
+        <button onclick="quizAnswer(this,false,'q1','The opposite is true — a quaternion is 4 numbers, one more than the 3 in roll/pitch/yaw. That extra number is exactly what avoids gimbal lock.')">They use fewer numbers</button>
+        <button onclick="quizAnswer(this,false,'q1','Every orientation representation, quaternions included, is still relative to some reference frame — that requirement doesn\'t go away.')">They need no reference frame</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. This project's captured IMU telemetry stores quaternions in which order?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right — the Go2 sim\'s imu_quat field is copied unmodified from a MuJoCo framequat sensor, which is scalar-first (w,x,y,z).')">Scalar-first, like MuJoCo</button>
+        <button onclick="quizAnswer(this,false,'q2','That\'s ROS2\'s geometry_msgs/Quaternion convention (x,y,z,w) — but this telemetry comes straight from MuJoCo\'s sensor, not through ROS2, so it keeps MuJoCo\'s scalar-first order instead.')">Scalar-last, like ROS2</button>
+        <button onclick="quizAnswer(this,false,'q2','Component order is a scalar-first-vs-scalar-last convention question, not an alphabetical one — no library orders axes alphabetically.')">Alphabetical by axis name</button>
+        <button onclick="quizAnswer(this,false,'q2','Component order is a storage convention fixed by the library/format, not something chosen per-message for performance.')">Whichever order was fastest</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. A robot's overall pose is position plus what other piece of information?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right — pose = position (where) + orientation (which way it\'s facing/tilted).')">Its current orientation</button>
+        <button onclick="quizAnswer(this,false,'q3','Joint count is a fixed mechanical property of the robot, not part of describing where it is or which way it\'s facing right now.')">Its total joint count</button>
+        <button onclick="quizAnswer(this,false,'q3','Battery voltage is real telemetry, but it has nothing to do with pose — it doesn\'t describe position or orientation.')">Its battery voltage level</button>
+        <button onclick="quizAnswer(this,false,'q3','The DDS domain ID is a networking/plumbing concept (covered in the next lesson) — unrelated to where the robot is or which way it\'s facing.')">Its network domain number</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Primary resource</h2>
+  <p><a href="https://eater.net/quaternions" target="_blank">"Quaternions and 3D rotation, explained interactively" — 3Blue1Brown &amp; Ben Eater</a> is the primary source for this lesson: free, interactive, and the best beginner-accessible treatment of what a quaternion's four numbers mean geometrically.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Good questions right now: "what does the vector part (x,y,z) of a quaternion actually represent?", or "how would I write the conversion between the two orderings in Python?"
+  </div>
+
+  <div class="nav">
+    <a href="../index.html">← Robotics: All Lessons</a>
+    <span class="spacer"></span>
+    <a href="0002-dds-pubsub-and-ros2.html">Lesson 2: DDS Pub/Sub &amp; ROS2 →</a>
+  </div>
+
+</div>
+
+<style>
+.ref-table {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  font-family: var(--font-ui);
+  font-size: .85rem;
+  margin: .75rem 0 1.25rem;
+}
+.ref-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  padding: .5rem .9rem;
+  border-bottom: 1px solid var(--border);
+  gap: .5rem;
+  align-items: center;
+}
+.ref-row:last-child { border-bottom: none; }
+.ref-row.header { background: var(--bg-sunken); color: var(--muted); text-transform: uppercase; font-size: .7rem; letter-spacing: .05em; }
+.ref-row:not(.header):nth-child(even) { background: var(--bg-raised); }
+
+.qviz-step {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.2rem;
+  margin: 1rem 0;
+}
+.qviz-intro { font-family: var(--font-ui); font-weight: 600; margin: 0 0 .4rem; }
+.qviz-raw { font-family: var(--font-mono); font-size: .85rem; color: var(--muted); margin: 0 0 .7rem; }
+.qviz-choices { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .4rem; }
+.qviz-choice {
+  font-family: var(--font-ui); font-size: .88rem; padding: .45rem .7rem;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--bg-sunken); color: var(--ink); cursor: pointer;
+}
+.qviz-choice:hover { border-color: var(--accent-border); }
+.qviz-choice.correct { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-strong); }
+.qviz-choice.incorrect { border-color: var(--err); background: var(--err-lt); color: var(--err); }
+.qviz-reveal { display: none; align-items: center; gap: 1rem; margin-top: .8rem; padding-top: .8rem; border-top: 1px dashed var(--border); }
+.qviz-reveal.shown { display: flex; flex-wrap: wrap; }
+.qviz-diagram-wrap { width: 64px; height: 64px; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; }
+.qviz-diagram { position: relative; width: 44px; height: 26px; background: var(--accent); border-radius: 4px; transition: transform .6s ease; }
+.qviz-front {
+  position: absolute; top: 50%; right: -9px; width: 0; height: 0; transform: translateY(-50%);
+  border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-left: 9px solid var(--accent);
+}
+.qviz-decoded, .qviz-reveal-text { font-family: var(--font-ui); font-size: .88rem; margin: .15rem 0; flex: 1 1 200px; }
+.qviz-decoded { color: var(--muted); }
+</style>
+
+<script>
+// ── "Guess the orientation" quaternion stepper ──────────────────────────
+// Decodes a unit quaternion (w,x,y,z) representing a rotation about a
+// SINGLE principal axis into an angle + dominant axis, then reveals a
+// simplified 2D schematic (a rotated CSS rectangle with a front marker).
+function qvizDecode(w, x, y, z) {
+  const wc = Math.max(-1, Math.min(1, w));
+  const angleDeg = 2 * (Math.acos(wc) * 180) / Math.PI;
+  const comps = { x, y, z };
+  let dom = "x";
+  for (const k of ["y", "z"]) {
+    if (Math.abs(comps[k]) > Math.abs(comps[dom])) dom = k;
+  }
+  const sign = comps[dom] >= 0 ? 1 : -1;
+  return { angleDeg, dom, sign };
+}
+
+function qvizMount(container, steps) {
+  const VIEW_LABEL = {
+    side: "side view — nose tipping up/down",
+    top: "top-down view — turning left/right",
+    front: "rear view — rolling left/right",
+  };
+  container.innerHTML = steps.map((s, i) => `
+    <div class="qviz-step" data-i="${i}">
+      <p class="qviz-intro">${s.intro}</p>
+      <p class="qviz-raw">(w, x, y, z) = (${s.quat.map((n) => n.toFixed(5)).join(", ")})</p>
+      <div class="qviz-choices">
+        ${s.choices.map((c, ci) => `<button type="button" class="qviz-choice" data-ci="${ci}">${c}</button>`).join("")}
+      </div>
+      <div class="qviz-reveal">
+        <div class="qviz-diagram-wrap"><div class="qviz-diagram"><div class="qviz-front"></div></div></div>
+        <p class="qviz-decoded"></p>
+        <p class="qviz-reveal-text">${s.reveal}</p>
+      </div>
+    </div>
+  `).join("");
+
+  steps.forEach((s, i) => {
+    const stepEl = container.querySelector(`.qviz-step[data-i="${i}"]`);
+    const buttons = stepEl.querySelectorAll(".qviz-choice");
+    const revealBox = stepEl.querySelector(".qviz-reveal");
+    const diagram = stepEl.querySelector(".qviz-diagram");
+    const decodedText = stepEl.querySelector(".qviz-decoded");
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (stepEl.dataset.answered) return;
+        stepEl.dataset.answered = "1";
+        const ci = parseInt(btn.dataset.ci, 10);
+        buttons.forEach((b) => {
+          const bi = parseInt(b.dataset.ci, 10);
+          if (bi === s.correctIndex) b.classList.add("correct");
+          else if (bi === ci) b.classList.add("incorrect");
+        });
+        const [w, x, y, z] = s.quat;
+        const { angleDeg, dom, sign } = qvizDecode(w, x, y, z);
+        diagram.style.transform = `rotate(${sign * angleDeg}deg)`;
+        decodedText.innerHTML = `Decoded: <b>${angleDeg.toFixed(1)}&deg;</b> rotation about the <b>${dom}</b>-axis (${VIEW_LABEL[s.view] || s.view}).`;
+        revealBox.classList.add("shown");
+      });
+    });
+  });
+}
+
+qvizMount(document.getElementById('qviz'), [
+  {
+    quat: [1, 0, 0, 0],
+    intro: "Quaternion 1 of 5 — a robot standing still.",
+    choices: ["Standing straight upright", "Turned ninety degrees left", "Tipped nose-down", "Rolled completely upside-down"],
+    correctIndex: 0, view: "side",
+    reveal: "w = 1 means zero rotation angle — this is the identity quaternion, no tilt at all.",
+  },
+  {
+    quat: [0.70711, 0, 0, 0.70711],
+    intro: "Quaternion 2 of 5 — the robot turned in place.",
+    choices: ["Standing straight upright", "Turned ninety degrees left", "Tipped nose-down", "Rolled completely upside-down"],
+    correctIndex: 1, view: "top",
+    reveal: "The nonzero component is z, so this rotation is about the vertical axis — a yaw turn, not a tilt.",
+  },
+  {
+    quat: [0.70711, 0, 0.70711, 0],
+    intro: "Quaternion 3 of 5 — a forward tumble.",
+    choices: ["Standing straight upright", "Turned ninety degrees left", "Tipped nose-down", "Rolled completely upside-down"],
+    correctIndex: 2, view: "side",
+    reveal: "The nonzero component is y, so this is a rotation about the side-to-side axis — pitch, nose tipping down.",
+  },
+  {
+    quat: [0.9998458, -0.0000213, -0.017562, -0.0000564],
+    intro: "Quaternion 4 of 5 — real Go2 telemetry, read in the CORRECT (w, x, y, z) order.",
+    choices: ["Standing straight upright", "Turned ninety degrees left", "Tipped nose-down", "Rolled completely upside-down"],
+    correctIndex: 0, view: "side",
+    reveal: "w &asymp; 1 means a tiny angle (about 2&deg;) — this is the real end-of-ramp sample from captured mission telemetry, and it's essentially upright.",
+  },
+  {
+    quat: [0.9998458, -0.0000213, -0.017562, -0.0000564],
+    intro: "Quaternion 5 of 5 — the SAME four numbers, misread as (x, y, z, w).",
+    choices: ["Standing straight upright", "Turned ninety degrees left", "Tipped nose-down", "Rolled completely upside-down"],
+    correctIndex: 3, view: "front",
+    reveal: "Now the last number (-0.0000564) is treated as w, which decodes to a 180&deg; angle — nothing in the raw array changed, only the assumed order did.",
+  },
+]);
+</script>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

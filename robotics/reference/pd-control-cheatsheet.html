@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reference — PD Control Cheat Sheet</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    body { font-size: 16px; }
+    .page { max-width: 780px; }
+    h2 { margin-top: 2rem; }
+    .ref-table {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: .82rem;
+      margin: .75rem 0 1.25rem;
+    }
+    .ref-row {
+      display: grid;
+      padding: .45rem .8rem;
+      border-bottom: 1px solid var(--border);
+      gap: .5rem;
+      align-items: center;
+    }
+    .ref-row.cols-4 { grid-template-columns: .7fr .9fr .7fr 1.6fr; }
+    .ref-row.cols-3 { grid-template-columns: 1.3fr 1.1fr 1.2fr; }
+    .ref-row.cols-2 { grid-template-columns: .9fr 1.6fr; }
+    .ref-row:last-child { border-bottom: none; }
+    .ref-row.header { background: #111; color: var(--muted); text-transform: uppercase; font-size: .7rem; letter-spacing: .05em; }
+    .ref-row:not(.header):nth-child(even) { background: #1e1e1e; }
+    @media print {
+      body { background: #fff; color: #000; padding-top: 1rem; }
+      .topnav, .teacher-tip { display: none; }
+    }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Robotics</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Reference &nbsp;·&nbsp; Robotics &nbsp;·&nbsp; Covers lesson 4</p>
+  <h1>PD Control Cheat Sheet</h1>
+  <p style="color:var(--muted);">The compressed version of <a href="../lessons/0004-what-is-pd-control.html">lesson 4</a> &mdash; the equation, the units, and a symptom &rarr; cause &rarr; fix table for tuning a Go2 stand-up mission.</p>
+
+  <h2>The control law</h2>
+  <pre><code>tau = Kp * (q_des - q) + Kd * (dq_des - dq) + tau_ff</code></pre>
+  <div class="ref-table">
+    <div class="ref-row header cols-4"><span>Symbol</span><span>Name</span><span>Units</span><span>What it does</span></div>
+    <div class="ref-row cols-4"><span><code>q</code></span><span>position</span><span>rad</span><span>current joint angle</span></div>
+    <div class="ref-row cols-4"><span><code>q_des</code></span><span>desired position</span><span>rad</span><span>target joint angle</span></div>
+    <div class="ref-row cols-4"><span><code>dq</code></span><span>velocity</span><span>rad/s</span><span>current joint angular velocity</span></div>
+    <div class="ref-row cols-4"><span><code>dq_des</code></span><span>desired velocity</span><span>rad/s</span><span>target angular velocity (usually 0 at a held pose)</span></div>
+    <div class="ref-row cols-4"><span><code>Kp</code></span><span>position gain</span><span>N&middot;m/rad</span><span>stiffness &mdash; push per unit of position error</span></div>
+    <div class="ref-row cols-4"><span><code>Kd</code></span><span>velocity gain</span><span>N&middot;m/(rad/s)</span><span>damping &mdash; resistance per unit of velocity</span></div>
+    <div class="ref-row cols-4"><span><code>tau_ff</code></span><span>feedforward torque</span><span>N&middot;m</span><span>a known load (e.g. gravity) supplied directly</span></div>
+    <div class="ref-row cols-4"><span><code>tau</code></span><span>output torque</span><span>N&middot;m</span><span>what the motor actually applies</span></div>
+  </div>
+  <p style="font-size:.85rem; color:var(--muted);">This is the exact field layout of the Go2's <code>motor_cmd</code> struct (<code>q, dq, kp, kd, tau</code>), and the convention traces back to <a href="https://dspace.mit.edu/bitstream/handle/1721.1/105580/964525489-MIT.pdf" target="_blank">Ben Katz's MIT thesis</a> on quasi-direct-drive actuators for legged robots.</p>
+
+  <h2 id="symptom-cause-fix">Symptom &rarr; likely cause &rarr; what to try</h2>
+  <div class="ref-table">
+    <div class="ref-row header cols-3"><span>Symptom in the log/plot</span><span>Likely cause</span><span>Try</span></div>
+    <div class="ref-row cols-3"><span>Settles short of target and stays there (steady droop)</span><span>Kp too low relative to a constant load; no <code>tau_ff</code></span><span>Raise Kp (shrinks it, never zeroes it), or add <code>tau_ff</code> (can zero it)</span></div>
+    <div class="ref-row cols-3"><span>Rings / oscillates before settling, or never settles</span><span>Kd too low relative to Kp</span><span>Raise Kd</span></div>
+    <div class="ref-row cols-3"><span>Reaches target very slowly, feels "sluggish"</span><span>Kd too high relative to Kp</span><span>Lower Kd, or raise Kp to compensate</span></div>
+    <div class="ref-row cols-3"><span>Overshoots once, then settles</span><span>Kp high relative to Kd (underdamped)</span><span>Raise Kd a little, or lower Kp</span></div>
+  </div>
+
+  <h2>Real numbers from the reference project</h2>
+  <div class="ref-table">
+    <div class="ref-row cols-2"><span>Gains (original)</span><span><code>KP=60.0, KD=5.0</code> (flat across all 12 joints) &mdash; copied from Unitree's own <code>go2_stand_example.cpp</code></span></div>
+    <div class="ref-row cols-2"><span>Feedforward (original)</span><span><code>tau = 0</code> for every joint &mdash; none used</span></div>
+    <div class="ref-row cols-2"><span>Mission tolerance</span><span><code>0.05</code> rad per joint</span></div>
+    <div class="ref-row cols-2"><span>Captured failure (original)</span><span>rear-right hip joint (index 6): <code>max_joint_error = 0.181</code> rad during ramp, <code>0.169</code> rad during hold</span></div>
+    <div class="ref-row cols-2"><span>Gains (current)</span><span>same <code>KP=60, KD=5</code>, plus <code>KI=6.0</code> integral gain feeding the <code>tau</code> feedforward field (clamped &plusmn;15 N&middot;m); integral resets to 0 when the ramp ends</span></div>
+    <div class="ref-row cols-2"><span>Result (current)</span><span>mission completed &mdash; max joint error &asymp;<code>0.028</code> rad, verified reproducible over 3 fresh-sim runs</span></div>
+  </div>
+  <p style="font-size:.85rem; color:var(--muted);">Source (private repo): <a href="https://github.com/dillonroller/robot-feasibility-framework/blob/main/examples/stand-mission-report.json" target="_blank">stand-mission-report.json</a> / <a href="https://github.com/dillonroller/robot-feasibility-framework/blob/main/examples/stand-mission-report-tuned.json" target="_blank">stand-mission-report-tuned.json</a> &mdash; see also the tuning history in <a href="https://github.com/dillonroller/robot-feasibility-framework/blob/main/scripts/run_stand_mission.py" target="_blank"><code>run_stand_mission.py</code></a>'s own docstring.</p>
+
+  <p style="font-size:.85rem; color:var(--muted);">The original numbers are still worth keeping: they're the honest baseline this whole lesson is built on &mdash; the point where raising Kp/Kd alone runs into a hard limit, and where adding <em>something</em> beyond pure PD (feedforward or integral) becomes necessary.</p>
+
+  <p style="margin-top:2rem; font-size:.8rem; color:#444;">From <a href="../index.html">Robotics</a> &mdash; <a href="../lessons/0004-what-is-pd-control.html">lesson 4 (What Kp and Kd Actually Do)</a>. Primary sources: <a href="https://www.mathworks.com/videos/understanding-pid-control-part-1-what-is-pid-control--1527089264373.html" target="_blank">Brian Douglas, MATLAB Tech Talks</a> &middot; <a href="https://dspace.mit.edu/bitstream/handle/1721.1/105580/964525489-MIT.pdf" target="_blank">Ben Katz, MIT thesis</a> &middot; <a href="https://github.com/unitreerobotics/unitree_sdk2/blob/main/example/go2/go2_stand_example.cpp" target="_blank">unitree_sdk2 go2_stand_example.cpp</a>.</p>
+
+</div>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 7 — The Sim-to-Real Gap</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Robotics</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 7 of 7 &nbsp;·&nbsp; Robotics &nbsp;·&nbsp; ~15 min</p>
+  <h1>The Sim-to-Real Gap</h1>
+  <p>Why everything simulated so far in this topic — PD gains, joint frames, sensor readings, balance — is a rehearsal, not a performance. And why the source robotics project this whole curriculum is grounded in exists specifically to answer the question that leaves open.</p>
+
+  <div class="callout warn">
+    <strong>This project's stack already hit this gap — before any robot physics were involved</strong>
+    The source project's Unitree setup notes record that the official Unitree stack "targets Ubuntu 20.04/22.04" and needed real patches to run on macOS: the SDK's <code>RecurrentThread</code> called the Linux <code>timerfd_create</code> syscall directly, which "doesn't exist on macOS/BSD — this is a hard crash, not a warning," and had to be patched to fall back to a <code>time.sleep</code>-based loop. Separately, macOS's loopback interface is <code>lo0</code>, not Linux's <code>lo</code> — another silent assumption baked into the stack. Nothing about robot dynamics was involved yet, and the environment still didn't match what the software assumed. That's the sim-to-real gap in miniature: software built and tested against one set of assumptions, run against a different reality.
+  </div>
+
+  <h2 id="what-a-simulator-is">1. What a simulator actually is</h2>
+  <p><code>unitree_mujoco</code> runs on <strong>MuJoCo</strong>, a physics engine: a numerical approximation of rigid-body motion, contact, and friction. "Approximation" is doing real work in that sentence — MuJoCo doesn't simulate the actual atoms of a real Go2's rubber feet gripping actual concrete. It simulates a contact model someone wrote down: a function that's cheap to compute and close enough for its purpose, not a perfect replica of any one physical object. The same goes for its actuator model (how commanded torque becomes motion) and its sensor model (how "true" simulated state becomes a noisy-ish reading). Every one of those is a simplification, and every simplification is a place where a real Go2 can behave differently than its simulated twin.</p>
+  <p>The gap between "works when simulated" and "works on the physical robot" has a name: the <strong>sim-to-real gap</strong>. It's studied most rigorously in robot learning, where a controller is trained entirely in simulation and then has to survive contact with an actual robot:</p>
+
+  <div class="callout">
+    <strong>Primary source</strong>
+    Zhao, Peña Queralta &amp; Westerlund, <a href="https://arxiv.org/abs/2009.13303" target="_blank">"Sim-to-Real Transfer in Deep Reinforcement Learning for Robotics: a Survey"</a> (arXiv:2009.13303) — opens by naming exactly this problem: "the gap between the simulated and real worlds degrades the performance of the policies once the models are transferred into real robots." The <code>stand_up</code> mission's controller is hand-tuned PID (PD plus an added integral feedforward term — see <a href="0004-what-is-pd-control.html">Lesson 4</a>), not a learned policy, so most of the survey's transfer <em>techniques</em> (domain randomization, meta-learning) don't directly apply — but the underlying gap it's naming is the exact same one, and its framing of <strong>why</strong> simulators diverge from reality is worth reading even for a classical controller.
+  </div>
+
+  <h2 id="concrete-divergences">2. Concrete ways a real Go2 can diverge from its MuJoCo twin</h2>
+  <table>
+    <thead><tr><th>Category</th><th>What differs in reality</th></tr></thead>
+    <tbody>
+      <tr><td>Friction &amp; contact</td><td>Real foot/ground friction depends on surface, wear, moisture — MuJoCo uses one contact model with parameters someone chose</td></tr>
+      <tr><td>Actuator dynamics</td><td>Real motors have torque/rate limits, response delay, and heat buildup under sustained load; MuJoCo's actuator model is idealized</td></tr>
+      <tr><td>Sensor noise</td><td>Real IMU/encoder noise has its own statistics (bias drift, vibration coupling) that a simulated sensor may not reproduce — see <a href="0005-sensors-and-state-estimation.html">Lesson 5</a></td></tr>
+      <tr><td>Latency</td><td>Real network/DDS and control-loop timing jitter that a local sim doesn't have to contend with</td></tr>
+      <tr><td>Power</td><td>Battery voltage sags under load in ways that change available torque over a mission — not modeled at all here</td></tr>
+      <tr><td>Mechanical wear</td><td>Cable drag, gearbox backlash, joint play — accumulate on a real robot and never exist in sim</td></tr>
+    </tbody>
+  </table>
+  <p>None of these are exotic. They're the ordinary difference between a model of a thing and the thing. Every earlier lesson in this topic has quietly assumed simulation is close enough — this lesson is where that assumption gets named and questioned.</p>
+
+  <h2 id="every-lesson-has-an-angle">3. Every earlier lesson has a sim-to-real angle</h2>
+  <ul>
+    <li><a href="0004-what-is-pd-control.html">Lesson 4 (PD control)</a> — <code>Kp=60, Kd=5</code> converging in MuJoCo doesn't guarantee the same gains won't ring, overheat, or feel dangerously stiff on a real Go2's actual actuators and load.</li>
+    <li><a href="0001-coordinate-frames-and-orientation.html">Lesson 1 (frames/orientation)</a> — the IMU's scalar-first quaternion convention is a software/firmware fact, not a physics one, but it's exactly the kind of assumption that silently breaks when a real sensor driver differs from the simulated bridge's.</li>
+    <li><a href="0002-dds-pubsub-and-ros2.html">Lesson 2 (DDS/ROS2)</a> — a loopback DDS domain on one machine has none of the latency, packet loss, or multi-machine clock drift a real deployed robot's network will.</li>
+    <li><a href="0003-robot-kinematics-basics.html">Lesson 3 (kinematics)</a> — MuJoCo's joint limits and link masses come from the model file, which may not match the specific real unit's manufacturing tolerances.</li>
+    <li><a href="0005-sensors-and-state-estimation.html">Lesson 5 (sensors)</a> — simulated sensor noise is a choice made by whoever wrote the MuJoCo model, not a measurement of the real IMU/encoders/foot-force sensors.</li>
+    <li><a href="0006-locomotion-and-balance.html">Lesson 6 (locomotion/balance)</a> — a balance margin that looks comfortable against MuJoCo's flat-ground friction model may not exist at all on a real, uneven, or slippery site.</li>
+  </ul>
+
+  <h2 id="verification-not-vibes">4. This project's actual answer: verification, not vibes</h2>
+  <p>The source robotics project isn't trying to make simulation perfect — it's trying to make the <em>gap</em> visible and evidenced. That's Layer 5 and Layer 6 of its architecture doc, word for word:</p>
+  <blockquote>Layer 5 — Simulation and test planning: "For each mission, define what can be validated in simulation vs. what requires hardware, a real site, or a controlled field trial... <em>How do we prove readiness before trusting the robot in production?</em>"</blockquote>
+  <blockquote>Layer 6 — Feasibility report: feasibility ratings range from "Ready with existing robot" down to "Requires significant R&amp;D," and the report always includes a "verification plan."</blockquote>
+  <p>And its telemetry-contract doc names exactly why this matters, again word for word:</p>
+  <blockquote>"This is the layer that lets a feasibility report cite evidence instead of assertion: not 'the robot can probably do this' but 'in N simulated runs and M field trials, these specific events fired in these specific sequences, and here's what failed and how it recovered.'"</blockquote>
+  <p>"Verification" in this project doesn't mean "ran once in MuJoCo and it looked fine." It means a staged evidence trail — <strong>simulation → controlled real-hardware trial → field trial</strong> — where each stage answers a narrower, harder question than the last, and a feasibility rating is only as strong as the weakest stage it's actually been run through. The project's concept doc frames the whole system's job as answering "can this robot credibly do this job, and what would prove it?" — the "what would prove it" is the part simulation alone can never fully answer.</p>
+
+  <div class="callout">
+    <strong>This project already lived a smaller version of this lesson</strong>
+    <code>run_stand_mission.py</code>'s own docstring records the actual tuning history: an integral gain of <code>KI=9</code> "converged cleanly on the first run (0.042 rad) — but a second live run under the <em>identical</em> config oscillated and never converged (0.11 rad)." One successful run wasn't evidence the controller worked — it was sitting at the edge of stability, and ordinary run-to-run noise (timing jitter, non-deterministic contact physics) tipped it either way. The fix that shipped, <code>KI=6</code>, was verified "reproducible over 3 consecutive fresh-sim runs" before being trusted. That's the same principle this lesson is teaching, one level down: even <em>within</em> simulation, a single clean run is not proof — reproducibility across repeated runs is the minimum bar, and it's still a lower bar than a real robot.
+  </div>
+
+  <h2>Classify the claim</h2>
+  <p>For each claim below: could running <code>unitree_mujoco</code> alone settle it, or does it need real hardware / a field trial? No peeking at the sections above.</p>
+
+  <div class="quiz">
+    <h3>Sim-verifiable, or needs real-world testing?</h3>
+
+    <div class="q-block" id="c1">
+      <p>1. <code>stand_up</code> now completes within its 0.05 rad tolerance in <code>unitree_mujoco</code> (it does — 0.028 rad, reproducible over 3 runs, after adding an integral term).</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'c1','This claim is entirely about behavior inside the simulator — re-running unitree_mujoco with the current gains directly settles it, and it already has been, repeatedly. No real hardware needed to check this specific claim.')">Sim-verifiable</button>
+        <button onclick="quizAnswer(this,false,'c1','This specific claim is only about simulator behavior with the current gains — it has already been checked directly in unitree_mujoco, repeatedly, so it does not need real hardware to settle.')">Needs real-world testing</button>
+      </div>
+      <div class="feedback" id="c1-fb"></div>
+    </div>
+
+    <div class="q-block" id="c2">
+      <p>2. The real Go2's battery lasts a full 8-hour patrol shift.</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'c2','This project\'s simulation setup does not model battery voltage, current draw, or thermal effects at all — there is nothing in unitree_mujoco that could settle this claim.')">Sim-verifiable</button>
+        <button onclick="quizAnswer(this,true,'c2','Nothing in this project\'s simulation setup models battery voltage, current draw, or thermal effects over hours of real operation. Only measuring a real unit answers this.')">Needs real-world testing</button>
+      </div>
+      <div class="feedback" id="c2-fb"></div>
+    </div>
+
+    <div class="q-block" id="c3">
+      <p>3. Retuned Kp/Kd gains won't overheat or damage the real actuators under sustained standing load.</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'c3','MuJoCo\'s actuator model has no real motor heat buildup or mechanical wear limits — a sim run literally cannot check this.')">Sim-verifiable</button>
+        <button onclick="quizAnswer(this,true,'c3','MuJoCo\'s actuator model doesn\'t include real motor heat buildup or mechanical wear limits — those live in the physical hardware, not the physics engine.')">Needs real-world testing</button>
+      </div>
+      <div class="feedback" id="c3-fb"></div>
+    </div>
+
+    <div class="q-block" id="c4">
+      <p>4. The robot can greet attendees without blocking an exit (a human-interaction example from the source project's own worked example).</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'c4','Real crowd behavior, real perception performance, and a real site\'s geometry aren\'t modeled by this project\'s simulation setup at all.')">Sim-verifiable</button>
+        <button onclick="quizAnswer(this,true,'c4','This depends on real crowd behavior, real perception performance, and a real site\'s geometry — none of which this project\'s simulation setup models at all.')">Needs real-world testing</button>
+      </div>
+      <div class="feedback" id="c4-fb"></div>
+    </div>
+
+    <div class="q-block" id="c5">
+      <p>5. A gait that balances well against MuJoCo's flat-ground friction model will balance the same way on a real site's actual (uneven, possibly wet) surface.</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'c5','Friction and surface irregularity are exactly the kind of physical property a physics engine approximates with one chosen model — sim alone cannot confirm it holds on a different real surface.')">Sim-verifiable</button>
+        <button onclick="quizAnswer(this,true,'c5','Friction and surface irregularity are exactly the kind of physical property a physics engine approximates with one chosen model — a real site can differ enough to matter, and only testing on it (or a matched surface) proves otherwise.')">Needs real-world testing</button>
+      </div>
+      <div class="feedback" id="c5-fb"></div>
+    </div>
+
+    <h3>Check your recall</h3>
+
+    <div class="q-block" id="q1">
+      <p>6. According to the source project's telemetry-contract doc, what does telemetry let a feasibility report cite instead of assertion?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','The doc\'s language is “evidence instead of assertion” generally — it is not specifically labeling simulated evidence as the answer; sim is just one stage of that evidence.')">Simulated evidence</button>
+        <button onclick="quizAnswer(this,true,'q1','The doc\'s own words: telemetry lets a report cite “evidence instead of assertion” — specific events from specific runs, not a general claim that something “probably” works.')">Concrete evidence</button>
+        <button onclick="quizAnswer(this,false,'q1','The whole point of the passage is contrasting evidence with assumption/assertion — “assumed evidence” is close to the opposite of what is being described.')">Assumed evidence</button>
+        <button onclick="quizAnswer(this,false,'q1','The doc is not talking about model-derived evidence specifically — it is about real recorded events forming a citable trail.')">Modeled evidence</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>7. Per the source project's architecture doc (Layer 5), what question is simulation and test planning trying to answer?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Layer 5 is not about performance benchmarking — it is about what would need testing and how, not raw speed.')">How fast robots run</button>
+        <button onclick="quizAnswer(this,true,'q2','Layer 5\'s own framing: “How do we prove readiness before trusting the robot in production?” — planning what sim vs. hardware vs. field trial each mission needs.')">How to prove readiness</button>
+        <button onclick="quizAnswer(this,false,'q2','Friction modeling is one input MuJoCo happens to need, but it is not what Layer 5 itself is asking — Layer 5 is about the test-planning question, not a specific physics parameter.')">How to model friction</button>
+        <button onclick="quizAnswer(this,false,'q2','That’s the telemetry layer’s job (the event vocabulary) — Layer 5 is specifically about what needs simulation vs. hardware vs. field testing.')">How to write telemetry</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>8. Why doesn't a clean <code>unitree_mujoco</code> run alone justify a high feasibility rating?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','Speed is not the issue this lesson raises at all — MuJoCo runs plenty fast. The problem is what a clean run can and can’t prove.')">Sim runs too slowly</button>
+        <button onclick="quizAnswer(this,true,'q3','Verification here is staged — sim, then controlled real trial, then field trial. A feasibility rating is only as strong as the weakest stage actually completed, and sim is just the first stage.')">Sim is one evidence stage</button>
+        <button onclick="quizAnswer(this,false,'q3','This does not even make sense as a reason to distrust sim results — gains are exactly what get tuned in sim, that is not the concern here.')">Sim needs no gains</button>
+        <button onclick="quizAnswer(this,false,'q3','unitree_mujoco does have a live viewer — and GUI presence has nothing to do with whether a clean run counts as sufficient evidence.')">Sim lacks a GUI</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <p style="margin-top:2rem;">This is the last lesson in the current batch. Navigation/SLAM (Layer 0 substrate in the source project's architecture doc) is deferred until the rest of this curriculum is solid. In the meantime: <code>stand_up</code> now reaches <code>mission_completed</code> in <code>unitree_mujoco</code> — a genuinely earned result, not a lucky one, given the run-to-run reproducibility check above. Per this lesson's own framing, that's stage one of this project's verification staging, not the end of it. The next concrete step this lesson points at: what would a controlled real-hardware trial for this exact mission need to check that repeated clean sim runs alone can't — ask your teacher to help sketch one.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Good questions right now: "what would a 'controlled real-hardware trial' for the stand_up mission actually look like, concretely?", or "why doesn't domain randomization apply to a hand-tuned PD controller the same way it does to a learned one?"
+  </div>
+
+  <div class="nav">
+    <a href="0006-locomotion-and-balance.html">← Lesson 6: Locomotion &amp; Balance</a>
+    <span class="spacer"></span>
+    <a href="../index.html">Robotics: All Lessons →</a>
+  </div>
+
+</div>
+
+<style>
+  blockquote {
+    border-left: 3px solid var(--accent-border);
+    background: var(--bg-raised);
+    color: var(--ink-dim);
+    padding: .7rem 1.1rem;
+    margin: 1rem 0;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    font-size: .95rem;
+  }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: .9rem; }
+  th, td { text-align: left; padding: .5rem .7rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-family: var(--font-ui); font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+</style>
+
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

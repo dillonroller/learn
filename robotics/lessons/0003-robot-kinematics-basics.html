@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 3 — Joints, Links & Degrees of Freedom</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Robotics</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 3 of 7 &nbsp;·&nbsp; Robotics &nbsp;·&nbsp; ~15 min</p>
+  <h1>Joints, Links, and 12 Degrees of Freedom</h1>
+  <p>What "12 joints, 3 per leg" on the Go2 actually means mechanically — zero-background, grounded in the robot's real joint definitions.</p>
+
+  <div class="callout">
+    <strong>Setting up the next lesson</strong>
+    The next lesson tunes <em>one</em> joint's Kp/Kd and watches it settle short of a target angle. Before that makes sense, you need the mechanical vocabulary for what a "joint" even is on this robot — this lesson is about what all 12 of them, together, actually <em>are</em> — mechanically — before later lessons get into how they're sensed and coordinated.
+  </div>
+
+  <h2 id="links-joints-dof">Links, joints, and degrees of freedom</h2>
+  <p>A robot's moving body is built from rigid <strong>links</strong> — solid segments that don't bend — connected by <strong>joints</strong>, which are exactly the connections that allow one link to move relative to another. Every joint on the Go2 is a <strong>revolute joint</strong>: it only rotates, around a single fixed axis, like a hinge. (The other common type, a <strong>prismatic joint</strong>, slides along a line instead of rotating — the Go2 doesn't have any.)</p>
+  <p>A <strong>degree of freedom (DOF)</strong> is one independent way something can move. One revolute joint, rotating around one axis, is exactly one rotational DOF — nothing more. A chain of links connected by joints, one after another, is called a <strong>kinematic chain</strong>. Each Go2 leg is a 3-joint kinematic chain: body → hip joint → thigh link → thigh joint → calf link → calf joint → foot.</p>
+
+  <div class="callout">
+    <strong>Primary source</strong>
+    This section compresses <a href="https://modernrobotics.northwestern.edu/nu-gm-book-resource/2-2-degrees-of-freedom-of-a-robot/" target="_blank">"2.2 Degrees of Freedom of a Robot" — Kevin Lynch &amp; Frank Park, <em>Modern Robotics</em> (Northwestern, free)</a>, which covers joint types and DOF counting properly (including Grübler's formula, which this lesson doesn't need). Worth the ~15 minutes if you want the fuller version.
+  </div>
+
+  <h2 id="three-joints-per-leg">Three joints per leg — but not the same kind of "three"</h2>
+  <p>Checking the Go2's real MuJoCo model directly (<a href="https://github.com/unitreerobotics/unitree_mujoco/blob/main/unitree_robots/go2/go2.xml" target="_blank"><code>go2.xml</code></a>), each leg's three joints are mechanically different, not three copies of the same hinge:</p>
+  <table>
+    <thead><tr><th>Joint</th><th>Rotates around</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>*_hip_joint</code></td><td>the body's front-back axis</td><td><strong>abduction/adduction</strong> — swings the whole leg out to the side or back in</td></tr>
+      <tr><td><code>*_thigh_joint</code></td><td>the body's left-right axis</td><td><strong>pitch</strong> — swings the thigh forward/backward</td></tr>
+      <tr><td><code>*_calf_joint</code></td><td>the same left-right axis as thigh</td><td><strong>pitch</strong> (the knee) — bends the lower leg</td></tr>
+    </tbody>
+  </table>
+  <p>That distinction matters for the diagram below: thigh and calf rotate around the <em>same</em> axis, so they live in one flat plane you can draw in 2D (a side view). Hip rotates around a <em>different</em> axis, so it moves the leg out of that plane entirely — you cannot show all three joints correctly in one flat side-view drawing, which is a common shortcut beginner diagrams get wrong.</p>
+
+  <h2 id="18-dof-floating-base">12 joints = 4 legs × 3 DOF each. But the robot has 18.</h2>
+  <p>4 legs × 3 revolute joints = <strong>12 actuated degrees of freedom</strong> — 12 things you can directly command with a motor. But that's not the robot's whole story. The body itself isn't bolted to anything: it's free to translate in 3 directions and rotate in 3 more, exactly like any rigid object floating in space. By the same DOF counting above, a free rigid body in 3D has <strong>6 more DOF</strong> — nobody drives them with a motor; they're a consequence of everything else the legs do.</p>
+  <p>12 (legs) + 6 (free-floating body) = <strong>18 total DOF</strong>, only 12 of which you can command directly. This is exactly the <strong>floating-base</strong> framing used throughout legged-robot control research — see <a href="https://underactuated.csail.mit.edu/index.html" target="_blank">MIT's <em>Underactuated Robotics</em> course (Russ Tedrake, free)</a>, which treats the body's own 6 DOF as an unactuated part of the system the legs have to control indirectly. That's the mechanical reason "standing" is a harder problem than "put each joint at its target angle" — more on that in the locomotion &amp; balance lesson.
+
+  <div class="complexity">
+    <span class="label">Actuated (legs)</span><span class="val">12 DOF</span>
+    <span class="label">Unactuated (floating base)</span><span class="val">6 DOF</span>
+    <span class="label">Whole robot</span><span class="val">18 DOF</span>
+  </div>
+
+  <h2 id="forward-kinematics">Forward kinematics: angles in, foot position out</h2>
+  <p><strong>Forward kinematics</strong> answers the easy direction of the question: given every joint's angle, where is the foot? (The harder, reverse direction — given a foot position, what angles produce it? — is <strong>inverse kinematics</strong>, out of scope here.) Try it:</p>
+
+  <div class="legsim">
+    <div class="legsim-controls">
+      <label class="legsim-slider">
+        <span>Thigh (pitch) <b class="legsim-thigh-val">0</b>&deg;</span>
+        <input type="range" class="legsim-thigh" min="-90" max="200" step="1" value="-30">
+      </label>
+      <label class="legsim-slider">
+        <span>Calf (pitch) <b class="legsim-calf-val">-90</b>&deg;</span>
+        <input type="range" class="legsim-calf" min="-156" max="-48" step="1" value="-90">
+      </label>
+      <label class="legsim-slider">
+        <span>Hip (abduction, top-down) <b class="legsim-hip-val">0</b>&deg;</span>
+        <input type="range" class="legsim-hip" min="-60" max="60" step="1" value="0">
+      </label>
+      <button class="legsim-preset" type="button">Go to real STAND_POSE (0&deg;, 38.4&deg;, -74.5&deg;)</button>
+    </div>
+    <div class="legsim-canvases">
+      <div>
+        <div class="legsim-canvas-label">Side view (thigh + calf — the plane they share)</div>
+        <canvas class="legsim-side" width="280" height="300"></canvas>
+      </div>
+      <div>
+        <div class="legsim-canvas-label">Top-down inset (hip abduction — a different plane)</div>
+        <canvas class="legsim-top" width="200" height="200"></canvas>
+      </div>
+    </div>
+    <div class="legsim-readout">Foot position relative to hip, in leg lengths: —</div>
+  </div>
+
+  <p>Press the preset button to jump both sliders to the exact angles in the source project's <code>run_stand_mission.py</code> <code>STAND_POSE</code>: thigh <code>0.67</code> rad (38.4°), calf <code>-1.3</code> rad (-74.5°) — real numbers from a mission that's actually been run, not invented ones. This diagram uses a simplified convention (thigh measured from straight down, calf measured relative to the thigh) to show the <em>shape</em> of forward kinematics — chain a couple of angles together and a foot position falls out. It is not pixel-exact to Unitree's own zero-reference/sign convention for these joints; that would need the actual URDF and is unnecessary for the concept here.</p>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. A Go2 leg has 3 revolute joints in series: hip, thigh, calf. How many degrees of freedom does that give the leg?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','One joint alone would be one DOF, but this leg has three joints in series, not one.')">One degree total</button>
+        <button onclick="quizAnswer(this,true, 'q1','Each revolute joint is exactly one rotational DOF, and DOF adds along a serial kinematic chain: 3 joints = 3 DOF for this leg.')">Three degrees total</button>
+        <button onclick="quizAnswer(this,false,'q1','Six would be right for a free-floating rigid body (3 translation + 3 rotation) — not for three single-axis revolute joints in series.')">Six degrees total</button>
+        <button onclick="quizAnswer(this,false,'q1','Twelve is the DOF for all four legs together (4 × 3), not for one leg on its own.')">Twelve degrees total</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. The Go2's motor_state array has 12 elements, ordered FR, FL, RR, RL (verified from go2.xml's sensor block). What is motor_state[6]?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Front-right occupies indices 0-2, not 6 — this is exactly the mistake this curriculum made once already, before it was caught and corrected.')">Front-right hip joint</button>
+        <button onclick="quizAnswer(this,false,'q2','Front-left occupies indices 3-5, one triple before index 6.')">Front-left hip joint</button>
+        <button onclick="quizAnswer(this,true, 'q2','Indices 0-2 are FR, 3-5 are FL, 6-8 are RR, 9-11 are RL — so index 6, the first of its triple, is the rear-right hip joint.')">Rear-right hip joint</button>
+        <button onclick="quizAnswer(this,false,'q2','Rear-left occupies indices 9-11, the last triple, not 6.')">Rear-left hip joint</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Besides the 12 actuated leg joints, how many more DOF does the robot's own free-floating body add?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','A body free to move in 3D space always has some unactuated DOF — it can\'t be zero unless the body were bolted down to something.')">Zero more DOF</button>
+        <button onclick="quizAnswer(this,false,'q3','Three would only account for translation (or only rotation) alone — a free rigid body has both.')">Three more DOF</button>
+        <button onclick="quizAnswer(this,true, 'q3','A rigid body free in 3D space always has 6 DOF (3 translation + 3 rotation) whether or not anything drives them — that\'s the floating base.')">Six more DOF</button>
+        <button onclick="quizAnswer(this,false,'q3','Twelve is the count of actuated leg joints, not the unactuated floating-base DOF being asked about here.')">Twelve more DOF</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Without looking back at the table above, sketch (even just in words) the three joints of one Go2 leg in order from the body outward, and say which axis each one rotates around and whether it shares that axis with its neighbor. Then check yourself against the table. This is the exact vocabulary the PD control lesson assumes you have.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Good questions right now: "why can't a single 2D diagram show all three of a leg's joints correctly?", or "what would change about this if the Go2 had prismatic (sliding) leg joints instead?"
+  </div>
+
+  <div class="nav">
+    <a href="0002-dds-pubsub-and-ros2.html">← Lesson 2: DDS Pub/Sub &amp; ROS2</a>
+    <span class="spacer"></span>
+    <a href="0004-what-is-pd-control.html">Lesson 4: PD Control →</a>
+  </div>
+
+</div>
+
+<style>
+.legsim {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+  margin: 1.5rem 0;
+}
+.legsim-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 0.9rem;
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+}
+.legsim-slider { display: flex; flex-direction: column; gap: 0.25rem; min-width: 210px; }
+.legsim-slider input[type="range"] { width: 100%; }
+.legsim-preset {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.9rem;
+  cursor: pointer;
+}
+.legsim-preset:hover { background: var(--accent-strong); }
+.legsim-canvases {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+.legsim-canvas-label {
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 0.3rem;
+}
+.legsim-side, .legsim-top {
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  display: block;
+  max-width: 100%;
+}
+.legsim-readout {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 0.7rem;
+}
+table { border-collapse: collapse; width: 100%; margin: 1rem 0 1.5rem; font-size: .9rem; }
+th, td { text-align: left; padding: .5rem .7rem; border-bottom: 1px solid var(--border); }
+th { font-family: var(--font-ui); font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+</style>
+
+<script>
+(function () {
+  const thighSlider = document.querySelector(".legsim-thigh");
+  const calfSlider = document.querySelector(".legsim-calf");
+  const hipSlider = document.querySelector(".legsim-hip");
+  const thighVal = document.querySelector(".legsim-thigh-val");
+  const calfVal = document.querySelector(".legsim-calf-val");
+  const hipVal = document.querySelector(".legsim-hip-val");
+  const presetBtn = document.querySelector(".legsim-preset");
+  const sideCanvas = document.querySelector(".legsim-side");
+  const topCanvas = document.querySelector(".legsim-top");
+  const readout = document.querySelector(".legsim-readout");
+  const sideCtx = sideCanvas.getContext("2d");
+  const topCtx = topCanvas.getContext("2d");
+  const standPoseDeg = { hip: 0, thigh: 38.4, calf: -74.5 };
+
+  function colors() {
+    const style = getComputedStyle(document.documentElement);
+    return {
+      ink: style.getPropertyValue("--ink").trim() || "#eae6dd",
+      muted: style.getPropertyValue("--muted").trim() || "#7c848a",
+      accent: style.getPropertyValue("--accent").trim() || "#4fae7d",
+      border: style.getPropertyValue("--border").trim() || "#262c30",
+      bg: style.getPropertyValue("--bg").trim() || "#14181b",
+    };
+  }
+
+  function drawSide(thighDeg, calfDeg) {
+    const c = colors();
+    const w = sideCanvas.width, h = sideCanvas.height;
+    sideCtx.clearRect(0, 0, w, h);
+
+    const hipX = w / 2, hipY = 40;
+    const L = 90;
+    const thighRad = (thighDeg * Math.PI) / 180;
+    const calfRad = (calfDeg * Math.PI) / 180;
+
+    const kneeX = hipX + L * Math.sin(thighRad);
+    const kneeY = hipY + L * Math.cos(thighRad);
+    const totalRad = thighRad + calfRad;
+    const footX = kneeX + L * Math.sin(totalRad);
+    const footY = kneeY + L * Math.cos(totalRad);
+
+    sideCtx.fillStyle = c.muted;
+    sideCtx.fillRect(hipX - 45, hipY - 22, 90, 22);
+
+    sideCtx.strokeStyle = c.border;
+    sideCtx.lineWidth = 1;
+    sideCtx.beginPath();
+    sideCtx.moveTo(0, hipY + L * 2 + 6);
+    sideCtx.lineTo(w, hipY + L * 2 + 6);
+    sideCtx.stroke();
+
+    sideCtx.strokeStyle = c.ink;
+    sideCtx.lineWidth = 6;
+    sideCtx.lineCap = "round";
+    sideCtx.beginPath();
+    sideCtx.moveTo(hipX, hipY);
+    sideCtx.lineTo(kneeX, kneeY);
+    sideCtx.stroke();
+
+    sideCtx.strokeStyle = c.accent;
+    sideCtx.beginPath();
+    sideCtx.moveTo(kneeX, kneeY);
+    sideCtx.lineTo(footX, footY);
+    sideCtx.stroke();
+
+    [
+      [hipX, hipY, c.ink],
+      [kneeX, kneeY, c.ink],
+      [footX, footY, c.accent],
+    ].forEach(([x, y, col]) => {
+      sideCtx.fillStyle = col;
+      sideCtx.beginPath();
+      sideCtx.arc(x, y, 5, 0, Math.PI * 2);
+      sideCtx.fill();
+    });
+
+    readout.textContent = `Foot position relative to hip, in leg-lengths L: x=${((footX - hipX) / L).toFixed(2)}L, y=${((footY - hipY) / L).toFixed(2)}L (down is positive).`;
+  }
+
+  function drawTop(hipDeg) {
+    const c = colors();
+    const w = topCanvas.width, h = topCanvas.height;
+    topCtx.clearRect(0, 0, w, h);
+    const cx = w / 2, cy = h / 2;
+    const hipRad = (hipDeg * Math.PI) / 180;
+
+    topCtx.fillStyle = c.muted;
+    topCtx.fillRect(cx - 15, cy - 40, 30, 80);
+
+    const legLen = 70;
+    const pivotX = cx, pivotY = cy + 30;
+    const endX = pivotX + legLen * Math.sin(hipRad);
+    const endY = pivotY + legLen * Math.cos(hipRad);
+
+    topCtx.strokeStyle = c.accent;
+    topCtx.lineWidth = 5;
+    topCtx.lineCap = "round";
+    topCtx.beginPath();
+    topCtx.moveTo(pivotX, pivotY);
+    topCtx.lineTo(endX, endY);
+    topCtx.stroke();
+
+    topCtx.fillStyle = c.ink;
+    topCtx.beginPath();
+    topCtx.arc(pivotX, pivotY, 4, 0, Math.PI * 2);
+    topCtx.fill();
+  }
+
+  function sync() {
+    const t = parseFloat(thighSlider.value);
+    const cf = parseFloat(calfSlider.value);
+    const hp = parseFloat(hipSlider.value);
+    thighVal.textContent = t.toFixed(0);
+    calfVal.textContent = cf.toFixed(0);
+    hipVal.textContent = hp.toFixed(0);
+    drawSide(t, cf);
+    drawTop(hp);
+  }
+
+  thighSlider.addEventListener("input", sync);
+  calfSlider.addEventListener("input", sync);
+  hipSlider.addEventListener("input", sync);
+  presetBtn.addEventListener("click", () => {
+    thighSlider.value = standPoseDeg.thigh;
+    calfSlider.value = standPoseDeg.calf;
+    hipSlider.value = standPoseDeg.hip;
+    sync();
+  });
+
+  sync();
+})();
+</script>
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

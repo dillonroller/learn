@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reference — Coordinate Frames &amp; Orientation Cheat Sheet</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    body { font-size: 16px; }
+    .page { max-width: 780px; }
+    h2 { margin-top: 2rem; }
+    .ref-table {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      font-family: var(--font-ui);
+      font-size: .82rem;
+      margin: .75rem 0 1.25rem;
+    }
+    .ref-row {
+      display: grid;
+      grid-template-columns: 1.1fr 1.6fr;
+      padding: .45rem .8rem;
+      border-bottom: 1px solid var(--border);
+      gap: .5rem;
+      align-items: center;
+    }
+    .ref-row:last-child { border-bottom: none; }
+    .ref-row.header { background: var(--bg-sunken); color: var(--muted); text-transform: uppercase; font-size: .7rem; letter-spacing: .05em; }
+    .ref-row:not(.header):nth-child(even) { background: var(--bg-raised); }
+    @media print {
+      body { background: #fff; color: #000; padding-top: 1rem; }
+      .topnav, .teacher-tip { display: none; }
+    }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Robotics</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Reference &nbsp;·&nbsp; Robotics &nbsp;·&nbsp; Covers lesson 1</p>
+  <h1>Coordinate Frames &amp; Orientation Cheat Sheet</h1>
+  <p style="color:var(--muted);">The compressed version of <a href="../lessons/0001-coordinate-frames-and-orientation.html">lesson 1</a>. Pose, quaternions, and the scalar-first/scalar-last gotcha.</p>
+
+  <h2>Core terms</h2>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Term</span><span>Definition</span></div>
+    <div class="ref-row"><span>Pose</span><span>Position (x, y, z) + orientation, together, relative to some frame.</span></div>
+    <div class="ref-row"><span>Reference frame</span><span>An agreed origin + set of axes everything is measured against.</span></div>
+    <div class="ref-row"><span>World frame</span><span>Fixed frame the environment is measured in (gravity down, a fixed "forward").</span></div>
+    <div class="ref-row"><span>Body frame</span><span>Frame attached to the robot, moving with it. Relating body ↔ world frames is what ROS2's <code>tf2</code> is for.</span></div>
+    <div class="ref-row"><span>Euler angles (roll/pitch/yaw)</span><span>Orientation as three sequential rotation angles. Simple to read, but suffers gimbal lock.</span></div>
+    <div class="ref-row"><span>Gimbal lock</span><span>At certain orientations (pitch ±90°), two Euler rotation axes align and a degree of freedom is lost.</span></div>
+    <div class="ref-row"><span>Quaternion</span><span>4-number orientation representation (1 scalar + 3-vector) that avoids gimbal lock.</span></div>
+  </div>
+
+  <h2>Decoding a single-axis-rotation quaternion</h2>
+  <pre><code>angle = 2 * acos(clamp(w, -1, 1))          // degrees or radians
+axis  = whichever of x, y, z has the largest magnitude
+sign  = sign of that dominant component</code></pre>
+  <p style="font-size:.85rem; color:var(--muted);">Only valid for quaternions representing rotation about one axis — general orientations mix all three vector components at once.</p>
+
+  <h2>Scalar-first vs. scalar-last — know which you're holding</h2>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Convention</span><span>Order · Used by · Identity</span></div>
+    <div class="ref-row"><span>Scalar-first</span><span><code>(w, x, y, z)</code> — MuJoCo, and this project's own Go2 telemetry (unmodified pass-through). Identity <code>(1, 0, 0, 0)</code></span></div>
+    <div class="ref-row"><span>Scalar-last</span><span><code>(x, y, z, w)</code> — ROS2 <code>geometry_msgs/Quaternion</code>. Identity <code>(0, 0, 0, 1)</code></span></div>
+  </div>
+  <p style="font-size:.85rem; color:var(--muted);">A bare 4-number array never tells you which convention it's in — that has to come from documentation or code. Get it backwards and nothing crashes; it just silently computes the wrong orientation.</p>
+
+  <h2>Worked example: real robot telemetry</h2>
+  <p style="font-size:.85rem;">Sample from a captured mission log, end of a stand-up ramp (<code>pct: 1.0</code>): <code>[0.9998458, -0.0000213, -0.017562, -0.0000564]</code></p>
+  <div class="ref-table">
+    <div class="ref-row header"><span>Read as</span><span>Decodes to</span></div>
+    <div class="ref-row"><span><code>(w,x,y,z)</code> — correct</span><span>2.0° about the y-axis — essentially upright</span></div>
+    <div class="ref-row"><span><code>(x,y,z,w)</code> — wrong</span><span>180.0° about the x-axis — completely upside-down</span></div>
+  </div>
+
+  <p style="margin-top:2rem; font-size:.8rem; color:var(--muted);">From <a href="../index.html">Robotics</a> — <a href="../lessons/0001-coordinate-frames-and-orientation.html">lesson 1 (Coordinate Frames &amp; Orientation)</a>. Primary sources: <a href="https://eater.net/quaternions" target="_blank">Quaternions and 3D rotation, explained interactively</a> · <a href="https://mujoco.readthedocs.io/en/stable/modeling.html" target="_blank">MuJoCo docs</a> · <a href="https://github.com/ros2/common_interfaces/blob/rolling/geometry_msgs/msg/Quaternion.msg" target="_blank">ROS2 geometry_msgs/Quaternion.msg</a>.</p>
+
+</div>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

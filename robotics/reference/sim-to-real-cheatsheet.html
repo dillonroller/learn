@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reference — Sim-to-Real Gap Cheat Sheet</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    body { font-size: 16px; }
+    .page { max-width: 780px; }
+    h2 { margin-top: 2rem; }
+    table { width: 100%; border-collapse: collapse; margin: .75rem 0 1.5rem; font-size: .85rem; }
+    th, td { text-align: left; padding: .5rem .7rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { font-family: var(--font-ui); font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+    blockquote {
+      border-left: 3px solid var(--accent-border);
+      background: var(--bg-raised);
+      color: var(--ink-dim);
+      padding: .7rem 1.1rem;
+      margin: 1rem 0;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      font-size: .92rem;
+    }
+    @media print {
+      body { background: #fff; color: #000; padding-top: 1rem; }
+      .topnav, .teacher-tip { display: none; }
+    }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Robotics</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Reference &nbsp;·&nbsp; Robotics &nbsp;·&nbsp; Covers lesson 7</p>
+  <h1>Sim-to-Real Gap Cheat Sheet</h1>
+  <p style="color:var(--muted);">The compressed version of <a href="../lessons/0007-sim-to-real-gap.html">lesson 7</a>: what a simulator approximates, what to distrust from a sim-only run, and the source project's own verification framing.</p>
+
+  <h2>What MuJoCo approximates (not replicates)</h2>
+  <table>
+    <thead><tr><th>Category</th><th>Real-world difference</th></tr></thead>
+    <tbody>
+      <tr><td>Friction &amp; contact</td><td>Surface, wear, moisture — one chosen contact model vs. reality</td></tr>
+      <tr><td>Actuator dynamics</td><td>Torque/rate limits, response delay, heat buildup under load</td></tr>
+      <tr><td>Sensor noise</td><td>Bias drift, vibration coupling — real IMU/encoder noise has its own statistics</td></tr>
+      <tr><td>Latency</td><td>Real network/DDS and control-loop jitter</td></tr>
+      <tr><td>Power</td><td>Battery voltage sag under load, changing available torque over time</td></tr>
+      <tr><td>Mechanical wear</td><td>Cable drag, gearbox backlash, joint play — accumulate only on real hardware</td></tr>
+    </tbody>
+  </table>
+
+  <h2>This project's verification stages</h2>
+  <table>
+    <thead><tr><th>Stage</th><th>Answers</th></tr></thead>
+    <tbody>
+      <tr><td>Simulation (<code>unitree_mujoco</code>)</td><td>Does the logic/control law behave as intended at all?</td></tr>
+      <tr><td>Controlled real-hardware trial</td><td>Does it survive contact with real actuators, sensors, and physics?</td></tr>
+      <tr><td>Field trial</td><td>Does it hold up in the real deployment environment (crowds, surfaces, network)?</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:.85rem; color:var(--muted);">A feasibility rating (source project's architecture doc, Layer 6) is only as strong as the weakest stage actually completed — "Ready with existing robot" implies more than a clean sim run. <code>stand_up</code> has cleared stage one only: it now reaches <code>mission_completed</code> in <code>unitree_mujoco</code> (≈0.028 rad error, reproducible across repeated runs — see <code>run_stand_mission.py</code>'s tuning-history docstring). Stages two and three haven't happened yet.</p>
+
+  <h2>Quotable framing (the source project's own words)</h2>
+  <blockquote>"How do we prove readiness before trusting the robot in production?" — architecture doc, Layer 5</blockquote>
+  <blockquote>"...lets a feasibility report cite evidence instead of assertion: not 'the robot can probably do this' but 'in N simulated runs and M field trials, these specific events fired in these specific sequences...'" — telemetry-contract doc</blockquote>
+
+  <h2>Quick test: does this claim need real hardware?</h2>
+  <p style="font-size:.85rem; color:var(--muted);">Ask: does the claim depend on anything in the table above (friction, actuator limits, sensor noise, latency, power, wear) or on the real deployment environment (crowds, surfaces, network)? If yes, a sim run alone cannot settle it.</p>
+
+  <div class="callout">
+    <strong>Primary source</strong>
+    Zhao, Peña Queralta &amp; Westerlund, <a href="https://arxiv.org/abs/2009.13303" target="_blank">"Sim-to-Real Transfer in Deep Reinforcement Learning for Robotics: a Survey"</a> (arXiv:2009.13303)
+  </div>
+
+  <p style="margin-top:2rem; font-size:.8rem; color:#444;">From <a href="../index.html">Robotics</a> — <a href="../lessons/0007-sim-to-real-gap.html">lesson 7 (The Sim-to-Real Gap)</a>. Source project (private): <a href="https://github.com/dillonroller/robot-feasibility-framework/blob/main/docs/architecture.md" target="_blank">docs/architecture.md</a>, <a href="https://github.com/dillonroller/robot-feasibility-framework/blob/main/docs/telemetry-contract.md" target="_blank">docs/telemetry-contract.md</a>.</p>
+
+</div>
+<script src="../../assets/search.js"></script>
+</body>
+</html>
