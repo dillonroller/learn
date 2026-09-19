@@ -291,6 +291,41 @@ pre code { background: none; padding: 0; font-size: 1em; }
   font-size: .9rem; color: var(--muted); margin-top: 1rem;
 }
 
+/* Inline multiple-choice exercise cards (driven by mcAnswer() in
+   /assets/quiz.js). Older lessons carry a hand-rolled copy of these
+   rules in a per-page <style> block; new lessons should just use the
+   classes and inherit from here. */
+.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
+.mc-card {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+}
+.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
+.mc-formula .en { font-size: .95rem; color: var(--ink-dim); margin-bottom: .4rem; display: block; }
+.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mc-options button {
+  background: var(--bg-sunken);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .4rem .8rem;
+  font-size: .85rem;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+.mc-options button:hover { border-color: var(--accent-border); background: var(--accent-soft); }
+.mc-options button.correct { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-strong); }
+.mc-options button.wrong   { background: var(--err-lt); border-color: var(--err); color: var(--err); }
+.mc-options button:disabled { cursor: default; }
+.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
+.mc-options button:disabled:hover { border-color: var(--border); background: var(--bg-sunken); }
+.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: var(--font-ui); }
+.mc-fb.good { color: var(--accent-strong); }
+.mc-fb.bad  { color: var(--err); }
+
 /* Lesson footer nav */
 .nav {
   display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 3rem;

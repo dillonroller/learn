@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 2 — Epistemology</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Philosophy</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 2 of 12 &nbsp;·&nbsp; Philosophy &nbsp;·&nbsp; ~25 min</p>
+  <h1>Epistemology — How Do We Know Anything?</h1>
+  <p>Epistemology is <a href="0001-what-is-philosophy.html#conceptual-question">conceptual analysis</a> pointed at one word: <em>knowledge</em>. This lesson runs the analysis end to end — the classic definition, the three-page paper that broke it, and what the field did next. By the end you should be able to take any claim of the form "I know that p" and say precisely which condition is doing the work and which one is failing.</p>
+
+  <h2 id="jtb">The classic analysis: justified true belief</h2>
+  <p>The standard starting point, abbreviated <strong>JTB</strong>, says: <em>S knows that p if and only if</em> —</p>
+  <div class="callout">
+    <strong id="jtb-conditions">The three conditions</strong>
+    <strong>Truth</strong> — it is true that p. You cannot know something false. (You can be <em>convinced</em> of something false; that isn't knowledge, it's error.)<br>
+    <strong>Belief</strong> — S believes that p. Not weak confidence: <a href="https://plato.stanford.edu/entries/knowledge-analysis/" target="_blank">outright, full belief</a>.<br>
+    <strong>Justification</strong> — S is justified in believing that p. Something entitles the belief: evidence, a reliable source, a proof. A lucky guess that happens to be true isn't knowledge.
+  </div>
+  <p>You have already met the truth condition in formal dress. In <a href="0011-epistemic-logic.html#factivity">lesson 11</a>, <code>Kp → p</code> — <a href="0011-epistemic-logic.html#factivity">factivity</a> — is exactly the truth condition, and the reason <code>Bp → p</code> is <em>not</em> a theorem is exactly that belief lacks it. Epistemic logic is JTB's truth and belief conditions turned into axioms; what it deliberately leaves out is justification, which turns out to be the hard one.</p>
+  <p>Each condition earns its place by ruling out a failure mode. Drop truth and error counts as knowledge. Drop belief and you "know" things you'd deny. Drop justification and every lucky guess counts. So all three are <em>necessary</em>. The question that broke the field is whether together they're <em>sufficient</em>.</p>
+
+  <h2 id="gettier-problem">Gettier's counterexample</h2>
+  <p>In 1963, Edmund Gettier published a three-page paper showing they are not. The recipe: take a belief that is <strong>justified but false</strong>, validly infer something from it that happens to be <strong>true for an unrelated reason</strong>. The conclusion is justified (it follows from justified premises), true (by luck), and believed — all three conditions met — yet plainly not knowledge.</p>
+  <div class="callout warn">
+    <strong id="gettier-case">A Gettier case, in the modern style</strong>
+    You look at the office wall clock; it reads 3:00. The clock has been reliable for years, so your belief is well justified. It is in fact 3:00, so your belief is true. You believe it. JTB is satisfied.<br>
+    But the clock stopped exactly twelve hours ago. You are right by coincidence — you would have believed "3:00" no matter what time it actually was.<br>
+    <em>Justified. True. Believed. Not knowledge.</em>
+  </div>
+  <p>Notice the structure: this is the <a href="0001-what-is-philosophy.html#conceptual-analysis">counterexample method</a>, executed perfectly. Gettier did not argue that JTB is implausible. He constructed a case satisfying the definition that the concept clearly excludes — the analysis-killing equivalent of the <a href="../../logic/lessons/0003-truth-tables.html">one truth-table row</a> where the premises are true and the conclusion is false.</p>
+
+  <h2 id="gettier-responses">What broke, and the repairs</h2>
+  <p>The diagnosis most people accept: JTB doesn't exclude <strong>epistemic luck</strong>. The belief is true, and justified, but the justification isn't <em>connected</em> to what makes it true. The repairs are attempts to add that connection:</p>
+  <div class="callout">
+    <strong id="no-false-lemmas">No false lemmas</strong>
+    Add a fourth condition: the belief must not be inferred from anything false. Kills the original Gettier cases (they all route through a false premise) — but not later cases built to avoid any false step.
+  </div>
+  <div class="callout">
+    <strong id="reliabilism">Reliabilism</strong>
+    Replace justification with a causal requirement: the belief must be produced by a reliable, truth-conducive process. A stopped clock is not a reliable process, so the case is excluded. Cost: it makes knowledge depend on facts about your environment that you may have no access to.
+  </div>
+  <div class="callout">
+    <strong id="safety-sensitivity">Safety and sensitivity</strong>
+    Require a modal condition, in the vocabulary of <a href="../../logic/lessons/0010-modal-logic.html">modal logic</a>: in nearby possible worlds where you form the belief the same way, it is still true (<em>safety</em>); or, had p been false you would not have believed it (<em>sensitivity</em>). The stopped clock fails both — in nearby worlds it is 3:07 and you believe 3:00 anyway.
+  </div>
+  <p>None commands consensus. That's the honest state of the field: sixty years on, there is no agreed analysis of knowledge — which is itself evidence for <a href="0001-what-is-philosophy.html#russell-residue">Russell's residue</a> point. What you get from it is not a definition but a diagnostic: when someone claims to know something, ask which condition is shaky, and whether their justification is actually <em>connected</em> to the truth.</p>
+
+  <h2 id="rationalism-empiricism">Where justification comes from</h2>
+  <p>The second great axis of epistemology: what <em>sources</em> can justify a belief at all?</p>
+  <div class="callout">
+    <strong id="a-priori">A priori vs a posteriori</strong>
+    <strong>A priori</strong> justification is independent of experience — you know <code>¬(P ∧ ¬P)</code>, or that all bachelors are unmarried, without checking cases.<br>
+    <strong>A posteriori</strong> justification depends on experience — you know the additive causes liver damage only by observing.<br>
+    <em>Rationalists</em> hold that substantive truths about reality are knowable a priori. <em>Empiricists</em> hold that experience is the only source of substantive knowledge, and a priori truths are true by definition alone — informative about words, not the world.
+  </div>
+  <p>This is the fault line <a href="0009-key-thinkers-map.html#kant">Kant</a> tried to dissolve, and it powers the argument form in <a href="0012-transcendental-arguments.html">lesson 12</a>: a transcendental argument is a bid for substantive a priori knowledge, derived not from experience but from what experience <em>presupposes</em>. If empiricism is right, that bid can't succeed — which is precisely why the form is contested.</p>
+
+  <h2>Try it: which condition fails?</h2>
+  <p>For each case, identify what stops it from being knowledge.</p>
+  <div id="jtb-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. What exactly does a Gettier case demonstrate?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Gettier cases satisfy all three conditions — that is the entire point. If one condition failed, there would be nothing surprising.')">That justification is not necessary for knowing at all</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — all three conditions hold and it still is not knowledge, so JTB is not sufficient. The conditions may each still be necessary.')">That all three JTB conditions can hold without knowledge</button>
+        <button onclick="quizAnswer(this,false,'q1','Nothing in a Gettier case is false at the level of the conclusion — the belief is true, which is what makes the case awkward.')">That the belief in question is actually false after all</button>
+        <button onclick="quizAnswer(this,false,'q1','Gettier cases are about knowledge, not about the reliability of observation in general — the perception involved is usually working fine.')">That perception is unreliable and cannot justify anything</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. How does the truth condition of JTB show up in <a href="0011-epistemic-logic.html">epistemic logic</a>?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true, 'q2','Right — Kp → p is factivity, the formal statement of the truth condition. Belief has no matching axiom, which is exactly the asymmetry JTB records.')">As factivity, the axiom Kp → p, which belief lacks</button>
+        <button onclick="quizAnswer(this,false,'q2','Positive introspection (Kp → KKp) is about self-awareness of knowing, a separate and more contested axiom than the truth condition.')">As positive introspection, the axiom Kp → KKp instead</button>
+        <button onclick="quizAnswer(this,false,'q2','Epistemic logic does not formalize the justification condition at all — that omission is one of its known limits.')">As the justification condition, given its own operator</button>
+        <button onclick="quizAnswer(this,false,'q2','Factivity is a central axiom of epistemic logic, not something it leaves out — it is what distinguishes K from B.')">It does not appear, since epistemic logic drops truth</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. What common diagnosis explains why Gettier cases fail to be knowledge?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','The subject in a Gettier case is usually highly confident — confidence is not what is missing.')">The subject is not sufficiently confident in the belief</button>
+        <button onclick="quizAnswer(this,false,'q3','The evidence is genuinely good — a long-reliable clock is real justification. That is what makes the case hard.')">The evidence involved is weak and would persuade nobody</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — the belief is true by luck: the justification is not connected to what makes it true. Repairs all try to add that missing connection.')">The justification is not connected to what makes it true</button>
+        <button onclick="quizAnswer(this,false,'q3','Gettier cases are constructed to be perfectly coherent — incoherence is not the flaw being exposed.')">The belief is internally incoherent and so cannot be held</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. An empiricist and a rationalist disagree about what, most fundamentally?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','Both accept that experience justifies plenty of beliefs — no rationalist denies you learn the weather by looking.')">Whether experience can ever justify a belief at all</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — the dispute is whether substantive truths about reality can be known a priori, or whether a priori truths are merely definitional.')">Whether substantive truths about reality are a priori</button>
+        <button onclick="quizAnswer(this,false,'q4','Neither position denies that some beliefs are true; this is a dispute about sources of justification, not about truth itself.')">Whether any belief whatsoever manages to be true at all</button>
+        <button onclick="quizAnswer(this,false,'q4','Both camps accept logical truths — they disagree about whether such truths tell you anything substantive about the world.')">Whether basic logical truths like ¬(P ∧ ¬P) hold at all</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Primary resource</h2>
+  <p>Read <a href="https://plato.stanford.edu/entries/knowledge-analysis/" target="_blank">SEP — The Analysis of Knowledge</a>, which lays out JTB, the Gettier cases, and every major repair in order. Then the <a href="https://plato.stanford.edu/entries/epistemology/" target="_blank">SEP — Epistemology</a> survey for the wider field, and <a href="https://plato.stanford.edu/entries/rationalism-empiricism/" target="_blank">SEP — Rationalism vs. Empiricism</a> for the second axis. Gettier's original paper is three pages and worth reading in full; it is summarised faithfully in the <a href="https://iep.utm.edu/gettier/" target="_blank">IEP entry on the Gettier problem</a>.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Try building your own Gettier case and bring it to Claude Code — if it's a good one, it will be hard to say which condition fails, and that difficulty is the lesson.
+  </div>
+
+  <div class="nav">
+    <a href="0001-what-is-philosophy.html">← Lesson 1: What is Philosophy?</a>
+    <span class="spacer"></span>
+    <a href="0003-ethics-how-should-we-act.html">Lesson 3: Ethics →</a>
+  </div>
+
+</div>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+renderMC('jtb-exercise', [
+  {
+    prompt: 'A gambler is certain, on no evidence at all, that the next card is the ace of spades. It is.',
+    options: [
+      { text: 'Truth fails', explain: 'The belief is true — the card really is the ace of spades. That condition is satisfied.' },
+      { text: 'Justification fails', correct: true, explain: 'Right — a hunch with no evidence behind it is unjustified. True belief plus nothing is a lucky guess, which is why JTB needs a justification condition at all.' },
+      { text: 'Belief fails', explain: 'The gambler is certain, so full belief is clearly present.' },
+      { text: 'Nothing fails', explain: 'If pure hunches counted as knowledge, every lucky guess would — which is exactly the result the justification condition exists to block.' },
+    ],
+  },
+  {
+    prompt: 'A careful researcher reads a well-designed study and concludes the drug works. The study was later found to be fabricated, and the drug does nothing.',
+    options: [
+      { text: 'Truth fails', correct: true, explain: 'Right — the belief is justified (the study looked sound) and believed, but it is false, so it cannot be knowledge. This is ordinary justified error, not a Gettier case.' },
+      { text: 'Justification fails', explain: 'Reading a well-designed study is paradigmatic justification. The researcher did everything right — that is what makes it a clean truth failure.' },
+      { text: 'Belief fails', explain: 'The researcher concluded the drug works, so the belief is fully held.' },
+      { text: 'Nothing fails', explain: 'The drug does nothing, so the belief is false — and you cannot know something false.' },
+    ],
+  },
+  {
+    prompt: 'You see what looks exactly like a sheep in a field and conclude there is a sheep there. It is a very convincing dog — but a real sheep is hidden behind the hill.',
+    options: [
+      { text: 'Truth fails', explain: 'There genuinely is a sheep in the field, hidden behind the hill, so the belief "there is a sheep in this field" is true.' },
+      { text: 'Justification fails', explain: 'Seeing something that looks exactly like a sheep is good justification — perception is working normally here.' },
+      { text: 'All three hold, but it is not knowledge', correct: true, explain: 'Right — this is a Gettier case. Justified, true, believed, yet true only by luck: what you saw is not what makes it true.' },
+      { text: 'Belief fails', explain: 'You did form the belief that there is a sheep in the field, so the belief condition holds.' },
+    ],
+  },
+  {
+    prompt: 'A reliable weather service says rain tomorrow. You dismiss it as guesswork and expect sun. It rains.',
+    options: [
+      { text: 'Truth fails', explain: 'It does rain, so the proposition "it will rain" is true — the trouble is elsewhere.' },
+      { text: 'Justification fails', explain: 'You had excellent justification available from a reliable source. You simply declined to accept it.' },
+      { text: 'Belief fails', correct: true, explain: 'Right — you did not believe it. Having access to justification is not enough; the belief condition requires you actually hold the belief.' },
+      { text: 'Nothing fails', explain: 'You cannot know something you actively deny, however good the evidence sitting in front of you was.' },
+    ],
+  },
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

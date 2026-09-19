@@ -64,7 +64,7 @@
       <div class="options">
         <button onclick="quizAnswer(this,true, 'q1','Right — factivity is specifically a property of knowledge: you can’t know something false. Belief carries no such guarantee, since people can and do believe false things.')">Knowledge is factive — you can't know something false — but belief carries no truth guarantee</button>
         <button onclick="quizAnswer(this,false,'q1','K and B have the identical structural form (both quantify over a set of worlds) — the difference is exactly the added factivity axiom, not their basic shape.')">K and B have entirely different logical structures, unrelated to each other</button>
-        <button onclick="quizAnswer(this,false,'q1','Belief absolutely can be false — "Bp → p" specifically fails as an axiom because false beliefs are common and unremarkable.')">Bp → p is actually valid too — belief also guarantees truth</button>
+        <button onclick="quizAnswer(this,false,'q1','Belief absolutely can be false — &quot;Bp → p&quot; specifically fails as an axiom because false beliefs are common and unremarkable.')">Bp → p is actually valid too — belief also guarantees truth</button>
         <button onclick="quizAnswer(this,false,'q1','This isn’t about frequency of use — it’s a structural axiom that holds for K and provably fails for B.')">It's arbitrary — logicians just picked K to have this property</button>
       </div>
       <div class="feedback" id="q1-fb"></div>
@@ -73,7 +73,7 @@
     <div class="q-block" id="q2">
       <p>2. "I knew it would rain, but it didn't end up raining" is best described as…</p>
       <div class="options">
-        <button onclick="quizAnswer(this,false,'q2','Because Kp → p is valid, this sentence is actually contradictory as stated — "knew" plus "didn’t happen" can’t both be true.')">A perfectly consistent epistemic logic sentence</button>
+        <button onclick="quizAnswer(this,false,'q2','Because Kp → p is valid, this sentence is actually contradictory as stated — &quot;knew&quot; plus &quot;didn’t happen&quot; can’t both be true.')">A perfectly consistent epistemic logic sentence</button>
         <button onclick="quizAnswer(this,true, 'q2','Right — since knowledge is factive (Kp → p), if it didn’t actually rain, the speaker never knew it would; they had a false belief, not knowledge.')">A contradiction — if it didn't rain, the speaker had a false belief, not knowledge</button>
         <button onclick="quizAnswer(this,false,'q2','Positive introspection is about knowing that you know something — it has nothing to do with whether the underlying prediction was true.')">An example of positive introspection failing</button>
         <button onclick="quizAnswer(this,false,'q2','This isn’t a permission/obligation claim at all — there’s no deontic operator involved here.')">A deontic paradox, similar to the Good Samaritan case</button>
@@ -121,31 +121,12 @@
 
 </div>
 
-<style>
-.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
-.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
-.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
-.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
-.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
-.mc-options button {
-  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
-  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
-}
-.mc-options button:hover { border-color: var(--accent); }
-.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
-.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
-.mc-options button:disabled { cursor: default; }
-.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
-.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
-.mc-fb.good { color: var(--accent); }
-.mc-fb.bad { color: var(--err); }
-</style>
 
+<script src="../../assets/quiz.js"></script>
 <script>
 const EPISTEMIC_ITEMS = [
   {
-    english: '"She was certain it was Tuesday, but she was wrong — it was Wednesday."',
+    prompt: '"She was certain it was Tuesday, but she was wrong — it was Wednesday."',
     options: [
       { text: 'K(Tuesday)', explain: 'Kp → p is valid — if it wasn’t actually Tuesday, she never knew it was, regardless of how certain she felt.' },
       { text: 'B(Tuesday)', correct: true, explain: 'Right — since the claim was false, this can only be a (mistaken) belief, not knowledge. Certainty is not the same as knowledge.' },
@@ -153,7 +134,7 @@ const EPISTEMIC_ITEMS = [
     ],
   },
   {
-    english: '"The bridge held, exactly as the engineer\'s calculations showed it would."',
+    prompt: '"The bridge held, exactly as the engineer\'s calculations showed it would."',
     options: [
       { text: 'B(BridgeHolds)', explain: 'Since the outcome matched a justified, true calculation, this is a strong candidate for knowledge, not mere possibly-false belief.' },
       { text: 'K(BridgeHolds)', correct: true, explain: 'Right — true, and (per the calculations) justified — factivity is satisfied, so this is the knowledge operator, not just belief.' },
@@ -161,7 +142,7 @@ const EPISTEMIC_ITEMS = [
     ],
   },
   {
-    english: '"Nothing you know rules out the coin having landed heads — for all you know, it might have."',
+    prompt: '"Nothing you know rules out the coin having landed heads — for all you know, it might have."',
     options: [
       { text: 'K(Heads)', explain: 'This sentence explicitly denies knowing it landed heads — it only says heads isn’t ruled out, which is weaker than knowing it.' },
       { text: '¬K¬(Heads)', correct: true, explain: 'Right — "for all you know, it might have" is exactly the epistemic-possibility reading: not known to be false, the dual of K, mirroring ◇p ≡ ¬□¬p.' },
@@ -170,24 +151,9 @@ const EPISTEMIC_ITEMS = [
   },
 ];
 
-const epistemicDiv = document.getElementById('epistemic-exercise');
-EPISTEMIC_ITEMS.forEach((item, i) => {
-  const cardId = `epistemic-card-${i}`;
-  const card = document.createElement('div');
-  card.className = 'mc-card';
-  card.id = cardId;
-  card.innerHTML = `
-    <div class="mc-formula"><span class="en">${item.english}</span></div>
-    <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
-    </div>
-    <div class="mc-fb"></div>
-  `;
-  epistemicDiv.appendChild(card);
-});
+renderMC('epistemic-exercise', EPISTEMIC_ITEMS);
 </script>
 
-<script src="../../assets/quiz.js"></script>
 <script src="../../assets/search.js"></script>
 </body>
 </html>

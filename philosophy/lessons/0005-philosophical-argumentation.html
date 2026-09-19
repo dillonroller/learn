@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 5 — Philosophical Argumentation</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Philosophy</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 5 of 12 &nbsp;·&nbsp; Philosophy &nbsp;·&nbsp; ~25 min</p>
+  <h1>Logic &amp; Argumentation — The Philosopher's Toolkit</h1>
+  <p>You already have the formal half of this. <a href="../../logic/lessons/0001-arguments-validity-soundness.html#validity">Validity and soundness</a>, <a href="../../logic/lessons/0003-truth-tables.html">truth tables</a>, <a href="../../logic/lessons/0005-natural-deduction.html">natural deduction</a>, <a href="../../logic/lessons/0012-informal-fallacies.html">informal fallacies</a>, <a href="../../logic/lessons/0013-argument-mapping-reconstruction.html">argument reconstruction</a> — all of it transfers unchanged. This lesson is the other half: the moves philosophers make <em>with</em> that machinery, which the formal curriculum doesn't name. Five of them, and you've already watched four in action in lessons 2 through 4.</p>
+
+  <div class="callout warn">
+    <strong>From memory first</strong>
+    Without scrolling back: what does a <a href="0002-epistemology-knowledge.html#gettier-problem">Gettier case</a> do to the JTB analysis, and what does a <a href="0004-metaphysics-what-is-real.html#frankfurt-cases">Frankfurt case</a> do to the alternatives requirement? If you can state both, you already have this lesson's central method — it's the same one twice.
+  </div>
+
+  <h2 id="counterexample-method">1. The counterexample method</h2>
+  <p>The workhorse. A philosophical thesis is nearly always a universal claim in disguise: "knowledge <em>is</em> justified true belief" means <code>∀x (JTB(x) ↔ Knows(x))</code>; "responsibility <em>requires</em> alternatives" means <code>∀x (Responsible(x) → CouldHaveDoneOtherwise(x))</code>. From <a href="../../logic/lessons/0006-predicate-logic-quantifiers.html">predicate logic</a> you know the cheapest way to defeat a universal: produce one instance where it fails.</p>
+  <div class="callout">
+    <strong id="counterexample-recipe">The recipe</strong>
+    1. Restate the thesis as an explicit universal or biconditional — this is where most of the work is, since theses are rarely stated that carefully.<br>
+    2. Construct a case satisfying the left side and failing the right (or vice versa).<br>
+    3. The case need only be <em>coherent</em>, not actual. Teleporters and neuroscientists with implanted devices are fine.<br>
+    4. If the intuition about the case is stable under reflection, the thesis is refuted and must be repaired or dropped.
+  </div>
+  <p>Gettier and Frankfurt are the two cleanest instances in the canon, and you've now seen both. Step 3 is what non-philosophers object to most and it's the load-bearing one: a <em>conceptual</em> claim about what knowledge or responsibility requires is refuted by any coherent case, because it claims to hold necessarily, not usually.</p>
+
+  <h2 id="thought-experiments">2. Thought experiments</h2>
+  <p>The device that generates those cases. <a href="https://plato.stanford.edu/entries/thought-experiment/" target="_blank">Thought experiments are "devices of the imagination"</a> used to isolate one variable by stipulating away everything else — the same logic as a controlled experiment, minus the lab. The transplant surgeon holds the consequences fixed so only the constraint is in play; Mary's black-and-white room (coming in <a href="0007-philosophy-of-mind.html#knowledge-argument">lesson 7</a>) holds complete physical knowledge fixed so only experience is in play.</p>
+  <p>Their known weakness: intuitions about wildly unfamiliar cases may be unreliable, and a stipulation can quietly smuggle in the conclusion. The fair challenge to any thought experiment is always one of: <em>is the case actually coherent?</em>, <em>is the intuition stable?</em>, or <em>does the stipulation beg the question?</em></p>
+
+  <h2 id="principle-of-charity">3. The principle of charity</h2>
+  <p>Reconstruct your opponent's argument in its <em>strongest</em> defensible form before attacking it. This is not politeness — it is self-interest. An argument that only defeats the weak version of a position tells you nothing about whether the position is true, and you have learned nothing.</p>
+  <div class="callout">
+    <strong id="straw-man">Its failure mode has a name</strong>
+    The <a href="../../logic/lessons/0012-informal-fallacies.html">straw man</a> — <a href="https://plato.stanford.edu/entries/fallacies/" target="_blank">"an opponent's point of view is distorted in order to make it easier to refute."</a> Charity is the discipline that prevents it. Operationally: before objecting, state the other position well enough that its holder would accept your statement of it. If you can't, you don't yet understand it well enough to object.
+  </div>
+  <p>This is also where Philosophy and <a href="../../rationality/index.html">Rationality</a> meet — the same move appears there as steelmanning, aimed at everyday disagreement rather than at texts.</p>
+
+  <h2 id="reductio">4. Reductio ad absurdum</h2>
+  <p>Assume your opponent's thesis, derive a contradiction or an absurdity, conclude the thesis is false. You know the formal rule as <a href="../../logic/lessons/0005-natural-deduction.html">negation introduction</a>: from <code>P ⊢ ⊥</code> infer <code>¬P</code>. The philosophical version relaxes <code>⊥</code> to "absurd" — a conclusion so unacceptable that rejecting the premise is cheaper than accepting it.</p>
+  <p>That relaxation is exactly where these arguments are fought. A strict reductio is airtight; an "absurdity" reductio is only as strong as the shared judgment that the conclusion really is unacceptable. Your opponent's move is always available: <em>bite the bullet</em> — accept the supposedly absurd conclusion and keep the thesis. <a href="0004-metaphysics-what-is-real.html#hard-determinism">Hard determinism</a> is a bullet-bite about moral responsibility; naive consequentialism's defenders sometimes bite on the transplant surgeon. When someone bites, the reductio has failed as a refutation and the disagreement has relocated to the premise about what's absurd.</p>
+
+  <h2 id="reflective-equilibrium">5. Reflective equilibrium</h2>
+  <p>What you do once the other four have left you with a mess. <a href="https://plato.stanford.edu/entries/reflective-equilibrium/" target="_blank">The method is "the mutual adjustment of principles and judgments in the light of relevant argument and theory"</a> — you hold both your general principles and your case-by-case verdicts as revisable, and adjust in whichever direction has the weaker support, until they cohere.</p>
+  <div class="callout">
+    <strong id="equilibrium-in-practice">What it looks like in practice</strong>
+    Principle: "maximize aggregate welfare." Case verdict: "the surgeon must not harvest the visitor."<br>
+    These conflict. Equilibrium is reached by either <em>revising the principle</em> (add a constraint against using persons merely as means) or <em>revising the verdict</em> (conclude the intuition about the surgeon is a bias worth overriding). Both are legitimate; which is correct depends on which has more independent support.<br>
+    What is <em>not</em> legitimate is holding both and not noticing. That's the state most people's ethical views are actually in.
+  </div>
+  <p>It is the dominant method in moral and political philosophy, and it's the honest answer to "how do you argue about ethics without a decision procedure?" It is also, obviously, not a proof — which is why <a href="0012-transcendental-arguments.html">transcendental arguments</a>, the subject of lesson 12, are so attractive to people who want something stronger.</p>
+
+  <h2>Try it: name the move</h2>
+  <p>Each passage runs one of the five methods. Identify it.</p>
+  <div id="method-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Why is it enough for a philosophical counterexample to be merely coherent rather than actual?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Real cases are welcome when available — the point is not that they are forbidden but that they are not required.')">Because real cases are not admitted as evidence in philosophy</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — the thesis claims to hold necessarily, so any coherent case where it fails refutes it, whether or not that case is actual.')">Because the thesis claims necessity, so any failure refutes it</button>
+        <button onclick="quizAnswer(this,false,'q1','Intuitions about outlandish cases are a genuine worry, not a reason coherence suffices — it is the modal force of the thesis that does the work.')">Because intuitions about imagined cases are the more reliable</button>
+        <button onclick="quizAnswer(this,false,'q1','Coherence is a real constraint and incoherent cases are routinely thrown out on exactly that ground.')">Because coherence is a low bar that almost any case can clear</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. What does "biting the bullet" do to a reductio ad absurdum?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Biting the bullet concedes the derivation and accepts its conclusion — the inference is granted, not challenged.')">It denies that the conclusion follows from the assumed thesis</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — accepting the supposedly absurd conclusion blocks the refutation, relocating the dispute to whether the conclusion really is unacceptable.')">It blocks the refutation by denying the conclusion is absurd</button>
+        <button onclick="quizAnswer(this,false,'q2','It does not strengthen the reductio — it is precisely the standard way of resisting one.')">It strengthens the reductio by conceding the opponent's point</button>
+        <button onclick="quizAnswer(this,false,'q2','A strict formal reductio ending in a contradiction cannot be bitten; only the relaxed &quot;absurdity&quot; version is vulnerable.')">It works equally against a strict reductio ending in a contradiction</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. What is the self-interested reason to apply the principle of charity?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','Charity is about accuracy, not tone — a charitable reconstruction can precede a devastating objection.')">It keeps the disagreement civil and avoids giving offence</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — refuting a weak version tells you nothing about whether the position is true, so you learn nothing from the victory.')">Defeating a weak version teaches nothing about the real one</button>
+        <button onclick="quizAnswer(this,false,'q3','Nothing obliges you to agree — you can reconstruct a position at full strength and still reject it.')">It obliges you to concede the point if the argument is well made</button>
+        <button onclick="quizAnswer(this,false,'q3','Charity applies to reconstruction, not to the burden of proof, which is a separate matter.')">It shifts the burden of proof onto your opponent automatically</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. In reflective equilibrium, what happens when a principle and a case verdict conflict?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','Principles are not privileged — a monstrous verdict is standardly treated as a reason to revise the principle that produced it.')">The principle always wins, since general rules outrank cases</button>
+        <button onclick="quizAnswer(this,false,'q4','Intuitions are not privileged either — sometimes the right move is to conclude the intuition was a bias.')">The case verdict always wins, since intuitions are the data</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — both are revisable, and you adjust whichever has weaker independent support until principles and verdicts cohere.')">Either may be revised — whichever has weaker support gives</button>
+        <button onclick="quizAnswer(this,false,'q4','Suspending judgment is exactly the state the method is designed to get you out of; the conflict is the signal to start work.')">Both are suspended, and no view is held until new evidence</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Primary resource</h2>
+  <p>Read <a href="https://plato.stanford.edu/entries/thought-experiment/" target="_blank">SEP — Thought Experiments</a>, the best single account of the device the other methods depend on, then <a href="https://plato.stanford.edu/entries/reflective-equilibrium/" target="_blank">SEP — Reflective Equilibrium</a> for the method that arbitrates when counterexamples collide. For the fallacy side you already have <a href="../../logic/lessons/0012-informal-fallacies.html">Logic lesson 12</a>; <a href="https://plato.stanford.edu/entries/fallacies/" target="_blank">SEP — Fallacies</a> is the scholarly version.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Bring an argument you want to attack, and we'll run it properly: charitable reconstruction first, then hunt for a counterexample. Doing it in that order is the whole skill.
+  </div>
+
+  <div class="nav">
+    <a href="0004-metaphysics-what-is-real.html">← Lesson 4: Metaphysics</a>
+    <span class="spacer"></span>
+    <a href="0006-existentialism.html">Lesson 6: Existentialism →</a>
+  </div>
+
+</div>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+renderMC('method-exercise', [
+  {
+    prompt: '"Suppose well-being really is all that matters morally. Then a world of contented people with no knowledge, no achievement and no love would be as good as ours. It plainly is not. So well-being is not all that matters."',
+    options: [
+      { text: 'Reductio ad absurdum', correct: true, explain: 'Right — the thesis is assumed, an unacceptable consequence is derived, and the thesis is rejected. Note the bullet-biting escape is available: a determined hedonist can accept the verdict.' },
+      { text: 'Principle of charity', explain: 'Charity is about reconstructing a position at full strength before attacking it; here the position is being attacked via its consequences.' },
+      { text: 'Reflective equilibrium', explain: 'No mutual adjustment happens — the principle is simply rejected outright on the strength of one verdict.' },
+    ],
+  },
+  {
+    prompt: '"Before I object, let me put your view the strongest way I can, because the version I first heard was clearly not the one you hold."',
+    options: [
+      { text: 'Counterexample method', explain: 'No case is being constructed yet — this is the step that comes before any objection is raised.' },
+      { text: 'Principle of charity', correct: true, explain: 'Right — reconstructing the opponent\'s position in its strongest defensible form, which is what prevents attacking a straw man.' },
+      { text: 'Thought experiment', explain: 'Nothing is being imagined or stipulated; the speaker is restating an existing position accurately.' },
+    ],
+  },
+  {
+    prompt: '"Imagine a being physically identical to you, atom for atom, that has no inner experience whatsoever. If that is coherent, consciousness is not fixed by the physical facts."',
+    options: [
+      { text: 'Reflective equilibrium', explain: 'Nothing is being mutually adjusted here — a single imagined case is doing all the argumentative work.' },
+      { text: 'Thought experiment', correct: true, explain: 'Right — a stipulated imaginary case isolating one variable (experience) while holding another fixed (physical structure). This is the zombie argument, which lesson 7 takes up.' },
+      { text: 'Principle of charity', explain: 'No opposing position is being reconstructed; a case is being built to test a thesis.' },
+    ],
+  },
+  {
+    prompt: '"I hold that promises are absolutely binding, but I also think you should break one to save a life. One of those has to give — and the case for the second is far stronger than the case for the first, so the principle gets a qualification."',
+    options: [
+      { text: 'Reductio ad absurdum', explain: 'The principle is not discarded as absurd — it is qualified, and the speaker weighs support on both sides before deciding what to change.' },
+      { text: 'Counterexample method', explain: 'Closer — a case does the initial pressuring — but the distinctive move here is deliberately weighing which of the two to revise.' },
+      { text: 'Reflective equilibrium', correct: true, explain: 'Right — principle and case verdict conflict, both are treated as revisable, and the one with weaker independent support is adjusted until they cohere.' },
+    ],
+  },
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

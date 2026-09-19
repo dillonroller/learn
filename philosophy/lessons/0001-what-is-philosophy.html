@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 1 — What is Philosophy?</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Philosophy</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 1 of 12 &nbsp;·&nbsp; Philosophy &nbsp;·&nbsp; ~20 min</p>
+  <h1>What is Philosophy? Why It Still Matters</h1>
+  <p>You arrived in this topic sideways — through a "should" in a <a href="../../logic/lessons/0013-argument-mapping-reconstruction.html">Logic</a> exercise, which turned into <a href="0010-deontic-logic.html">deontic logic</a>. That was the right door. But it skipped the question underneath: what <em>kind</em> of question was "what does 'should' mean?" in the first place, and why couldn't any amount of evidence settle it?</p>
+  <p>This lesson gives you one portable skill: <strong>telling apart the three kinds of question</strong>, so you know when you're in a fight about facts, a fight about words, or a fight about values — and stop using the wrong tools on each.</p>
+
+  <h2 id="russell-residue">Philosophy is the residue</h2>
+  <p>A common jab at philosophy is that it never settles anything. Bertrand Russell's answer, in 1912, was that this is an artefact of how the field works: as soon as a philosophical question becomes answerable by definite methods, it stops being philosophy and becomes a science.</p>
+  <div class="callout">
+    <strong>Russell, <em>The Problems of Philosophy</em>, ch. XV</strong>
+    "Those questions which are already capable of definite answers are placed in the sciences, while those only to which, at present, no definite answer can be given, remain to form the residue which is called philosophy."
+    <span style="display:block; margin-top:.5rem; font-size:.85rem; color:var(--muted);">Physics was "natural philosophy" until it got instruments. The study of the mind was philosophy until it became psychology. Formal logic was philosophy until <a href="../../logic/lessons/0009-soundness-completeness.html">soundness and completeness proofs</a> turned it into mathematics. <a href="https://www.gutenberg.org/files/5827/5827-h/5827-h.htm#link2HCH0015" target="_blank">Read the chapter</a>.</span>
+  </div>
+  <p>So philosophy isn't the set of questions that are unanswerable in principle. It's the set that no established method currently decides — which is exactly why the reasoning has to carry the whole load. In a field with no experiment to appeal to, the argument <em>is</em> the evidence. That's why you started with <a href="../../logic/index.html">Logic</a>: it's the instrument this field doesn't otherwise have.</p>
+
+  <h2 id="three-kinds-of-question">The three kinds of question</h2>
+  <p>Most unproductive arguments are unproductive because the two sides are answering different kinds of question. Here is the triage:</p>
+
+  <div class="callout">
+    <strong id="empirical-question">1. Empirical — settled by observation</strong>
+    "Does this additive cause liver damage?" There is a fact of the matter, and a study could in principle find it. If you're arguing about an empirical question, the correct move is to go and look. Arguing harder is a waste.
+  </div>
+  <div class="callout">
+    <strong id="conceptual-question">2. Conceptual — settled by analysis</strong>
+    "Does <em>knowing</em> something require being certain of it?" No experiment decides this, because it's a question about what the concept <em>knowledge</em> covers. The method is <a href="#conceptual-analysis">conceptual analysis</a>: propose a definition, hunt for a case that fits the definition but not the concept, repair, repeat. <a href="0002-epistemology-knowledge.html">Lesson 2</a> is a worked example of this method running for sixty years.
+  </div>
+  <div class="callout">
+    <strong id="normative-question">3. Normative — settled by argument from values</strong>
+    "Should the additive be banned?" Even with every empirical fact in hand and every concept sharp, this is still open, because it asks what <em>ought</em> to be the case. This is the <a href="0010-deontic-logic.html#is-ought-gap">is-ought gap</a> you already met: no pile of descriptive premises validly yields a prescriptive conclusion without a normative premise to bridge them. <a href="0003-ethics-how-should-we-act.html">Lesson 3</a> is about where those bridging premises come from.
+  </div>
+  <p>The three <em>interact</em> — a normative argument usually rests on empirical premises, and both rest on concepts — but they fail in different ways, and the repair for each is different. Misdiagnosing which one you're in is the single most common way a real argument goes nowhere.</p>
+
+  <h2 id="conceptual-analysis">What conceptual analysis actually looks like</h2>
+  <p>Conceptual analysis is the characteristic philosophical move, and it has a shape you'll recognise from <a href="../../logic/lessons/0001-arguments-validity-soundness.html#validity">validity</a>: it runs on counterexamples.</p>
+  <ol style="margin:1rem 0 1.25rem 1.4rem; line-height:1.8;">
+    <li>Propose necessary and sufficient conditions for the concept. ("X is knowledge if and only if X is a justified true belief.")</li>
+    <li>Look for a case that satisfies the conditions but clearly isn't the thing — or is the thing but fails the conditions.</li>
+    <li>If you find one, the analysis is refuted. Repair it or replace it.</li>
+  </ol>
+  <p>That's a <a href="../../logic/lessons/0003-truth-tables.html">counterexample argument</a>, which you already know: one row of the truth table where the premises hold and the conclusion fails is enough to kill validity. Same logic, applied to definitions instead of inferences. <a href="0005-philosophical-argumentation.html">Lesson 5</a> makes this method explicit and gives you the rest of the toolkit.</p>
+
+  <h2 id="branches-map">The map of this course</h2>
+  <p>The classical branches are just the three question-types, specialised by subject matter:</p>
+  <div class="callout warn">
+    <strong>Where each lesson sits</strong>
+    <strong>Epistemology</strong> — conceptual questions about knowledge. <a href="0002-epistemology-knowledge.html">Lesson 2</a>, formalised in <a href="0011-epistemic-logic.html">lesson 11</a>.<br>
+    <strong>Ethics</strong> — normative questions about action. <a href="0003-ethics-how-should-we-act.html">Lesson 3</a>, formalised in <a href="0010-deontic-logic.html">lesson 10</a>.<br>
+    <strong>Metaphysics</strong> — conceptual questions about what exists and what it is. <a href="0004-metaphysics-what-is-real.html">Lesson 4</a>.<br>
+    <strong>Method</strong> — how any of these get argued at all. <a href="0005-philosophical-argumentation.html">Lesson 5</a>, and <a href="0012-transcendental-arguments.html">lesson 12</a> for the hardest form.<br>
+    <strong>Movements</strong> — <a href="0006-existentialism.html">existentialism</a>, <a href="0007-philosophy-of-mind.html">philosophy of mind</a>, <a href="0008-stoicism.html">Stoicism</a>, and a <a href="0009-key-thinkers-map.html">map of the thinkers</a> who moved each question.
+  </div>
+
+  <h2>Try it: triage the question</h2>
+  <p>For each question, pick the kind — and notice that the giveaway is <em>what would settle it</em>, not what it's about.</p>
+  <div id="triage-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. On Russell's account, why does philosophy look like it never settles anything?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Russell argued the opposite — the questions are hard, but the difficulty is not that they are meaningless or badly posed.')">Its questions are meaningless, so no answer could ever count</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — each time a question becomes answerable by definite methods it is spun off into a science, so the unsettled residue is what keeps the name &quot;philosophy.&quot;')">Answerable questions become sciences, leaving only the residue</button>
+        <button onclick="quizAnswer(this,false,'q1','Plenty of philosophical claims have been refuted decisively — the Gettier cases in lesson 2 are a clean example of exactly that.')">Philosophical claims can never be refuted, only restated again</button>
+        <button onclick="quizAnswer(this,false,'q1','Philosophy predates the sciences it spun off; the field is old, and age is not the explanation Russell gave.')">The field is too young to have accumulated settled results yet</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. What most reliably tells you a question is normative rather than empirical?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Strong feelings attach to empirical questions too — people argue furiously about matters a measurement would settle.')">People feel strongly about it and disagree loudly</button>
+        <button onclick="quizAnswer(this,false,'q2','Difficulty is not the marker — many empirical questions are extremely hard, and some normative ones are easy.')">It is hard, and nobody has managed to answer it yet</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — if every relevant fact could be settled and the question stays open, what is left is a question about what ought to be, needing a normative premise.')">Every fact is settled and the question stays open</button>
+        <button onclick="quizAnswer(this,false,'q2','Formal notation is available for normative claims — deontic logic in lesson 10 exists precisely to symbolize them.')">It cannot be written in any formal notation at all</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Conceptual analysis proceeds mainly by which move?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','Surveying usage tells you how a word is used, not what the concept requires — philosophers test definitions against cases instead.')">Surveying ordinary speakers on how they use the word</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — you propose necessary and sufficient conditions, then hunt a case satisfying them that is not the thing. One counterexample refutes the analysis.')">Proposing conditions, then hunting a counterexample</button>
+        <button onclick="quizAnswer(this,false,'q3','Experiments settle empirical questions; a conceptual question is precisely one that no observation decides.')">Designing an experiment that measures the concept</button>
+        <button onclick="quizAnswer(this,false,'q3','Deferring to authority settles nothing philosophically — an authoritative definition is still open to a counterexample.')">Adopting the definition the best-known authority gives</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Two people argue whether an AI system "really understands" language. What kind of dispute is this, most likely?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','Benchmarks measure behaviour. Both sides can agree on every benchmark score and still disagree, which is the signature of a non-empirical dispute.')">Empirical — a good enough benchmark would settle it</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — the disagreement is over what &quot;understanding&quot; requires, not over the system’s measured behaviour. That is a conceptual dispute, and lesson 7 is where it gets fought.')">Conceptual — they disagree on what "understands" means</button>
+        <button onclick="quizAnswer(this,false,'q4','Nothing here is yet about what anyone ought to do — it becomes normative only if the question turns to how the system should be treated.')">Normative — it is about how we ought to treat the system</button>
+        <button onclick="quizAnswer(this,false,'q4','It is a real dispute with real stakes; the parties are simply arguing about a concept rather than about a measurement.')">None — the question is empty and has no content at all</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Primary resource</h2>
+  <p>Read <a href="https://www.gutenberg.org/files/5827/5827-h/5827-h.htm#link2HCH0015" target="_blank">chapter XV, "The Value of Philosophy," of Bertrand Russell's <em>The Problems of Philosophy</em></a> (1912, public domain — about fifteen minutes). It is the best short defence of why the residue is worth working on. For the field's own map of itself, the <a href="https://plato.stanford.edu/" target="_blank">Stanford Encyclopedia of Philosophy</a> is the standard reference this whole course cites.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Stuck in an argument that isn't going anywhere? Bring it to Claude Code and we'll triage which of the three kinds of question it actually is — that usually explains the deadlock.
+  </div>
+
+  <div class="nav">
+    <a href="../index.html">← Philosophy home</a>
+    <span class="spacer"></span>
+    <a href="0002-epistemology-knowledge.html">Lesson 2: Epistemology →</a>
+  </div>
+
+</div>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+renderMC('triage-exercise', [
+  {
+    prompt: '"Is the defendant guilty of taking the money?"',
+    options: [
+      { text: 'Empirical', correct: true, explain: 'Right — whether they took it is a matter of fact that evidence can settle. (Whether they should be punished for it is a separate, normative question.)' },
+      { text: 'Conceptual', explain: 'Nothing here turns on what "taking" means — the parties agree on the concept and disagree about what happened.' },
+      { text: 'Normative', explain: 'The verdict question is factual. The normative question — what sentence is deserved — comes after it, and is a different question.' },
+    ],
+  },
+  {
+    prompt: '"Is a person who wakes up with none of their memories still the same person?"',
+    options: [
+      { text: 'Empirical', explain: 'Every relevant fact about the brain could be known and the question would still be open — which means no measurement settles it.' },
+      { text: 'Conceptual', correct: true, explain: 'Right — this is a question about what "same person" requires, and it is exactly the personal identity problem taken up in lesson 4.' },
+      { text: 'Normative', explain: 'It is not asking what anyone ought to do. It asks what the concept of personal identity consists in.' },
+    ],
+  },
+  {
+    prompt: '"Given that the drug extends life by two months and costs a fortune, should the health service fund it?"',
+    options: [
+      { text: 'Empirical', explain: 'The premises are empirical and already granted — the two months and the cost are stipulated. The question survives them.' },
+      { text: 'Conceptual', explain: 'No concept is in dispute here; both sides mean the same thing by "fund" and by "two months."' },
+      { text: 'Normative', correct: true, explain: 'Right — the facts are given and the question is still open, so what is missing is a premise about what ought to be done. Lesson 3 supplies the candidates.' },
+    ],
+  },
+  {
+    prompt: '"Does a virus count as alive?"',
+    options: [
+      { text: 'Empirical', explain: 'Biologists agree on every fact about viral replication and still disagree about this, which rules out a missing observation as the problem.' },
+      { text: 'Conceptual', correct: true, explain: 'Right — the biology is settled; what is unsettled is where the concept "alive" draws its boundary. Borderline cases like this are the natural home of conceptual analysis.' },
+      { text: 'Normative', explain: 'Nothing about obligation or value is at stake — no one is asking how viruses ought to be treated.' },
+    ],
+  },
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

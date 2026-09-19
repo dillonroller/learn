@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 3 — Ethics</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Philosophy</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 3 of 12 &nbsp;·&nbsp; Philosophy &nbsp;·&nbsp; ~25 min</p>
+  <h1>Ethics — How Should We Act?</h1>
+  <p><a href="0010-deontic-logic.html">Lesson 10</a> left you with a hole. The <a href="0010-deontic-logic.html#is-ought-gap">is-ought gap</a> says every argument ending in "should" needs a normative premise, and deontic logic gives you notation for such premises — <code>Op</code>, <code>Pp</code>, <code>Fp</code> — but no account of <em>where they come from</em>. Normative ethics is the attempt to supply them systematically. This lesson gives you the three answers that have survived, and the skill of spotting which one an argument is running on.</p>
+
+  <div class="callout warn">
+    <strong>From memory first</strong>
+    Before reading on: what were the three JTB conditions from <a href="0002-epistemology-knowledge.html#jtb">lesson 2</a>, and which one did Gettier show was insufficient? Retrieving it now, unprompted, is worth more than rereading it.
+  </div>
+
+  <h2 id="normative-vs-metaethics">Two different questions</h2>
+  <p>Keep these apart or you will argue past people constantly:</p>
+  <div class="callout">
+    <strong id="normative-ethics">Normative ethics</strong> — <em>which</em> actions are right, and in virtue of what? This supplies the <code>O</code>/<code>P</code>/<code>F</code> premises. The three families below are answers to this.
+  </div>
+  <div class="callout">
+    <strong id="metaethics">Metaethics</strong> — what <em>kind</em> of claim is "torture is wrong" in the first place? Is it true or false at all (<a href="https://plato.stanford.edu/entries/moral-realism/" target="_blank">realism</a>), or an expression of attitude that isn't truth-apt (<a href="https://plato.stanford.edu/entries/moral-anti-realism/" target="_blank">anti-realism</a>)? Note the stakes for <a href="0010-deontic-logic.html">lesson 10</a>: if normative claims aren't truth-apt, it's unclear what deontic logic's formulas are even evaluating.
+  </div>
+  <p>This lesson is normative ethics. Metaethics is the deeper hole underneath it.</p>
+
+  <h2 id="consequentialism">1. Consequentialism — judge by outcomes</h2>
+  <p>An act is right if and only if its consequences are at least as good as those of any alternative. The classic version is utilitarianism — <a href="https://plato.stanford.edu/entries/utilitarianism-history/" target="_blank">Bentham (1789), Mill (1861), Sidgwick (1907)</a> — where "good" means aggregate well-being.</p>
+  <p><strong>Its strength:</strong> it explains why consequences matter, which every other theory has to accommodate somehow, and it gives a decision procedure that scales to policy. <strong>Its cost:</strong> it is <em>agent-neutral</em> and aggregative, so it permits — sometimes requires — harming one person to benefit many. The standard pressure test is the transplant surgeon: five patients need organs, one healthy visitor could supply them all. Naive consequentialism says cut. Nearly everyone's judgment says don't.</p>
+  <div class="callout">
+    <strong id="rule-consequentialism">The standard repair</strong>
+    <em>Rule</em> consequentialism: evaluate not individual acts but the rules whose general adoption would produce the best outcomes. "Surgeons may harvest patients" is a catastrophic rule, so the surgeon must not. The objection back: if you follow the rule even in the rare case where breaking it would do more good, you've stopped being a consequentialist; if you don't, you're back to act consequentialism.
+  </div>
+
+  <h2 id="deontology">2. Deontology — judge by constraints</h2>
+  <p>Some acts are forbidden regardless of consequences. <a href="https://plato.stanford.edu/entries/ethics-deontological/" target="_blank">Kant is the central figure</a>: morality consists of categorical imperatives — requirements that bind unconditionally, not "if you want X, do Y." His best-known formulation says to treat people never merely as a means but always also as an end. The transplant surgeon uses the visitor purely as raw material; that's the violation, and no amount of downstream good repairs it.</p>
+  <p><strong>Its strength:</strong> it captures the intuition that people have rights which can't be traded away by arithmetic, and it explains the moral difference between doing and allowing. <strong>Its cost:</strong> the constraints can look fetishistic at the limit — Kant notoriously held that lying is impermissible even to a murderer asking where your friend is hiding — and conflicts between duties need a tiebreaker the theory struggles to supply.</p>
+  <div class="callout warn">
+    <strong id="deontic-connection">This is what deontic logic was built for</strong>
+    Deontology is the theory whose structure <a href="0010-deontic-logic.html#deontic-operators">SDL's operators</a> fit most naturally: <code>F(UsingMerelyAsMeans)</code> is a flat prohibition, unconditioned on outcomes. And conflicting duties — <code>Op</code> and <code>O¬p</code> together — are exactly what the axiom <a href="0010-deontic-logic.html#deontic-duality"><code>Op → Pp</code></a> rules out, which is why moral dilemmas are a formal problem and not just an emotional one.
+  </div>
+
+  <h2 id="virtue-ethics">3. Virtue ethics — judge by character</h2>
+  <p>Aristotelian in origin, and it changes the question. Instead of "what act is right?", it asks "what would a person of good character do?" Three concepts do the work, per the <a href="https://plato.stanford.edu/entries/ethics-virtue/" target="_blank">SEP entry</a>:</p>
+  <div class="callout">
+    <strong id="virtue-concepts">Arete, phronesis, eudaimonia</strong>
+    <strong>Arete</strong> (virtue/excellence) — an entrenched disposition of character, not a one-off act. Honesty is a standing trait, not a behaviour you produce on demand.<br>
+    <strong>Phronesis</strong> (practical wisdom) — the judgment to know what the situation actually calls for. Without it, good intentions misfire; it is what makes a virtue reliably hit its target.<br>
+    <strong>Eudaimonia</strong> (flourishing) — the life that goes well for a human being, which the virtues are constitutive of rather than merely instrumental to.
+  </div>
+  <p><strong>Its strength:</strong> it handles the texture of real moral life — motive, character, relationships — that act-evaluation flattens. <strong>Its cost:</strong> it is weakest exactly where the others are strongest, at giving action guidance in a hard case. "Do what the virtuous person would do" is not much help when you don't know what that is. This is also the tradition <a href="0008-stoicism.html">Stoicism</a> belongs to, taken to its most demanding conclusion.</p>
+
+  <h2 id="choosing-a-framework">How to actually use these</h2>
+  <p>The useful posture is not picking a team. It's this: the three theories are sensitive to three things that genuinely matter — <strong>outcomes, constraints, character</strong> — and each is best understood as the claim that its own factor is fundamental and the others derivative. In practice, use them as three lenses on the same case, and treat disagreement between them as a signal that the case is genuinely hard.</p>
+  <p>The method philosophers use to adjudicate is <a href="https://plato.stanford.edu/entries/reflective-equilibrium/" target="_blank"><strong id="reflective-equilibrium-ethics">reflective equilibrium</strong></a>: mutually adjust your principles and your judgments about particular cases until they cohere — revising a principle when it yields a monstrous verdict, and revising a judgment when a principle you have strong reason to hold says you were wrong. It's the main engine of argument in ethics, and <a href="0005-philosophical-argumentation.html#reflective-equilibrium">lesson 5</a> unpacks it as a method.</p>
+
+  <h2>Try it: name the framework</h2>
+  <p>Each piece of reasoning leans on one of the three. Identify which.</p>
+  <div id="ethics-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. What does the transplant surgeon case pressure-test?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true, 'q1','Right — aggregating well-being across people can license using one person as a resource for others, which is where act consequentialism strains hardest.')">Consequentialism's willingness to aggregate across persons</button>
+        <button onclick="quizAnswer(this,false,'q1','Deontology handles the case comfortably — it forbids using the visitor merely as a means, which is the verdict most people share.')">Deontology's inability to forbid harvesting the visitor</button>
+        <button onclick="quizAnswer(this,false,'q1','The case is about the permissibility of the act, not about how carefully the surgeon predicts outcomes.')">Whether surgeons can accurately predict surgical outcomes</button>
+        <button onclick="quizAnswer(this,false,'q1','Virtue ethics is not the target — the case is a standard objection aimed at outcome-based theories.')">Virtue ethics' reliance on the concept of eudaimonia</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Which question belongs to metaethics rather than normative ethics?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','This asks which acts are permissible, which is a first-order normative question about what to do.')">Is it permissible to break a promise to prevent a harm?</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — asking whether moral claims are capable of being true at all is a question about the status of moral claims, which is metaethics.')">Are moral claims the kind of thing that can be true?</button>
+        <button onclick="quizAnswer(this,false,'q2','This is a normative question about which framework gives the correct verdicts in a class of cases.')">Should policy be set by aggregate welfare or by rights?</button>
+        <button onclick="quizAnswer(this,false,'q2','Asking what a virtuous person would do here is a first-order question within a normative theory.')">What would a person of good character do in this case?</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. What is phronesis, and why does virtue ethics need it?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','That describes eudaimonia, the flourishing life the virtues are constitutive of — not the capacity for judgment.')">The flourishing life, which the virtues are constitutive of</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — practical wisdom is the judgment to see what a situation calls for. Without it a good disposition misfires, so it is what makes a virtue reliable.')">Practical wisdom — judgment about what a situation requires</button>
+        <button onclick="quizAnswer(this,false,'q3','That is arete, an entrenched excellent trait of character, which phronesis governs rather than names.')">An entrenched excellent trait of character, such as honesty</button>
+        <button onclick="quizAnswer(this,false,'q3','Virtue ethics has no calculus of aggregate outcomes — that machinery belongs to consequentialism.')">A rule for calculating which outcome maximizes aggregate good</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. How do these three theories relate to <a href="0010-deontic-logic.html">deontic logic</a>?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','Deontic logic is neutral notation — it can express a consequentialist obligation just as easily as a Kantian prohibition.')">Deontic logic proves which of the three theories is correct</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — deontic logic gives the notation for normative premises; normative ethics argues about which such premises are true and why.')">They supply the normative premises deontic logic notates</button>
+        <button onclick="quizAnswer(this,false,'q4','The is-ought gap is untouched by having three theories — each still has to argue for its own normative premise rather than derive it from facts.')">Together they close the is-ought gap by deriving ought from is</button>
+        <button onclick="quizAnswer(this,false,'q4','They connect closely — conflicting duties, for instance, are a formal problem for standard deontic logic and a substantive one for deontology.')">They are unrelated — one is formal and the other is not</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Primary resource</h2>
+  <p>Start with <a href="https://plato.stanford.edu/entries/ethics-deontological/" target="_blank">SEP — Deontological Ethics</a>, which is the most useful single entry because it defines deontology explicitly against consequentialism and maps where each one breaks. Then <a href="https://plato.stanford.edu/entries/consequentialism/" target="_blank">SEP — Consequentialism</a> and <a href="https://plato.stanford.edu/entries/ethics-virtue/" target="_blank">SEP — Virtue Ethics</a> for the other two in their own voices, and <a href="https://plato.stanford.edu/entries/metaethics/" target="_blank">SEP — Metaethics</a> for the layer underneath.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Bring a real decision you're weighing and we'll run all three lenses over it — where they agree you can act with confidence, and where they split is where the actual difficulty lives.
+  </div>
+
+  <div class="nav">
+    <a href="0002-epistemology-knowledge.html">← Lesson 2: Epistemology</a>
+    <span class="spacer"></span>
+    <a href="0004-metaphysics-what-is-real.html">Lesson 4: Metaphysics →</a>
+  </div>
+
+</div>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+renderMC('ethics-exercise', [
+  {
+    prompt: '"Don\'t take the deal. Even if it saves the project, you gave them your word, and that settles it."',
+    options: [
+      { text: 'Consequentialism', explain: 'The speaker explicitly grants the good outcome and rejects the deal anyway, so outcomes are not doing the work.' },
+      { text: 'Deontology', correct: true, explain: 'Right — a promise generates a constraint that holds regardless of consequences. "That settles it" is the signature of a categorical requirement.' },
+      { text: 'Virtue ethics', explain: 'Close, but nothing is said about character or the kind of person one becomes — the appeal is to the binding force of the promise itself.' },
+    ],
+  },
+  {
+    prompt: '"Fund the screening programme: it costs less per year of life saved than anything else on the table."',
+    options: [
+      { text: 'Consequentialism', correct: true, explain: 'Right — ranking options by aggregate benefit per unit cost is outcome-maximizing reasoning through and through.' },
+      { text: 'Deontology', explain: 'No constraint or right is invoked; the entire case rests on comparing totals across alternatives.' },
+      { text: 'Virtue ethics', explain: 'There is no appeal to character or practical wisdom here — just a cost-effectiveness comparison.' },
+    ],
+  },
+  {
+    prompt: '"You could get away with it, sure. But think about what routinely doing that kind of thing would make you into."',
+    options: [
+      { text: 'Consequentialism', explain: 'The speaker concedes there is no bad external outcome — getting away with it is stipulated — so consequences are not the objection.' },
+      { text: 'Deontology', explain: 'No rule or duty is cited. The worry is about the agent, not about a constraint on the act.' },
+      { text: 'Virtue ethics', correct: true, explain: 'Right — the appeal is to the disposition the act would entrench, which is arete: character as the thing being evaluated.' },
+    ],
+  },
+  {
+    prompt: '"A policy of lying to patients about prognosis would destroy trust in medicine, so no doctor may do it — not even when one particular lie would comfort one particular patient."',
+    options: [
+      { text: 'Rule consequentialism', correct: true, explain: 'Right — the rule is justified by the outcomes of its general adoption, then applied even where this case would come out better. That is the rule-consequentialist structure exactly.' },
+      { text: 'Act consequentialism', explain: 'An act consequentialist would permit the comforting lie in the case where it produces the better outcome — which this reasoning explicitly refuses.' },
+      { text: 'Virtue ethics', explain: 'The justification runs through what the general policy would do to trust, not through what the doctor\'s character should be.' },
+    ],
+  },
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

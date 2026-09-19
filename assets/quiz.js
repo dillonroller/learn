@@ -63,3 +63,51 @@ function mcAnswer(btn, correct, cardId, explain) {
     fb.className = 'mc-fb bad';
   }
 }
+
+// Renderer for the mc-exercise card pattern above. Builds the cards from a
+// plain array so lessons don't each hand-roll the same DOM-building loop:
+//
+//   <div id="my-exercise" class="mc-exercise"></div>
+//   renderMC('my-exercise', [
+//     { prompt: 'A sentence to classify.', options: [
+//         { text: 'Option A', correct: true, explain: 'why this is right' },
+//         { text: 'Option B', explain: 'why this one is wrong' },
+//     ]},
+//   ]);
+//
+// Listeners are attached directly rather than via inline onclick, so prompts
+// and option labels can contain apostrophes without escaping.
+function renderMC(containerId, items) {
+  const host = document.getElementById(containerId);
+  if (!host) return;
+  items.forEach((item, i) => {
+    const cardId = containerId + '-card-' + i;
+    const card = document.createElement('div');
+    card.className = 'mc-card';
+    card.id = cardId;
+
+    const prompt = document.createElement('div');
+    prompt.className = 'mc-formula';
+    const en = document.createElement('span');
+    en.className = 'en';
+    en.textContent = item.prompt;
+    prompt.appendChild(en);
+    card.appendChild(prompt);
+
+    const opts = document.createElement('div');
+    opts.className = 'mc-options';
+    item.options.forEach(o => {
+      const btn = document.createElement('button');
+      btn.textContent = o.text;
+      btn.addEventListener('click', () => mcAnswer(btn, !!o.correct, cardId, o.explain));
+      opts.appendChild(btn);
+    });
+    card.appendChild(opts);
+
+    const fb = document.createElement('div');
+    fb.className = 'mc-fb';
+    card.appendChild(fb);
+
+    host.appendChild(card);
+  });
+}

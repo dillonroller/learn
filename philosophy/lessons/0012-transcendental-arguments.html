@@ -109,31 +109,12 @@
 
 </div>
 
-<style>
-.mc-exercise { display: flex; flex-direction: column; gap: .9rem; margin: 1.25rem 0; }
-.mc-card { background: #242424; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; }
-.mc-formula { font-size: .98rem; margin-bottom: .75rem; line-height: 1.5; }
-.mc-formula .en { font-size: .95rem; color: var(--muted); margin-bottom: .4rem; display: block; }
-.mc-options { display: flex; flex-wrap: wrap; gap: .5rem; }
-.mc-options button {
-  background: #2a2a2a; color: var(--ink); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: .4rem .8rem; font-size: .85rem;
-  font-family: 'Helvetica Neue', Arial, sans-serif; cursor: pointer;
-}
-.mc-options button:hover { border-color: var(--accent); }
-.mc-options button.correct { background: #1a2e22; border-color: var(--accent); color: var(--accent); }
-.mc-options button.wrong { background: #2e1a1a; border-color: var(--err); color: var(--err); }
-.mc-options button:disabled { cursor: default; }
-.mc-options button:disabled:not(.correct):not(.wrong) { opacity: .45; }
-.mc-fb { font-size: .82rem; margin-top: .5rem; min-height: 1.1em; font-family: 'Helvetica Neue', Arial, sans-serif; }
-.mc-fb.good { color: var(--accent); }
-.mc-fb.bad { color: var(--err); }
-</style>
 
+<script src="../../assets/quiz.js"></script>
 <script>
 const TA_ITEMS = [
   {
-    english: '"We have coherent experience of an objective world (Y). This requires causality structuring perception (X). So causality holds."',
+    prompt: '"We have coherent experience of an objective world (Y). This requires causality structuring perception (X). So causality holds."',
     options: [
       { text: 'Y = objective experience; X = causality', correct: true, explain: 'Right — the undeniable starting fact is coherent objective experience; causality is the precondition argued to be necessary for it.' },
       { text: 'Y = causality; X = objective experience', explain: 'This reverses the roles — causality is the conclusion being argued FOR (X), not the undeniable starting premise (Y).' },
@@ -141,7 +122,7 @@ const TA_ITEMS = [
     ],
   },
   {
-    english: '"Meaningful communication between people happens constantly (Y). This requires shared, checkable, public criteria for what words mean (X) — a wholly private meaning could never be verified or corrected. So meaning must rest on public criteria."',
+    prompt: '"Meaningful communication between people happens constantly (Y). This requires shared, checkable, public criteria for what words mean (X) — a wholly private meaning could never be verified or corrected. So meaning must rest on public criteria."',
     options: [
       { text: 'Y = meaningful communication; X = public criteria for meaning', correct: true, explain: 'Right — ordinary, undeniable communication is Y; the necessary condition argued for (public, checkable criteria) is X.' },
       { text: 'Y = public criteria; X = meaningful communication', explain: 'Reversed — public criteria is the conclusion (X) being argued for, not the undeniable starting premise.' },
@@ -149,7 +130,7 @@ const TA_ITEMS = [
     ],
   },
   {
-    english: '"Most swans I have personally seen are white, so all swans are probably white."',
+    prompt: '"Most swans I have personally seen are white, so all swans are probably white."',
     options: [
       { text: 'Not transcendental — this is an inductive generalization', correct: true, explain: 'Right — this generalizes from observed cases to a probable rule. No claim of strict necessity or "impossible otherwise" appears anywhere.' },
       { text: 'Transcendental — whiteness is a necessary precondition for being a swan', explain: 'Nothing in the argument claims whiteness is REQUIRED for swan-ness to be possible — it’s just an observed-sample generalization, ordinary induction.' },
@@ -158,24 +139,9 @@ const TA_ITEMS = [
   },
 ];
 
-const taDiv = document.getElementById('ta-exercise');
-TA_ITEMS.forEach((item, i) => {
-  const cardId = `ta-card-${i}`;
-  const card = document.createElement('div');
-  card.className = 'mc-card';
-  card.id = cardId;
-  card.innerHTML = `
-    <div class="mc-formula"><span class="en">${item.english}</span></div>
-    <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
-    </div>
-    <div class="mc-fb"></div>
-  `;
-  taDiv.appendChild(card);
-});
+renderMC('ta-exercise', TA_ITEMS);
 </script>
 
-<script src="../../assets/quiz.js"></script>
 <script src="../../assets/search.js"></script>
 </body>
 </html>
