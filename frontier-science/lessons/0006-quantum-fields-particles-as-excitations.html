@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 6 — Quantum Fields 101: Particles as Excitations of Fields</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Frontier Science</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 6 of 8 &nbsp;·&nbsp; Frontier Science &nbsp;·&nbsp; ~40 min</p>
+  <h1>Quantum Fields 101: Particles as Excitations of Fields</h1>
+  <p>Pop science says the universe is made of tiny balls, and fields are how the balls push on each other. Quantum field theory (QFT) says the reverse. Its fundamental objects are fields, and a particle is one discrete unit of excitation of one of a field’s vibration modes. This lesson builds that picture from two things you already have: <a href="0003-e-equals-mc-squared-four-momentum.html#four-momentum-def">lesson 3’s</a> <code>E² = (pc)² + (mc²)²</code> and Quantum Mechanics’ <a href="../../quantum-mechanics/lessons/0001-state-vectors-superposition-born-rule.html#state-vectors">state vectors</a>. The payoff is translation in both directions. You will read <code>|2,0,1⟩</code> as a particle inventory, compute its energy, apply <code>a†</code> and <code>a</code> to it, and explain why an electron–positron pair costs at least 1.022 MeV and why every electron is exactly alike.</p>
+
+  <h2 id="why-fields">Why relativity forces fields</h2>
+  <p>Every state space in the Quantum Mechanics course was fixed up front (one qubit: <code>ℂ²</code>; two qubits: <code>ℂ²⊗ℂ²</code>), and the particle count was part of that choice. Relativity breaks this in two ways:</p>
+  <ul>
+    <li><strong>Particle number changes.</strong> <a href="0003-e-equals-mc-squared-four-momentum.html#rest-energy">Rest energy</a> is energy like any other, so a collision with enough of it can create new particles. A state space that assumes “exactly one electron” cannot even describe that.</li>
+    <li><strong>Locality must hold.</strong> Nothing may influence a <a href="0002-length-contraction-simultaneity-spacetime-diagrams.html#spacelike">spacelike-separated</a> event. A field has an observable at every point, and its equation couples each point only to its neighbours, so locality is built in.</li>
+  </ul>
+  <p>The two collide when you pin a particle down. Confine an electron to less than <code>ħ/mc ≈ 3.9×10⁻¹³ m</code> (its <a href="https://en.wikipedia.org/wiki/Compton_wavelength" target="_blank">reduced Compton wavelength</a>) and the momentum spread this forces carries energy of order <code>mc²</code>, which is enough to make new pairs. Malament’s theorem makes the conflict rigorous. A relativistic quantum theory of a <em>fixed</em> number of particles that obeys locality (plus a few other natural conditions) gives zero probability of finding a particle in any region (<a href="https://plato.stanford.edu/entries/quantum-field-theory/" target="_blank">SEP, “Quantum Field Theory”, §5.3</a>). QFT never fixes the number, so the theorem does not apply directly, and its local observables are field values, not particle positions. (Related theorems still keep QFT’s particles from being sharply localized; see the honesty box.)</p>
+
+  <h2 id="quantum-field">What a quantum field is</h2>
+  <p>A classical field <code>φ(x, t)</code> is a number at every point, evolving in time. In CS terms it is an array indexed by position, and in the continuum limit it has infinitely many entries. A <strong>quantum field</strong> replaces each entry with an <em>observable</em> <code>φ̂(x)</code>, “the field value at x” (strictly, only averages over a small region are well-defined operators, per SEP §5.3), in the same way that <a href="../../quantum-computing/lessons/0001-qubits-bloch-sphere-single-qubit-gates.html#pauli-gates">Z</a> is “the qubit along z”. One state vector covers the whole field:</p>
+  <pre><code>               one qubit            a quantum field
+observables    X, Y, Z              φ̂(x) at every x
+state          |ψ⟩ in ℂ²            |Ψ⟩ in Fock space
+particle count fixed by setup       an observable, N̂</code></pre>
+  <div class="callout warn">
+    <strong>The field is not the wavefunction</strong>
+    <code>φ̂(x)</code> is a question you can ask at x. <code>|Ψ⟩</code> holds the amplitudes for the answers, including amplitudes for different particle counts. “Second quantization” is a misleading name: one classical field is quantized once.
+  </div>
+
+  <h2 id="field-modes">Normal modes and the dispersion relation</h2>
+  <p>Because neighbouring points are coupled, the array entries are not independent. A change of basis fixes that. The Fourier transform diagonalizes the coupling into independent <strong>normal modes</strong>, waves labelled by wavevector <code>k</code>, each oscillating at its own frequency <code>ω_k</code>. (Why momentum labels? Translation symmetry, which is <a href="0008-noethers-theorem-symmetry-conservation.html#noether-pairs">lesson 8’s</a> subject.) The simplest relativistic field equation, Klein–Gordon (Strassler’s <a href="https://profmattstrassler.com/articles-and-posts/particle-physics-basics/fields-and-their-particles-with-math/7-particles-are-quanta/" target="_blank">“Class 1”</a>), fixes that frequency. Substitute one wave, <code>φ = A cos(kx − ωt)</code>:</p>
+  <pre><code>∂²φ/∂t² − c² ∂²φ/∂x² = −(mc²/ħ)² φ
+
+−ω² + c²k² = −(mc²/ħ)²
+×ħ²:   (ħω)² = (ħkc)² + (mc²)²</code></pre>
+  <p>That is <a href="0003-e-equals-mc-squared-four-momentum.html#four-momentum-def">lesson 3’s</a> <code>E² = (pc)² + (mc²)²</code> exactly, once you read <code>E = ħω</code> and <code>p = ħk</code>. The mass sets a <em>minimum frequency</em>, <code>ω_min = mc²/ħ</code>, reached at <code>k = 0</code>. A massless field such as light has <code>ω = ck</code> and can oscillate as slowly as you like. Strassler draws this as a “Pythagorean” triangle, writing <code>hν</code> for <code>ħω</code>.</p>
+
+  <h2 id="particles-as-quanta">Quantize each mode: particles are quanta</h2>
+  <p>Each normal mode’s amplitude <code>q_k(t)</code> obeys <code>d²q_k/dt² = −ω_k² q_k</code>, the equation of a mass on a spring, so each mode is a harmonic oscillator. A quantum oscillator has the energies <code>E_n = ħω(n + ½)</code>, n = 0, 1, 2, … This lesson states that result; the derivation belongs to Quantum Mechanics’ <a href="../../quantum-mechanics/lessons/0005-quantum-harmonic-oscillator.html">harmonic-oscillator lesson</a>, and Strassler’s <a href="https://profmattstrassler.com/articles-and-posts/particle-physics-basics/fields-and-their-particles-with-math/5-waves-quantum/" target="_blank">“Waves (Quantum)”</a> states the same result for waves, as <code>(n+½)hν</code>. The <code>|n⟩</code> are energy eigenstates, so under the <a href="../../quantum-mechanics/lessons/0004-schrodinger-equation.html#schrodinger-equation">Schrödinger equation</a> each one only gains a phase. The rungs are equally spaced, so energy enters or leaves mode k only in lumps of <code>ħω_k</code>.</p>
+  <div class="callout">
+    <strong>Particles are quanta</strong>
+    A particle with momentum <code>ħk</code> is one quantum of excitation of mode k of its field, and the integer <code>n</code> <em>is</em> the number of such particles. Each quantum carries <code>ħω_k = √((ħkc)² + (mc²)²)</code>, which is a relativistic particle’s energy–momentum relation. In Strassler’s words (article 7), “the particles of nature are quanta of relativistic quantum fields.”
+  </div>
+
+  <h2 id="fock-space">Ladder operators and Fock space</h2>
+  <p>Each mode gets a pair of <strong id="creation-annihilation-operators">creation and annihilation operators, a† and a</strong>:</p>
+  <pre><code>a†|n⟩ = √(n+1)|n+1⟩     add one quantum
+a|n⟩  = √n|n−1⟩         remove one quantum
+a|0⟩  = 0               zero vector: nothing to remove
+a†a|n⟩ = n|n⟩           number operator;  H_k = ħω_k(a†a + ½)
+
+On |0⟩…|3⟩ (truncated):   ⎡0 1 0  0 ⎤
+                      a = ⎢0 0 √2 0 ⎥    a†a = diag(0,1,2,3)
+                          ⎢0 0 0  √3⎥
+                          ⎣0 0 0  0 ⎦</code></pre>
+  <p><strong>Fock space</strong> is the tensor product of one ladder per mode, built the same way as <a href="../../quantum-mechanics/lessons/0002-entanglement-epr-puzzle.html#two-qubit-states">two-qubit states</a>: <code>|n₁⟩⊗|n₂⟩⊗|n₃⟩ = |n₁,n₂,n₃⟩</code>. Each basis state is an inventory: <code>|2,0,1⟩</code> is two quanta with momentum <code>ħk₁</code> and one with <code>ħk₃</code>, holding <code>2ħω₁ + ħω₃</code> above the vacuum. The field operator is built from the same ladders, schematically <code>φ̂(x) = Σ_k A_k(a_k e^(ikx) + a†_k e^(−ikx))</code>, where <code>A_k</code> is a normalization constant. Particle number <code>N̂ = Σ_k a†_k a_k</code> is now an ordinary observable, so a field state can be a <a href="../../quantum-mechanics/lessons/0001-state-vectors-superposition-born-rule.html#superposition">superposition</a> of different counts. The state <code>(|1,0,0⟩ + |0,2,0⟩)/√2</code> gives a count of 1 or 2, each with probability ½ by the <a href="../../quantum-mechanics/lessons/0001-state-vectors-superposition-born-rule.html#born-rule">Born rule</a>. Interactions are products of field operators at a point, so they expand into terms that create, destroy or convert particles (<a href="https://arxiv.org/abs/hep-th/9803075" target="_blank">Wilczek, “Quantum Field Theory”, 1999</a>).</p>
+
+  <div class="callout">
+    <strong>Worked example: pair creation as bookkeeping</strong>
+    <pre><code>Before: photon field 1 quantum (k_γ)   electron field vacuum
+After:  photon field vacuum            electron field e⁻(p₁) + e⁺(p₂)
+
+ħω_γ = E₁ + E₂ (+ recoil),  Eᵢ = √((pᵢc)² + (mc²)²) ≥ mc²
+⇒ ħω_γ ≥ 2mc² = 2 × 0.511 MeV = 1.022 MeV
+
+Invariant E² − (pc)²:
+  lone photon:  (ħω)² − (ħkc)² = 0
+  any pair:     ≥ (2mc²)² > 0   (equal only if both are at rest
+                                  in the pair’s zero-momentum frame)
+  Mismatch: a lone photon cannot pair-produce. A nucleus takes
+  the momentum. Next to lead-208 the threshold is
+  2mc²(1 + m/M) ≈ 1.022 MeV + 2.7 eV.</code></pre>
+    <p>The positron is the electron field’s other kind of quantum (Wilczek: the electron field’s operators “destroy electrons” and “create positrons”). Pair production in the nuclear field dominates how high-energy photons lose energy in matter (<a href="https://pdg.lbl.gov/2026/reviews/rpp2026-rev-passage-particles-matter.pdf" target="_blank">PDG 2026, Passage of Particles Through Matter, §34.4.5</a>; threshold summary on <a href="https://en.wikipedia.org/wiki/Pair_production" target="_blank">Wikipedia</a>).</p>
+  </div>
+
+  <h2 id="quantum-vacuum">The vacuum is not nothing</h2>
+  <p>The <strong>quantum vacuum</strong> <code>|0,0,0,…⟩</code> has every mode on its bottom rung. It holds no quanta but still has <strong>zero-point energy</strong>: <code>½ħω_k</code> per boson mode (fermion modes, like the electron’s, contribute <code>−½ħω_k</code>; <a href="https://profmattstrassler.com/articles-and-posts/particle-physics-basics/fields-and-their-particles-with-math/7-particles-are-quanta/7a-how-bosons-and-fermions-differ/" target="_blank">Strassler 7a</a>), and repeated measurements of the field value still scatter around zero: <code>⟨φ̂⟩ = 0</code> but <code>⟨φ̂²⟩ &gt; 0</code>. Summed over infinitely many modes this diverges. Without gravity it does no harm, because only energy differences are measurable and the offset is discarded. Gravity responds to absolute energy through <a href="0005-einstein-field-equation-gravity-as-geometry.html#stress-energy-tensor">lesson 5’s stress-energy tensor</a>, and that turns the offset into the <a href="0005-einstein-field-equation-gravity-as-geometry.html#cosmological-constant">cosmological-constant</a> puzzle (<a href="https://arxiv.org/abs/astro-ph/0004075" target="_blank">Carroll, “The Cosmological Constant”, §1.3</a>).</p>
+  <div class="callout warn">
+    <strong>Two misuses to catch</strong>
+    Run the <a href="../../quantum-mechanics/lessons/0001-state-vectors-superposition-born-rule.html#misuse-check">misuse check</a>. <em>“Tap the vacuum for free energy”</em> fails because the vacuum is the lowest-energy state, so there is nothing lower to fall to. <em>“Virtual particles pop in and out of the vacuum”</em> fails because the vacuum is an energy eigenstate. Under <a href="../../quantum-mechanics/lessons/0004-schrodinger-equation.html#unitary-time-evolution">unitary evolution</a> it only gains a global phase, so nothing in it changes; the scatter in field measurements is a fixed property of that state, not motion. “Virtual particle” names intermediate terms in interaction calculations, and <a href="https://profmattstrassler.com/articles-and-posts/particle-physics-basics/virtual-particles-what-are-they/" target="_blank">“a virtual particle is not a particle at all”</a> (Strassler).
+  </div>
+
+  <h2 id="identical-particles">Why every electron is identical</h2>
+  <p>Wilczek calls this “the single most profound fact about Nature that quantum field theory uniquely explains.” Any two electrons are exactly alike because “both are excitations of the same underlying ur-stuff, the electron field.” Fock space shows the mechanism. <code>|1,0,1⟩</code> records <em>how many</em> quanta each mode holds and never <em>which</em> quantum is which. With billiard balls, “A in k₁, B in k₃” and “B in k₁, A in k₃” would be two states. Here they are one, because quanta can be counted but not numbered (<a href="https://plato.stanford.edu/entries/quantum-field-theory/" target="_blank">SEP §5.1.1</a>). Photon modes take any n, which is how a laser works. Electron modes take only 0 or 1, which is Pauli exclusion (<a href="0007-standard-model-fermions-bosons-forces.html#fermions">lesson 7’s fermions</a>; <a href="https://profmattstrassler.com/articles-and-posts/particle-physics-basics/fields-and-their-particles-with-math/7-particles-are-quanta/7a-how-bosons-and-fermions-differ/" target="_blank">Strassler 7a</a>).</p>
+  <p>Wave–particle duality dissolves the same way. There is always one object, the field. A detector click absorbs one whole quantum, and the Born rule gives the odds of where and whether it happens. That is why a photon sent at a half-silvered mirror is always detected whole in one output beam, never half in each. Its state is <code>(|1,0⟩ + |0,1⟩)/√2</code> over the two output modes, and occupation numbers are integers. Nor is a photon a tiny ball. A single-mode photon has definite momentum <code>ħk</code> and is spread over the whole mode.</p>
+
+  <div class="callout warn">
+    <strong>Established versus debated (as of 2026)</strong>
+    <em>Established:</em> the formalism and its predictions (pair thresholds, identical particles, photon counting). “Particles are tiny balls” is wrong. <em>Standard working picture:</em> “it is only the fields … that are permanent” (Wilczek), and Hobson <a href="https://arxiv.org/abs/1204.4616" target="_blank">argues</a> the stronger thesis that there are no particles, only fields. <em>Still debated:</em> the <a href="https://plato.stanford.edu/entries/quantum-field-theory/" target="_blank">SEP entry</a> (revised September 2026) lists open problems on both sides. Particle readings face localization no-go theorems and the Unruh effect. Field readings face operator-valued fields that assign no definite value at a point. Fock space is also exact only for free fields: with interactions (Haag’s theorem), countable quanta are cleanly defined only long before or after a collision, though how much that matters is itself contested (SEP §5.5). No winner is picked here. “QFT proves particles don’t exist” overclaims, because quanta are real, countable, robust excitations.
+  </div>
+
+  <h2>Try it: particles to modes and back</h2>
+  <pre><code>energy above vacuum = n·ħω per mode     (E_n = ħω(n + ½))
+a†|n⟩ = √(n+1)|n+1⟩    a|n⟩ = √n|n−1⟩    a|0⟩ = 0
+ħω = √((pc)² + (mc²)²)                  electron: mc² = 0.511 MeV</code></pre>
+  <div id="fock-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Why can’t a relativistic quantum theory keep a fixed-particle-number state space?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Relativity puts no limit on superposition. QFT superposes different momenta and even different particle counts.')">Relativity forbids superposing states with different momenta</button>
+        <button onclick="quizAnswer(this,true,'q1','Right. Rest energy lets collisions create particles, and locality must hold across spacelike separation. By Malament’s theorem a fixed-number theory cannot localize particles at all.')">Energy can create particles, and locality must still hold</button>
+        <button onclick="quizAnswer(this,false,'q1','The Born rule survives in QFT. A detector click is a Born-rule absorption of one quantum, whatever the speed.')">Fast particles move too quickly for the Born rule to apply</button>
+        <button onclick="quizAnswer(this,false,'q1','Photons have states (one quantum in a photon-field mode). The real issue is that particle number changes.')">Massless particles lack a rest frame, so they have no state</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. How is the quantum field φ̂(x) related to the state vector |Ψ⟩?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','This is the “second quantization” trap. One classical field is quantized once, giving an observable at each point.')">The field is the wavefunction, quantized a second time</button>
+        <button onclick="quizAnswer(this,false,'q2','Nothing classical steers anything here. φ̂(x) is an operator, and particles are its quanta, not separate objects it guides.')">The field is a classical wave that guides each particle</button>
+        <button onclick="quizAnswer(this,false,'q2','They are different kinds of object: φ̂(x) is an operator (a question), and |Ψ⟩ is a Fock-space vector (the amplitudes for the answers).')">They are one object written in two different notations</button>
+        <button onclick="quizAnswer(this,true,'q2','Right. Each φ̂(x) is an observable, like Z for a qubit, and one |Ψ⟩ in Fock space gives amplitudes for every field value and particle count.')">Each φ̂(x) is an observable; one state covers them all</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Why is every electron in the universe exactly identical?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right. Each electron is one quantum of the single electron field, and Fock space records only how many quanta a mode holds, never which.')">Each is a quantum of one field, with no label to differ by</button>
+        <button onclick="quizAnswer(this,false,'q3','Shared history is not the reason. Electrons made today by pair production match ancient ones, because the field fixes their properties.')">They were all forged in identical early-universe conditions</button>
+        <button onclick="quizAnswer(this,false,'q3','Exact identity is testable: Pauli exclusion, and with it the periodic table, depends on it. Hidden differences would show there.')">They differ, but only below what we can measure at present</button>
+        <button onclick="quizAnswer(this,false,'q3','Observation does not manufacture sameness. Identity belongs to the field’s quanta whether or not anyone looks.')">Observing electrons forces them into one shared state</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Which claim about the quantum vacuum is accurate?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','The vacuum has no quanta, but every mode is still there at n = 0, with zero-point energy and a field value that scatters when measured.')">It is fully empty: no field, no energy, nothing</button>
+        <button onclick="quizAnswer(this,false,'q4','This is the misuse. The vacuum is the lowest-energy state by definition, so there is nothing lower to drop to.')">Its zero-point energy can be tapped to power devices</button>
+        <button onclick="quizAnswer(this,true,'q4','Right. Every mode is at n = 0 yet keeps zero-point energy (½ħω for a boson mode). Without gravity only differences matter; gravity sees absolute energy, hence the cosmological-constant puzzle.')">Every mode is at n = 0, yet zero-point energy remains</button>
+        <button onclick="quizAnswer(this,false,'q4','The vacuum is an energy eigenstate, so it only gains a global phase and nothing in it changes. “Popping” labels terms in a calculation.')">Particles keep popping in and out, so it changes over time</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>By hand, with <code>ħ = 6.582×10⁻¹⁶ eV·s</code>, <code>hc ≈ 1240 eV·nm</code>, <code>1 eV = 1.602×10⁻¹⁹ J</code>, <code>c = 3×10⁸ m/s</code>:</p>
+  <ol>
+    <li>Find <code>ω_min = mc²/ħ</code> for an electron-field mode. Compare it with 500 nm light, <code>ω = 2πc/λ</code>. The ratio should come out at roughly 2×10⁵.</li>
+    <li>A 1 J pulse of 500 nm light: find the energy per quantum (in eV, then J) and the number of quanta. If the pulse filled a single mode, what would n be?</li>
+    <li>Run the worked example backwards. An electron and a positron at rest annihilate into two photons. Write the before and after inventories and find each photon’s energy.</li>
+  </ol>
+  <p>Check: item 2 gives about 2.5×10¹⁸ quanta, and that number is n. In item 3 the photons fly apart back to back, so each carries 0.511 MeV.</p>
+
+  <h2>Primary resource</h2>
+  <p>Matt Strassler’s <a href="https://profmattstrassler.com/articles-and-posts/particle-physics-basics/fields-and-their-particles-with-math/" target="_blank">“Fields and Their Particles: With Math”</a>, especially articles <a href="https://profmattstrassler.com/articles-and-posts/particle-physics-basics/fields-and-their-particles-with-math/5-waves-quantum/" target="_blank">5</a> and <a href="https://profmattstrassler.com/articles-and-posts/particle-physics-basics/fields-and-their-particles-with-math/7-particles-are-quanta/" target="_blank">7</a>. A particle theorist builds this lesson’s exact chain (oscillator, quantum oscillator, waves, fields, quanta) using only algebra. Companion watch: David Tong’s <a href="https://www.youtube.com/watch?v=zNVQfWC_evg" target="_blank">“Quantum Fields: The Real Building Blocks of the Universe”</a> (Royal Institution).</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> This lesson asserted the Fourier step that turns a coupled field into independent modes. Ask Claude Code to build a three-site “lattice field” of coupled oscillators and diagonalize its 3×3 coupling matrix with you, so you watch the modes and their frequencies fall out.
+  </div>
+
+  <div class="nav">
+    <a href="0005-einstein-field-equation-gravity-as-geometry.html">← Lesson 5: The Einstein Field Equation &amp; What "Gravity is Geometry" Means</a>
+    <span class="spacer"></span>
+    <a href="0007-standard-model-fermions-bosons-forces.html">Lesson 7: The Standard Model Zoo: Fermions, Bosons, and the Four Forces →</a>
+  </div>
+
+</div>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+renderMC('fock-exercise', [
+  {
+    prompt: 'A mode with ħω = 2.0 eV is in |3⟩. Energy above the vacuum?',
+    options: [
+      { text: '7.0 eV', explain: 'That is E₃ = 2.0 × 3.5, which includes the 1.0 eV zero-point energy. The vacuum has that 1.0 eV too, so it cancels.' },
+      { text: '6.0 eV', correct: true, explain: 'Right. Three quanta at 2.0 eV each: E₃ − E₀ = 3 × 2.0 = 6.0 eV.' },
+      { text: '3.0 eV', explain: 'That counts the quanta but forgets that each one carries ħω = 2.0 eV.' },
+      { text: '8.0 eV', explain: 'That is 4 × 2.0 eV, as if a† had already added a fourth quantum. The state |3⟩ holds exactly three.' },
+    ],
+  },
+  {
+    prompt: 'Modes k₁, k₂, k₃; state |2,0,1⟩. Total particles, and how many carry momentum ħk₁?',
+    options: [
+      { text: '3 total, 2 with ħk₁', correct: true, explain: 'Right. 2 + 0 + 1 = 3 particles, two of them in mode k₁. Total momentum is 2ħk₁ + ħk₃.' },
+      { text: '2 total, 2 with ħk₁', explain: 'This misses slot 3, which holds one particle with momentum ħk₃.' },
+      { text: '2 total, 1 with ħk₁', explain: 'That counts occupied modes, not quanta. Slot 1 holds two quanta.' },
+    ],
+  },
+  {
+    prompt: 'Apply a†₂ to |2,0,1⟩.',
+    options: [
+      { text: '√3 × |3,0,1⟩', explain: 'That is what a†₁ would do, raising slot 1. The operator a†₂ touches slot 2 only.' },
+      { text: '0, the zero vector', explain: 'That is a₂ acting on an empty slot. A creation operator never gives zero.' },
+      { text: '1 × |2,1,1⟩', correct: true, explain: 'Right. Slot 2 goes from 0 to 1 with coefficient √(0+1) = 1: one new particle with momentum ħk₂.' },
+    ],
+  },
+  {
+    prompt: 'Apply a₂ to |2,0,1⟩.',
+    options: [
+      { text: 'The zero vector', correct: true, explain: 'Right. Slot 2 is empty, so a₂ gives √0 × (…) = 0. This is a|0⟩ = 0 acting on one slot.' },
+      { text: '|2,−1,1⟩, a negative particle', explain: 'Occupation numbers never go below 0. The √0 = 0 in front removes the term entirely.' },
+      { text: 'The vacuum |0,0,0⟩', explain: 'The vacuum is a real state with length 1. This result has length 0, so it is no physical state at all.' },
+    ],
+  },
+  {
+    prompt: 'An electron-field mode has p = 0. What is ħω for one quantum?',
+    options: [
+      { text: '0 eV', explain: 'That is the massless or classical intuition. With m > 0, ħω = √(0 + (mc²)²) = mc².' },
+      { text: '0.511 MeV', correct: true, explain: 'Right. ħω = √(0² + (mc²)²) = mc²: the electron field’s minimum quantum, which is the electron’s rest energy.' },
+      { text: '0.2555 MeV', explain: 'That is ½mc², the zero-point term confused with a quantum. One quantum costs the full ħω.' },
+      { text: '1.022 MeV', explain: 'That is two quanta, a pair. One electron at rest costs mc².' },
+    ],
+  },
+  {
+    prompt: 'A gamma ray makes an electron–positron pair beside a lead nucleus that takes the recoil. Minimum photon energy?',
+    options: [
+      { text: '0.511 MeV', explain: 'That pays for one quantum only. The positron is a second quantum of the electron field and also costs mc².' },
+      { text: '2.044 MeV', explain: 'That counts four rest energies. Exactly two quanta are created.' },
+      { text: '1.022 MeV', correct: true, explain: 'Right. 2 × 0.511 MeV. The heavy nucleus absorbs the momentum but only about 2.7 eV of energy.' },
+    ],
+  },
+  {
+    prompt: 'Two photons in one photon-field mode; two electrons in one electron-field mode. Which are allowed?',
+    options: [
+      { text: 'Both', explain: 'Electron modes hold only 0 or 1 quantum. That is Pauli exclusion, the mark of fermion fields.' },
+      { text: 'Photons yes, electrons no', correct: true, explain: 'Right. Photon (boson) modes take any n; electron (fermion) modes take n = 0 or 1. Lasers rely on the first, atomic shells on the second.' },
+      { text: 'Electrons yes, photons no', explain: 'Backwards. A laser packs huge numbers of photons into one mode, while no two electrons can share one.' },
+    ],
+  },
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

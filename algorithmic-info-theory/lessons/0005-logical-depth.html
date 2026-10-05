@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 5 — Logical Depth</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    .depth-map { display: grid; grid-template-columns: auto minmax(0,1fr) minmax(0,1fr); gap: 4px; margin: 1.25rem 0 1.5rem; font: .82rem/1.4 var(--font-ui); }
+    .depth-map > div { padding: .55rem .6rem; border-radius: var(--radius-sm); overflow-wrap: anywhere; }
+    .dm-head { color: var(--muted); text-transform: uppercase; letter-spacing: .05em; font-size: .72rem; align-self: end; }
+    .depth-map .dm-row { overflow-wrap: normal; font-size: .76rem; color: var(--ink-dim); background: var(--bg-sunken); border: 1px solid var(--border); }
+    .dm-cell { background: var(--bg-raised); border: 1px solid var(--border); }
+    .dm-deep { border-color: var(--amber-border); background: var(--amber-soft); }
+    .depth-map .dm-empty { color: var(--muted); border-style: dashed; background: none; }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Algorithmic Info Theory</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 5 of many &nbsp;·&nbsp; Algorithmic Information Theory &nbsp;·&nbsp; ~35 min</p>
+  <h1>Logical Depth</h1>
+  <p><a href="0002-chaitins-omega.html#omega-encodes-halting">Lesson 2</a> left you with two objects carrying essentially the same information: Ω’s first n bits, and the table of which programs up to n bits halt. One is a random string nobody can use; the other is a lookup table. <a href="0001-kolmogorov-complexity.html#kolmogorov-complexity">K(x)</a> can’t tell them apart: both are about n bits. <a href="0003-algorithmic-statistics.html#sophistication">Lesson 3’s sophistication</a> can (Ω’s bits are random, so low; the halting table has <a href="https://arxiv.org/abs/1304.8046" target="_blank">near-maximal sophistication</a>), but it counts bits of model, not the work of decoding. <a href="../../logic/lessons/0009-soundness-completeness.html#decidability">Logic lesson 9</a> drew a similar existence-versus-time line for proofs: “Completeness says a proof exists. It says nothing about how long it takes to find one…” This lesson measures a different quantity, in steps rather than bits: how long x’s best explanation takes to run. By the end you can place any described object on a two-by-two map (compressible or not, shallow or deep) and say why.</p>
+
+  <h2 id="buried-redundancy">Buried redundancy: what an ephemeris is worth</h2>
+  <p>Charles Bennett’s <a href="https://web.cs.ucdavis.edu/~doty/papers/LogicalDepthAndPhysicalComplexity.pdf" target="_blank">1988 paper</a> starts from value. A table of planetary positions “has no more information than the equations of motion and initial conditions from which it was calculated, but saves its owner the effort of recalculating these positions.” A coin-toss sequence has more information and no value.</p>
+  <div class="callout warn">
+    <strong>Buried Redundancy / Value of a Message</strong>
+    Value lies neither in a message’s information nor in its obvious redundancy, but in its <em>buried redundancy</em>: “parts predictable only with difficulty.” In Bennett’s words, “the value of a message is the amount of mathematical or other work plausibly done by its originator, which its receiver is saved from having to repeat.”
+  </div>
+  <p>“Plausibly” is the same Occam step as <a href="0004-solomonoff-induction.html#solomonoff-induction-definition">Solomonoff induction</a>: the minimal program is the best explanation, so running it is the output’s “most plausible causal history.” Depth formalizes stored computation, not information.</p>
+
+  <h2 id="logical-depth">The definition: the fastest near-shortest program</h2>
+  <div class="callout warn">
+    <strong>Logical Depth D<sub>s</sub>(x)</strong>
+    <code>D_s(x) = min { T(p) : U(p) = x and |p| ≤ K(x) + s }</code>: the running time of the <em>fastest</em> <a href="0002-chaitins-omega.html#prefix-free-codes">self-delimiting</a> program for x among those within s bits of the shortest. This is the simple variant of <a href="https://arxiv.org/abs/1304.8046" target="_blank">Antunes et al.</a> and <a href="https://en.wikipedia.org/wiki/Logical_depth" target="_blank">Wikipedia</a>; Bennett’s final Definition 1 asks instead that the program be s-incompressible, which differs technically, not in spirit.
+  </div>
+  <p>Why the fastest? Prefix any program with <code>loop 10^100 times</code> and it gets slower, so “how long some program runs” measures nothing. The minimum asks a sharp question: is there any plausible quick route to x? A larger s admits more programs, so <code>D_s(x)</code> is non-increasing in s.</p>
+  <div class="callout warn" id="significance-level">
+    <strong>Significance Level s (why not just the minimal program’s runtime?)</strong>
+    Bennett’s Tentative Definition 0.1, “the execution time of its minimal program,” is unstable: when a much faster program is only a few bits longer, “slight changes in x may induce arbitrarily large changes in the run time of the minimal program.” The parameter s turns depth into a claim with a confidence level.
+  </div>
+  <p>Example: a 1,000-bit x has a 1,005-bit minimal program running <code>2^60</code> steps, and a 1,010-bit print program running about 1,000. Definition 0.1 says <code>2^60</code>; a tweak that adds 6 bits to the slow program makes print minimal, and the answer drops to about 1,000. But <code>D_5(x) ≈ 1,000</code> either way, which is the honest reading: the evidence for a slow origin was only 5 bits.</p>
+  <p>Under <a href="0004-solomonoff-induction.html#algorithmic-probability">lesson 4’s m(x)</a>, s extra bits cost a factor <code>2^(−s)</code> in weight. So <code>D_s(x) = t</code> says every route to x in fewer than t steps is more than <code>2^s</code> times less plausible than the best one, or, in Bennett’s Tentative Definition 0.3, “less plausible than for the first s tosses of a fair coin all to come up heads.”</p>
+
+  <h2>Shallow at both ends of K</h2>
+  <ul>
+    <li><strong>Random x</strong>, with <a href="0001-kolmogorov-complexity.html#algorithmic-randomness">K(x) ≈ |x|</a>. The print program has length <code>|x| + O(log |x|)</code>, so it is within <code>O(log |x|)</code> bits of minimal, and it copies x in linear time. Maximal K, minimal depth.</li>
+    <li><strong>Trivial x</strong>, such as <code>0^n</code> for a typical n. An <code>O(log n)</code>-bit program writes it in linear time. Shallow.</li>
+  </ul>
+  <p>Both extremes of <a href="0003-algorithmic-statistics.html#sophistication">lesson 3</a> come out shallow. So <strong>deep implies compressible</strong>: a deep string needs a program much shorter than print, with no fast rival within s bits. The incompressible-and-deep cell is empty.</p>
+  <div class="depth-map" role="group" aria-label="The K-by-depth map">
+    <div class="dm-head"></div><div class="dm-head">Shallow</div><div class="dm-head">Deep</div>
+    <div class="dm-row">Incompressible<br>K(x) ≈ |x|</div>
+    <div class="dm-cell">coin flips; Ω’s first n bits</div>
+    <div class="dm-cell dm-empty">empty: print is near-minimal and fast</div>
+    <div class="dm-row">Compressible<br>K(x) ≪ |x|</div>
+    <div class="dm-cell">0^n; π’s digits; a ciphertext of zeros</div>
+    <div class="dm-cell dm-deep">the halting table; Bennett’s diagonal strings</div>
+  </div>
+  <div class="callout">
+    <strong>How fine-grained is “deep”?</strong>
+    K is machine-independent up to an additive constant. Depth is preserved only up to a linear slowdown plus a constant shift in s between Bennett’s efficiently universal machines, and up to a polynomial across broader models (<a href="https://web.cs.ucdavis.edu/~doty/papers/LogicalDepthAndPhysicalComplexity.pdf" target="_blank">Bennett, pp. 2, 17</a>). So “deep” separates polynomial from exponential, not 3n from n. That makes π’s digits a gray case: Bennett calls them nontrivial, but Gauss–Legendre gives n digits in <code>O(M(n) log n)</code> steps, with multiplication <code>M(n) = O(n log n)</code> by the best known algorithm (<a href="https://en.wikipedia.org/wiki/Computational_complexity_of_mathematical_operations" target="_blank">Wikipedia</a>). Quasi-linear, so shallow.
+  </div>
+
+  <h2 id="omega-shallow-halting-deep">Ω is shallow, the halting table is deep</h2>
+  <div class="callout warn" id="busy-beaver-function">
+    <strong>Busy Beaver Function B(n)</strong>
+    Bennett’s definition: the greatest number computable by a self-delimiting program of at most n bits. (<a href="https://arxiv.org/abs/1405.6903" target="_blank">Aaronson et al.</a> use the closely related longest running time of a halting k-bit program.) Like Radó’s Turing-machine version, it eventually exceeds every computable function (<a href="https://en.wikipedia.org/wiki/Busy_beaver" target="_blank">Wikipedia</a>). For scale: the 5-state Turing-machine record, 47,176,870 steps, was proven maximal only in 2024, and as of 2026 a 6-state machine is known to run past <code>2↑↑↑5</code> steps.
+  </div>
+  <div class="callout warn">
+    <strong>Theorem (Bennett): Ω is a shallow representation of the deep object K₀</strong>
+    Ω’s first n bits are <a href="0002-chaitins-omega.html#omega-uncomputable-and-random">algorithmically random</a>, so their depth grows only linearly. The first <code>2^n</code> bits of the halting set K₀ follow from them by dovetailing, but that decoding takes between <code>B(n − O(1))</code> and <code>B(n + H(n) + O(1))</code> steps, which grows faster than any computable function of n. Going the other way is fast: Ω’s first n bits can be read off quickly from the first <code>2^(n + H(n) + O(1))</code> bits of K₀.
+  </div>
+  <p><a href="0002-chaitins-omega.html#omega-encodes-halting">The dovetailing decoder</a> can’t finish before the slowest halting n-bit program does. Same n bits of information, but Ω holds no buried redundancy (that is why it is random), while the table holds Busy-Beaver-sized buried redundancy. Bennett calls Ω “ambitious but shallow”: it tells you how to compute huge numbers without being evidence that anyone did.</p>
+
+  <h2 id="slow-growth-law">The slow growth law: depth is evidence of history</h2>
+  <div class="callout warn">
+    <strong>Slow Growth Law (Bennett’s Theorem 1)</strong>
+    For significance levels <code>s₂ &gt; s₁</code>, a program q generated by coin tossing turns x into an output whose s₂-significant depth exceeds <code>D_s₁(x) + T(q, x) + O(1)</code> with probability less than <code>2^(−(s₂−s₁)+O(1))</code>.
+  </div>
+  <p>Fast deterministic processes cannot make shallow objects deep; fast random ones do so only by a lucky guess costing about <code>s₂ − s₁</code> bits. So a deep object is evidence of a long computation in its past. That is Bennett’s motivation: things like “the human body” that “contain internal evidence of a nontrivial causal history.”</p>
+  <div class="callout warn">
+    <strong>Only an upper bound</strong>
+    Long computations can still give shallow outputs: <code>loop 10^100 times, then print a million zeros</code>. Depth uses the fastest plausible route, not the route taken. Whether objects much deeper than their own length can be generated efficiently, Bennett ties to unproven assumptions: cryptographically strong pseudorandom functions would allow it, while if P = PSPACE a finite system could reach only polynomially deep states. Both questions are <a href="https://en.wikipedia.org/wiki/PSPACE" target="_blank">still open</a> as of 2026.
+  </div>
+
+  <h2 id="depth-vs-sophistication">Four notions, four questions</h2>
+  <p><a href="0003-algorithmic-statistics.html#sophistication">Lesson 3</a> called sophistication “a third notion again.” Depth is a fourth. Keep them apart by what each one counts:</p>
+  <ul>
+    <li><strong>K(x)</strong>, bits: how short is the shortest description?</li>
+    <li><strong>Sophistication</strong>, bits: how large is the model in the best two-part code?</li>
+    <li><strong>Depth</strong>, steps: how long does a near-shortest explanation take to run?</li>
+    <li><strong>Crypticity</strong>, steps: given x, how long does it take to <em>find</em> a plausible explanation?</li>
+  </ul>
+  <p>Depth and sophistication agree at the extremes (<a href="https://arxiv.org/abs/1304.8046" target="_blank">Antunes et al.</a> name “the random strings and the efficiently computable ones” as non-deep) and split in the middle. Run a simple rule from a simple start for t steps. Initial state, rule and t describe the result, so by a <a href="0003-algorithmic-statistics.html#two-part-codes">two-part code</a> its sophistication “can never exceed log(t)+c” (<a href="https://scottaaronson.blog/?p=762" target="_blank">Aaronson</a>). If that program is near-minimal, its depth is at most about t, the program’s running time, and it can approach t when no shortcut beats simulation.</p>
+  <div class="callout">
+    <strong>The one rigorous bridge</strong>
+    Rescale depth to bits with the inverse Busy Beaver function, <code>bb(t)</code> = the length of the shortest halting program running at least t steps. Antunes et al. (2017) prove <code>bb(depth)</code> and sophistication agree within <code>O(log |x|)</code>, with logarithmic slack in significance; Bennett had called his <code>D_bb</code> “closely related” to Koppel’s sophistication. The cost: for any computable f, <code>bb(f(n)) ≤ K(n) + O(1) = O(log n)</code>, so every depth bounded by a computable function of the length (<code>2^n</code>, say) vanishes into the error term.
+  </div>
+  <div class="callout warn" id="cryptic-vs-deep">
+    <strong>Cryptic vs. Deep</strong>
+    Bennett calls an object <em>cryptic</em> when finding its plausible origin “is like solving a cryptogram.” Encrypt a megabyte of zeros under a random 128-bit key: if the cipher is secure, the ciphertext looks random, yet K is about 128 bits plus <code>O(log n)</code>, and that program runs fast. Compressible, shallow, cryptic, or in Bennett’s words “shallow … but cryptic.” An RSA modulus likewise: quick to generate, <a href="../../cryptography/lessons/0003-why-factoring-is-hard-shors-algorithm.html#factoring-hardness">believed hard to factor</a>.
+  </div>
+  <div class="callout">
+    <strong>Depth is uncomputable, by the same move again</strong>
+    If a program computed <code>D_s(x)</code> for a fixed s, you could run every program up to print’s length plus s bits for <code>D_s(x)</code> steps and keep the shortest that outputs x. Its length m satisfies <code>K(x) ≤ m ≤ K(x) + s</code>, and <a href="0001-kolmogorov-complexity.html#uncomputability-of-k">lesson 1’s Berry argument</a> rules that out too: search for the first x whose estimate is at least N + s. So “depth meters” such as decompression time (<a href="https://arxiv.org/abs/1006.0051" target="_blank">Zenil et al.</a>) are heuristics that “depend on the compression algorithm used.”
+  </div>
+
+  <h2>Try it: read the depth off the table</h2>
+  <p>These are the programs that output one 1,000-bit string x. p_A is the shortest, so K(x) = 40; assume every other program for x is both longer and slower than some row listed. Use <code>D_s(x) = min T(p)</code> over <code>|p| ≤ K(x) + s</code>.</p>
+  <pre><code>prog   length       time
+p_A    40 bits      2^50 steps
+p_B    44 bits      2^30 steps
+p_C    70 bits      2^12 steps
+print  1,010 bits   ~1,000 steps</code></pre>
+  <div id="depth-table-exercise" class="mc-exercise"></div>
+
+  <h3>Place it on the map</h3>
+  <p>For each object, pick its cell on the K-by-depth map. Name its fastest near-minimal program before you click.</p>
+  <div id="depth-map-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Why does Bennett use the fastest program within s bits of minimal, rather than the minimal program’s own running time?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Not the reason: D_s(x) is just as uncomputable, since it would pin K(x) to within s. The parameter s was added for stability.')">Because K(x) is uncomputable, so the minimal program can’t be found</button>
+        <button onclick="quizAnswer(this,false,'q1','Backwards. Extra length costs plausibility, 2^(−s) under m, and the minimum over time picks the fastest eligible program.')">Because longer programs are more plausible, so s favours slow ones</button>
+        <button onclick="quizAnswer(this,true,'q1','Right. If a much faster program is only a few bits longer, a slight change to x swaps which is minimal and moves the “depth” arbitrarily. s attaches a confidence level.')">Because a slightly longer, much faster rival would make it unstable</button>
+        <button onclick="quizAnswer(this,false,'q1','The minimal program halts by definition: K(x) is the length of a halting program. The problem is how fragile its running time is.')">Because the minimal program might never halt, so backups are needed</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. A string of n fair coin flips has K(x) ≈ n, the maximum. What is its depth at any reasonable significance level?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right. Print has n + O(log n) bits, within O(log n) of minimal, and runs in linear time. Maximal K, minimal depth.')">Roughly linear in n, since print is near-minimal and fast</button>
+        <button onclick="quizAnswer(this,false,'q2','No search is needed: print copies x from its own program tape, and it is near-minimal, so it is eligible.')">Roughly 2^n, since a program must search all n-bit strings</button>
+        <button onclick="quizAnswer(this,false,'q2','Depth needs a program within s bits of the shortest, not one shorter than x. Print qualifies, so depth is well defined.')">Undefined, since no program much shorter than n bits exists</button>
+        <button onclick="quizAnswer(this,false,'q2','That is the “deep means high K” conflation. Busy-Beaver depth needs a short program with no fast near-minimal rival.')">Busy-Beaver-sized, since high K means a long causal history</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Ω’s first n bits and the first 2^n bits of the halting table K₀ carry about the same information. Why is the first shallow and the second deep?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','Neither is computable: Ω by Chaitin’s theorem, K₀ because it is the halting set. Running time, not computability, separates them.')">Ω is computable while the halting table is not computable</button>
+        <button onclick="quizAnswer(this,false,'q3','Both have about n bits of K: Ω_n is incompressible, and the table compresses to Ω_n plus a decoder. The gap is in steps.')">Ω_n has far lower K(x) than the 2^n-bit halting table does</button>
+        <button onclick="quizAnswer(this,false,'q3','Length alone gives no depth: 0^(2^n) is as long and shallow. What matters is whether a near-minimal program runs fast.')">The table is longer, and depth always grows with length</button>
+        <button onclick="quizAnswer(this,true,'q3','Right. Ω_n’s print program is near-minimal and linear-time. The table’s short programs are Ω_n plus a decoder needing at least B(n − O(1)) steps.')">Ω_n is random, so print is fast; the table needs decoding</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Which statement does the slow growth law actually support?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','The law is only an upper bound. Idling 10^100 steps and then printing zeros runs long and outputs something shallow.')">Any process that runs for 10^100 steps leaves a deep output</button>
+        <button onclick="quizAnswer(this,true,'q4','Right. A coin-tossed program beats D_s₁(x) plus its own run time with probability below 2^(−(s₂−s₁)+O(1)). Depth accrues no faster than computation.')">A fast process deepens its input only with tiny probability</button>
+        <button onclick="quizAnswer(this,false,'q4','Depth can grow, just not faster than computation runs. Bennett’s abstract: deep objects “can be produced slowly.”')">Depth never increases, so deep objects existed from the start</button>
+        <button onclick="quizAnswer(this,false,'q4','The law bounds probabilistic processes too; nothing in it singles out deterministic producers of deep objects.')">A deep output proves its producer was a deterministic program</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Pick one real artifact: a chess endgame tablebase, Bennett’s planetary ephemeris, a fossil, or a sorted list of a million random numbers. On paper, write (1) its shortest plausible explanation and a rough K in bits; (2) the fastest program within a few bits of that, with a rough step count as a function of the object’s size; (3) its cell on the map, at a stated s; (4) which part is buried redundancy, the work its receiver is spared. Then ask: is its depth large relative to its own length, which is what “deep” means formally, or only large in absolute terms?</p>
+
+  <h2>Primary resource</h2>
+  <p><a href="https://web.cs.ucdavis.edu/~doty/papers/LogicalDepthAndPhysicalComplexity.pdf" target="_blank">Charles H. Bennett, “Logical Depth and Physical Complexity” (1988)</a>, free PDF and unusually readable. Read Section 1 (pp. 1–7: buried redundancy, cryptic vs. ambitious vs. deep, Ω vs. K₀), then Section 3 through “Examples of Very Deep Objects” (pp. 14–20).</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Bring an object someone called “complex” (a genome, a trained network’s weights, a cellular-automaton pattern) and we’ll work out its K, sophistication and depth separately, then check which of the three the claim was really about.
+  </div>
+
+  <div class="nav">
+    <a href="0004-solomonoff-induction.html">← Lesson 4: Solomonoff Induction</a>
+    <span class="spacer"></span>
+    <a href="../index.html">Algorithmic Info Theory: All Lessons →</a>
+  </div>
+
+</div>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+const MAP = ['Compressible, shallow', 'Compressible, deep', 'Incompressible, shallow', 'Incompressible, deep'];
+const EMPTY = 'Empty cell: an incompressible string’s print program is near-minimal and linear-time, so it is shallow.';
+const mapCard = (prompt, c, ex) => ({ prompt, options: MAP.map((text, i) => ({ text, correct: i === c, explain: i === 3 ? EMPTY : ex[i] })) });
+const opt = (text, explain, correct) => ({ text, explain, correct });
+
+renderMC('depth-table-exercise', [
+  { prompt: 'What is D_0(x)?', options: [
+    opt('2^50', 'Right. At s = 0 only programs of length K(x) = 40 qualify, so p_A alone is eligible. This is Bennett’s rejected “runtime of the minimal program”.', true),
+    opt('2^30', 'p_B is 44 bits, 4 over K(x), so it needs s ≥ 4.'),
+    opt('2^12', 'p_C is 70 bits, 30 over K(x), so it needs s ≥ 30.'),
+    opt('~1,000', 'Print is 970 bits over K(x); at s = 0 it is far from eligible.') ] },
+  { prompt: 'What is D_10(x)?', options: [
+    opt('2^50', 'That is D_0. At s = 10, p_B (44 bits) is eligible and faster.'),
+    opt('2^30', 'Right. Eligible: p_A (40) and p_B (44); p_B is faster.', true),
+    opt('2^12', 'p_C is 30 bits over K(x) = 40, so it needs s ≥ 30.'),
+    opt('~1,000', 'Print is 970 bits over K(x), far from eligible.') ] },
+  { prompt: 'What is D_100(x)?', options: [
+    opt('2^50', 'p_A is eligible, but depth takes the fastest eligible program, and faster ones qualify.'),
+    opt('2^30', 'p_B qualifies, but so does the faster p_C (70 ≤ 140).'),
+    opt('2^12', 'Right. All three short programs qualify; p_C is fastest at 2^12 ≈ 4n steps, already shallow on the polynomial scale.', true),
+    opt('~1,000', 'Print is 1,010 bits, over the 140-bit limit.') ] },
+  { prompt: 'Smallest s at which print becomes eligible, so x looks as shallow as a random string?', options: [
+    opt('s = 4', 'That admits p_B (44 = 40 + 4), not print.'),
+    opt('s = 30', 'That admits p_C (70 = 40 + 30), not print.'),
+    opt('s = 970', 'Right: 1,010 − 40 = 970. Calling x random means accepting a hypothesis 2^970 times less plausible.', true),
+    opt('s = 1,010', 'That is print’s length, not its excess over K(x) = 40.') ] },
+  { prompt: 'A tweak to x makes the slow program 45 bits, so p_B (44) is now shortest. Minimal program’s runtime, and D_10(x)?', options: [
+    opt('2^50 and 2^30', 'p_A is no longer minimal, so 2^50 is not the minimal program’s runtime.'),
+    opt('2^30 and 2^30', 'Right. The minimal runtime jumps from 2^50 to 2^30, a 2^20-fold change: Bennett’s instability. D_10 stays 2^30.', true),
+    opt('2^30 and 2^12', 'D_10 admits programs up to 54 bits, so p_C (70) is excluded.'),
+    opt('2^50 and 2^50', 'p_B is now minimal, and it was already eligible at s = 10.') ] },
+]);
+
+renderMC('depth-map-exercise', [
+  mapCard('A million fair coin flips.', 2, [
+    'A typical coin-flip string has K about equal to its length, so no description is much shorter: incompressible.',
+    'It is not compressible, and depth needs a short program with no fast near-minimal rival.',
+    'Right. Print is near-minimal and copies the bits in linear time: maximal K, minimal depth.']),
+  mapCard('The first n bits of Ω.', 2, [
+    'Ω_n is incompressible: K(Ω_n) ≥ n − c, by Chaitin’s theorem.',
+    'Neither. Encoding the halting problem does not make Ω_n deep: it is packed so tightly it is random.',
+    'Right. Print is near-minimal and fast. Bennett: Ω is “ambitious but shallow.”']),
+  mapCard('The first 2^n bits of the halting table K₀.', 1, [
+    'Compressible, yes, but no near-minimal program is fast: decoding Ω_n takes Busy Beaver time.',
+    'Right. Ω_n plus a decoder (about n bits) describes it, but decoding takes at least B(n − O(1)) steps.',
+    'Storing Ω_n instead shrinks 2^n bits to about n, so it is compressible.']),
+  mapCard('A megabyte of zeros encrypted under a random 128-bit key.', 0, [
+    'Right. Key plus “encrypt zeros” is about 128 bits plus O(log n) and runs fast. It looks random, but it is cryptic, not deep.',
+    'Hard to invert is crypticity, not depth. The near-minimal program runs fast.',
+    'It passes statistical tests, yet a 128-bit key and a short program describe all 8 million bits.']),
+  mapCard('The output of “loop 10^100 times, then print a million zeros”.', 0, [
+    'Right. “print a million zeros” is shorter and fast; depth uses the fastest near-minimal program, not the route taken.',
+    'The slow growth law is only an upper bound; this long run yields a shallow output.',
+    'A million zeros takes only O(log n) bits to describe.']),
+  mapCard('The first million binary digits of π.', 0, [
+    'Right. A short program yields n digits in quasi-linear time: shallow on the polynomial scale, though Bennett calls π nontrivial.',
+    'Real work, but only quasi-linear for a short program, and depth is meaningful only up to polynomial slowdowns.',
+    'π’s digits look random but come from a short program, so they are compressible.']),
+  { prompt: 'Claim: “Timing how long gzip takes to decompress a file measures its logical depth.”', options: [
+    opt('Accurate', 'Depth is uncomputable. Decompression time is a proxy that, its authors note, depends on the compressor.'),
+    opt('Overclaimed', 'Right. Computing depth would approximate K within s. Decompression time is a heuristic tied to one compressor (Zenil et al.).', true) ] },
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 6 — Graph Traversal (BFS / DFS)</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">CS Interview Prep</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 6 of 11 &nbsp;·&nbsp; CS Interview Prep &nbsp;·&nbsp; ~30 min</p>
+  <h1>Graph Traversal (BFS / DFS)</h1>
+  <p>Graph questions arrive in disguise: a grid of <code>'1'</code>s and <code>'0'</code>s, a list of course prerequisites, a word list, a chessboard. The interviewer is testing whether you can <em>name the vertices and edges, pick the right bag, and never process a vertex twice</em>, and then say <a href="0001-big-o-and-complexity.html">O(V + E)</a> without being asked. You already own every part: lesson 4’s <a href="0004-stacks-and-queues.html#stack-lifo">stack</a> and <a href="0004-stacks-and-queues.html#queue-fifo">queue</a> are the two bags, lesson 5’s <a href="0005-binary-trees-and-bsts.html#tree-recursion">tree recursion</a> and <a href="0005-binary-trees-and-bsts.html#level-order">level order</a> become DFS and BFS, and lesson 2’s <a href="0002-arrays-and-hashmaps.html#seen-set">seen-set</a> adds the cycle protection. Today’s win: turn an edge list or a grid into a graph in Rust, then solve <em>count the islands</em>, <em>fewest steps through a maze</em> and <em>can every course be finished?</em> in O(V + E).</p>
+
+  <h2 id="adjacency-list">Build the graph: an adjacency list</h2>
+  <p>You are rarely handed a graph object. You get <code>n</code> and a list of pairs, and the first three lines turn them into an <strong>adjacency list</strong>: “a vertex-indexed array of lists of the vertices connected by an edge to each vertex” (<a href="https://algs4.cs.princeton.edu/41graph/" target="_blank">Sedgewick &amp; Wayne §4.1</a>).</p>
+  <pre><code><span class="kw">fn</span> <span class="fn">build</span>(n: <span class="ty">usize</span>, edges: &amp;[(<span class="ty">usize</span>, <span class="ty">usize</span>)], directed: <span class="ty">bool</span>) -&gt; <span class="ty">Vec</span>&lt;<span class="ty">Vec</span>&lt;<span class="ty">usize</span>&gt;&gt; {
+    <span class="kw">let mut</span> adj = <span class="fn">vec!</span>[<span class="ty">Vec</span>::<span class="fn">new</span>(); n];
+    <span class="kw">for</span> &amp;(u, v) <span class="kw">in</span> edges {
+        adj[u].<span class="fn">push</span>(v);
+        <span class="kw">if</span> !directed { adj[v].<span class="fn">push</span>(u); }   <span class="cm">// undirected: store it both ways</span>
+    }
+    adj
+}
+<span class="cm">// O(V + E) time and space. Ids that aren't 0..n (words, airport codes):
+// HashMap&lt;&amp;str, Vec&lt;&amp;str&gt;&gt; filled with adj.entry(u).or_default().push(v).</span></code></pre>
+  <p>An adjacency <em>matrix</em> answers “is u–v an edge?” in O(1), but it needs Θ(V²) space however few edges exist, and listing one vertex’s neighbours costs Θ(V). A traversal over a matrix is therefore O(V²), not O(V + E) (<a href="https://jeffe.cs.illinois.edu/teaching/algorithms/book/05-graphs.pdf" target="_blank">Erickson, ch. 5</a>). Interview graphs are sparse, so build lists. <strong>Cue:</strong> “n nodes”, “edges”, “pairs”, “connections”, “prerequisites” → build <code>Vec&lt;Vec&lt;usize&gt;&gt;</code> first, and say out loud whether the edges are directed.</p>
+
+  <h2 id="grid-graph">Grids are graphs you never build</h2>
+  <p>Interview graphs commonly arrive as a 2D grid: each cell is a vertex and its up, down, left and right neighbours are its edges (<a href="https://www.techinterviewhandbook.org/algorithms/graph/#graph-representations" target="_blank">Tech Interview Handbook</a>). You compute neighbours on the fly instead of building lists. An R × C grid has V = R·C and at most 2R·C edges, so any traversal is O(R·C).</p>
+  <pre><code><span class="kw">const</span> DIRS: [(<span class="ty">isize</span>, <span class="ty">isize</span>); <span class="nm">4</span>] = [(-<span class="nm">1</span>, <span class="nm">0</span>), (<span class="nm">1</span>, <span class="nm">0</span>), (<span class="nm">0</span>, -<span class="nm">1</span>), (<span class="nm">0</span>, <span class="nm">1</span>)];
+
+<span class="kw">fn</span> <span class="fn">neighbours</span>(r: <span class="ty">usize</span>, c: <span class="ty">usize</span>, rows: <span class="ty">usize</span>, cols: <span class="ty">usize</span>)
+    -&gt; <span class="kw">impl</span> <span class="ty">Iterator</span>&lt;Item = (<span class="ty">usize</span>, <span class="ty">usize</span>)&gt; {
+    DIRS.<span class="fn">iter</span>().<span class="fn">filter_map</span>(<span class="kw">move</span> |&amp;(dr, dc)| {
+        <span class="kw">let</span> nr = r.<span class="fn">checked_add_signed</span>(dr)?;   <span class="cm">// None above row 0</span>
+        <span class="kw">let</span> nc = c.<span class="fn">checked_add_signed</span>(dc)?;   <span class="cm">// None left of column 0</span>
+        (nr &lt; rows &amp;&amp; nc &lt; cols).<span class="fn">then_some</span>((nr, nc))
+    })
+}</code></pre>
+  <div class="callout warn">
+    <strong>Common interview trap</strong>
+    Writing <code>r - 1</code> on a <code>usize</code>. At row 0 a debug build panics with “attempt to subtract with overflow”, and a <code>--release</code> build wraps to <code>usize::MAX</code> (<a href="https://doc.rust-lang.org/book/ch03-02-data-types.html#integer-overflow" target="_blank">Rust Book §3.2</a>). After the wrap, <code>grid.get(r - 1)</code> quietly returns <code>None</code>, so the bug hides until a debug run. <a href="https://doc.rust-lang.org/std/primitive.usize.html#method.checked_add_signed" target="_blank"><code>checked_add_signed</code></a> returns <code>None</code> instead, and the range check covers the far edges.
+  </div>
+
+  <h2 id="visited-set">The visited set: mark on discovery</h2>
+  <p>Lesson 5’s level order needed no visited set, because a tree has no cycles and every node has one parent. Graphs break both guarantees. Without a record, a cycle loops forever and a vertex with three incoming edges is processed three times. Use a <code>Vec&lt;bool&gt;</code> when ids are <code>0..n</code>, a <code>Vec&lt;Vec&lt;bool&gt;&gt;</code> for a grid, and a <code>HashSet</code> for strings or an unbounded board. Overwriting the cell itself (sinking <code>'1'</code> to <code>'0'</code>) needs no extra memory, but ask before you mutate the input.</p>
+  <p><strong>Mark a vertex when you push it, not when you pop it.</strong> Then each vertex enters the bag at most once. Sedgewick &amp; Wayne and <a href="https://cp-algorithms.com/graph/breadth-first-search.html" target="_blank">cp-algorithms</a> both write BFS this way. Marking on pop (as TIH’s own BFS template does) is still correct, but a vertex is enqueued again by every neighbour popped before it: simulating an open 1000 × 1000 grid gives 1,998,001 pushes instead of 1,000,000, and a peak queue of 1,999 instead of 1,000.</p>
+  <div class="callout warn">
+    <strong>Common interview trap</strong>
+    “It looks like a tree, so I can skip the visited set.” The handbook warns that a tree-like diagram “could very well be a graph that allows for cycles” (<a href="https://www.techinterviewhandbook.org/algorithms/graph/#things-to-look-out-for-during-interviews" target="_blank">TIH</a>). Unless the problem guarantees a tree, keep the set.
+  </div>
+
+  <h2 id="graph-dfs">DFS: count the islands</h2>
+  <p>Depth-first search is tree recursion plus the visited check: follow one neighbour as deep as it goes before trying the next. Here is the recursive version on an adjacency list, counting connected components:</p>
+  <pre><code><span class="kw">fn</span> <span class="fn">dfs</span>(u: <span class="ty">usize</span>, adj: &amp;[<span class="ty">Vec</span>&lt;<span class="ty">usize</span>&gt;], seen: &amp;<span class="kw">mut</span> [<span class="ty">bool</span>]) {
+    seen[u] = <span class="kw">true</span>;
+    <span class="kw">for</span> &amp;v <span class="kw">in</span> &amp;adj[u] {
+        <span class="kw">if</span> !seen[v] { <span class="fn">dfs</span>(v, adj, seen); }   <span class="cm">// the only line lesson 5 didn't need</span>
+    }
+}
+
+<span class="kw">fn</span> <span class="fn">count_components</span>(adj: &amp;[<span class="ty">Vec</span>&lt;<span class="ty">usize</span>&gt;]) -&gt; <span class="ty">usize</span> {
+    <span class="kw">let mut</span> seen = <span class="fn">vec!</span>[<span class="kw">false</span>; adj.<span class="fn">len</span>()];
+    <span class="kw">let mut</span> count = <span class="nm">0</span>;
+    <span class="kw">for</span> s <span class="kw">in</span> <span class="nm">0</span>..adj.<span class="fn">len</span>() {
+        <span class="kw">if</span> !seen[s] { count += <span class="nm">1</span>; <span class="fn">dfs</span>(s, adj, &amp;<span class="kw">mut</span> seen); }
+    }
+    count
+}
+<span class="cm">// O(V + E) time; O(V) for seen, plus up to O(V) recursion depth.</span></code></pre>
+  <p>Every vertex is marked once and every list is scanned once, which is “time proportional to the sum of their degrees” (<a href="https://algs4.cs.princeton.edu/41graph/" target="_blank">algs4</a>), O(V + E). The danger is depth. A recursive flood fill on an all-land 1000 × 1000 grid goes 1,000,000 frames deep, and the <code>dfs</code> above on a million-vertex path aborts with “has overflowed its stack” with Linux’s usual 8 MiB main-thread stack (<code>ulimit -s</code> 8192), in debug and release alike (<a href="0008-recursion-and-backtracking.html#call-stack-space">lesson 8</a>). On grids, use an explicit <code>Vec</code> stack:</p>
+  <pre><code><span class="kw">fn</span> <span class="fn">num_islands</span>(grid: &amp;<span class="kw">mut</span> [<span class="ty">Vec</span>&lt;<span class="ty">u8</span>&gt;]) -&gt; <span class="ty">usize</span> {   <span class="cm">// b'1' land, b'0' water</span>
+    <span class="kw">let</span> (rows, cols) = (grid.<span class="fn">len</span>(), grid.<span class="fn">first</span>().<span class="fn">map_or</span>(<span class="nm">0</span>, <span class="ty">Vec</span>::len));
+    <span class="kw">let mut</span> count = <span class="nm">0</span>;
+    <span class="kw">for</span> r <span class="kw">in</span> <span class="nm">0</span>..rows {
+        <span class="kw">for</span> c <span class="kw">in</span> <span class="nm">0</span>..cols {
+            <span class="kw">if</span> grid[r][c] != <span class="st">b'1'</span> { <span class="kw">continue</span>; }
+            count += <span class="nm">1</span>;
+            grid[r][c] = <span class="st">b'0'</span>;                     <span class="cm">// mark on discovery: sink it</span>
+            <span class="kw">let mut</span> stack = <span class="fn">vec!</span>[(r, c)];
+            <span class="kw">while let</span> <span class="ty">Some</span>((r, c)) = stack.<span class="fn">pop</span>() {
+                <span class="kw">for</span> (nr, nc) <span class="kw">in</span> <span class="fn">neighbours</span>(r, c, rows, cols) {
+                    <span class="kw">if</span> grid[nr][nc] == <span class="st">b'1'</span> {
+                        grid[nr][nc] = <span class="st">b'0'</span>;
+                        stack.<span class="fn">push</span>((nr, nc));
+                    }
+                }
+            }
+        }
+    }
+    count
+}
+<span class="cm">// O(R·C) time: each cell is pushed at most once and checks 4 neighbours.
+// O(R·C) extra space worst case, for the stack. "Can you do better?" Not on
+// time: every cell must be read. Can't mutate the input? Add R·C bools.</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(R·C)</span><span class="label">Space</span><span class="val">O(R·C)</span></div>
+  <p>That space bound is real: on the all-land 1000 × 1000 grid the stack peaks at 499,501 entries. One follow-up subtlety: a stack with mark-on-push reaches exactly the cells DFS would, but not in true DFS order (an exercise at the end of Erickson’s chapter 5 has you prove it is never equivalent to DFS). That matters only when you need DFS’s pre- or post-order. <a href="0008-recursion-and-backtracking.html#backtracking">Backtracking</a> is this same DFS run over a tree of choices you never build.</p>
+  <blockquote class="quote">“Each cell is pushed at most once and checks four neighbours, so this is O(R·C) time. Extra space is O(R·C) in the worst case, for the stack. I’m sinking land in place; if I can’t mutate the input, that’s another R·C booleans. I used an explicit stack because recursion could go R·C deep.”</blockquote>
+
+  <h2 id="bfs-shortest-path">BFS: fewest steps</h2>
+  <p>Swap the stack for a <code>VecDeque</code> and the search spreads in rings: every cell 1 step away, then 2, then 3. It is level order with a visited set. For any vertex v, BFS finds a path with the fewest edges (<a href="https://algs4.cs.princeton.edu/41graph/" target="_blank">algs4</a>: “no path from s to v has fewer edges”).</p>
+  <pre><code><span class="kw">use</span> std::collections::<span class="ty">VecDeque</span>;
+
+<span class="kw">fn</span> <span class="fn">min_steps</span>(grid: &amp;[<span class="ty">Vec</span>&lt;<span class="ty">u8</span>&gt;], start: (<span class="ty">usize</span>, <span class="ty">usize</span>), goal: (<span class="ty">usize</span>, <span class="ty">usize</span>)) -&gt; <span class="ty">Option</span>&lt;<span class="ty">usize</span>&gt; {
+    <span class="kw">let</span> (rows, cols) = (grid.<span class="fn">len</span>(), grid[<span class="nm">0</span>].<span class="fn">len</span>());
+    <span class="kw">let mut</span> seen = <span class="fn">vec!</span>[<span class="fn">vec!</span>[<span class="kw">false</span>; cols]; rows];
+    seen[start.<span class="nm">0</span>][start.<span class="nm">1</span>] = <span class="kw">true</span>;
+    <span class="kw">let mut</span> q = <span class="ty">VecDeque</span>::<span class="fn">from</span>([start]);
+    <span class="kw">let mut</span> steps = <span class="nm">0</span>;
+    <span class="kw">while</span> !q.<span class="fn">is_empty</span>() {
+        <span class="kw">for</span> _ <span class="kw">in</span> <span class="nm">0</span>..q.<span class="fn">len</span>() {                      <span class="cm">// one layer: all `steps` away</span>
+            <span class="kw">let</span> (r, c) = q.<span class="fn">pop_front</span>().<span class="fn">unwrap</span>();
+            <span class="kw">if</span> (r, c) == goal { <span class="kw">return</span> <span class="ty">Some</span>(steps); }
+            <span class="kw">for</span> (nr, nc) <span class="kw">in</span> <span class="fn">neighbours</span>(r, c, rows, cols) {
+                <span class="kw">if</span> grid[nr][nc] != <span class="st">b'#'</span> &amp;&amp; !seen[nr][nc] {
+                    seen[nr][nc] = <span class="kw">true</span>;               <span class="cm">// mark on discovery</span>
+                    q.<span class="fn">push_back</span>((nr, nc));
+                }
+            }
+        }
+        steps += <span class="nm">1</span>;
+    }
+    <span class="ty">None</span>                                            <span class="cm">// goal is walled off</span>
+}
+<span class="cm">// O(R·C) time and space. Follow-up "return the path": store each cell's
+// parent when you mark it, then walk back from the goal.</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(R·C)</span><span class="label">Space</span><span class="val">O(R·C)</span></div>
+  <p><strong>Why the first discovery is the shortest.</strong> The queue only ever holds cells at distance d followed by cells at distance d + 1. Cells therefore leave in order of distance, and nothing discovered later can be closer. Snapshotting <code>q.len()</code> makes the layers explicit. Storing a distance per cell works too.</p>
+  <p><strong>Multi-source BFS.</strong> Rotting Oranges asks how many minutes pass before every orange is rotten, when each rotten orange infects its neighbours once a minute. Seed the queue with <em>every</em> rotten cell at distance 0 and run the same loop. The answer is the largest distance reached, or −1 if some fresh orange is never reached. It is BFS from an imaginary source wired to all of them. 01 Matrix is the same move, starting from every 0.</p>
+  <div class="callout warn">
+    <strong>Common interview trap</strong>
+    “DFS finds shortest paths too.” It finds <em>a</em> path. In the drill below, the stack reaches the goal along 18 steps while BFS proves 8. BFS also counts edges, not costs. Once edges carry weights (minutes, prices), a plain queue gives wrong answers, and you need the priority-queue bag in the next section.
+  </div>
+
+  <h2>Drill: grow the BFS frontier</h2>
+  <p>Each round, click every cell that joins the queue next: the open cells exactly one step further from S than the last layer. Moves are up, down, left and right. A wrong click tells you why. Coordinates are (row, col) from 0 at the top left, as in the Rust code.</p>
+  <div class="bfsw" id="bfsw">
+    <p class="bfsw-info" id="bfsw-info"></p>
+    <div class="bfsw-grid" id="bfsw-grid"></div>
+    <p class="bfsw-msg" id="bfsw-msg" aria-live="polite"></p>
+    <div class="bfsw-row">
+      <button type="button" id="bfsw-check">Layer complete</button>
+      <button type="button" id="bfsw-stack">Replay with a stack</button>
+      <button type="button" id="bfsw-reset">Restart</button>
+    </div>
+  </div>
+
+  <h2 id="whatever-first-search">One loop, three bags</h2>
+  <p>Erickson calls the generic traversal <strong>whatever-first search</strong>: keep candidates in a “bag”, whose only important properties are that “we can put stuff into it and then later take stuff back out” (<a href="https://jeffe.cs.illinois.edu/teaching/algorithms/book/05-graphs.pdf" target="_blank">ch. 5</a>). The bag decides the algorithm.</p>
+  <pre><code><span class="cm">// Sketch: `bag` is any container with put/take.</span>
+bag.<span class="fn">put</span>(s);
+<span class="kw">while let</span> <span class="ty">Some</span>(v) = bag.<span class="fn">take</span>() {
+    <span class="kw">if</span> seen[v] { <span class="kw">continue</span>; }      <span class="cm">// Erickson marks on removal</span>
+    seen[v] = <span class="kw">true</span>;
+    <span class="kw">for</span> &amp;w <span class="kw">in</span> &amp;adj[v] { bag.<span class="fn">put</span>(w); }
+}</code></pre>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Bag</th><th>Rust</th><th>Algorithm</th><th>Answers</th></tr>
+    <tr><td>Stack</td><td><code>Vec</code></td><td>DFS</td><td>reachability, components, flood fill</td></tr>
+    <tr><td>Queue</td><td><code>VecDeque</code></td><td>BFS</td><td>fewest edges from the source</td></tr>
+    <tr><td>Priority queue</td><td><code>BinaryHeap&lt;Reverse&lt;_&gt;&gt;</code></td><td>best-first (Dijkstra)</td><td>cheapest path, <a href="https://cp-algorithms.com/graph/dijkstra.html" target="_blank">non-negative weights</a></td></tr>
+  </table></div>
+  <p>With an O(1) bag the loop is O(V + E). A <a href="0004-stacks-and-queues.html#binary-heap">heap</a> costs O(log E) per operation, so best-first search is O(V + E log E) (Erickson §5.6). Note where the mark goes. With a stack or queue, mark on push to keep the bag small. With a heap you <em>must</em> mark on removal, because a cheaper route to v can turn up after v was first seen. Dijkstra is only a preview here. TIH rates it “uncommon” in interviews and Bellman-Ford, Floyd-Warshall, Prim and Kruskal “almost never” (<a href="https://www.techinterviewhandbook.org/algorithms/graph/#graph-search-algorithms" target="_blank">TIH</a>).</p>
+
+  <h2 id="topological-sort">Topological sort: Kahn’s algorithm</h2>
+  <p>A <strong>topological order</strong> lists the vertices of a directed graph so that every edge u → v has u before v. One exists only if the graph has no cycle (<a href="https://cp-algorithms.com/graph/topological-sort.html" target="_blank">cp-algorithms</a>). <a href="https://en.wikipedia.org/wiki/Topological_sorting#Kahn's_algorithm" target="_blank">Kahn’s algorithm</a> starts from every vertex with no incoming edges. Pop one, append it, and delete its out-edges by decrementing in-degrees. A vertex whose in-degree hits 0 joins the queue. If edges remain when the queue runs dry, the graph has a cycle. In code: fewer than n vertices came out.</p>
+  <pre><code><span class="cm">/// Course Schedule II. A pair (course, pre) means: take pre first.</span>
+<span class="kw">fn</span> <span class="fn">find_order</span>(n: <span class="ty">usize</span>, prereqs: &amp;[(<span class="ty">usize</span>, <span class="ty">usize</span>)]) -&gt; <span class="ty">Option</span>&lt;<span class="ty">Vec</span>&lt;<span class="ty">usize</span>&gt;&gt; {
+    <span class="kw">let mut</span> adj = <span class="fn">vec!</span>[<span class="ty">Vec</span>::<span class="fn">new</span>(); n];
+    <span class="kw">let mut</span> indeg = <span class="fn">vec!</span>[<span class="nm">0usize</span>; n];
+    <span class="kw">for</span> &amp;(course, pre) <span class="kw">in</span> prereqs {
+        adj[pre].<span class="fn">push</span>(course);                       <span class="cm">// edge pre → course</span>
+        indeg[course] += <span class="nm">1</span>;
+    }
+    <span class="kw">let mut</span> q: <span class="ty">VecDeque</span>&lt;<span class="ty">usize</span>&gt; = (<span class="nm">0</span>..n).<span class="fn">filter</span>(|&amp;v| indeg[v] == <span class="nm">0</span>).<span class="fn">collect</span>();
+    <span class="kw">let mut</span> order = <span class="ty">Vec</span>::<span class="fn">with_capacity</span>(n);
+    <span class="kw">while let</span> <span class="ty">Some</span>(u) = q.<span class="fn">pop_front</span>() {
+        order.<span class="fn">push</span>(u);
+        <span class="kw">for</span> &amp;v <span class="kw">in</span> &amp;adj[u] {
+            indeg[v] -= <span class="nm">1</span>;
+            <span class="kw">if</span> indeg[v] == <span class="nm">0</span> { q.<span class="fn">push_back</span>(v); }
+        }
+    }
+    (order.<span class="fn">len</span>() == n).<span class="fn">then_some</span>(order)            <span class="cm">// short: a cycle blocked the rest</span>
+}
+<span class="cm">// O(V + E) time and space. "Can every course be finished?" is
+// find_order(n, &amp;prereqs).is_some().</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(V + E)</span><span class="label">Space</span><span class="val">O(V + E)</span></div>
+  <div class="callout warn">
+    <strong>Common interview trap</strong>
+    Getting the edge backwards. In Course Schedule the pair <code>[a, b]</code> means “take b before a”, so the edge is b → a. Flip it and you return a valid order for the wrong graph. Say the direction out loud before you write the loop.
+  </div>
+  <p>What would a Google interviewer ask next? “Return the lexicographically smallest order.” Swap the <code>VecDeque</code> for a <code>BinaryHeap&lt;Reverse&lt;usize&gt;&gt;</code>. It is the bag again, now O(V log V + E). The DFS alternative (reverse post-order, with three vertex states to catch cycles) is in <a href="https://jeffe.cs.illinois.edu/teaching/algorithms/book/06-dfs.pdf" target="_blank">Erickson ch. 6</a>. <a href="0009-dynamic-programming.html#srtbot">Lesson 9</a> fills DP tables in exactly this kind of order.</p>
+
+  <div class="callout">
+    <strong>Why interviewers care</strong>
+    The BFS loop is fifteen lines. The hard part is the modelling: deciding that words are vertices and one-letter edits are edges, then choosing the bag. The visited set is where most of the bugs live. State the cost in the problem’s own terms (“R·C cells”, “n courses plus p prerequisites”) to show that you understand O(V + E), not just recall it.
+  </div>
+
+  <h2>Drill: which traversal?</h2>
+  <p>Name the tool before you name the code. Six prompts; a wrong pick explains itself and you can retry.</p>
+  <div id="traversal-exercise" class="mc-exercise"></div>
+
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Your BFS marks a cell visited only when it is <em>popped</em> (and skips cells already marked). On an open 1000 × 1000 grid, what changes compared with marking on push?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Distances stay correct. The queue pops cells in order of distance, so the first pop of any cell is at its minimum distance; later duplicates are skipped.')">Some distances come out too large</button>
+        <button onclick="quizAnswer(this,true,'q1','Right. A cell is pushed once by every neighbour that pops before it. Simulated: 1,998,001 pushes instead of 1,000,000, double the work and queue memory.')">Cells enter the queue more than once</button>
+        <button onclick="quizAnswer(this,false,'q1','Each edge adds at most one queue entry, so it is still O(V + E). You pay a constant factor and up to O(E) queue space, not a quadratic blow-up.')">Time grows to O(V²) on the grid</button>
+        <button onclick="quizAnswer(this,false,'q1','The queue is still first in, first out, so cells still leave layer by layer. Only duplicate entries are added; the order is still breadth-first.')">The search turns into depth-first order</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. A graph has V = 10⁵ vertices and E = 2 × 10⁵ edges. Roughly how many basic steps does one BFS take with an adjacency matrix, and with adjacency lists?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','That is V × E, the “O(V·E)” myth. BFS handles each vertex once and each edge a constant number of times; it never pairs every vertex with every edge.')">Matrix 2 × 10¹⁰, lists 2 × 10¹⁰</button>
+        <button onclick="quizAnswer(this,false,'q2','Lists do get O(V + E), about 3 × 10⁵. A matrix cannot: finding one vertex’s neighbours means scanning its whole row of V cells.')">Matrix 3 × 10⁵, lists 3 × 10⁵</button>
+        <button onclick="quizAnswer(this,false,'q2','Nothing here sorts or uses a heap, so no log factor appears. BFS with a queue does constant work per vertex and per edge.')">Both about 10⁵ × log₂ 10⁵</button>
+        <button onclick="quizAnswer(this,true,'q2','Right. The matrix costs V² = 10¹⁰ (and 10 GB as bytes); lists cost V + E = 3 × 10⁵. That quadratic-versus-linear gap is about 33,000 times more work.')">Matrix 10¹⁰, lists 3 × 10⁵</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Kahn’s algorithm on 6 courses outputs 4 of them, then the queue runs empty. What do you know about the other 2?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right. Their in-degree never reached 0, so some prerequisite chain behind them never finished. That only happens on a cycle or downstream of one, so no valid order exists.')">They are on a cycle or after one</button>
+        <button onclick="quizAnswer(this,false,'q3','Courses with no prerequisites have in-degree 0, so Kahn seeds them into the queue at the start and they are always output.')">They have no prerequisites at all</button>
+        <button onclick="quizAnswer(this,false,'q3','Separate components are fine. Every acyclic component has in-degree-0 courses, which are seeded at the start, so they are all output.')">They sit in a separate component</button>
+        <button onclick="quizAnswer(this,false,'q3','Restarting cannot help. Their in-degrees stay above 0 whatever order you try, because a cycle means each waits on another. No valid order exists.')">They need a second pass to finish</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. In a <code>--release</code> build, <code>r: usize</code> is 0 and your neighbour code computes <code>r - 1</code>. What happens?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','That is the debug build. Release builds drop the overflow checks unless you turn them on, so nothing panics at the subtraction.')">Panics: attempt to subtract with overflow</button>
+        <button onclick="quizAnswer(this,false,'q4','A usize cannot hold −1. The result is still a usize, so a check like r - 1 &gt;= 0 is always true and protects nothing.')">Becomes −1, so the bounds check fails</button>
+        <button onclick="quizAnswer(this,true,'q4','Right. Release builds wrap (Rust Book §3.2), so grid.get(r - 1) then quietly returns None and the bug hides. Use checked_add_signed, or test r &gt; 0 first.')">Wraps to usize::MAX, silently</button>
+        <button onclick="quizAnswer(this,false,'q4','Clamping at 0 is what saturating_sub does, and you only get it by calling it explicitly. Plain subtraction never saturates.')">Saturates at 0 and revisits row 0</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Solve these in Rust from a blank file. Before you type, say what the vertices and edges are, which bag you’re using and why, where you mark visited, and the time and space in the problem’s own terms. Most are listed on the handbook’s <a href="https://www.techinterviewhandbook.org/algorithms/graph/#essential-questions" target="_blank">graph page</a>.</p>
+  <ol>
+    <li><strong>Number of Islands</strong> and <strong>Flood Fill</strong>, explicit stack, each in under ten minutes.</li>
+    <li><strong>01 Matrix</strong> and <strong>Rotting Oranges</strong>: multi-source BFS, layers as minutes.</li>
+    <li><strong>Course Schedule</strong> and <strong>Course Schedule II</strong> with Kahn’s algorithm. Check the edge direction first.</li>
+    <li><strong>Pacific Atlantic Water Flow</strong> (search backwards from the borders) and <strong>Clone Graph</strong> (a <code>HashMap</code> as the visited set).</li>
+    <li>Stretch: <strong>Word Ladder</strong>. Generate neighbours by changing one letter at a time and look them up in a <code>HashSet</code>.</li>
+  </ol>
+  <p>Tomorrow, redo the frontier drill from cold, then write <code>min_steps</code> without looking.</p>
+
+  <h2>Primary resource</h2>
+  <p>Read Jeff Erickson, <a href="https://jeffe.cs.illinois.edu/teaching/algorithms/book/05-graphs.pdf" target="_blank"><em>Algorithms</em>, ch. 5 “Basic Graph Algorithms”</a> (free PDF). Focus on “Whatever-First Search”, “Important Variants” and “Graph Reductions: Flood Fill” (§5.5–5.7). They show that one loop with a different bag gives DFS, BFS and best-first search, which is exactly the recognition skill an interview tests.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> A good drill: “Give me a grid or graph problem I haven’t seen, and make me name the vertices, edges, bag and visited rule before I write any code.” Or ask why marking on push is safe for BFS but breaks Dijkstra. Type a question in Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0005-binary-trees-and-bsts.html">← Lesson 5: Binary Trees &amp; BSTs</a>
+    <span class="spacer"></span>
+    <a href="0007-binary-search.html">Lesson 7: Binary Search →</a>
+  </div>
+
+</div>
+
+<style>
+blockquote.quote { border-left: 3px solid var(--accent); padding: .6rem 1rem; margin: 1rem 0; color: var(--ink-dim); font-style: italic; font-size: .95rem; }
+.tbl-wrap { overflow-x: auto; margin: 1rem 0 1.25rem; }
+.tbl { width: 100%; border-collapse: collapse; font-family: var(--font-ui); font-size: .84rem; }
+.tbl th, .tbl td { border-bottom: 1px solid var(--border); padding: .45rem .5rem; text-align: left; vertical-align: top; }
+.tbl th { color: var(--muted); font-weight: normal; text-transform: uppercase; font-size: .7rem; letter-spacing: .06em; }
+.bfsw { background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin: 1.25rem 0; font-family: var(--font-ui); font-size: .88rem; }
+.bfsw-info { margin: 0 0 .75rem; color: var(--ink); }
+.bfsw-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; max-width: 300px; margin: 0 auto .5rem; }
+.bfsw-grid button { aspect-ratio: 1; min-width: 0; padding: 0; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-sunken); color: var(--ink); font-family: var(--font-mono); font-size: .9rem; cursor: pointer; transition: background .15s, border-color .15s; }
+.bfsw-grid button.wall { background: repeating-linear-gradient(45deg, var(--border) 0 4px, var(--bg-sunken) 4px 8px); }
+.bfsw-grid button.src { border-color: var(--accent); color: var(--accent-strong); }
+.bfsw-grid button.goal { border-color: var(--amber); color: var(--amber); }
+.bfsw-grid button.done { background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent-strong); }
+.bfsw-grid button.done.goal { border-color: var(--amber); }
+.bfsw-grid button.pick { background: var(--amber-soft); border-color: var(--amber); }
+.bfsw-grid button.later { color: var(--muted); }
+.bfsw-grid button.bad { background: var(--err-lt); border-color: var(--err); }
+.bfsw-grid button.popped { background: var(--amber-soft); color: var(--amber); }
+.bfsw-grid button.path { border: 2px solid var(--amber); }
+.bfsw-msg { min-height: 2.6em; margin: .5rem 0; color: var(--ink-dim); }
+.bfsw-msg.good { color: var(--accent-strong); }
+.bfsw-msg.bad { color: var(--err); }
+.bfsw-row { display: flex; flex-wrap: wrap; gap: .4rem; }
+.bfsw-row button { background: var(--bg-sunken); color: var(--ink); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .35rem .7rem; font: inherit; cursor: pointer; }
+.bfsw-row button:hover { border-color: var(--accent-border); background: var(--accent-soft); }
+</style>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+// ---- Drill 1: grow the BFS frontier, then replay with a stack ----
+(function () {
+  const MAP = ['S....#', '.##.#.', '##..##', '.....G', '.###..', '.....#'];
+  const R = MAP.length, C = MAP[0].length;
+  const DIRS = [[-1, 0], [1, 0], [0, -1], [0, 1]];   // same order as the Rust DIRS
+  let S, G;
+  MAP.forEach((row, r) => [...row].forEach((ch, c) => { if (ch === 'S') S = [r, c]; if (ch === 'G') G = [r, c]; }));
+  const key = (r, c) => r * C + c;
+  const isOpen = (r, c) => r >= 0 && r < R && c >= 0 && c < C && MAP[r][c] !== '#';
+  const nbrs = (r, c) => DIRS.map(([dr, dc]) => [r + dr, c + dc]).filter(([a, b]) => isOpen(a, b));
+  const at = (r, c) => '(' + r + ', ' + c + ')';
+  const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+
+  // True BFS distances (-1 = unreachable).
+  const dist = MAP.map(row => [...row].map(() => -1));
+  dist[S[0]][S[1]] = 0;
+  const bq = [S];
+  for (let i = 0; i < bq.length; i++) {
+    const [r, c] = bq[i];
+    for (const [a, b] of nbrs(r, c)) if (dist[a][b] < 0) { dist[a][b] = dist[r][c] + 1; bq.push([a, b]); }
+  }
+  const goalD = dist[G[0]][G[1]];
+  const cellsAt = d => { const out = []; for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) if (MAP[r][c] !== '#' && dist[r][c] === d) out.push([r, c]); return out; };
+
+  const $ = id => document.getElementById(id);
+  const gridEl = $('bfsw-grid'), msg = $('bfsw-msg'), info = $('bfsw-info');
+  const btn = [];
+  let mode, k, picked, slips, popNo, onPath, timer;
+
+  for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.addEventListener('click', () => click(r, c));
+    gridEl.appendChild(b);
+    btn[key(r, c)] = b;
+  }
+
+  function say(text, cls) { msg.textContent = text; msg.className = 'bfsw-msg' + (cls ? ' ' + cls : ''); }
+
+  function paint() {
+    for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) {
+      const b = btn[key(r, c)], d = dist[r][c], ch = MAP[r][c];
+      let cls = [], text = '';
+      if (ch === '#') cls.push('wall');
+      else if (mode === 'dfs') {
+        text = ch === 'S' ? 'S' : ch === 'G' ? 'G' : (popNo.get(key(r, c)) || '');
+        if (popNo.has(key(r, c)) && ch === '.') cls.push('popped');
+        if (onPath.has(key(r, c))) cls.push('path');
+      } else {
+        if (ch === 'S') { text = 'S'; cls.push('src'); }
+        else if (d >= 0 && d < k) { text = String(d); cls.push('done'); }
+        else if (mode === 'found') { text = d < 0 ? '∞' : String(d); cls.push('later'); }
+        else if (picked.has(key(r, c))) cls.push('pick');
+        if (ch === 'G') { cls.push('goal'); if (!(d < k)) text = 'G'; }
+      }
+      b.className = cls.join(' ');
+      b.textContent = text;
+      b.setAttribute('aria-label', at(r, c) + (ch === '#' ? ' wall' : text ? ', ' + text : ', open'));
+    }
+    info.textContent = mode === 'bfs' ? 'Round ' + k + ': click every open cell exactly ' + plural(k, 'step') + ' from S.'
+      : mode === 'found' ? 'Fewest steps from S to G: ' + goalD + '.'
+      : 'Stack replay (DFS): numbers are pop order.';
+  }
+
+  function start() {
+    clearInterval(timer);
+    mode = 'bfs'; k = 1; picked = new Set(); slips = 0; popNo = new Map(); onPath = new Set();
+    paint();
+    say('S is in the queue at distance 0. Which cells does it discover?');
+  }
+
+  function wrong(r, c, text) {
+    slips++;
+    say('✗ ' + text, 'bad');
+    const b = btn[key(r, c)];
+    b.classList.add('bad');
+    setTimeout(() => b.classList.remove('bad'), 700);
+  }
+
+  function click(r, c) {
+    if (mode !== 'bfs') return;
+    const d = dist[r][c], here = at(r, c);
+    if (MAP[r][c] === '#') return wrong(r, c, here + ' is a wall. BFS looks at it, skips it, and it never enters the queue.');
+    if (d >= 0 && d < k) return wrong(r, c, here + ' was already discovered at distance ' + d + '. The visited check keeps it out of the queue; that is what makes BFS O(R·C).');
+    if (picked.has(key(r, c))) return say(here + ' is already in this layer.');
+    if (d === k) {
+      picked.add(key(r, c));
+      if (picked.size === cellsAt(k).length) return finishLayer();
+      paint();
+      return say('✓ ' + here + ' is ' + plural(k, 'step') + ' from S. Any more?', 'good');
+    }
+    if (d < 0) return wrong(r, c, here + ' is walled off. No path from S reaches it, so BFS never discovers it; its distance stays ∞.');
+    const diag = cellsAt(k - 1).some(([a, b]) => Math.abs(a - r) === 1 && Math.abs(b - c) === 1);
+    if (diag) return wrong(r, c, here + ' touches a distance-' + (k - 1) + ' cell only diagonally. Diagonal moves are not allowed, so it is not a neighbour. It is ' + plural(d, 'step') + ' from S.');
+    wrong(r, c, here + ' is ' + plural(d, 'step') + ' from S. This round adds only cells exactly ' + k + ' away: open, unvisited neighbours of the cells marked ' + (k - 1) + '.');
+  }
+
+  function finishLayer() {
+    const hadGoal = picked.has(key(G[0], G[1]));
+    const n = picked.size;
+    k++; picked = new Set();
+    if (hadGoal) {
+      mode = 'found';
+      paint();
+      say('✓ G discovered at distance ' + goalD + (slips ? ' (' + plural(slips, 'slip') + ')' : ', with no slips') + '. No path is shorter, so BFS can stop. Each open cell enters the queue at most once and checks 4 neighbours: O(R·C) time and space. Grey numbers are the layers BFS would reach next; ∞ is unreachable. Now try the stack replay.', 'good');
+    } else {
+      paint();
+      say('✓ Layer ' + (k - 1) + ' done: the queue now holds exactly these ' + plural(n, 'cell') + '. Next, every cell ' + k + ' steps from S.', 'good');
+    }
+  }
+
+  function check() {
+    if (mode !== 'bfs') return;
+    const miss = cellsAt(k).filter(([r, c]) => !picked.has(key(r, c)));
+    if (!miss.length) return finishLayer();
+    const [mr, mc] = miss[0];
+    const from = nbrs(mr, mc).find(([a, b]) => dist[a][b] === k - 1);
+    say('✗ Not yet: ' + plural(miss.length, 'cell') + ' missing. One is an open neighbour of ' + at(from[0], from[1]) + ', marked ' + (k - 1) + '.', 'bad');
+  }
+
+  function replay() {
+    clearInterval(timer);
+    mode = 'dfs'; popNo = new Map(); onPath = new Set();
+    // Same loop as num_islands: Vec stack, mark on push, DIRS order.
+    const seen = new Set([key(S[0], S[1])]), parent = new Map(), order = [], stack = [S];
+    while (stack.length) {
+      const [r, c] = stack.pop();
+      order.push([r, c]);
+      if (r === G[0] && c === G[1]) break;
+      for (const [a, b] of nbrs(r, c)) if (!seen.has(key(a, b))) { seen.add(key(a, b)); parent.set(key(a, b), [r, c]); stack.push([a, b]); }
+    }
+    const path = [];
+    for (let p = G; p; p = parent.get(key(p[0], p[1]))) path.push(p);
+    let i = 0;
+    const step = () => {
+      if (i < order.length) { popNo.set(key(order[i][0], order[i][1]), i + 1); i++; paint(); return false; }
+      clearInterval(timer);
+      path.forEach(([r, c]) => onPath.add(key(r, c)));
+      paint();
+      say('The stack popped ' + order.length + ' cells and reached G along a ' + (path.length - 1) + '-step path (outlined), while BFS proved ' + goalD + ' is the minimum. Cell (3, 4), right beside G and only 7 steps from S, was still waiting on the stack. A stack finds a path, not the shortest one.', 'bad');
+      return true;
+    };
+    say('Popping cells off a Vec stack…');
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { while (!step()); }
+    else timer = setInterval(step, 110);
+  }
+
+  $('bfsw-check').addEventListener('click', check);
+  $('bfsw-stack').addEventListener('click', replay);
+  $('bfsw-reset').addEventListener('click', start);
+  start();
+})();
+
+// ---- Drill 2: which traversal? ----
+(function () {
+  const OPTS = ['Any traversal: reachability only', 'BFS: fewest edges matter', 'Kahn: dependency order matters', 'Dijkstra: edge weights matter'];
+  const item = (prompt, ok, ex) => ({ prompt, options: OPTS.map((text, i) => ({ text, correct: i === ok, explain: ex[i] })) });
+  renderMC('traversal-exercise', [
+    item('Minimum Knight Moves: the fewest knight moves from (0, 0) to (x, y) on an infinite chessboard.', 1, [
+      'Reachability is never in doubt: a knight can reach every square of an infinite board. The question is how many moves, which needs BFS layers.',
+      'Every move costs 1, so squares form an unweighted implicit graph and BFS layer k holds every square k moves away. Use a HashSet as the visited set, since the board is unbounded.',
+      'Nothing here has prerequisites. Knight moves are reversible and full of cycles, so there is no dependency order to respect.',
+      'Every move costs the same, so a heap only re-sorts equal keys. With all weights 1, Dijkstra does what BFS does, plus a log factor.'
+    ]),
+    item('Number of Islands: count the groups of connected land cells in a grid of 1s and 0s.', 0, [
+      'Each island is one connected component. Launch a traversal from every unvisited land cell, sink what it reaches, and count the launches. An explicit Vec stack avoids deep recursion.',
+      'BFS works too and costs the same O(R·C), but nothing asks for a distance. Picking it for the fewest edges misreads the question.',
+      'The grid is undirected and has no before or after, so there is nothing to order and no in-degrees to count.',
+      'No cell costs more to enter than another, and the answer is a count of components, not the cost of any path.'
+    ]),
+    item('Course Schedule II: given n courses and prerequisite pairs, return an order in which to take them all.', 2, [
+      'Reachability tells you which courses depend on which, but it does not produce an order that puts every prerequisite first.',
+      'BFS layers measure distance from one source, but a course can only be taken after all of its prerequisites, not just the nearest one.',
+      'An order with every prerequisite first is a topological order. Kahn’s queue of in-degree-0 courses produces one in O(V + E), or reports a cycle.',
+      'The edges carry no costs, only a before-and-after constraint, so a heap of distances answers a different question.'
+    ]),
+    item('Course Schedule: given the prerequisite pairs, can all n courses be finished?', 2, [
+      'Plain reachability cannot see a directed cycle. Every course can be reachable from somewhere and still sit in a loop of prerequisites.',
+      'Distances from one course say nothing about whether some group of courses blocks itself in a cycle.',
+      'Finishable means the prerequisite graph has no cycle. Kahn’s algorithm outputs fewer than n courses exactly when a cycle blocks the rest. A three-colour DFS also works.',
+      'No weights are involved. The yes-or-no answer depends only on whether a cycle exists.'
+    ]),
+    item('Word Ladder: the length of the shortest chain of one-letter edits from beginWord to endWord through a word list.', 1, [
+      'Knowing that endWord is reachable is not enough. The answer is the length of the shortest chain, which BFS layers give directly.',
+      'Words are vertices, one-letter edits are edges, and every edit costs 1. BFS from beginWord returns the layer where endWord first appears.',
+      'Edits are reversible, so the word graph is undirected and full of cycles. It has no topological order at all.',
+      'Every edit costs exactly 1, so a heap adds a log factor for nothing. Plain BFS already pops words in order of chain length.'
+    ]),
+    item('Pacific Atlantic Water Flow: which cells can drain into both oceans, if water flows to equal or lower neighbours?', 0, [
+      'Search backwards. Start from every border cell of one ocean (multi-source), climb to equal or higher neighbours, repeat for the other ocean, and intersect the two visited sets. No distances needed.',
+      'BFS from the borders is a fine way to run it, but the question asks which cells qualify, not how far away they are.',
+      'Water can flow back and forth between cells of equal height, so the flow graph has cycles and no topological order.',
+      'Heights decide which moves are allowed, not what a move costs. There is no path cost to minimise.'
+    ])
+  ]);
+})();
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

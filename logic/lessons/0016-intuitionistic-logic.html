@@ -101,7 +101,7 @@
       <p>4. What does the Curry–Howard correspondence say about a Rust function that type-checks?</p>
       <div class="options">
         <button onclick="quizAnswer(this,false,'q4','This drastically understates it — Curry-Howard is a genuine formal isomorphism between proofs and programs, not merely a loose comparison.')">It's a loose, informal metaphor for what proofs are like</button>
-        <button onclick="quizAnswer(this,true, 'q4','Right — under Curry-Howard, a type-checking function of type A → B literally IS a constructive proof of the proposition "A implies B," with no metaphor involved.')">It literally is a constructive proof of the proposition its type signature encodes</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — under Curry-Howard, a type-checking function of type A → B literally IS a constructive proof of the proposition &quot;A implies B,&quot; with no metaphor involved.')">It literally is a constructive proof of the proposition its type signature encodes</button>
         <button onclick="quizAnswer(this,false,'q4','Curry-Howard connects proofs to programs specifically through intuitionistic (constructive) logic, not classical logic with LEM freely available.')">It's a proof in classical logic, using excluded middle freely</button>
         <button onclick="quizAnswer(this,false,'q4','This has nothing to do with runtime performance — Curry-Howard is about the logical/type-theoretic content of the function, not its execution speed.')">It means the function will run faster than an unproven equivalent</button>
       </div>
@@ -184,7 +184,7 @@ INTU_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

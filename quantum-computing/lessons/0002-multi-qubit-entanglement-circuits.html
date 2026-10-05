@@ -104,7 +104,7 @@ q1: |0⟩───────⊕──</code></pre>
     <div class="q-block" id="q4">
       <p>4. Formally, what does "apply gate U to qubit 0 only" mean in a two-qubit system?</p>
       <div class="options">
-        <button onclick="quizAnswer(this,true,'q4','Right — tensoring U with the identity on qubit 1’s factor is exactly what "act on qubit 0, leave qubit 1 alone" means mathematically.')">Apply the operator U ⊗ I — U on qubit 0's factor, identity on qubit 1's</button>
+        <button onclick="quizAnswer(this,true,'q4','Right — tensoring U with the identity on qubit 1’s factor is exactly what &quot;act on qubit 0, leave qubit 1 alone&quot; means mathematically.')">Apply the operator U ⊗ I — U on qubit 0's factor, identity on qubit 1's</button>
         <button onclick="quizAnswer(this,false,'q4','Applying U twice to the same qubit is a different operation (U², which for many gates like H returns the identity) — it has nothing to do with acting on only one of two qubits.')">Apply U twice in a row to the combined state</button>
         <button onclick="quizAnswer(this,false,'q4','Gates act on the full state vector via matrix multiplication, not by singling out one scalar coefficient to modify.')">Apply U only to the c₀₀ coefficient</button>
         <button onclick="quizAnswer(this,false,'q4','Nothing about applying a gate to one qubit requires touching the other qubit at all — that’s exactly what U ⊗ I guarantees: qubit 1’s factor gets the identity, unchanged.')">Apply U's inverse to qubit 1 to compensate</button>
@@ -128,7 +128,7 @@ q1: |0⟩───────⊕──</code></pre>
   <div class="nav">
     <a href="0001-qubits-bloch-sphere-single-qubit-gates.html">← Lesson 1: Qubits &amp; Single-Qubit Gates</a>
     <span class="spacer"></span>
-    <a href="../index.html#lesson-03">Lesson 3: Universal Gates, Reversibility &amp; No-Cloning →</a>
+    <a href="0003-universal-gates-reversibility-no-cloning.html">Lesson 3: Universal Gates, Reversibility &amp; No-Cloning →</a>
   </div>
 
 </div>
@@ -188,7 +188,7 @@ ENTANGLE_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

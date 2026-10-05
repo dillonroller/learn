@@ -121,7 +121,7 @@
         <button onclick="quizAnswer(this,true, 'q3','Right — the whole conditional (entering requires a ticket) is what’s necessary, matching the modal-words distinction from lesson 2.')">□(Enter → Ticket)</button>
         <button onclick="quizAnswer(this,false,'q3','This claims entering necessarily follows from having a ticket — backwards, and it drops the necessity from where it actually belongs (on the requirement itself).')">Enter → □Ticket</button>
         <button onclick="quizAnswer(this,false,'q3','This drops the necessity/modal claim entirely — it’s just the plain lesson-2 conditional, with no □ at all.')">Enter → Ticket</button>
-        <button onclick="quizAnswer(this,false,'q3','◇ would say entering-with-a-ticket is merely POSSIBLE, not required — "must" is a necessity claim, not a mere possibility.')">◇(Enter ∧ Ticket)</button>
+        <button onclick="quizAnswer(this,false,'q3','◇ would say entering-with-a-ticket is merely POSSIBLE, not required — &quot;must&quot; is a necessity claim, not a mere possibility.')">◇(Enter ∧ Ticket)</button>
       </div>
       <div class="feedback" id="q3-fb"></div>
     </div>
@@ -236,7 +236,7 @@ MODAL_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

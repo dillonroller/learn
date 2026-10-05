@@ -60,7 +60,7 @@
       <p>1. Why is locality built into the LHV assumption as "A depends only on a and λ, never on b"?</p>
       <div class="options">
         <button onclick="quizAnswer(this,false,'q1','This is a modeling assumption about how outcomes are determined, not a claim about measurement being impossible — both settings are indeed measured, one per side.')">Because it's physically impossible to measure two settings at once</button>
-        <button onclick="quizAnswer(this,true, 'q1','Right — this formalizes "no influence from Bob\'s choice reaches Alice\'s outcome," which is exactly what "local" means in "local hidden-variable theory."')">Because it formalizes the idea that Alice's outcome cannot be influenced by which setting Bob happens to choose, and vice versa</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — this formalizes &quot;no influence from Bob\'s choice reaches Alice\'s outcome,&quot; which is exactly what &quot;local&quot; means in &quot;local hidden-variable theory.&quot;')">Because it formalizes the idea that Alice's outcome cannot be influenced by which setting Bob happens to choose, and vice versa</button>
         <button onclick="quizAnswer(this,false,'q1','A depending on λ is exactly what makes it a HIDDEN VARIABLE theory — dependence on λ is required, not something this locality condition removes.')">Because it removes any dependence of A on the hidden variable λ</button>
         <button onclick="quizAnswer(this,false,'q1','This condition is about Alice\'s outcome not depending on Bob\'s remote setting choice — it has nothing to do with whether λ itself is measurable or hidden.')">Because it guarantees λ itself is always directly observable</button>
       </div>
@@ -82,7 +82,7 @@
       <p>3. What does the measured value S ≈ 2.828 (matching the quantum prediction) actually demonstrate?</p>
       <div class="options">
         <button onclick="quizAnswer(this,false,'q3','This overclaims — Bell\'s theorem rules out the specific combination of locality AND realism (predetermined values) together, not every possible alternative account without exception.')">That quantum mechanics has been proven wrong and needs replacing</button>
-        <button onclick="quizAnswer(this,true, 'q3','Right — since |S|≤2 is a hard algebraic bound for any local hidden-variable theory, and the measured value exceeds it, no such theory (as formalized) can be correct — this is what "ruled out experimentally" means here.')">That local hidden-variable theories, as formalized by the LHV assumption, cannot correctly describe the measured correlations</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — since |S|≤2 is a hard algebraic bound for any local hidden-variable theory, and the measured value exceeds it, no such theory (as formalized) can be correct — this is what &quot;ruled out experimentally&quot; means here.')">That local hidden-variable theories, as formalized by the LHV assumption, cannot correctly describe the measured correlations</button>
         <button onclick="quizAnswer(this,false,'q3','The lesson explicitly notes Bell\'s theorem doesn\'t single out one specific interpretation as the definite correct account — several remain live and debated.')">That many-worlds is definitively the correct interpretation of quantum mechanics</button>
         <button onclick="quizAnswer(this,false,'q3','2.828 is well within Tsirelson\'s bound (2√2), the actual quantum-mechanical ceiling — it isn\'t evidence of any experimental error or anomaly.')">That the experiment contains a measurement error, since no correlation should exceed 2</button>
       </div>
@@ -116,7 +116,7 @@
   <div class="nav">
     <a href="0002-entanglement-epr-puzzle.html">← Lesson 2: Entanglement &amp; the EPR Puzzle</a>
     <span class="spacer"></span>
-    <a href="../index.html#lesson-04">Lesson 4: The Schrödinger Equation →</a>
+    <a href="0004-schrodinger-equation.html">Lesson 4: The Schrödinger Equation →</a>
   </div>
 
 </div>
@@ -171,7 +171,7 @@ CHSH_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

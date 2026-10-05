@@ -57,7 +57,7 @@
       <p>1. What's the key advantage of defining "product" via a universal property instead of "the set of ordered pairs"?</p>
       <div class="options">
         <button onclick="quizAnswer(this,false,'q1','This isn\'t really about computational efficiency — the advantage is generality across categories, not runtime performance of any particular implementation.')">It's computationally faster to construct in practice</button>
-        <button onclick="quizAnswer(this,true, 'q1','Right — "ordered pairs" only makes sense in Set; the universal property is stated purely in terms of objects and morphisms, so it applies to any category, and each category\'s own structure determines what actually satisfies it.')">It's defined purely in terms of objects and morphisms, so it applies in any category, not just Set</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — &quot;ordered pairs&quot; only makes sense in Set; the universal property is stated purely in terms of objects and morphisms, so it applies to any category, and each category\'s own structure determines what actually satisfies it.')">It's defined purely in terms of objects and morphisms, so it applies in any category, not just Set</button>
         <button onclick="quizAnswer(this,false,'q1','The universal property is a general specification that still needs to be checked against a category\'s actual structure — it isn\'t automatically true in every category, some categories may lack products altogether.')">It guarantees every category automatically has a product for any two objects</button>
         <button onclick="quizAnswer(this,false,'q1','The lesson explicitly shows the same universal property gives a different concrete answer per category (pairs in Set, minimum in a preorder) — it does not eliminate the need to reason about each specific category.')">It removes the need to think about what category you're working in at all</button>
       </div>
@@ -79,7 +79,7 @@
       <p>3. What does "unique up to unique isomorphism" mean for two objects P and P′ both satisfying the same universal property?</p>
       <div class="options">
         <button onclick="quizAnswer(this,false,'q3','This is exactly wrong — the whole point of the uniqueness-up-to-isomorphism proof is that P and P′ ARE canonically isomorphic whenever they both satisfy the same universal property.')">P and P′ are generally unrelated objects with no connection between them</button>
-        <button onclick="quizAnswer(this,true, 'q3','Right — the proof constructs a canonical isomorphism φ: P→P′ (and its inverse) directly from the two universal properties, showing P and P′ are interchangeable, which is why mathematicians say "the" product despite the universal property never naming one specific object.')">There is a canonical, unique isomorphism between P and P′, making them interchangeable — which justifies calling it "the" product</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — the proof constructs a canonical isomorphism φ: P→P′ (and its inverse) directly from the two universal properties, showing P and P′ are interchangeable, which is why mathematicians say &quot;the&quot; product despite the universal property never naming one specific object.')">There is a canonical, unique isomorphism between P and P′, making them interchangeable — which justifies calling it "the" product</button>
         <button onclick="quizAnswer(this,false,'q3','The proof specifically constructs an isomorphism (invertible morphism both ways), not merely a one-directional morphism — P and P′ are shown to be interchangeable, not just connected one way.')">P and P′ must be literally the same object, with no distinction possible</button>
         <button onclick="quizAnswer(this,false,'q3','The isomorphism here is derived directly and specifically from the two universal properties themselves via the argument in the lesson — it isn\'t an unrelated fact requiring outside assumptions.')">It's an unprovable assumption taken on faith, not something derivable from the universal property</button>
       </div>
@@ -113,7 +113,7 @@
   <div class="nav">
     <a href="0002-functors-natural-transformations.html">← Lesson 2: Functors &amp; Natural Transformations</a>
     <span class="spacer"></span>
-    <a href="../index.html#lesson-04">Lesson 4: Monads →</a>
+    <a href="0004-monads.html">Lesson 4: Monads →</a>
   </div>
 
 </div>
@@ -173,7 +173,7 @@ UP_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

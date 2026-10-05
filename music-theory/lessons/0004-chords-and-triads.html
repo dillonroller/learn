@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 4 — Chords & Triads</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Music Theory & Keyboard</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 4 of ∞ &nbsp;·&nbsp; Keyboard & Music Theory &nbsp;·&nbsp; ~25 min</p>
+  <h1>Chords & Triads</h1>
+  <p>In <a href="0003-the-major-scale.html">lesson 3</a> you built major scales on any root and met the idea of a <a href="0003-the-major-scale.html">key</a>: a 7-note palette. That lesson ended with a promise: once you know your key, you know which chords belong to it. Today you collect. You’ll stack notes from a key into three-note chords, measure them in <a href="0002-half-steps-and-whole-steps.html">half steps</a>, and finish by playing your first chord progression, then moving it to a new key.</p>
+
+  <h2>Quick recall</h2>
+  <p>Before reading on, and without looking back, can you answer these from memory?</p>
+  <ul>
+    <li>What are the 7 notes of D major? (You practised this.)</li>
+    <li>How many half steps is it from C up to E? Count every key, black and white.</li>
+    <li>Which note does G major have that C major doesn’t?</li>
+  </ul>
+  <p style="color:var(--muted); font-size:.9rem;">Answers: D E F♯ G A B C♯ · 4 (C♯, D, D♯, E) · F♯</p>
+
+  <h2 id="triad">Play one, skip one: the triad</h2>
+  <p>A <strong>chord</strong> is three or more notes played together (<a href="https://www.musictheory.net/lessons/40" target="_blank">musictheory.net</a>). The basic chord is the <strong>triad</strong>: three notes stacked in thirds (<a href="https://musictheory.pugetsound.edu/mt21c/TriadsIntroduction.html" target="_blank">Hutchinson, §6.1</a>). On a scale, stacking thirds means <em>play one, skip one, play one, skip one, play one</em>:</p>
+
+  <div class="ladder" aria-label="C major scale with C, E and G picked">
+    <div><span class="in">C</span>root</div><div><span>D</span>&nbsp;</div><div><span class="in">E</span>third</div><div><span>F</span>&nbsp;</div><div><span class="in">G</span>fifth</div><div><span>A</span>&nbsp;</div><div><span>B</span>&nbsp;</div>
+  </div>
+
+  <p>Stacked in thirds like this, the bottom note is the <strong>root</strong> (it names the chord), the middle one is the <strong>third</strong>, and the top one is the <strong>fifth</strong>. Because you skip a letter each time, the letters always run every other letter: C–E–G, D–F–A, E–G–B. Three neighbouring notes like C–D–E make a cluster, not a triad.</p>
+
+  <div class="callout">
+    <strong>Try it now</strong>
+    Right hand: thumb on Middle C, middle finger on E, little finger on G (fingers 1, 3, 5). Press all three together. Now move the same shape up one white key at a time: D–F–A, then E–G–B. The shape is identical, but listen: the three chords don’t all sound alike.
+  </div>
+
+  <h2>Two sizes of third</h2>
+  <p>“Third” counts <em>letter names</em>: C, D, E is three letters, so C up to E is a third. But every third in this lesson’s chords comes in one of two sizes when you count keys:</p>
+  <ul>
+    <li>A <strong id="major-third">major third</strong> is <strong>4 half steps</strong>. C→E: C♯, D, D♯, E.</li>
+    <li>A <strong id="minor-third">minor third</strong> is <strong>3 half steps</strong>. D→F: D♯, E, F.</li>
+  </ul>
+  <p>The root-to-fifth span in C–E–G is <strong>7 half steps</strong> (C→G), called a perfect fifth (<a href="https://www.musictheory.net/lessons/40" target="_blank">musictheory.net</a> counts it the same way, on the keyboard).</p>
+
+  <div class="callout warn">
+    <strong>A third is not 3 half steps</strong>
+    The name counts letters; the size counts keys. In these chords a third is 3 or 4 half steps, depending on which letters you land on, and that one-key difference is exactly what you’ll hear as minor versus major. Same with the fifth: 5 letters, but 7 half steps in major and minor chords. Check both on <a href="0002-half-steps-and-whole-steps.html#piano2">lesson 2’s step counter</a>.
+  </div>
+
+  <h2>Three recipes</h2>
+  <p>W W H W W W H was the recipe for a major scale. A triad’s recipe is just two stacked thirds, bottom gap then top gap:</p>
+
+  <div class="tbl-wrap"><table class="chords">
+    <tr><th>Quality</th><th>Recipe</th><th>5th</th><th>Example</th><th>Sound</th></tr>
+    <tr><td><strong id="major-triad">Major</strong></td><td>4 + 3</td><td>7</td><td>C–E–G</td><td>bright</td></tr>
+    <tr><td><strong id="minor-triad">Minor</strong></td><td>3 + 4</td><td>7</td><td>C–E♭–G</td><td>darker</td></tr>
+    <tr><td><strong id="diminished-triad">Diminished</strong></td><td>3 + 3</td><td>6</td><td>B–D–F</td><td>tense</td></tr>
+  </table></div>
+
+  <div class="tb-row">
+    <button class="tb-btn" onclick="play([60,64,67])">Hear C major</button>
+    <button class="tb-btn" onclick="play([60,63,67])">Hear C minor</button>
+    <button class="tb-btn" onclick="play([59,62,65])">Hear B diminished</button>
+  </div>
+
+  <p>Major and minor share the same 7-half-step fifth; only the middle note moves, by one key. Diminished squeezes the fifth to 6, a span theorists class as dissonant: less stable, as if it needs to resolve (<a href="https://viva.pressbooks.pub/openmusictheory/chapter/intervals/" target="_blank">Open Music Theory, Intervals</a>). The 7-half-step fifth is consonant. <a href="https://viva.pressbooks.pub/openmusictheory/chapter/triads/" target="_blank">Open Music Theory</a> suggests “happy”, “sad” and “scary” as beginner labels for the three, but trust your own ear. In chord symbols a bare letter means major (C), m means minor (Cm) and ° means diminished (B°).</p>
+  <p>Spell by letters first, then fix with ♯ or ♭: C minor is C–E♭–G, never C–D♯–G, because the third of a C chord must be some kind of E. (Two major thirds, 4 + 4, is not major: it is the rare <em>augmented</em> triad (<a href="https://musictheory.pugetsound.edu/mt21c/TriadsIntroduction.html" target="_blank">Hutchinson</a>), which never occurs in a major key.)</p>
+
+  <div class="callout warn">
+    <strong>Black keys don’t decide the quality</strong>
+    D major is D–F♯–A (one black key). D minor is D–F–A (all white). Quality comes from the half-step gaps, never from key colour.
+  </div>
+
+  <h2>Triad builder</h2>
+  <p>Click three keys (click again to remove one), then <em>Check</em>. Put the root at the bottom and stack the third and fifth directly above it, in whichever octave fits. After two misses, <em>Show me</em> lights up the answer.</p>
+
+  <div class="tb">
+    <div class="tb-prompt"><span id="tb-round"></span><strong id="tb-target"></strong></div>
+    <div id="kb" class="kb"></div>
+    <div class="tb-row">
+      <button class="tb-btn" onclick="tbCheck()">Check</button>
+      <button class="tb-btn" onclick="tbClear()">Clear</button>
+      <button class="tb-btn" id="tb-show" onclick="tbShow()" disabled>Show me</button>
+      <button class="tb-btn" id="tb-next" onclick="tbNext()" disabled>Next chord →</button>
+    </div>
+    <div class="tb-fb" id="tb-fb">Pick three keys.</div>
+  </div>
+
+  <h2 id="diatonic-triads">The seven chords of a key</h2>
+  <p>Now combine the two ideas. Take a key’s seven notes and stack a triad on each one, <em>using only notes from that key</em>. These are the key’s <strong>diatonic triads</strong> (“diatonic” means within the key; <a href="https://musictheory.pugetsound.edu/mt21c/DiatonicChordsInMajor.html" target="_blank">Hutchinson, §7.2</a>). C major is all <a href="0001-the-keyboard-map.html">white keys</a>, so start there:</p>
+
+  <div class="tbl-wrap"><table class="chords">
+    <tr><th>Root</th><th>Triad</th><th>Gaps</th><th>Chord</th></tr>
+    <tr><td>C</td><td>C–E–G</td><td>4 + 3</td><td>C major</td></tr>
+    <tr><td>D</td><td>D–F–A</td><td>3 + 4</td><td>D minor</td></tr>
+    <tr><td>E</td><td>E–G–B</td><td>3 + 4</td><td>E minor</td></tr>
+    <tr><td>F</td><td>F–A–C</td><td>4 + 3</td><td>F major</td></tr>
+    <tr><td>G</td><td>G–B–D</td><td>4 + 3</td><td>G major</td></tr>
+    <tr><td>A</td><td>A–C–E</td><td>3 + 4</td><td>A minor</td></tr>
+    <tr><td>B</td><td>B–D–F</td><td>3 + 3</td><td>B diminished</td></tr>
+  </table></div>
+
+  <p>Read the qualities down: <strong>Major, minor, minor, Major, Major, minor, diminished</strong>. That pattern is the same in every major key (<a href="https://www.musictheory.net/lessons/43" target="_blank">musictheory.net</a>, <a href="https://viva.pressbooks.pub/openmusictheory/chapter/triads/" target="_blank">Open Music Theory</a>), because every major scale comes from the same W W H W W W H recipe, so the gaps fall in the same places.</p>
+  <p>So every major key holds three minor chords and one diminished chord. The diminished one isn’t a mistake: it belongs to the key, it is just tense and unstable, so composers use it sparingly.</p>
+
+  <div class="callout">
+    <strong>Try it now</strong>
+    Walk the 1-3-5 hand shape up the white keys from C to B: C, Dm, Em, F, G, Am, B°. Listen for the three darker chords and the tense one at the top, then land back on C.
+  </div>
+
+  <h2 id="roman-numerals">Roman numerals: chords by position</h2>
+  <p>Musicians name a key’s chords by the scale position of their root, written as a Roman numeral (<a href="https://www.musictheory.net/lessons/44" target="_blank">musictheory.net</a>). The case shows the quality: <strong>uppercase = major</strong>, <strong>lowercase = minor</strong>, <strong>lowercase + ° = diminished</strong> (<a href="https://viva.pressbooks.pub/openmusictheory/chapter/roman-numerals/" target="_blank">Open Music Theory</a>). Here are C major and G major side by side:</p>
+
+  <div class="tbl-wrap"><table class="chords numerals">
+    <tr><th></th><th>I</th><th>ii</th><th>iii</th><th>IV</th><th>V</th><th>vi</th><th>vii°</th></tr>
+    <tr><th>C</th><td>C</td><td>Dm</td><td>Em</td><td>F</td><td>G</td><td>Am</td><td>B°</td></tr>
+    <tr><th>G</th><td>G</td><td>Am</td><td>Bm</td><td>C</td><td>D</td><td>Em</td><td>F♯°</td></tr>
+  </table></div>
+
+  <p>G major’s chords come from <a href="0003-the-major-scale.html#g-major">its scale, G A B C D E F♯</a>. The F♯ turns up in three of them: Bm (B–D–F♯), D (D–F♯–A) and F♯° (F♯–A–C).</p>
+  <p>Numerals are <em>relative to the key</em>. The G major chord is V in C but I in G. So a progression written in numerals can be lifted out of one key and dropped into any other.</p>
+
+  <h2>Your first progression</h2>
+  <p>I, IV, V and vi are the most common chords in pop music, and one classic order of them, <strong>I–vi–IV–V</strong>, is called the doo-wop schema (<a href="https://viva.pressbooks.pub/openmusictheory/chapter/4-chord-schemas/" target="_blank">Open Music Theory, Four-Chord Schemas</a>).</p>
+
+  <div class="callout">
+    <strong>Try it now</strong>
+    In C: <strong>C – Am – F – G</strong>, four slow counts each, then back to C. Now read the same numerals off the G row: <strong>G – Em – C – D</strong>. Same progression, new key. You just transposed harmony.
+  </div>
+
+  <div class="callout">
+    <strong>The composer’s insight</strong>
+    Writing a progression is choosing an order of numerals; choosing a key is choosing where it sounds. The seven chords are your colours: I is home, the minor chords add shade, vii° adds tension. Your hand will jump between chords for now; later, inversions will keep it nearly still.
+  </div>
+
+  <h2>Drill: chords of any key</h2>
+  <p>Work these out from the scale and the recipes rather than from memory of the table. Four of them use F major or D major, keys you haven’t seen chords for yet.</p>
+  <div id="key-drill" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. C–E–G is major and C–E♭–G is minor. What changes between them?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this, false, 'q1', 'Both chords have C on the bottom. The root is the same, so the bottom note is not what changes the quality.')">Which note sits on the bottom</button>
+        <button onclick="quizAnswer(this, true,  'q1', 'Right. C→E is 4 half steps (a major third) and C→E♭ is 3 (a minor third). The outer fifth, C→G, stays 7 in both.')">The size of the bottom third</button>
+        <button onclick="quizAnswer(this, false, 'q1', 'E♭ happens to be a black key here, but D major (D–F♯–A) has a black key and is still major. Quality comes from half-step gaps, not key colour.')">Whether a black key is used</button>
+        <button onclick="quizAnswer(this, false, 'q1', 'C→G is 7 half steps in both chords. Major and minor share the same fifth; only the middle note moves.')">The size of the outer fifth</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. C up to E is called a “third” because it…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this, false, 'q2', 'C→E is 4 half steps (C♯, D, D♯, E), not 3. The name does not count half steps; a third can be 3 or 4 of them.')">Spans three half steps</button>
+        <button onclick="quizAnswer(this, false, 'q2', 'Counting keys up from C gives C♯, D, D♯, so the third key is D♯, not E. The name counts letters, not keys.')">Is three keys higher</button>
+        <button onclick="quizAnswer(this, true,  'q2', 'Right. C, D, E is three letter names. How many half steps it spans (here 4) is a separate question, and that is what major or minor answers.')">Spans three letter names</button>
+        <button onclick="quizAnswer(this, false, 'q2', 'That describes a triad, not a third. A third is the distance between two notes, like C and E.')">Uses three notes together</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Why is the ii chord written in lowercase?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this, true,  'q3', 'Right. In C, ii is D–F–A, which starts with 3 half steps, a minor third. Lowercase marks minor; lowercase plus ° marks diminished.')">Its third is a minor third</button>
+        <button onclick="quizAnswer(this, false, 'q3', 'Case has nothing to do with pitch height. You can play ii in any octave; the case reports the chord’s quality.')">It sits low on the keyboard</button>
+        <button onclick="quizAnswer(this, false, 'q3', 'Case is not a ranking. ii is a full member of the key; lowercase only says that its third is minor.')">It matters less than chord I</button>
+        <button onclick="quizAnswer(this, false, 'q3', 'In C major, ii is D–F–A, all white keys. Lowercase means minor, whatever colour the keys are.')">It always contains a black key</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. In every major key, the qualities of the seven triads (I up to vii°) run…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this, false, 'q4', 'This makes the 2nd chord major and the 4th minor. In C, D–F–A is 3 + 4 (minor) and F–A–C is 4 + 3 (major), so it is the other way round.')">M M m m M m °</button>
+        <button onclick="quizAnswer(this, false, 'q4', 'The chords do not simply alternate. The 3rd chord, E–G–B in C, is 3 + 4 (minor), and the 4th, F–A–C, is 4 + 3 (major).')">M m M m M m °</button>
+        <button onclick="quizAnswer(this, false, 'q4', 'This starts on a minor chord, but the I chord of a major key is always major: in C it is C–E–G, 4 + 3.')">m M M m m M °</button>
+        <button onclick="quizAnswer(this, true,  'q4', 'Right. Major, minor, minor, Major, Major, minor, diminished, which is I ii iii IV V vi vii°, in every major key.')">M m m M M m °</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <ul>
+    <li>Play the seven triads of <strong>C major</strong> up the keyboard with right-hand fingers 1-3-5, saying each numeral aloud. Then do the same in <strong>G major</strong>, remembering F♯.</li>
+    <li>Play I–vi–IV–V in C (C–Am–F–G), then in G (G–Em–C–D). Loop each four times until the changes feel smooth.</li>
+    <li>Stretch: work out I–vi–IV–V in F major from its scale. <span style="color:var(--muted); font-size:.9rem;">Check: F–Dm–B♭–C.</span></li>
+    <li>Optional ear and eye practice: musictheory.net’s free <a href="https://www.musictheory.net/exercises/keyboard-chord" target="_blank">keyboard chord identification</a> and <a href="https://www.musictheory.net/exercises/ear-chord" target="_blank">chord ear training</a>.</li>
+  </ul>
+
+  <h2>Primary resource</h2>
+  <p>Work through <a href="https://www.musictheory.net/lessons/40" target="_blank">musictheory.net — Introduction to Chords</a>. It builds major, minor, diminished and augmented triads by counting half steps on a keyboard, the same method as here (~5 min, click-through). It also writes each chord on a staff; you can ignore the staff for now and follow the keyboard. Then follow it with <a href="https://www.musictheory.net/lessons/43" target="_blank">Diatonic Triads</a> for the seven-chords-per-key pattern.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Not sure why B–D–F is diminished when it uses only white keys? Want the numerals for a song you love, or to know which of the seven chords to try after I? Type a question in Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0003-the-major-scale.html">← Lesson 3: The Major Scale in Any Key</a>
+    <span class="spacer"></span>
+    <a href="../index.html">Music Theory & Keyboard: All Lessons</a>
+  </div>
+
+</div>
+
+<style>
+.ladder { display:flex; justify-content:center; gap:.3rem; margin:1.25rem 0; padding:1rem .5rem; background:var(--bg-sunken); border:1px solid var(--border); border-radius:var(--radius); }
+.ladder div { display:flex; flex-direction:column; align-items:center; gap:.25rem; font:.68rem var(--font-ui); color:var(--accent-strong); min-width:0; }
+.ladder span { width:2.3rem; height:2.3rem; border-radius:50%; display:flex; align-items:center; justify-content:center; font:600 .85rem var(--font-ui); color:var(--faint); border:1px dashed var(--border); }
+.ladder span.in { color:var(--accent-strong); background:var(--accent-soft); border:1px solid var(--accent); }
+.tbl-wrap { overflow-x:auto; margin:1.25rem 0; }
+.chords { border-collapse:collapse; width:100%; font:.88rem var(--font-ui); }
+.chords th, .chords td { padding:.4rem .5rem; border-bottom:1px solid var(--border); text-align:left; white-space:nowrap; }
+.chords th { color:var(--muted); font-weight:600; }
+.numerals th, .numerals td { text-align:center; padding:.4rem .2rem; }
+.numerals tr:first-child th { color:var(--amber); }
+.tb { background:var(--bg-raised); border:1px solid var(--border); border-radius:var(--radius); padding:1rem; margin:1.25rem 0; }
+.tb-prompt { font-family:var(--font-ui); display:flex; justify-content:space-between; align-items:baseline; gap:.5rem; }
+.tb-prompt span { color:var(--muted); font-size:.8rem; }
+.tb-prompt strong { font-size:1.05rem; color:var(--accent-strong); }
+.tb-row { display:flex; flex-wrap:wrap; gap:.5rem; margin:.75rem 0; }
+.tb-btn { background:var(--bg-sunken); color:var(--ink); border:1px solid var(--border); border-radius:var(--radius); padding:.4rem .8rem; font:.85rem var(--font-ui); cursor:pointer; }
+.tb-btn:hover:not(:disabled) { border-color:var(--accent-border); background:var(--accent-soft); }
+.tb-btn:disabled { opacity:.4; cursor:default; }
+.tb-fb { font:.88rem/1.5 var(--font-ui); color:var(--ink-dim); min-height:2.6em; }
+.tb-fb.good { color:var(--accent-strong); }
+.tb-fb.bad { color:var(--err); }
+.kb { position:relative; display:flex; width:100%; max-width:504px; height:130px; margin:1rem auto .25rem; user-select:none; -webkit-user-select:none; touch-action:manipulation; }
+.kb-w { flex:1; background:var(--ink); border:1px solid var(--bg-sunken); border-radius:0 0 5px 5px; display:flex; align-items:flex-end; justify-content:center; padding-bottom:5px; font:600 .7rem var(--font-ui); color:var(--bg-sunken); cursor:pointer; }
+.kb-b { position:absolute; top:0; height:62%; width:4.4%; background:var(--bg-sunken); border:1px solid var(--border); border-radius:0 0 4px 4px; z-index:2; cursor:pointer; }
+.kb .ans { background:var(--amber); }
+.kb .on { background:var(--accent); }
+</style>
+
+<script>
+// Sound: short triangle-wave notes, only ever started by a click
+let actx;
+function play(ms) {
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const t = actx.currentTime;
+    ms.forEach(m => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = 'triangle';
+      o.frequency.value = 440 * Math.pow(2, (m - 69) / 12);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.15, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 1.4);
+      o.connect(g); g.connect(actx.destination);
+      o.start(t); o.stop(t + 1.5);
+    });
+  } catch (e) { /* no audio: the exercise still works silently */ }
+}
+
+const NAT = {C:0, D:2, E:4, F:5, G:7, A:9, B:11};
+const pc = n => (NAT[n[0]] + [...n.slice(1)].reduce((s, c) => s + (c === '♯' ? 1 : -1), 0) + 12) % 12;
+const KEYNAME = ['C','C♯/D♭','D','D♯/E♭','E','F','F♯/G♭','G','G♯/A♭','A','A♯/B♭','B'];
+const $ = id => document.getElementById(id);
+
+// Keyboard C3 (MIDI 48) to B4 (71), sized in % so it fits a phone
+const kb = $('kb'), keys = {};
+function mkKey(cls, m) {
+  const k = document.createElement('div');
+  k.className = cls;
+  k.setAttribute('aria-label', KEYNAME[m % 12]);
+  k.setAttribute('role', 'button');
+  k.tabIndex = 0;
+  k.addEventListener('click', () => tbToggle(m));
+  k.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tbToggle(m); } });
+  kb.appendChild(keys[m] = k);
+  return k;
+}
+'CDEFGABCDEFGAB'.split('').forEach((L, i) => {
+  const m = 48 + 12 * Math.floor(i / 7) + NAT[L];
+  mkKey('kb-w', m).textContent = L;
+  if (L !== 'E' && L !== 'B') mkKey('kb-b', m + 1).style.left = ((i + 1) / 14 * 100 - 2.2) + '%';
+});
+
+// Rounds: [name, root, third, fifth]
+const ROUNDS = [
+  ['C major','C','E','G'], ['A minor','A','C','E'], ['G major','G','B','D'],
+  ['E minor','E','G','B'], ['D major','D','F♯','A'], ['F major','F','A','C'],
+  ['D minor','D','F','A'], ['B diminished','B','D','F'], ['B♭ major','B♭','D','F'],
+  ['F♯ minor','F♯','A','C♯']
+];
+let r = 0, picks = new Set(), misses = 0, solved = false;
+
+function say(msg, cls) { $('tb-fb').textContent = msg; $('tb-fb').className = 'tb-fb ' + (cls || ''); }
+function tbLoad() {
+  solved = false; misses = 0; tbClear();
+  Object.values(keys).forEach(k => k.classList.remove('ans'));
+  $('tb-round').textContent = 'Chord ' + (r + 1) + ' of ' + ROUNDS.length;
+  $('tb-target').textContent = 'Build: ' + ROUNDS[r][0];
+  $('tb-show').disabled = $('tb-next').disabled = true;
+  say('Pick three keys.');
+}
+function tbToggle(m) {
+  if (solved) return;
+  if (!picks.delete(m)) picks.add(m);
+  keys[m].classList.toggle('on', picks.has(m));
+  play([m]);
+}
+function tbClear() {
+  if (solved) return;
+  picks.forEach(m => keys[m].classList.remove('on'));
+  picks.clear();
+}
+function tbCheck() {
+  if (solved) return;
+  const [name, ...sp] = ROUNDS[r], w = sp.map(pc);
+  const a = (w[1] - w[0] + 12) % 12, b = (w[2] - w[1] + 12) % 12;
+  const p = [...picks].sort((x, y) => x - y);
+  const nm = (m, i) => { // spell with the expected letter when it is one key away (E♭, not D♯, in a C chord)
+    const L = sp[i][0], d = ((m % 12) - NAT[L] + 18) % 12 - 6;
+    const n = Math.abs(d) > 1 ? '' : L + ['♭', '', '♯'][d + 1];
+    return !n || ['E♯', 'B♯', 'F♭', 'C♭'].includes(n) ? KEYNAME[m % 12] : n;
+  };
+  if (p.length !== 3) return say('Pick exactly three keys. You have ' + p.length + '.', 'bad');
+  const g1 = p[1] - p[0], g2 = p[2] - p[1], up = sp[0] + '→' + nm(p[1], 1) + ' is ' + g1 + ' half steps';
+  let msg = '';
+  if (p[0] % 12 !== w[0]) msg = 'Your lowest note is ' + KEYNAME[p[0] % 12] + '. A triad stacked in thirds starts on its root, ' + sp[0] + '.';
+  else if (g1 < 3) msg = p.map(nm).join('–') + ' starts with neighbouring notes. Play one, skip one: ' + sp.join('–') + '.';
+  else if (g1 > 4) msg = up + '. A third is 3 or 4 half steps above the root; here ' + a + ', on ' + sp[1] + '.';
+  else if (g1 !== a) msg = up + ', a ' + (g1 === 4 ? 'major' : 'minor') + ' third. ' + name + ' needs ' + a + ': ' + sp[0] + '→' + sp[1] + '.';
+  else if (g1 + g2 !== a + b) msg = 'Root to top is ' + (g1 + g2) + ' half steps. ' + (a + b === 6 ? 'A diminished triad squeezes the fifth to 6' : 'In a major or minor triad the fifth is always 7') + ', so the top note is ' + sp[2] + '.';
+  if (msg) {
+    if (++misses >= 2) $('tb-show').disabled = false;
+    return say(msg, 'bad');
+  }
+  solved = true;
+  play(p);
+  say('Yes: ' + sp.join('–') + ', ' + a + ' + ' + b + ' half steps = ' + name + '.' + (r === ROUNDS.length - 1 ? ' That was the last one; Next starts over.' : ''), 'good');
+  $('tb-next').disabled = false;
+}
+function tbShow() {
+  const sp = ROUNDS[r].slice(1), root = 48 + pc(sp[0]);
+  const ms = sp.map(n => root + (pc(n) - pc(sp[0]) + 12) % 12);
+  tbClear();
+  ms.forEach(m => keys[m].classList.add('ans'));
+  play(ms);
+  say('Here it is: ' + sp.join('–') + '. Click the three lit keys yourself, then Check.');
+}
+function tbNext() { r = (r + 1) % ROUNDS.length; tbLoad(); }
+tbLoad();
+
+// Drill (renderMC comes from quiz.js, which loads below)
+window.addEventListener('DOMContentLoaded', () => renderMC('key-drill', [
+  { prompt: 'In C major, the G major chord is which numeral?', options: [
+    { text: 'IV', explain: 'IV in C is built on the 4th note, F: F–A–C. G is one step higher, the 5th note.' },
+    { text: 'V', correct: true, explain: 'G is the 5th note of C major (C D E F G), and G–B–D is 4 + 3, major, so it is uppercase V.' },
+    { text: 'v', explain: 'Lowercase would mean minor. G–B–D is 4 + 3 half steps, a major triad, so the numeral is uppercase.' },
+    { text: 'I', explain: 'I is the chord on the key’s first note. G major is I in the key of G, but in C it is V.' } ]},
+  { prompt: 'In G major, the triad built on A is…', options: [
+    { text: 'A major (II)', explain: 'A major needs C♯, which is not in G major. Using the key’s notes gives A–C–E, 3 + 4, minor.' },
+    { text: 'A minor (vi)', explain: 'Right chord, wrong number. A minor is vi in C, but in G major A is the 2nd note, so it is ii.' },
+    { text: 'A diminished (ii°)', explain: 'A–C–E has a 7-half-step fifth (A→E); diminished needs 6. G major’s diminished chord is F♯° (vii°).' },
+    { text: 'A minor (ii)', correct: true, explain: 'A is the 2nd note of G major, and A–C–E is 3 + 4: minor, written ii.' } ]},
+  { prompt: 'In F major (F G A B♭ C D E), the IV chord is…', options: [
+    { text: 'B♭ major', correct: true, explain: 'The 4th note of F major is B♭, and B♭–D–F is 4 + 3, so IV is B♭ major.' },
+    { text: 'B major', explain: 'B natural is not in F major. The W W H W W W H recipe from F turns its 4th note into B♭.' },
+    { text: 'B♭ minor', explain: 'B♭ minor needs D♭. In F major the note a third above B♭ is D, 4 half steps up, so the chord is major.' },
+    { text: 'C major', explain: 'C major (C–E–G) is built on the 5th note of F major, so it is V, not IV.' } ]},
+  { prompt: 'Which chord in D major (D E F♯ G A B C♯) is diminished?', options: [
+    { text: 'B°', explain: 'B° is vii° of C major. In D major, B–D–F♯ is 3 + 4: B minor, the vi chord.' },
+    { text: 'F♯°', explain: 'F♯° is vii° of G major. In D major, F♯–A–C♯ is 3 + 4: F♯ minor, the iii chord.' },
+    { text: 'C♯°', correct: true, explain: 'The 7th note of D major is C♯, and C♯–E–G is 3 + 3: the diminished vii°.' },
+    { text: 'C°', explain: 'C natural is not in D major. Its 7th note is C♯, so the diminished chord is C♯°.' } ]},
+  { prompt: 'In G major, E minor (E–G–B) is which numeral?', options: [
+    { text: 'iii', explain: 'E minor is iii in C major, but numerals are relative to the key: in G, E is the 6th note.' },
+    { text: 'vi', correct: true, explain: 'Count G A B C D E: E is the 6th note, and E–G–B is minor, so it is lowercase vi.' },
+    { text: 'VI', explain: 'Uppercase would mean major. E–G–B is 3 + 4, minor, so the numeral is lowercase.' },
+    { text: 'ii', explain: 'ii in G is built on the 2nd note, A: A–C–E. E is four notes higher.' } ]},
+  { prompt: 'D minor is ii in C major. In F major, D minor is…', options: [
+    { text: 'ii', explain: 'ii belongs to the 2nd note of whatever key you are in. In F, ii is G minor (G–B♭–D).' },
+    { text: 'iii', explain: 'iii in F major is built on A: A–C–E, A minor. D is the 6th note of F major.' },
+    { text: 'IV', explain: 'IV in F major is B♭ major. Also, an uppercase numeral can never be a minor chord like D minor.' },
+    { text: 'vi', correct: true, explain: 'F G A B♭ C D: D is the 6th note of F major, so D–F–A is vi there.' } ]},
+  { prompt: 'Play I–vi–IV–V in D major. The chords are…', options: [
+    { text: 'D–Am–G–A', explain: 'Am is ii of G major. The vi of D major is built on its 6th note, B, giving B minor.' },
+    { text: 'D–Bm–G–A', correct: true, explain: 'D major’s notes D E F♯ G A B C♯ give I = D, vi = Bm, IV = G and V = A.' },
+    { text: 'D–B–G–A', explain: 'vi is lowercase, so minor: B–D–F♯ is 3 + 4. B major would need D♯, which is not in D major.' },
+    { text: 'D–Bm–G–Am', explain: 'V is uppercase, so major: A–C♯–E (4 + 3). A minor would need C natural, which is not in D major.' } ]}
+]));
+</script>
+<script src="../../assets/quiz.js"></script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

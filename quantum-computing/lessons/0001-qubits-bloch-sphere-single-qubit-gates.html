@@ -108,7 +108,7 @@ T = |1 0    |  eighth turn about z.   T² = S.
         <button onclick="quizAnswer(this,true,'q3','Right — unitarity (U†U = I) is exactly the condition that guarantees the output is normalized whenever the input is, which the Born rule needs to keep producing valid probabilities.')">Unitary matrices are exactly the transformations that preserve normalization</button>
         <button onclick="quizAnswer(this,false,'q3','Nothing about unitarity requires doubling qubit count — plenty of unitary gates act on a single qubit, as this whole lesson shows.')">Because gates must always double the number of qubits involved</button>
         <button onclick="quizAnswer(this,false,'q3','Classical AND/OR gates are specifically not reversible — that’s a real contrast with quantum gates, not a reason quantum gates are unitary.')">Because classical logic gates are also always reversible</button>
-        <button onclick="quizAnswer(this,false,'q3','Matrices with complex entries can easily be non-unitary — unitarity is a specific extra condition (U†U = I), not just "has complex numbers in it."')">Because unitary matrices are the only matrices with complex entries</button>
+        <button onclick="quizAnswer(this,false,'q3','Matrices with complex entries can easily be non-unitary — unitarity is a specific extra condition (U†U = I), not just &quot;has complex numbers in it.&quot;')">Because unitary matrices are the only matrices with complex entries</button>
       </div>
       <div class="feedback" id="q3-fb"></div>
     </div>
@@ -140,7 +140,7 @@ T = |1 0    |  eighth turn about z.   T² = S.
   <div class="nav">
     <span></span>
     <span class="spacer"></span>
-    <a href="../index.html#lesson-02">Lesson 2: Multi-Qubit Systems, Entanglement &amp; Circuits →</a>
+    <a href="0002-multi-qubit-entanglement-circuits.html">Lesson 2: Multi-Qubit Systems, Entanglement &amp; Circuits →</a>
   </div>
 
 </div>
@@ -200,7 +200,7 @@ GATE_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

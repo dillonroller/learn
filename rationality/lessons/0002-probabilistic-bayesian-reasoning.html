@@ -81,8 +81,8 @@
     <div class="q-block" id="q4">
       <p>4. What does it mean for someone's confidence to be "well-calibrated"?</p>
       <div class="options">
-        <button onclick="quizAnswer(this,false,'q4','Calibration isn’t about maximizing how often "certain" gets said — an overconfident person could say "certain" constantly and still be wrong a lot.')">They say "I'm certain" as often as possible</button>
-        <button onclick="quizAnswer(this,true, 'q4','Right — calibration means stated confidence tracks actual accuracy: someone who says "80% sure" should turn out right about 80% of the time they say it.')">When they say "80% sure," they turn out to be right about 80% of the time they say that</button>
+        <button onclick="quizAnswer(this,false,'q4','Calibration isn’t about maximizing how often &quot;certain&quot; gets said — an overconfident person could say &quot;certain&quot; constantly and still be wrong a lot.')">They say "I'm certain" as often as possible</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — calibration means stated confidence tracks actual accuracy: someone who says &quot;80% sure&quot; should turn out right about 80% of the time they say it.')">When they say "80% sure," they turn out to be right about 80% of the time they say that</button>
         <button onclick="quizAnswer(this,false,'q4','Calibration is specifically about the match between stated confidence and actual outcomes, not about updating speed.')">They update their beliefs as fast as possible whenever new evidence appears</button>
         <button onclick="quizAnswer(this,false,'q4','This describes never changing your mind, which is the opposite of good calibration — a well-calibrated reasoner does update on evidence.')">They never change their estimate once they've made it</button>
       </div>
@@ -168,7 +168,7 @@ BAYES_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

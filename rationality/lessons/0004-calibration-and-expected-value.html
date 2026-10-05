@@ -91,10 +91,10 @@
     <div class="q-block" id="q3">
       <p>3. All 20 times you said "90% sure," the prediction came true. What does this suggest?</p>
       <div class="options">
-        <button onclick="quizAnswer(this,false,'q3','A well-calibrated "90% sure" forecaster should be wrong about 1 in 10 times — being right all 20 times suggests your stated number was too low for how certain you actually were, not confirmation that 90% was accurate.')">You are perfectly calibrated at the 90% level</button>
-        <button onclick="quizAnswer(this,true, 'q3','Right — if literally all your "90% sure" calls came true, your gut confidence was actually higher than 90%; you were underconfident in the number you stated, even though your underlying judgment was good.')">You are likely underconfident — your actual certainty was higher than the 90% you stated</button>
-        <button onclick="quizAnswer(this,false,'q3','This pattern indicates the opposite of overconfidence — overconfidence would show up as your "90% sure" predictions coming true noticeably less than 90% of the time.')">You are overconfident and should lower your stated numbers</button>
-        <button onclick="quizAnswer(this,false,'q3','This is a real, checkable signal about your calibration — a full track record of "90% sure" predictions all coming true isn’t just random noise to ignore.')">This tells you nothing — 20 predictions is too small a sample to mean anything</button>
+        <button onclick="quizAnswer(this,false,'q3','A well-calibrated &quot;90% sure&quot; forecaster should be wrong about 1 in 10 times — being right all 20 times suggests your stated number was too low for how certain you actually were, not confirmation that 90% was accurate.')">You are perfectly calibrated at the 90% level</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — if literally all your &quot;90% sure&quot; calls came true, your gut confidence was actually higher than 90%; you were underconfident in the number you stated, even though your underlying judgment was good.')">You are likely underconfident — your actual certainty was higher than the 90% you stated</button>
+        <button onclick="quizAnswer(this,false,'q3','This pattern indicates the opposite of overconfidence — overconfidence would show up as your &quot;90% sure&quot; predictions coming true noticeably less than 90% of the time.')">You are overconfident and should lower your stated numbers</button>
+        <button onclick="quizAnswer(this,false,'q3','This is a real, checkable signal about your calibration — a full track record of &quot;90% sure&quot; predictions all coming true isn’t just random noise to ignore.')">This tells you nothing — 20 predictions is too small a sample to mean anything</button>
       </div>
       <div class="feedback" id="q3-fb"></div>
     </div>
@@ -186,7 +186,7 @@ EV_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

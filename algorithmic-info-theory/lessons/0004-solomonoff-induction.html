@@ -77,7 +77,7 @@
       <p>3. In what precise sense does Solomonoff induction "formalize Occam's razor"?</p>
       <div class="options">
         <button onclick="quizAnswer(this,false,'q3','Simplicity preference isn\'t added as a separate rule alongside Bayes\' theorem here — it emerges directly from the specific choice of prior (m), which itself is just K(x) restated as a probability.')">By adding an extra rule on top of Bayes' theorem that manually penalizes complicated hypotheses</button>
-        <button onclick="quizAnswer(this,true, 'q3','Right — using m as the prior means shorter-program hypotheses automatically receive exponentially more prior weight, so "prefer simpler explanations" falls directly out of the prior\'s definition rather than being a separately bolted-on rule.')">By using m (built from program length) as the Bayesian prior, so shorter-program hypotheses automatically get exponentially more prior weight without any extra rule</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — using m as the prior means shorter-program hypotheses automatically receive exponentially more prior weight, so &quot;prefer simpler explanations&quot; falls directly out of the prior\'s definition rather than being a separately bolted-on rule.')">By using m (built from program length) as the Bayesian prior, so shorter-program hypotheses automatically get exponentially more prior weight without any extra rule</button>
         <button onclick="quizAnswer(this,false,'q3','Occam\'s razor here concerns hypothesis complexity (program length), not sample size — this isn\'t about how much data has been collected.')">By requiring a minimum amount of observed data before any hypothesis can be considered</button>
         <button onclick="quizAnswer(this,false,'q3','The uniform-prior approach is exactly what m does NOT do — m specifically weights hypotheses unevenly, favoring shorter programs exponentially more than longer ones.')">By assigning every possible hypothesis exactly equal prior probability</button>
       </div>
@@ -171,7 +171,7 @@ SOLO_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

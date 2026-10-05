@@ -16,12 +16,12 @@
 
   <p class="lesson-meta">Lesson 6 of 10 &nbsp;·&nbsp; Quantum Computing &nbsp;·&nbsp; ~40 min</p>
   <h1>The Quantum Fourier Transform &amp; Phase Estimation</h1>
-  <p>Grover's algorithm amplified an amplitude you could point at with an oracle. This lesson builds a different tool: one that reads out <em>periodicity</em> — and a general-purpose subroutine, phase estimation, that generalizes <a href="0004-interference-deutsch-jozsa.html#phase-kickback">lesson 4's phase kickback</a> from a single bit to an arbitrary real number. Both are the machinery <a href="../index.html#lesson-07">Shor's algorithm</a> is built from.</p>
+  <p>Grover's algorithm amplified an amplitude you could point at with an oracle. This lesson builds a different tool: one that reads out <em>periodicity</em> — and a general-purpose subroutine, phase estimation, that generalizes <a href="0004-interference-deutsch-jozsa.html#phase-kickback">lesson 4's phase kickback</a> from a single bit to an arbitrary real number. Both are the machinery <a href="0007-shors-algorithm-breaking-rsa.html">Shor's algorithm</a> is built from.</p>
 
   <h2 id="qft-definition">From Fourier transform to quantum Fourier transform</h2>
   <p>The classical discrete Fourier transform turns a signal into its frequency components. The <strong>quantum Fourier transform (QFT)</strong> is the same linear transformation, applied to the amplitudes of a quantum state over N = 2ⁿ basis states:</p>
   <pre><code>QFT|x⟩ = (1/√N) Σ_y  e^(2πixy/N) |y⟩          for x = 0, ..., N−1</code></pre>
-  <p>Feed it one basis state |x⟩, and it outputs a superposition over <em>every</em> basis state |y⟩, with phases that spin around the unit circle at a rate set by x. The reason this is useful for computing has nothing to do with signal processing directly — it's that the QFT takes a state whose amplitudes are <em>periodic</em> and concentrates the output almost entirely onto basis states related to that period. That's the property <a href="../index.html#lesson-07">Shor's algorithm</a> exploits: turn "find a hidden period" into "prepare a periodic state, apply QFT, measure."</p>
+  <p>Feed it one basis state |x⟩, and it outputs a superposition over <em>every</em> basis state |y⟩, with phases that spin around the unit circle at a rate set by x. The reason this is useful for computing has nothing to do with signal processing directly — it's that the QFT takes a state whose amplitudes are <em>periodic</em> and concentrates the output almost entirely onto basis states related to that period. That's the property <a href="0007-shors-algorithm-breaking-rsa.html">Shor's algorithm</a> exploits: turn "find a hidden period" into "prepare a periodic state, apply QFT, measure."</p>
 
   <h2>The smallest case is a gate you already know</h2>
   <p>For n=1 (N=2), the QFT formula reduces to exactly the <a href="0001-qubits-bloch-sphere-single-qubit-gates.html#hadamard-gate">Hadamard gate</a>:</p>
@@ -97,7 +97,7 @@ QFT|1⟩ = (1/√2)(|0⟩ − |1⟩) = H|1⟩</code></pre>
       <div class="options">
         <button onclick="quizAnswer(this,true,'q4','Right — t control qubits each apply an increasing power U^(2ʲ), kicking back one bit of φ per qubit, and the inverse QFT then decodes the resulting periodic phase pattern into a binary estimate of φ.')">It repeats the same kickback mechanism across t control qubits with increasing powers U^(2ʲ), then reads out φ via inverse QFT</button>
         <button onclick="quizAnswer(this,false,'q4','Phase estimation is built directly on top of the same phase-kickback mechanism from lesson 4 — it’s a generalization, not an unrelated technique.')">It's an unrelated technique with no connection to phase kickback</button>
-        <button onclick="quizAnswer(this,false,'q4','Amplitude amplification is Grover's mechanism (lesson 5) — phase estimation is built from kickback and the QFT, a different toolset entirely.')">It replaces phase kickback with Grover's amplitude amplification</button>
+        <button onclick="quizAnswer(this,false,'q4','Amplitude amplification is Grover’s mechanism (lesson 5) — phase estimation is built from kickback and the QFT, a different toolset entirely.')">It replaces phase kickback with Grover's amplitude amplification</button>
         <button onclick="quizAnswer(this,false,'q4','Lesson 4’s φ ∈ {0, 1/2} was explicitly called out above as the special case — phase estimation’s whole point is generalizing to any φ in [0,1).')">It only works for φ = 0 or φ = 1/2, exactly as in lesson 4</button>
       </div>
       <div class="feedback" id="q4-fb"></div>
@@ -107,7 +107,7 @@ QFT|1⟩ = (1/√2)(|0⟩ − |1⟩) = H|1⟩</code></pre>
   </div>
 
   <h2>Practice before next lesson</h2>
-  <p>By hand: with t=2 control qubits (N=4), write out the control-register state for φ=1/2 the same way the worked example did for φ=1/4, and confirm it matches QFT|2⟩ exactly (so the inverse QFT recovers k=2, and k/N = 2/4 = 1/2 = φ). This is the exact subroutine <a href="../index.html#lesson-07">Shor's algorithm</a> reuses next — get comfortable with it here.</p>
+  <p>By hand: with t=2 control qubits (N=4), write out the control-register state for φ=1/2 the same way the worked example did for φ=1/4, and confirm it matches QFT|2⟩ exactly (so the inverse QFT recovers k=2, and k/N = 2/4 = 1/2 = φ). This is the exact subroutine <a href="0007-shors-algorithm-breaking-rsa.html">Shor's algorithm</a> reuses next — get comfortable with it here.</p>
 
   <h2>Primary resource</h2>
   <p>See the <a href="https://learning.quantum.ibm.com/course/fundamentals-of-quantum-algorithms/phase-estimation-and-factoring" target="_blank">"Phase Estimation and Factoring" chapter of IBM's Fundamentals of Quantum Algorithms course</a>, which builds the QFT circuit and phase estimation with the same controlled-U^(2ʲ) construction used here.</p>
@@ -119,7 +119,7 @@ QFT|1⟩ = (1/√2)(|0⟩ − |1⟩) = H|1⟩</code></pre>
   <div class="nav">
     <a href="0005-grovers-algorithm.html">← Lesson 5: Grover's Algorithm</a>
     <span class="spacer"></span>
-    <a href="../index.html#lesson-07">Lesson 7: Shor's Algorithm &amp; Breaking RSA →</a>
+    <a href="0007-shors-algorithm-breaking-rsa.html">Lesson 7: Shor's Algorithm &amp; Breaking RSA →</a>
   </div>
 
 </div>
@@ -179,7 +179,7 @@ QPE_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

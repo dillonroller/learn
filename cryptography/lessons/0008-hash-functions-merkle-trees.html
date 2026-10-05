@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 8 — Hash Functions &amp; Merkle Trees: The Other Half of Practical Cryptography</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    .hx-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: .75rem 0 1.25rem; font: .84rem var(--font-ui); }
+    .hx-table th, .hx-table td { text-align: left; padding: .4rem .5rem; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
+    .hx-table th, .hx-table td:first-child { color: var(--muted); }
+    .mk { margin: 1.25rem 0; padding: .8rem; background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius); font: .85rem var(--font-ui); }
+    .mk-leaves { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .4rem; margin-bottom: .8rem; color: var(--muted); font-size: .72rem; }
+    .mk-leaves input { display: block; width: 100%; background: var(--bg-sunken); color: var(--ink); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .3rem .4rem; font: .8rem var(--font-mono); }
+    .mk-tree { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: .25rem; }
+    .mk-node { min-width: 0; background: var(--bg-sunken); color: var(--ink-dim); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .25rem .15rem; font: .66rem/1.3 var(--font-mono); text-align: center; overflow-wrap: anywhere; }
+    button.mk-node { cursor: pointer; }
+    .mk-node span { display: block; color: var(--muted); font-family: var(--font-ui); }
+    .mk-node.path { border-color: var(--amber); color: var(--ink); }
+    .mk-node.sib { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-strong); }
+    .mk-node.now { box-shadow: 0 0 0 2px var(--amber); }
+    .mk-node.chg { background: var(--amber-soft); }
+    .mk-node.bad { background: var(--err-lt); border-color: var(--err); color: var(--err); }
+    .mk-ctl { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin: .8rem 0 .5rem; color: var(--ink-dim); }
+    .mk-ctl button { background: var(--bg-sunken); color: var(--ink); border: 1px solid var(--border); border-radius: var(--radius); padding: .35rem .75rem; font: inherit; cursor: pointer; }
+    .mk-ctl button:hover, button.mk-node:hover { border-color: var(--accent-border); }
+    .mk pre { margin: .4rem 0; padding: .6rem .7rem; font-size: .74rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .mk p { margin: .3rem 0 0; }
+    .mk .good { color: var(--accent-strong); }
+    .mk .bad-v { color: var(--err); }
+    .mk .note { color: var(--muted); font-size: .8rem; }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Cryptography &amp; Number Theory</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 8 of 8 &nbsp;·&nbsp; Cryptography &amp; Number Theory &nbsp;·&nbsp; ~35 min</p>
+  <h1>Hash Functions &amp; Merkle Trees: The Other Half of Practical Cryptography</h1>
+  <p><a href="0005-digital-signatures-rsa-dsa.html#hash-then-sign">Lesson 5</a> signed H(m) and treated H as a black box. <a href="0004-diffie-hellman-discrete-log-problem.html#diffie-hellman-protocol">Lesson 4’s Diffie-Hellman</a> ended on a group element, not a key. <a href="0007-post-quantum-lattices-lwe.html#nist-pqc-standards">Lesson 7’s standards</a> included a signature with no number theory in it at all. All three run on one primitive. This lesson opens the box only as far as public-key cryptography needs: what a hash promises, what the birthday bound says breaking it costs (classically and with Grover), and the Merkle tree, which commits to a whole list with one digest. The win: verify a Merkle inclusion proof hash by hash — then watch the same move turn one-time hash signatures into SLH-DSA.</p>
+
+  <h2 id="cryptographic-hash-function">What a cryptographic hash function promises</h2>
+  <p>A <strong>cryptographic hash function</strong> H maps an input of any length to a fixed n-bit <em>digest</em>. It is public, keyless and deterministic: anyone can compute H(x), and the same x always gives the same digest. The workhorse is SHA-256 (n = 256, messages under 2<sup>64</sup> bits; <a href="https://csrc.nist.gov/pubs/fips/180-4/upd1/final" target="_blank">FIPS 180-4</a>), a Merkle–Damgård design; SHA-3 (<a href="https://csrc.nist.gov/pubs/fips/202/final" target="_blank">FIPS 202</a>) is a Keccak “sponge” (<a href="https://toc.cryptobook.us/" target="_blank">Boneh &amp; Shoup</a> §8.4, §8.8). Neither contains number theory, and this course keeps their insides closed. Flip one input bit (“c” is 0x63, “C” is 0x43) and 134 of the 256 output bits change:</p>
+  <pre><code>SHA-256("abc") = ba7816bf8f01cfea…f20015ad
+SHA-256("abC") = 0a2432a1e349d8fd…6f3b8f76</code></pre>
+  <p>Security is three games, each won by finding inputs:</p>
+  <ul>
+    <li><strong id="preimage-resistance">Preimage resistance</strong> (one-wayness): given y = H(x) for an unknown, unpredictable x, find any x′ with H(x′) = y.</li>
+    <li><strong id="second-preimage-resistance">Second-preimage resistance</strong>: given a specific x, find a different x′ with H(x′) = H(x). Someone else fixed the target.</li>
+    <li><strong id="collision-resistance">Collision resistance</strong>: find any x ≠ x′ with H(x) = H(x′). The attacker chooses both.</li>
+  </ul>
+  <p>Collisions must exist (far more possible inputs than 2<sup>256</sup> digests), so “resistant” means infeasible to find, not impossible. The three differ. A second-preimage finder is a collision finder (pick any x, find its x′), so collision resistance implies second-preimage resistance but not the reverse; how either relates to preimage resistance depends on how much H compresses (<a href="https://web.cs.ucdavis.edu/~rogaway/papers/relates.pdf" target="_blank">Rogaway &amp; Shrimpton, 2004</a>). Collision resistance is the strongest, and the first to fall, as SHA-1 shows below. Contrast the hash in a <a href="../../cs-interviews/lessons/0002-arrays-and-hashmaps.html#hash-table">hash table</a>, which only spreads keys over buckets and assumes no adversary. And a hash is not encryption: no key, no way back.</p>
+
+  <h2 id="birthday-bound">The birthday bound: n bits buy n/2 against collisions</h2>
+  <p>Hash k random inputs into N = 2<sup>n</sup> digests. Each of the C(k, 2) = k(k−1)/2 pairs collides with probability 1/N, so by <a href="../../probability/lessons/0002-expectation-variance.html#linearity-of-expectation">linearity of expectation</a> (no independence needed) the expected number of colliding pairs is C(k, 2)/N. It reaches 1 at k ≈ √(2N) = √2 · 2<sup>n/2</sup>: pairs grow like k², so collisions arrive after about the square root of the digest space. That is the generic birthday attack, and it works against every hash (Boneh &amp; Shoup §8.3).</p>
+  <div class="callout">
+    <strong>Worked example: 16-bit digests (the first 4 hex digits of SHA-256)</strong>
+    N = 65,536, so C(k, 2) = N at k ≈ 362. Summing the exact probabilities, the first repeat comes on average at try 321.5, and 302 tries already give 50.07% odds. Hashing vote-0, vote-1, vote-2, … collides at try 326:
+    <pre><code>SHA-256("vote-106") = 8d82f8f11dcb4417…
+SHA-256("vote-325") = 8d82f30d9161b3e1…</code></pre>
+    Hitting one <em>given</em> 16-bit digest (a preimage) takes about 65,536 tries, some 200 times more.
+  </div>
+  <p>So an ideal n-bit hash costs about 2<sup>n</sup> evaluations to invert and 2<sup>n/2</sup> to collide: 2<sup>80</sup> collisions for 160-bit SHA-1, 2<sup>128</sup> for SHA-256. Finding a preimage is exactly <a href="../../quantum-computing/lessons/0005-grovers-algorithm.html#grover-problem">unstructured search</a>, so Grover needs about 2<sup>n/2</sup> evaluations, and for a black-box hash <a href="../../quantum-computing/lessons/0005-grovers-algorithm.html#grover-optimality">no quantum algorithm does better</a>. <a href="https://arxiv.org/abs/quant-ph/9705002" target="_blank">Brassard, Høyer &amp; Tapp</a> find collisions in about 2<sup>n/3</sup> queries, but on a quantum computer of size about 2<sup>n/3</sup>; <a href="https://cr.yp.to/hash/collisioncost-20090823.pdf" target="_blank">Bernstein (2009)</a> shows a classical machine of size 2<sup>n/6</sup> already reaches that time at better price-performance.</p>
+  <table class="hx-table">
+    <thead><tr><th>Ideal n-bit hash</th><th>Classical</th><th>Quantum</th></tr></thead>
+    <tbody>
+      <tr><td>Preimage</td><td>2<sup>n</sup> (SHA-256: 2<sup>256</sup>)</td><td>2<sup>n/2</sup>, Grover (2<sup>128</sup>)</td></tr>
+      <tr><td>Second preimage</td><td>2<sup>n</sup> (2<sup>256</sup>)</td><td>2<sup>n/2</sup>, Grover (2<sup>128</sup>)</td></tr>
+      <tr><td>Collision</td><td>2<sup>n/2</sup> (2<sup>128</sup>)</td><td>2<sup>n/3</sup> queries, no cheaper in real cost</td></tr>
+    </tbody>
+  </table>
+  <p>Hence NIST’s <a href="https://csrc.nist.gov/pubs/ir/8105/final" target="_blank">IR 8105</a>: SHA-2 and SHA-3 need “larger output”, while RSA, ECDSA and ECDH are “no longer secure” — the Grover-only column of <a href="0007-post-quantum-lattices-lwe.html#what-shor-breaks">lesson 7’s classification</a>. None of this is proven: like <a href="0003-why-factoring-is-hard-shors-algorithm.html#factoring-hardness">factoring</a>, hash security is a belief calibrated by the best attacks anyone has found.</p>
+
+  <h2>Where public-key cryptography leans on H</h2>
+  <ul>
+    <li><strong>Hash-then-sign needs collision resistance.</strong> If H(m) = H(m′), a signature on one verifies for both. When Mallory drafts what you sign, she chooses both inputs — Google’s <a href="https://security.googleblog.com/2017/02/announcing-first-sha1-collision.html" target="_blank">SHA-1 collision announcement</a> pictured two insurance contracts with drastically different terms. Second-preimage resistance doesn’t help: she never matches a digest she didn’t choose. The 2017 <a href="https://eprint.iacr.org/2017/190" target="_blank">SHA-1 collision</a> took about 2<sup>63.1</sup> compression-function calls instead of the generic 2<sup>80</sup> (2<sup>16.9</sup> ≈ 122,000 times less), while SHA-1 still signed documents and TLS certificates.</li>
+    <li><strong>DSA signs h = H(m)</strong> (<a href="0005-digital-signatures-rsa-dsa.html#dsa">lesson 5</a>), with the same requirement.</li>
+    <li><strong>Diffie-Hellman’s output gets hashed.</strong> The <a href="0004-diffie-hellman-discrete-log-problem.html#diffie-hellman-protocol">shared secret</a> g<sup>ab</sup> is a structured group element, not a uniform key; TLS 1.3 feeds it into HKDF-Extract, a hash-based key derivation (<a href="https://www.rfc-editor.org/rfc/rfc8446#section-7.1" target="_blank">RFC 8446 §7.1</a>).</li>
+  </ul>
+
+  <h2 id="merkle-tree">Merkle trees: one digest for a whole list</h2>
+  <p>A <strong>Merkle tree</strong> hashes each leaf, then hashes adjacent pairs, parent = H(left ‖ right), level by level up to one <em>root</em>. Publishing the root commits you to the whole list: changing any leaf changes every hash on its path, so a different list with the same root needs an H collision somewhere on that path (Boneh &amp; Shoup §8.9) — provided a leaf can never be mistaken for an internal node. Without that, the 64-byte concatenation of two child hashes is itself a valid leaf, and a shorter list reaches the same root with no collision at all. Certificate Transparency’s <a href="https://www.rfc-editor.org/rfc/rfc6962#section-2.1" target="_blank">RFC 6962</a> rules this out by prefixing leaves with a 0x00 byte and internal nodes with 0x01, a domain separation it calls “required to give second preimage resistance”. The explorer builds that tree with real SHA-256 over eight public values from <a href="0002-rsa-key-generation-encryption-correctness-proof.html#rsa-encryption">the RSA</a> and <a href="0004-diffie-hellman-discrete-log-problem.html#diffie-hellman-protocol">Diffie-Hellman</a> lessons, showing 8 of each hash’s 64 hex digits. Amber is the path the verifier recomputes; green is what the proof supplies.</p>
+
+  <div class="mk" id="mk">
+    <div class="mk-leaves" id="mk-leaves"></div>
+    <div class="mk-tree" id="mk-tree"></div>
+    <div class="mk-ctl">
+      <button type="button" id="mk-step">Next step</button>
+      <button type="button" id="mk-all">Show all</button>
+      <button type="button" id="mk-pub">Publish current root</button>
+      <label><input type="checkbox" id="mk-tamper"> Tamper with proof</label>
+    </div>
+    <pre id="mk-trace"></pre>
+    <p id="mk-verdict" aria-live="polite"></p>
+    <p class="note" id="mk-note">Computing hashes…</p>
+  </div>
+
+  <p>An <strong id="merkle-inclusion-proof">inclusion proof</strong> (RFC 6962’s <em>audit path</em>) for leaf i is one sibling hash per level: log<sub>2</sub> n hashes. The verifier hashes the leaf, folds in each sibling in turn and compares the result with the published root. The leaf index in binary, lowest bit first, says which side each sibling goes on: bit 1 means you are a right child, so the sibling goes left.</p>
+  <div class="callout">
+    <strong>Worked proof: L5 = “e=17”, index 5 = 101₂</strong>
+    <pre><code>leaf    H(00‖e=17)              = d9982454
+bit 1   sibling on the left
+        H(01‖88804593‖d9982454) = cbf5e1fa
+bit 0   sibling on the right
+        H(01‖cbf5e1fa‖7a48accf) = 5a440040
+bit 1   sibling on the left
+        H(01‖cdc181a0‖5a440040) = a2308150
+root    a2308150 = published root  ✓</code></pre>
+    Three hashes, not seven other leaves. 4 leaves need 2, 8 need 3, 2<sup>20</sup> = 1,048,576 need 20 (640 bytes).
+  </div>
+  <p>Step through L5 in the explorer and check each line. Then change L5 to <code>e=3</code>: exactly four hashes change, and the proof fails against the published root. Tick “tamper” and one bad sibling breaks everything above it. In the wild, CT logs serve audit paths proving a certificate was logged; Git names every object by its SHA-1 hash, and tree objects list their children’s hashes (<a href="https://git-scm.com/book/en/v2/Git-Internals-Git-Objects" target="_blank">Pro Git §10.2</a>), with SHA-256 the planned default for new repositories in <a href="https://git-scm.com/docs/BreakingChanges" target="_blank">Git 3.0</a> (unreleased as of October 2026); Bitcoin block headers carry only the transactions’ Merkle root, and light clients verify payments with a Merkle branch (<a href="https://bitcoin.org/bitcoin.pdf" target="_blank">Nakamoto</a> §7–8).</p>
+  <div class="callout warn">
+    <strong>What a Merkle root doesn’t give you</strong>
+    It binds; it does not hide. Guessable leaves can be brute-forced: a root over eight yes/no votes is one of only 2<sup>8</sup> = 256 possible roots. And a valid proof shows the leaf is in the list the root commits to, not that the root is the right one — CT logs sign their roots, which is a <a href="0005-digital-signatures-rsa-dsa.html#digital-signature">signature’s</a> job, not the tree’s.
+  </div>
+
+  <h2 id="hash-based-signatures">Signatures from nothing but a hash</h2>
+  <p>Around 1975, in a Berkeley coffee house, Whitfield Diffie posed the signature problem to Leslie Lamport, who solved it on the spot (<a href="https://www.microsoft.com/en-us/research/publication/constructing-digital-signatures-one-way-function/" target="_blank">Lamport, 1979</a>). A <strong>Lamport one-time signature</strong> on b-bit digests:</p>
+  <pre><code>KeyGen: secret x[i][0], x[i][1], i = 1…b (random)
+        public y[i][j] = H(x[i][j])
+Sign d: reveal x[i][d_i] for each digest bit d_i
+Verify: H(revealed_i) = y[i][d_i] for every i</code></pre>
+  <p>Forging on a new digest means inverting H on an unrevealed y, so one-time security rests on <a href="#preimage-resistance">preimage resistance</a> (Boneh &amp; Shoup §14.1). With SHA-256 and b = 256: a 16,384-byte public key and an 8,192-byte signature. Sign twice with one key, though:</p>
+  <div class="callout">
+    <strong>Worked example: one key, two 4-bit digests</strong>
+    <pre><code>sign 1011: reveal x1,1  x2,0  x3,1  x4,1
+sign 0110: reveal x1,0  x2,1  x3,1  x4,0
+both secrets public at positions 1, 2, 4
+signable: every digest with bit 3 = 1
+  0010 0011 0110 0111 1010 1011 1110 1111</code></pre>
+    Eight digests, six never signed: an <a href="0005-digital-signatures-rsa-dsa.html#existential-forgery">existential forgery</a>. At full size the leak is fast: after k signatures a position stays pinned with probability 2<sup>1−k</sup>, so after five only about 16 of 256 are pinned, and a forger needs about 2<sup>16</sup> hashes to find a message that fits.
+  </div>
+  <p><strong>Merkle’s fix</strong>: make 2<sup>h</sup> one-time key pairs, put the hashes of their public keys at the leaves of a Merkle tree, and publish only the 32-byte root. Signature number i is the one-time signature with key i, plus that public key, plus its audit path; the verifier checks the one-time signature, hashes the key into a leaf and recomputes the root — the skill you just practised (Boneh &amp; Shoup §14.6). No leaf may be used twice, so the signer must track which are spent, as NIST’s stateful LMS and XMSS do (<a href="https://csrc.nist.gov/pubs/sp/800/208/final" target="_blank">SP 800-208</a>).</p>
+  <p><strong>SLH-DSA</strong> (<a href="https://csrc.nist.gov/pubs/fips/205/final" target="_blank">FIPS 205</a>, August 2024), standardized from SPHINCS+, drops the state: a tree of Merkle trees so large that the one-time (strictly, few-time) key at the bottom is chosen by a randomized hash of the message, so a key landing on enough messages to break is negligibly unlikely and no record of spent keys is needed. Its security “relies on the presumed difficulty of finding preimages for hash functions as well as several related properties” — no factoring, discrete logs or lattices. The price: a 32-byte public key but a 7,856-byte signature for the smallest parameter set (FIPS 205, Table 2). NIST calls it <a href="https://www.nist.gov/news-events/news/2024/08/nist-releases-first-3-finalized-post-quantum-encryption-standards" target="_blank">“a backup method in case ML-DSA proves vulnerable”</a>: if lattices fall, hashes still stand.</p>
+
+  <h2>Eight lessons, five assumptions</h2>
+  <p>Everything in this course stands on something believed, not proven: RSA on the <a href="0003-why-factoring-is-hard-shors-algorithm.html#rsa-problem-def">RSA problem</a> and behind it factoring; Diffie-Hellman and DSA on the <a href="0004-diffie-hellman-discrete-log-problem.html#discrete-log-problem">discrete log problem</a>; ECDH and ECDSA on the <a href="0006-elliptic-curve-cryptography.html#ecdlp">ECDLP</a>; ML-KEM and ML-DSA on the module form of <a href="0007-post-quantum-lattices-lwe.html#learning-with-errors">LWE</a> (ML-DSA also on a variant of its sibling, Module-SIS: <a href="https://csrc.nist.gov/pubs/fips/204/final" target="_blank">FIPS 204</a> §3.2); and all of them, through hash-then-sign, key derivation and SLH-DSA, on the hash properties above. <a href="0003-why-factoring-is-hard-shors-algorithm.html#shors-algorithm">Shor’s period-finding</a> breaks the first three; Grover only halves the preimage exponent of the last; LWE is believed to resist both. That is the precise version of “quantum computers break encryption” this course set out to earn.</p>
+
+  <h2>Try it: classify and count</h2>
+  <p>Answer each card on paper first; every option’s explanation names the property or formula behind it.</p>
+  <div id="hash-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. A system fingerprints documents with a 64-bit hash. Roughly how many random documents until two are likely to share a fingerprint?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','2^64 is the preimage scale (and pigeonhole guarantees a collision at 2^64 + 1). Collisions come far sooner: k documents already form about k²/2 pairs.')">About 2^64, one per possible fingerprint</button>
+        <button onclick="quizAnswer(this,true,'q1','Right: the expected number of colliding pairs, C(k,2)/2^64, reaches 1 near k ≈ √2 · 2^32, about six billion documents.')">About 2^32: k inputs form k²/2 pairs</button>
+        <button onclick="quizAnswer(this,false,'q1','The bit count sets the exponent, not the count: 64 bits give 2^64 digests, and a collision needs about the square root of that.')">About 64, one for every output bit</button>
+        <button onclick="quizAnswer(this,false,'q1','2^(64/3) ≈ 2^21 is the Brassard–Høyer–Tapp quantum query count, which needs a matching quantum computer and is no cheaper in real cost.')">About 2^21, a third of the exponent</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. A log publishes only the Merkle root over eight yes/no votes. Does the root keep the votes secret?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','That cost assumes an unpredictable input. Each leaf here is yes or no, so there are only 2^8 = 256 vote lists to try.')">Yes: SHA-256 preimages cost about 2^256</button>
+        <button onclick="quizAnswer(this,false,'q2','The mixing is deterministic and public: anyone can rebuild the tree for a guessed list and compare roots.')">Yes: the root mixes all eight leaves</button>
+        <button onclick="quizAnswer(this,true,'q2','Right: 256 candidate lists, each one tree build away from a root to compare. A Merkle root binds the data; it does not hide guessable data.')">No: try all 256 vote lists and compare</button>
+        <button onclick="quizAnswer(this,false,'q2','There is no key and no decryption: a hash is a keyless fingerprint. The votes leak because the input space is tiny.')">No: the root decrypts with the log key</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. A signer uses one Lamport key to sign two different digests. What goes wrong?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right: wherever the digests differ, both x[i][0] and x[i][1] are now public, so an attacker can mix them to sign digests the signer never signed.')">Both secrets leak where the digests differ</button>
+        <button onclick="quizAnswer(this,false,'q3','The public key stays fixed, which is the problem: forgeries built from the leaked secrets verify under it. Merkle trees exist to supply a fresh key per message.')">The public key changes and stops verifying</button>
+        <button onclick="quizAnswer(this,false,'q3','No inversion happens: the signer revealed the preimages itself, and H is exactly as one-way as before.')">Attackers can now invert H on any digest</button>
+        <button onclick="quizAnswer(this,false,'q3','Digests are not secret: anyone can hash the public messages, and the revealed values travel inside the signatures.')">Nothing, as long as both digests stay secret</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. As far as is known in 2026, what would a large quantum computer do to SHA-256?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','Shor needs a hidden period, as in factoring and discrete logs; a hash has none. For black-box search, Grover’s √N speedup is provably the best possible.')">Break it outright, the way Shor breaks RSA</button>
+        <button onclick="quizAnswer(this,false,'q4','Grover still applies to preimage search, halving the exponent from 256 to 128. NIST’s verdict is “larger output needed”, not “unaffected”.')">Nothing, since hashes are not public-key</button>
+        <button onclick="quizAnswer(this,false,'q4','BHT reaches about 2^85 queries only on a quantum computer of similar size, and Bernstein shows classical parallel search matches that time more cheaply.')">Cut collision search to 2^85, ending it</button>
+        <button onclick="quizAnswer(this,true,'q4','Right: Grover turns 2^256 into about 2^128 evaluations, still infeasible, so SHA-256 keeps 128-bit security against preimages and collisions alike.')">Cut preimage search to about 2^128 steps</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>By hand, then check in the explorer. (1) Write the audit path for L6 = “m=65” (index 6 = 110₂) and the order the verifier hashes in. You should get: leaf c2d3dc40; bit 0, sibling L7 on the right: H(01‖c2d3dc40‖dd2ea40a) = 7a48accf; bit 1, sibling (L4, L5) on the left: H(01‖cbf5e1fa‖7a48accf) = 5a440040; bit 1, sibling (L0…L3) on the left: H(01‖cdc181a0‖5a440040) = a2308150, the root. (2) For a 32-bit digest, how many random inputs make the expected number of colliding pairs 1? √(2 · 2<sup>32</sup>) ≈ 92,682, about 2<sup>16.5</sup>. (3) One Lamport key signs the 8-bit digests 10110010 and 10011010. How many digests can an attacker now sign? They differ only at positions 3 and 5, so 2<sup>2</sup> = 4, two of them new.</p>
+
+  <h2>Primary resource</h2>
+  <p>See Dan Boneh &amp; Victor Shoup, <a href="https://toc.cryptobook.us/" target="_blank">A Graduate Course in Applied Cryptography</a> (v0.6, free PDF) — the course’s running reference, and one notation for everything here. Chapter 8 defines collision resistance, gives the birthday attack (§8.3), Merkle–Damgård and a SHA-256 case study (§8.4, §8.6) and Merkle trees with membership proofs (§8.9). Chapter 14, “Fast hash-based signatures”, builds Lamport signatures (§14.1) and turns them into stateless many-time Merkle signatures (§14.6), motivated throughout by post-quantum security.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Ask Claude Code why RFC 6962’s 0x00/0x01 prefixes matter: build a 4-leaf tree without them and find a different, 2-leaf list with the same root (hint: try the 64-byte concatenations of the leaf hashes as leaves). Then ask how SLH-DSA picks a signing key with no memory of what it has already signed.
+  </div>
+
+  <div class="nav">
+    <a href="0007-post-quantum-lattices-lwe.html">← Lesson 7: Post-Quantum Cryptography</a>
+    <span class="spacer"></span>
+    <a href="../index.html">Cryptography &amp; Number Theory: All Lessons →</a>
+  </div>
+
+</div>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+renderMC('hash-exercise', [
+  {
+    prompt: 'A Certificate Transparency log holds 1,048,576 = 2^20 certificates. How many hashes does one inclusion proof need?',
+    options: [
+      { text: '1,024', explain: '1,024 = √(2^20) is a birthday-style square root, not the tree height. A proof has one hash per level: log₂ 2^20 = 20.' },
+      { text: '1,048,575', explain: 'That is the number of internal nodes. A proof needs only the siblings along one leaf-to-root path.' },
+      { text: '20', correct: true, explain: 'Right: log₂ 2^20 = 20 sibling hashes, 640 bytes of SHA-256, to prove membership among a million entries.' },
+      { text: '40', explain: 'One sibling per level, not two: the verifier computes the other input to each hash itself.' },
+    ],
+  },
+  {
+    prompt: 'Mallory drafts a contract for you to sign with hash-then-sign. Which property of H stops her later showing a different contract that your signature also verifies?',
+    options: [
+      { text: 'Second-preimage resistance', explain: 'Enough only if you had written the contract. Mallory drafted it, so she can prepare both versions: she needs any colliding pair, not a match to a fixed document.' },
+      { text: 'Collision resistance', correct: true, explain: 'Right: Mallory picks both inputs, so the only obstacle is how hard it is to find any x ≠ x′ with H(x) = H(x′), the property SHA-1 lost in 2017.' },
+      { text: 'Preimage resistance', explain: 'Nobody hands Mallory a digest to invert; she chooses both documents, which is an easier task than inverting H.' },
+      { text: 'Even spread over buckets', explain: 'That is the hash-table promise. It says nothing about an adversary deliberately searching for collisions.' },
+    ],
+  },
+  {
+    prompt: 'A Lamport public key publishes y = H(x) for 512 secret values x. Which property keeps those x secret until you sign?',
+    options: [
+      { text: 'Collision resistance', explain: 'A collision is two inputs the attacker chose; it does not recover your specific x. The threat here is inverting a given y.' },
+      { text: 'Second-preimage resistance', explain: 'A second-preimage attacker already knows x and wants another input. Here x is secret; the attacker sees only y.' },
+      { text: 'Determinism of H', explain: 'Determinism lets the verifier recompute H(x) = y. It makes verification work; it does not keep x secret.' },
+      { text: 'Preimage resistance', correct: true, explain: 'Right: recovering x from its published y is exactly inverting H, the one property Lamport’s one-time security needs.' },
+    ],
+  },
+  {
+    prompt: 'A project posts the SHA-256 of its installer on its website. Which property stops an attacker building a malicious installer with the same hash?',
+    options: [
+      { text: 'Second-preimage resistance', correct: true, explain: 'Right: the original installer x is fixed and public, and the attacker needs some x′ ≠ x with H(x′) = H(x).' },
+      { text: 'Collision resistance', explain: 'The attacker did not write the original, so she cannot prepare a colliding pair; she must match a digest that is already fixed.' },
+      { text: 'Preimage resistance', explain: 'Close, but the attacker also holds the original file x, not just its digest. Matching H(x) for a known x is the second-preimage game.' },
+      { text: 'A secret key on the site', explain: 'Hashes are keyless: anyone can compute SHA-256 of anything. The protection is the difficulty of matching the digest.' },
+    ],
+  },
+  {
+    prompt: 'Using Grover, about how many SHA-256 evaluations does finding a preimage of a given digest take?',
+    options: [
+      { text: 'About 256', explain: 'That would be a polynomial-time break like Shor on RSA. A hash has no hidden period, and Grover’s √N is provably optimal for black-box search.' },
+      { text: '2^128', correct: true, explain: 'Right: Grover needs about (π/4)√N iterations, and √(2^256) = 2^128, still far out of reach, hence NIST’s “larger output needed”.' },
+      { text: '2^256', explain: 'That is the classical exhaustive-search cost. Grover searches N = 2^256 candidates in about √N steps.' },
+      { text: '2^85', explain: '2^85 ≈ 2^(256/3) is the BHT quantum collision query count; it does not apply to preimages, where Grover’s 2^128 is the bound.' },
+    ],
+  },
+]);
+
+(function () {
+  // Merkle proof explorer. RFC 6962 hashing: leaf = SHA-256(00 ‖ data), node = SHA-256(01 ‖ left ‖ right).
+  const $ = id => document.getElementById(id);
+  const hex = u => Array.from(u, b => b.toString(16).padStart(2, '0')).join('');
+  const short = u => hex(u).slice(0, 8);
+  const START = ['p=23', 'g=5', 'A=8', 'B=19', 'n=3233', 'e=17', 'm=65', 'c=2790'];
+  const inputs = START.map((v, i) => {
+    const lab = document.createElement('label');
+    const inp = document.createElement('input');
+    inp.value = v; inp.maxLength = 24; inp.spellcheck = false;
+    lab.append('L' + i, inp);
+    $('mk-leaves').appendChild(lab);
+    return inp;
+  });
+  if (!(window.crypto && window.crypto.subtle)) {
+    $('mk-note').textContent = 'Web Crypto is unavailable here (it needs https:// or a local file), so the explorer cannot hash. The worked proof below is the same computation.';
+    return;
+  }
+  const enc = new TextEncoder();
+  const sha = async (tag, parts) => {
+    const buf = new Uint8Array(parts.reduce((a, p) => a + p.length, 1));
+    buf[0] = tag;
+    let o = 1;
+    for (const p of parts) { buf.set(p, o); o += p.length; }
+    return new Uint8Array(await crypto.subtle.digest('SHA-256', buf));
+  };
+  let levels, pub, sel = 5, step = 0, seq = 0, bseq = 0;
+
+  async function build() {
+    const lv = [await Promise.all(inputs.map(x => sha(0, [enc.encode(x.value)])))];
+    while (lv[lv.length - 1].length > 1) {
+      const p = lv[lv.length - 1], next = [];
+      for (let i = 0; i < p.length; i += 2) next.push(await sha(1, [p[i], p[i + 1]]));
+      lv.push(next);
+    }
+    return lv;
+  }
+
+  async function verify(tamper) {
+    let cur = levels[0][sel], idx = sel;
+    const lines = ['leaf    H(00‖' + inputs[sel].value + ') = ' + short(cur)];
+    for (let d = 0; d < 3; d++) {
+      let sib = levels[d][idx ^ 1];
+      if (tamper && d === 0) { sib = sib.slice(); sib[0] ^= 0x10; }
+      const right = idx & 1, pair = right ? [sib, cur] : [cur, sib];
+      cur = await sha(1, pair);
+      lines.push('bit ' + right + '   sibling on the ' + (right ? 'left' : 'right'));
+      lines.push('        H(01‖' + short(pair[0]) + '‖' + short(pair[1]) + ') = ' + short(cur));
+      idx >>= 1;
+    }
+    return { lines, root: cur };
+  }
+
+  async function render() {
+    const my = ++seq, tamper = $('mk-tamper').checked;
+    const v = await verify(tamper);
+    if (my !== seq) return;
+    const g = $('mk-tree'), shown = Math.min(step, 3);
+    g.textContent = '';
+    let changed = 0;
+    for (let d = 3; d >= 0; d--) {
+      levels[d].forEach((h, i) => {
+        const el = document.createElement(d === 0 ? 'button' : 'div');
+        el.className = 'mk-node';
+        el.style.gridColumn = 'span ' + (1 << d);
+        const onPath = i === sel >> d;
+        if (d <= shown && onPath) el.classList.add('path');
+        if (d === shown && onPath) el.classList.add('now');
+        if (d < shown && i === ((sel >> d) ^ 1)) el.classList.add(d === 0 && tamper ? 'bad' : 'sib');
+        if (hex(h) !== hex(pub[d][i])) { el.classList.add('chg'); changed++; }
+        if (d === 0 || d === 3) {
+          const lab = document.createElement('span');
+          lab.textContent = d === 3 ? 'root' : 'L' + i;
+          el.appendChild(lab);
+        }
+        el.append(short(h));
+        if (d === 0) {
+          el.type = 'button';
+          el.setAttribute('aria-label', 'Prove leaf L' + i);
+          el.addEventListener('click', () => { sel = i; step = 0; render(); });
+        }
+        g.appendChild(el);
+      });
+    }
+    $('mk-trace').textContent = v.lines.slice(0, 1 + 2 * shown).join('\n');
+    const out = $('mk-verdict');
+    if (step < 4) {
+      out.textContent = 'Proving L' + sel + ': step ' + step + ' of 4. Press Next step.';
+      out.className = '';
+    } else if (hex(v.root) === hex(pub[3][0])) {
+      out.textContent = '✓ Accepted: recomputed root ' + short(v.root) + ' equals the published root, so L' + sel + ' is in the committed list.';
+      out.className = 'good';
+    } else {
+      out.textContent = '✗ Rejected: recomputed root ' + short(v.root) + ' is not the published ' + short(pub[3][0]) + (tamper ? '. One bad sibling corrupts every hash above it.' : '. This leaf is not in the list the published root commits to.');
+      out.className = 'bad-v';
+    }
+    $('mk-note').textContent = 'Published root: ' + short(pub[3][0]) + '. ' + (changed
+      ? changed + ' of 15 hashes (shaded) differ from the published tree: the paths from your edits to the root.'
+      : 'Click a leaf hash in the bottom row to prove that leaf; edit a leaf to change the list.');
+  }
+
+  inputs.forEach((x, i) => x.addEventListener('input', async () => {
+    const my = ++bseq, lv = await build();
+    if (my !== bseq) return;
+    levels = lv; sel = i; step = 4;
+    render();
+  }));
+  $('mk-step').addEventListener('click', () => { step = step >= 4 ? 0 : step + 1; render(); });
+  $('mk-all').addEventListener('click', () => { step = 4; render(); });
+  $('mk-pub').addEventListener('click', () => { pub = levels; render(); });
+  $('mk-tamper').addEventListener('change', () => { step = 4; render(); });
+  build().then(lv => { levels = pub = lv; render(); });
+})();
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

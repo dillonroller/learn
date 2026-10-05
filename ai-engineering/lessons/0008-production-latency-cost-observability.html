@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 8 — Production Concerns</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">AI Engineering</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 8 of 8 &nbsp;·&nbsp; AI Engineering &nbsp;·&nbsp; ~35 min</p>
+  <h1>Production Concerns: Latency, Cost, and Observability for Agentic Systems</h1>
+  <p>Lesson 1 made one fact non-negotiable: every <a href="0001-agent-loop-system-prompt-tool-schemas.html#stateless-model-call">model call is stateless</a>, so each step resends the whole transcript. Lesson 3 named the obvious price of that, “latency and dollars per token”, in its <a href="0003-context-memory-summarization-retrieval.html#context-rot">context rot</a> warning, and lesson 4 warned that a <a href="0004-failure-modes-debugging-agents.html#root-cause-vs-symptom">symptom-patching</a> sentence is sent “on every single call, forever”. This lesson turns those warnings into numbers you can compute. Once an agent is live you need three things: a cost and latency model per task (<strong>measure</strong>), a trace of every step so the <a href="0004-failure-modes-debugging-agents.html#four-layer-diagnosis">four-layer diagnosis</a> works on runs you never watched (<strong>log</strong>), and caps that stop a run before it costs 50× the median (<strong>budget</strong>).</p>
+
+  <h2 id="cost-per-task">Cost per task: price the loop, not the call</h2>
+  <p>The unit that matters is the <strong>cost per task</strong>: everything one task spends across every model call it triggers, including the main loop, subagents, compaction calls and retries. Failed runs are paid for too, so divide by the success rate to get cost per <em>solved</em> task.</p>
+  <p>Let the stable prefix (system prompt plus tool schemas) be <em>P</em> tokens, and let each step append <em>g</em> tokens (the tool call plus its result). Step <em>k</em> sends <em>P</em> + <em>g</em>(<em>k</em>−1) input tokens, so <em>n</em> steps send:</p>
+  <div class="complexity"><span><span class="label">input tokens</span> <span class="val">nP + g·n(n−1)/2</span></span><span><span class="label">growth</span> <span class="val"><a href="../../cs-interviews/lessons/0001-big-o-and-complexity.html">O(n²)</a></span></span><span><span class="label">output tokens</span> <span class="val">n·o</span></span></div>
+  <p>Worked example, <em>illustrative</em> numbers: the <code>auth.rs</code> agent with <em>P</em> = 20k, <em>g</em> = 2k, <em>n</em> = 30 and <em>o</em> = 300 output tokens per step. Input is 600k (prefix term) + 870k (growth term) = 1.47M tokens; the 30th call alone sends 78k. Price output at 5× input and the 9k output tokens cost 45k units, <strong>3%</strong> of a 1.515M-unit bill. <strong>92%</strong> pays for tokens the model already saw on an earlier step. Doubling <em>n</em> multiplies the bill by 3.19, not 2.</p>
+  <div class="callout warn" id="transcript-resend-cost">
+    <strong>Transcript resend cost: cumulative input grows with the square of the step count.</strong>
+    Statelessness means paying for the history again on every step. The growth term overtakes the prefix term once <em>n</em> − 1 exceeds 2<em>P</em>/<em>g</em> (20 here, so from <em>n</em> = 22 on): short loops are prefix-dominated, long loops history-dominated. Output costs more per token, but in a long loop resent input usually dominates. Find the largest term before optimizing anything.
+  </div>
+  <p>Step counts are random, so budget the expected value. Write the cost as Σ<sub>k</sub> c<sub>k</sub>·1[N ≥ k], where c<sub>k</sub> is step k’s cost; <a href="../../probability/lessons/0002-expectation-variance.html#linearity-of-expectation">linearity of expectation</a> gives E[cost] = Σ<sub>k</sub> c<sub>k</sub>·Pr(N ≥ k), no independence needed. Since c<sub>k</sub> grows with k, the tail of N is weighted by the most expensive steps. If 499 tasks in 500 take 20 steps and one loops for 200, mean steps rise 1.8% but mean cost rises 10.7%: that one run costs 54× a typical task. Lesson 5’s <a href="0005-orchestration-planner-worker-subagents.html#multi-agent-cost">multi-agent multiplier</a> compounds this: each worker is its own loop with its own prefix and quadratic curve, so price each worker this way and add the lead.</p>
+
+  <h2 id="prompt-caching">Prompt caching: pay full price for the stable prefix once</h2>
+  <p>The API caches by matching the start of each request against content it processed recently. Per the <a href="https://platform.claude.com/docs/en/build-with-claude/prompt-caching" target="_blank">Claude docs</a> (as of October 2026), the prefix runs <code>tools</code> → <code>system</code> → <code>messages</code>, and “changes at each level invalidate that level and all subsequent levels.” Prices are multipliers on base input: a cache read costs <strong>0.1×</strong> (a few of the newest models charge less), a 5-minute write <strong>1.25×</strong>, a 1-hour write <strong>2×</strong>. The default lifetime is 5 minutes, refreshed free on each read. Responses report <code>cache_read_input_tokens</code>, <code>cache_creation_input_tokens</code> and <code>input_tokens</code>; total input is their sum.</p>
+  <p>With automatic caching, step k reads the previous request at 0.1× and writes only the new <em>g</em> tokens at 1.25×. The same task drops from 1.515M to 0.282M units, 5.4× cheaper. The resent share falls from 92% to 49% and output rises from 3% to 16%: once history is cached, writes and output matter again. Doubling <em>n</em> now costs ×2.57, since reads still grow with k.</p>
+  <ul>
+    <li><strong>Keep the prefix byte-stable:</strong> no timestamps or request ids in the system prompt, a deterministic tool order, dynamic content after the last breakpoint. The docs’ “common mistake”, a breakpoint on changing content, means “You pay for a fresh cache write on every request and never get a read.”</li>
+    <li><strong><a href="0003-context-memory-summarization-retrieval.html#compaction">Compaction</a> costs an extra call and a rebuild.</strong> The summarization call reads the warm cache, but the new, shorter history shares no prefix with the old one, so the messages level is written again (tools and system stay cached), as Claude Code’s <a href="https://code.claude.com/docs/en/prompt-caching" target="_blank">caching docs</a> state; they advise compacting at natural breaks. A model switch also starts a fresh cache.</li>
+    <li><strong>Pauses outlive the cache.</strong> A <a href="0006-guardrails-permissions-sandboxing-blast-radius.html#human-in-the-loop">human approval</a> or slow worker longer than 5 minutes means the next call rewrites the prefix.</li>
+  </ul>
+  <div class="callout warn">
+    <strong>Caching fixes the price of a resent sentence, not its attention cost.</strong>
+    A 200-token <a href="0004-failure-modes-debugging-agents.html#root-cause-vs-symptom">symptom-patch</a> sentence costs 6,000 units over a 30-step task uncached, about 830 cached. The model still reads it every step, so the <a href="0003-context-memory-summarization-retrieval.html#context-rot">context rot</a> remains.
+  </div>
+
+  <h2 id="tail-latency">Latency is a distribution, and fan-out lives in the tail</h2>
+  <p>A task’s latency is a sequential sum: each step’s time to first token plus generation, each tool call, any approval wait. Every term is random, so watch percentiles, not the mean. Two agents can share a mean and differ wildly in <a href="../../probability/lessons/0002-expectation-variance.html#variance">variance</a>: A takes 55–65 s every time; B takes 45 s on 95% of tasks and 345 s on the rest. Both average 60 s, but B’s p99 is 345 s. “Most metrics are better thought of as distributions rather than averages” (<a href="https://sre.google/sre-book/service-level-objectives/" target="_blank">SRE ch. 4</a>).</p>
+  <p>Parallel workers finish when the slowest does. If each of <em>m</em> independent workers is slow with probability <em>p</em>, the task is slow with probability 1 − (1−<em>p</em>)<sup>m</sup>. Dean and Barroso’s <a href="https://www.barroso.org/publications/TheTailAtScale.pdf" target="_blank">The Tail at Scale</a> (CACM, 2013): with one slow response in 100 per server and a fan-out of 100, “63% of user requests will take more than one second.” With 8 workers the lead’s <em>median</em> wait is one worker’s p92, since 0.917<sup>8</sup> = 0.5. That is the tax on <a href="0005-orchestration-planner-worker-subagents.html#orchestrator-worker">orchestrator-worker</a> fan-out. Levers:</p>
+  <ul>
+    <li><strong>Parallel tool calls</strong> for independent reads turn a sum into a max. <strong>Cap fan-out and time out stragglers</strong>, continuing with partial results.</li>
+    <li><strong>Hedge:</strong> after the p95 expected latency, launch a duplicate and keep the first finisher. In the paper a hedge sent after 10 ms cut a 1,000-key BigTable read’s 99.9th percentile from 1,800 ms to 74 ms for 2% more requests. Hedge only idempotent reads: a hedged <code>edit_file</code> runs twice and widens the <a href="0006-guardrails-permissions-sandboxing-blast-radius.html#blast-radius">blast radius</a>.</li>
+    <li><strong>A smaller model</strong> for subtasks; <strong>streaming</strong> shows first tokens sooner but does not shorten the task.</li>
+    <li><strong>Batch</strong> work nobody waits on: the <a href="https://platform.claude.com/docs/en/build-with-claude/batch-processing" target="_blank">Message Batches API</a> costs 50% less, with “most batches finishing in less than 1 hour,” and stacks with caching.</li>
+  </ul>
+
+  <h2 id="agent-trace">The agent trace: the transcript, made queryable</h2>
+  <p>OpenTelemetry’s <a href="https://opentelemetry.io/docs/concepts/signals/traces/" target="_blank">vocabulary</a> fits agents directly. A trace is “the path of a request through your application”. A span is “a unit of work or operation” with a name, a parent id, start and end times, <em>attributes</em> (key-value metadata) and <em>events</em> (timestamped logs). An <strong>agent trace</strong> has one root span per task and a child span for each model call, tool call, subagent and approval wait; a subagent’s own spans nest under its tool span.</p>
+  <pre><code>with span("task", task_id=task.id) as root:                 # root span: one per task
+    for step in range(BUDGET["max_steps"]):                   # lesson 1's loop, instrumented
+        with span("model_call", step=step) as s:              # READ
+            response = call_model(messages, tools=TOOLS)
+            u = response.usage
+            s.set(ttft_ms=response.ttft_ms, input_tokens=u.input_tokens,
+                  cache_read=u.cache_read_input_tokens,
+                  cache_write=u.cache_creation_input_tokens,
+                  output_tokens=u.output_tokens,
+                  stop_reason=response.stop_reason, cost=price(u))
+        root.add(cost=s.cost)
+        if root.cost > BUDGET["max_spend"]: return stop(root, "spend_cap")
+        if response.tool_call is None:   return response.text
+        with span("tool", name=response.tool_call.name) as t:    # ACT (subagents nest here)
+            result = execute(response.tool_call.name, response.tool_call.arguments)
+            t.set(is_error=result.is_error, result_tokens=count_tokens(result))
+        append_observation(messages, response, result)            # OBSERVE
+    return stop(root, "step_cap")</code></pre>
+  <p>A trace that tripped its step cap last night (excerpt, same illustrative units):</p>
+  <pre><code>{ "span": "task", "task": "fix failing test in auth.rs", "steps": 40,
+  "stop": "step_cap", "duration_ms": 251400, "cost": 408700,
+  "children": [
+    { "span": "model_call", "step": 1, "ttft_ms": 1300, "input_tokens": 150,
+      "cache_read": 0, "cache_write": 20000, "output_tokens": 210,
+      "stop_reason": "tool_use", "cost": 26200 },
+    { "span": "tool", "step": 1, "name": "read_file", "is_error": false, "result_tokens": 1850 },
+    { "span": "tool", "step": 12, "name": "run_tests", "is_error": false, "result_tokens": 6,
+      "events": [{ "name": "result", "body": "{\"passed\": false}" }] },
+    { "span": "tool", "step": 13, "name": "edit_file", "is_error": false,
+      "args": { "path": "src/auth.rs", "fn": "parse_header" } }
+  ] }</code></pre>
+  <p>Monitoring must answer “what’s broken, and why?” (<a href="https://sre.google/sre-book/monitoring-distributed-systems/" target="_blank">SRE ch. 6</a>). Aggregates answer <em>what</em>: error rate and p99 cost per task went up. The trace answers <em>why</em>: every <code>run_tests</code> span returns 6 tokens with <code>is_error</code> false (the tool “worked”, so an error counter never fires), and the next step edits an unrelated function. That is lesson 4’s <a href="0004-failure-modes-debugging-agents.html#worked-example">worked example</a>, a tools-layer bug, found from a dashboard instead of a session you happened to watch. Anthropic’s <a href="https://www.anthropic.com/engineering/multi-agent-research-system" target="_blank">Research write-up</a>: “Adding full production tracing let us diagnose why agents failed and fix issues systematically.”</p>
+  <div class="callout warn">
+    <strong>Count the whole tree, once.</strong>
+    Per the <a href="https://code.claude.com/docs/en/agent-sdk/cost-tracking" target="_blank">Agent SDK cost docs</a>, parallel tool calls in one turn yield messages sharing one id and identical usage, so deduplicate by id. The top-level <code>usage</code> field excludes subagent tokens; <code>total_cost_usd</code> and <code>modelUsage</code> include them, and their dollar figures are client-side estimates, not billing. Sum the wrong field and you undercount exactly the multi-agent runs that cost most.
+  </div>
+  <p>Your own harness emits this shape. As of October 2026, Claude Code <a href="https://code.claude.com/docs/en/monitoring-usage" target="_blank">exports OpenTelemetry</a> metrics (<code>claude_code.token.usage</code>, <code>claude_code.cost.usage</code>) and events (<code>claude_code.api_request</code> with duration, cost and cache tokens; <code>claude_code.tool_result</code>; <code>claude_code.api_error</code>). Its beta traces nest <code>claude_code.llm_request</code> and <code>claude_code.tool</code> spans under a <code>claude_code.interaction</code> root, time permission waits in a <code>claude_code.tool.blocked_on_user</code> span, and put subagent spans under the parent’s tool span. Prompts are redacted by default: log structure and numbers, keep content behind a flag.</p>
+
+  <h2 id="runtime-budget">Runtime budgets: the termination condition, grown up</h2>
+  <p>Lesson 1’s <a href="0001-agent-loop-system-prompt-tool-schemas.html#termination-condition">termination condition</a> was a max-iteration cap. A <strong>runtime budget</strong> caps steps, spend, fan-out (concurrency and depth), wall-clock time and per-tool time at once. Hitting a cap trips a circuit breaker: stop, return partial work and the reason, mark the root span, alert. As of 2026 the Agent SDK has <code>maxTurns</code> and <code>maxBudgetUsd</code> (which refuses new subagents and ends with <code>error_max_budget_usd</code>), and subagent <a href="https://code.claude.com/docs/en/agent-sdk/subagents" target="_blank">depth defaults to 3, concurrency to 20</a>.</p>
+  <pre><code>BUDGET = dict(max_steps=40, max_spend=600_000,     # cost units, illustrative
+              max_workers=4, worker_timeout_s=300, deadline_s=900)
+
+def call_with_backoff(messages):
+    for attempt in range(5):
+        try:
+            return call_model(messages, tools=TOOLS)
+        except HttpError as e:
+            if e.status != 429: raise
+            if e.retry_after is None: raise          # spend-cap 429s carry no retry-after
+            sleep(e.retry_after + jitter())          # honour it; never retry immediately
+    raise GiveUp("rate limited")</code></pre>
+  <p><a href="https://platform.claude.com/docs/en/api/rate-limits" target="_blank">Rate limits</a> cap requests, input tokens and output tokens per minute with a continuously refilling token bucket; a rate-limit 429 carries a <code>retry-after</code> header (the 429 returned once your organization hits its tier’s monthly spend cap carries none, and retrying it fails until access resumes). On most models cache reads do not count toward the input-token limit, so caching raises throughput too. Long runs need <strong>durable execution</strong>: Anthropic’s <a href="https://www.anthropic.com/engineering/multi-agent-research-system" target="_blank">Research team</a> “can’t just restart from the beginning” and resumes “from where the agent was when the errors occurred.” A stateless model means the agent’s whole state is the transcript plus counters, so checkpoint them after each OBSERVE and make tools idempotent so a replayed step does not apply twice. Every trace that tripped a budget then becomes a <a href="0007-evaluation-evals-regression-tests.html#regression-eval">regression eval</a> task, and its fix is judged with <a href="0007-evaluation-evals-regression-tests.html#eval-error-bars">error bars</a>.</p>
+
+  <h2 id="golden-signals">Golden signals for agents</h2>
+  <p>“If you can only measure four metrics of your user-facing system, focus on these four” (<a href="https://sre.google/sre-book/monitoring-distributed-systems/" target="_blank">SRE ch. 6</a>). Adapted to agents:</p>
+  <ul>
+    <li><strong>Latency:</strong> task duration at p50 and p99 per task type, plus time to first token per call. Track failures separately, because “a slow error is even worse than a fast error!”</li>
+    <li><strong>Traffic:</strong> tasks per minute, steps per task, tokens per minute.</li>
+    <li><strong>Errors:</strong> failed tasks, tool errors per tool, API 429s and 5xx, <code>max_tokens</code> stop reasons, budget trips. Count implicit errors too: runs that “finish” but fail the grader.</li>
+    <li><strong>Saturation:</strong> rate-limit headroom, <a href="0003-context-memory-summarization-retrieval.html#context-window">context-window</a> fill per step, running subagents against the cap, spend against budget.</li>
+  </ul>
+  <p>Add cost per task at p50 and p99 as a fifth signal, and set objectives on percentiles. The SRE book’s example is “99% of Get RPC calls will complete in less than 100 ms.” An agent version (illustrative): 95% of fix-test tasks finish within 5 minutes and under 400k units.</p>
+
+  <h2>Try it: price a task, then pick the lever</h2>
+  <p><strong>Part A.</strong> Set the loop’s shape. Units are illustrative (1 = one uncached input token), a model, not a price list; <em>r</em> is output price over input price. The cached column uses read 0.1× and write 1.25× and assumes each step lands within the 5-minute cache lifetime. Then try <em>n</em> = 10 and <em>n</em> = 60: which term dominates each, and how much does caching save in each case?</p>
+  <div class="calc" id="cost-calc">
+    <div class="calc-in">
+      <label>Prefix P <input type="number" id="c-P" value="20000" min="0" step="1000"></label>
+      <label>Added per step g <input type="number" id="c-g" value="2000" min="0" step="500"></label>
+      <label>Steps n <input type="number" id="c-n" value="30" min="1" max="1000" step="1"></label>
+      <label>Output per step o <input type="number" id="c-o" value="300" min="0" step="50"></label>
+      <label>Output price ratio r <input type="number" id="c-r" value="5" min="0" step="0.5"></label>
+    </div>
+    <p class="calc-sum" id="c-sum" aria-live="polite"></p>
+    <table class="calc-out">
+      <thead><tr><th>Per task</th><th>No cache</th><th>Cached</th></tr></thead>
+      <tbody id="c-out"></tbody>
+    </table>
+  </div>
+  <p><strong>Part B.</strong> For each production symptom, pick the lever that fixes it.</p>
+  <div id="production-exercise" class="mc-exercise"></div>
+
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. An uncached agent loop has a 10k-token prefix and adds 1k tokens per step. About how many input tokens does a 20-step task send in total?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','29k is only the final call (10k + 19 × 1k). Every earlier call also resent the prefix and the history so far.')">About 29k: the size of the final transcript</button>
+        <button onclick="quizAnswer(this,false,'q1','200k is just the prefix term nP. It omits the history term g·n(n−1)/2 = 190k, nearly half the total.')">About 200k: the prefix resent on 20 steps</button>
+        <button onclick="quizAnswer(this,true,'q1','Right. nP + g·n(n−1)/2 = 200k + 190k = 390k, and the history term grows with n².')">About 390k: prefix plus the growing history</button>
+        <button onclick="quizAnswer(this,false,'q1','600k uses g·n² + nP, double-counting history. Step k carries k−1 additions, so the sum is n(n−1)/2.')">About 600k: n² additions plus the prefix</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. A lead agent fans out to 10 parallel workers and waits for all of them. Each worker independently has a 5% chance of taking over 4 minutes. How often does the whole task take over 4 minutes?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right. The task is fast only if all ten are: 1 − 0.95^10 ≈ 0.40. Fan-out turns one in twenty into two in five.')">About 40% of tasks: 1 − 0.95 to the 10th</button>
+        <button onclick="quizAnswer(this,false,'q2','5% is one worker’s rate, but the lead waits for the slowest of ten, so any slow worker makes the task slow.')">About 5% of tasks, the same as one worker</button>
+        <button onclick="quizAnswer(this,false,'q2','Adding 10 × 5% double-counts runs where several workers are slow at once. The exact figure is about 40%.')">About 50% of tasks: ten workers times 5%</button>
+        <button onclick="quizAnswer(this,false,'q2','0.05^10 is the chance that all ten are slow. Any single slow worker delays the lead, which is far more common.')">Almost never: all ten must be slow at once</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Of 500 tasks, 499 take 20 steps and one loops for 200. Mean steps rise only 1.8%, but mean cost per task rises about 11%. Why?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','Linearity holds for any random step count, correlated or not. It is what exposes the effect: E[cost] = Σ c_k · Pr(N ≥ k).')">Linearity of expectation fails for random step counts</button>
+        <button onclick="quizAnswer(this,false,'q3','Output length did not change. The extra cost is 180 extra steps, each resending an ever longer input.')">The long run produced unusually long outputs per step</button>
+        <button onclick="quizAnswer(this,false,'q3','Nothing here depends on caching. With caching every number shrinks, and the runaway still costs about 30× a typical task.')">Caching is disabled whenever a run gets long</button>
+        <button onclick="quizAnswer(this,true,'q3','Right. c_k grows with k, so E[cost] = Σ c_k · Pr(N ≥ k) weights the rare long run by its priciest steps. That run costs 54× a typical task.')">Late steps cost more, so the tail is weighted up</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Your dashboard sums each run’s top-level <code>usage</code> field from the Agent SDK, and it reads 40% below the provider’s usage page. The agent often spawns subagents. What is the most likely cause?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','Cache reads do appear in usage, as cache_read_input_tokens. Omitting them would not track how often subagents run.')">Cache reads are never reported in the usage field</button>
+        <button onclick="quizAnswer(this,true,'q4','Right. Per the SDK docs, top-level usage excludes subagent tokens, while total_cost_usd and modelUsage include them. Count the whole tree.')">Top-level usage leaves out the subagents’ tokens</button>
+        <button onclick="quizAnswer(this,false,'q4','Double-counting duplicate message ids would make the dashboard read high. Yours reads low.')">Parallel tool calls are being counted twice</button>
+        <button onclick="quizAnswer(this,false,'q4','A request refused with a 429 never ran, so it used no tokens to bill or report. A gap that tracks subagent use points at subagent tokens.')">Rate-limited retries are billed but not reported</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>This is the last lesson, so the practice is a capstone. Take lesson 1’s <a href="0001-agent-loop-system-prompt-tool-schemas.html#read-act-observe-loop">loop</a> (or lesson 5’s <a href="0005-orchestration-planner-worker-subagents.html#subagent"><code>run_agent</code></a>) and write the span-emitting version with a budget object. Then pick one long task from your own sessions. Estimate <em>P</em>, <em>g</em> and <em>n</em>, compute its cost per task with and without caching, name the dominant term and choose one lever. Finally, write one SLO for each golden signal for that agent, and say which trace attribute would explain a breach.</p>
+
+  <h2>Primary resource</h2>
+  <p>Read Google’s <a href="https://sre.google/sre-book/monitoring-distributed-systems/" target="_blank">Site Reliability Engineering, Chapter 6: Monitoring Distributed Systems</a>. It is the canonical answer to “what should I measure once it’s live”: the four golden signals, symptoms versus causes, and histograms over means. This lesson supplies the agent-specific adaptations.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Bring one long task from your current session: roughly how many steps it took and whether it compacted or spawned subagents. If your Claude Code version’s <code>/usage</code> shows a prompt-cache line, bring that hit ratio too. Ask Claude to sketch that task’s trace and estimate its cost per task with this lesson’s formula, honestly, without over-claiming, saying which numbers are measured and which are guesses.
+  </div>
+
+  <div class="nav">
+    <a href="0007-evaluation-evals-regression-tests.html">← Lesson 7: Evaluation</a>
+    <span class="spacer"></span>
+    <a href="../index.html">AI Engineering: All Lessons →</a>
+  </div>
+
+</div>
+
+<style>
+.calc { background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.1rem; margin: 1rem 0 1.25rem; font-family: var(--font-ui); font-size: .88rem; }
+.calc-in { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .6rem .9rem; margin-bottom: .9rem; }
+.calc-in label { display: flex; flex-direction: column; justify-content: space-between; gap: .25rem; color: var(--ink-dim); }
+.calc-in input { background: var(--bg-sunken); color: var(--ink); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .35rem .5rem; font: inherit; width: 100%; min-width: 0; }
+.calc-sum { color: var(--ink-dim); margin-bottom: .6rem; }
+.calc-out { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.calc-out th, .calc-out td { text-align: left; padding: .35rem .4rem; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
+.calc-out th { color: var(--muted); font-weight: normal; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; }
+.calc-out td:first-child { color: var(--ink-dim); width: 44%; }
+.calc-out td.v { color: var(--accent-strong); font-variant-numeric: tabular-nums; }
+</style>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+// Cost per task in illustrative units (1 = one uncached input token). Step k sends P + g(k-1)
+// input tokens. Cached: step 1 writes P; step k>=2 reads the previous request at 0.1x, writes g at 1.25x.
+function costModel(P, g, n, o, r, cached) {
+  const input = n * P + g * n * (n - 1) / 2, resent = (n - 1) * P + g * (n - 1) * (n - 2) / 2, out = n * o * r;
+  const total = (cached ? 1.25 * P + 0.1 * resent + 1.25 * g * (n - 1) : input) + out;
+  return { input, total, resent: total ? (cached ? 0.1 : 1) * resent / total : 0, out: total ? out / total : 0 };
+}
+const fmt = x => x >= 1e6 ? (x / 1e6).toFixed(3) + 'M' : x >= 1e3 ? Math.round(x / 1e3) + 'k' : String(Math.round(x));
+const pct = x => Math.round(100 * x) + '%';
+const ratio = (x, y) => y ? '×' + (x / y).toFixed(2) : '–';
+function num(id, min, max) {
+  const v = parseFloat(document.getElementById(id).value);
+  return isFinite(v) ? Math.min(max, Math.max(min, v)) : min;
+}
+function updateCalc() {
+  const P = num('c-P', 0, 1e7), g = num('c-g', 0, 1e7), n = Math.round(num('c-n', 1, 1000)), o = num('c-o', 0, 1e6), r = num('c-r', 0, 100);
+  const [a, b, a2, b2] = [[n, false], [n, true], [2 * n, false], [2 * n, true]].map(([k, c]) => costModel(P, g, k, o, r, c));
+  const pre = n * P, grow = g * n * (n - 1) / 2;
+  document.getElementById('c-sum').textContent = 'Input tokens sent: ' + Math.round(a.input).toLocaleString('en-US') +
+    '. Dominant term: ' + (grow > pre ? 'growth g·n(n−1)/2' : 'prefix nP') + ' (' + pct(a.input ? Math.max(pre, grow) / a.input : 0) + ' of input).';
+  const rows = [['Total cost (units)', fmt(a.total), fmt(b.total)], ['Share from resent tokens', pct(a.resent), pct(b.resent)],
+    ['Share from output', pct(a.out), pct(b.out)], ['Cost if n doubles', ratio(a2.total, a.total), ratio(b2.total, b.total)]];
+  const body = document.getElementById('c-out');
+  body.textContent = '';
+  rows.forEach(row => {
+    const tr = body.insertRow();
+    row.forEach((cell, i) => { const td = tr.insertCell(); td.textContent = cell; if (i) td.className = 'v'; });
+  });
+}
+['c-P', 'c-g', 'c-n', 'c-o', 'c-r'].forEach(id => document.getElementById(id).addEventListener('input', updateCalc));
+updateCalc();
+
+renderMC('production-exercise', [
+  {
+    prompt: 'The p99 of task latency is set by the slowest of 8 parallel workers. Most finish in a minute; one in ten takes six.',
+    options: [
+      { text: 'Cache a byte-stable prefix', explain: 'Caching trims each call’s time to first token, but the task still waits for the slowest of eight.' },
+      { text: 'Cap fan-out, time out stragglers', correct: true, explain: 'Right. 1 − 0.9^8 ≈ 57% of tasks wait on a straggler. Fewer workers, timeouts with partial results, or hedged reads cut that tail.' },
+      { text: 'Stream the lead’s tokens to the user', explain: 'Streaming shows the lead’s first tokens sooner, but the lead cannot start until every worker returns.' },
+    ],
+  },
+  {
+    prompt: 'Cost per task is dominated by a 20k-token system prompt plus tool schemas, resent on every one of 30 steps.',
+    options: [
+      { text: 'Shorten the model’s outputs', explain: 'In the lesson’s 30-step example output was 3% of the bill. Trimming it barely moves the total.' },
+      { text: 'Use the Batch API instead', explain: 'Batches are asynchronous and may take hours. A loop whose every step waits on the last would crawl, and the prefix is still resent.' },
+      { text: 'Cache a byte-stable prefix', correct: true, explain: 'Right. After one write at 1.25×, each resend is a cache read at 0.1×. The lesson’s example got 5.4× cheaper.' },
+    ],
+  },
+  {
+    prompt: 'After a deploy, the cache hit rate fell to zero. The deploy added the current time to the top of the system prompt.',
+    options: [
+      { text: 'Move the time after the breakpoint', correct: true, explain: 'Right. A change at the system level invalidates it and everything after it, and the time differs on every request. Append it to the newest user message, after the cached prefix.' },
+      { text: 'Switch the prefix to the 1-hour cache TTL', explain: 'Lifetime is not the issue: the prefix is never the same twice. A 1-hour write costs 2×, so every miss gets pricier.' },
+      { text: 'Request a higher rate-limit tier', explain: 'Rate limits do not decide cache hits. Misses do eat more input-token limit, but the fix is a stable prefix.' },
+    ],
+  },
+  {
+    prompt: 'One task in 500 loops for 200 steps and costs 50× the median task. The other 499 look healthy.',
+    options: [
+      { text: 'Switch the loop to a smaller model', explain: 'A cheaper token does not stop a 200-step loop. The missing stop condition is the bug.' },
+      { text: 'Step and spend cap, then a test', correct: true, explain: 'Right. A per-task budget trips the breaker and alerts, and the captured trace becomes a regression eval task for the root cause.' },
+      { text: 'Cache a byte-stable prefix', explain: 'Caching cuts each step’s price, but in this lesson’s model the 200-step run still costs about 30× a typical task.' },
+    ],
+  },
+  {
+    prompt: 'A nightly job classifies 100k support tickets. Nobody looks at the results until morning.',
+    options: [
+      { text: 'Use the Batch API instead', correct: true, explain: 'Right. Nobody waits, so trade latency for price: 50% off, most batches done within an hour, and it stacks with caching.' },
+      { text: 'Fan out to 100 parallel workers', explain: 'That buys latency nobody needs, at full price, and 100 concurrent callers can easily exhaust per-minute rate limits.' },
+      { text: 'Stream tokens to the user', explain: 'Streaming helps a person watching output arrive. A nightly job has no watcher.' },
+    ],
+  },
+  {
+    prompt: 'The dashboard shows the task error rate up from 2% to 9% since Tuesday, and you cannot tell why.',
+    options: [
+      { text: 'Add a sentence to the prompt', explain: 'That is symptom-patching before diagnosis: you do not know which layer broke, and the sentence is resent every call.' },
+      { text: 'Add an alert on average task latency', explain: 'Another aggregate. It might show that something changed, never why, and a mean hides the tail.' },
+      { text: 'Open per-step traces of failures', correct: true, explain: 'Right. Metrics say what broke; a failing run’s spans show each step’s input, tool result and error, which the four-layer diagnosis needs.' },
+    ],
+  },
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

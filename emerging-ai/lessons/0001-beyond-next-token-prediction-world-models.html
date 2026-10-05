@@ -65,7 +65,7 @@
       <p>1. Precisely, what does an autoregressive LLM's training objective directly optimize?</p>
       <div class="options">
         <button onclick="quizAnswer(this,true,'q1','Right — cross-entropy between the predicted next-token distribution and the actual next token, at every position, is the entire direct training signal. Anything resembling a world model has to emerge as a side effect of getting good at this.')">Cross-entropy loss between predicted and actual next token, at every position</button>
-        <button onclick="quizAnswer(this,false,'q1','No such term appears in the standard pretraining objective — the loss function has no direct notion of "world state" written into it at all, which is exactly why whether one emerges is an open question.')">A direct penalty for internal world-state representations that are inconsistent with reality</button>
+        <button onclick="quizAnswer(this,false,'q1','No such term appears in the standard pretraining objective — the loss function has no direct notion of &quot;world state&quot; written into it at all, which is exactly why whether one emerges is an open question.')">A direct penalty for internal world-state representations that are inconsistent with reality</button>
         <button onclick="quizAnswer(this,false,'q1','Human preference comparisons are the RLHF/preference-tuning stage, applied after pretraining — they are not what next-token pretraining itself optimizes.')">Agreement with human preference rankings collected after generation</button>
         <button onclick="quizAnswer(this,false,'q1','Planning success requires a defined environment and reward signal to even measure — plain next-token pretraining on text has neither.')">Success at multi-step planning tasks in a simulated environment</button>
       </div>
@@ -97,7 +97,7 @@
     <div class="q-block" id="q4">
       <p>4. Per this lesson's rigor-over-hype standard, which is the most defensible summary of "do LLMs have world models"?</p>
       <div class="options">
-        <button onclick="quizAnswer(this,false,'q4','This is the overclaim in one direction — Othello-GPT is a real counterexample to a blanket "never" claim, at least on the narrow task it was tested on.')">No — Stochastic Parrots proved LLMs can never represent state, full stop</button>
+        <button onclick="quizAnswer(this,false,'q4','This is the overclaim in one direction — Othello-GPT is a real counterexample to a blanket &quot;never&quot; claim, at least on the narrow task it was tested on.')">No — Stochastic Parrots proved LLMs can never represent state, full stop</button>
         <button onclick="quizAnswer(this,false,'q4','This is the overclaim in the other direction — fluent reasoning-flavored output is not, by itself, evidence of a persistent state-plus-dynamics representation, and the reversal curse specifically cuts against assuming clean queryable structure.')">Yes — modern LLMs clearly have full world models, since they reason well about many topics</button>
         <button onclick="quizAnswer(this,true,'q4','Right — the honest, current answer is uneven and task-dependent: real evidence of narrow emergent structure exists (Othello-GPT), real evidence of shallow direction-bound associations also exists (reversal curse), and neither settles the general question.')">It's genuinely unsettled and uneven — some evidence of narrow emergent state representations, other evidence of shallow, direction-bound structure, decided case by case</button>
         <button onclick="quizAnswer(this,false,'q4','No result in this lesson turns on training compute specifically — the disagreement is about what kind of structure the training objective incentivizes, not about how much compute was spent.')">It's purely a matter of not yet having spent enough compute; more scale will resolve it automatically</button>
@@ -181,7 +181,7 @@ WM_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

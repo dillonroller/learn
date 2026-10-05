@@ -115,7 +115,7 @@
       <p>2. "Socrates is human, so Socrates is mortal" is missing the premise…</p>
       <div class="options">
         <button onclick="quizAnswer(this,false,'q2','Socrates being human is already stated explicitly — that’s not what’s missing.')">Socrates is a philosopher</button>
-        <button onclick="quizAnswer(this,true, 'q2','Right — this is the unstated link connecting "human" to "mortal." Without it, "Socrates is human" alone doesn’t get you to "Socrates is mortal."')">All humans are mortal</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — this is the unstated link connecting &quot;human&quot; to &quot;mortal.&quot; Without it, &quot;Socrates is human&quot; alone doesn’t get you to &quot;Socrates is mortal.&quot;')">All humans are mortal</button>
         <button onclick="quizAnswer(this,false,'q2','This isn’t needed to make the argument valid, and it’s not what’s missing from the stated premises.')">Mortality is undesirable</button>
         <button onclick="quizAnswer(this,false,'q2','This is circular — it just restates the conclusion itself rather than supplying the missing link between the stated premise and the conclusion.')">Socrates is mortal</button>
       </div>
@@ -126,7 +126,7 @@
       <p>3. "All humans are mortal. Socrates is human. Therefore Socrates is mortal." These two premises are…</p>
       <div class="options">
         <button onclick="quizAnswer(this,false,'q3','Convergent premises would each independently support the conclusion on their own — removing either one here completely breaks the argument, which is the opposite.')">Convergent — each independently supports the conclusion</button>
-        <button onclick="quizAnswer(this,true, 'q3','Right — delete either premise and the argument falls apart entirely. Neither one supports "Socrates is mortal" without the other.')">Linked — they only work together</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — delete either premise and the argument falls apart entirely. Neither one supports &quot;Socrates is mortal&quot; without the other.')">Linked — they only work together</button>
         <button onclick="quizAnswer(this,false,'q3','They’re not unrelated — together they form the exact structure that makes the conclusion follow (Universal Instantiation + Modus Ponens, from lesson 8).')">Unrelated to each other</button>
         <button onclick="quizAnswer(this,false,'q3','Neither premise restates the conclusion as a premise — this is a legitimate, non-circular argument.')">Circular, since one restates the other</button>
       </div>
@@ -264,7 +264,7 @@ MAP_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

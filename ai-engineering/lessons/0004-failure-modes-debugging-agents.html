@@ -84,7 +84,7 @@
     <div class="q-block" id="q2">
       <p>2. In the worked <code>run_tests</code> example, what was the actual root cause of the agent's repeated, unproductive retries?</p>
       <div class="options">
-        <button onclick="quizAnswer(this,true,'q2','Right — {"passed": false} with no stderr or failing-test detail left the model with a single repeating bit of information and nothing to converge on.')">The tool's error surface returned no diagnostic content, leaving the model nothing to reason from</button>
+        <button onclick="quizAnswer(this,true,'q2','Right — {&quot;passed&quot;: false} with no stderr or failing-test detail left the model with a single repeating bit of information and nothing to converge on.')">The tool's error surface returned no diagnostic content, leaving the model nothing to reason from</button>
         <button onclick="quizAnswer(this,false,'q2','The prompt clearly stated the goal — that wasn\'t identified as the problem in the worked example.')">The system prompt never mentioned the word "tests"</button>
         <button onclick="quizAnswer(this,false,'q2','This scenario\'s failure was about a tool\'s return value missing content, not about the transcript exceeding a size limit.')">The context window was too small to hold the transcript</button>
         <button onclick="quizAnswer(this,false,'q2','This was explicitly named as the last-resort hypothesis to rule out, and it wasn\'t the actual cause here.')">The model was incapable of understanding Rust</button>
@@ -130,7 +130,7 @@
   <div class="nav">
     <a href="0003-context-memory-summarization-retrieval.html">← Lesson 3: Context &amp; Memory</a>
     <span class="spacer"></span>
-    <a href="../index.html#lesson-05">Lesson 5: Orchestration Patterns →</a>
+    <a href="0005-orchestration-planner-worker-subagents.html">Lesson 5: Orchestration Patterns →</a>
   </div>
 
 </div>
@@ -190,7 +190,7 @@ DEBUG_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

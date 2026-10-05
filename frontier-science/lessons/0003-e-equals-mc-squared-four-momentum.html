@@ -114,7 +114,7 @@ Ratio:  8.11×10²⁰ / 4.46×10¹⁹ ≈ 18.2</code></pre>
     <div class="q-block" id="q4">
       <p>4. A photon has zero rest mass (m = 0). What does E² = (pc)² + (mc²)² say about it?</p>
       <div class="options">
-        <button onclick="quizAnswer(this,true,'q4','Right — with m = 0, the invariant collapses to E² = (pc)², so E = pc exactly. A photon\'s energy is entirely "momentum energy"; none of it is rest energy, since it has none to have.')">E = pc exactly — all of a photon's energy comes from its momentum, none from rest energy</button>
+        <button onclick="quizAnswer(this,true,'q4','Right — with m = 0, the invariant collapses to E² = (pc)², so E = pc exactly. A photon\'s energy is entirely &quot;momentum energy&quot;; none of it is rest energy, since it has none to have.')">E = pc exactly — all of a photon's energy comes from its momentum, none from rest energy</button>
         <button onclick="quizAnswer(this,false,'q4','m = 0 doesn\'t force E to 0 — it only removes the (mc²)² term. E can still be nonzero via the pc term, and photons plainly carry energy (that\'s how light delivers warmth and light delivers photosynthesis\'s energy input).')">E = 0, since a massless particle can have no energy</button>
         <button onclick="quizAnswer(this,false,'q4','Momentum doesn\'t require mass — the invariant relation itself gives p = E/c for a massless particle, and photons demonstrably carry momentum (radiation pressure, solar sails).')">p = 0, since momentum requires mass to carry it</button>
         <button onclick="quizAnswer(this,false,'q4','The formula applies at every mass, including exactly m = 0 — that limiting case is precisely what makes it useful for photons and other massless particles, not an exception to it.')">The formula doesn't apply to massless particles at all</button>
@@ -198,7 +198,7 @@ MOMENTUM_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

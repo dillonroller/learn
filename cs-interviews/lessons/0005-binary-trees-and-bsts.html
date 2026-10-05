@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 5 — Binary Trees & BSTs</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">CS Interview Prep</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 5 of 11 &nbsp;·&nbsp; CS Interview Prep &nbsp;·&nbsp; ~30 min</p>
+  <h1>Binary Trees &amp; BSTs</h1>
+  <p>Tree questions look like a zoo (max depth, invert, validate, kth smallest), but the interviewer is testing one thing: <em>can you say what your function returns for a subtree, trust the recursive call, and state O(n) time and O(h) space unprompted?</em> You already have the pieces. The <a href="0001-big-o-and-complexity.html">lesson 1</a> rule that space counts extra memory now covers the call stack. The <a href="0004-stacks-and-queues.html#stack-lifo">stack</a> and <a href="0004-stacks-and-queues.html#queue-fifo">queue</a> you just built become depth-first and level-order traversal.</p>
+
+  <h2 id="tree-node-rust">The node type: <code>Option&lt;Box&lt;TreeNode&gt;&gt;</code></h2>
+  <pre><code><span class="kw">struct</span> <span class="ty">TreeNode</span> {
+    val: <span class="ty">i32</span>,
+    left: <span class="ty">Option</span>&lt;<span class="ty">Box</span>&lt;<span class="ty">TreeNode</span>&gt;&gt;,   <span class="cm">// None = empty subtree</span>
+    right: <span class="ty">Option</span>&lt;<span class="ty">Box</span>&lt;<span class="ty">TreeNode</span>&gt;&gt;,
+}
+<span class="cm">// Read-only helpers take Option&lt;&amp;TreeNode&gt; and recurse on n.left.as_deref()</span></code></pre>
+  <p>This is the move you made with the <code>Formula</code> enum in <a href="../../logic/lessons/0002-propositional-logic-syntax.html#well-formed-formulas">Logic lesson 2</a>. A recursive type needs indirection to have a known size, and <code>Box</code> provides it (<a href="https://doc.rust-lang.org/book/ch15-01-box.html" target="_blank">Rust Book §15.1</a>). <code>Option</code> is your null, at no cost: <code>Option&lt;Box&lt;T&gt;&gt;</code> is guaranteed to be one pointer wide (<a href="https://doc.rust-lang.org/std/option/index.html#representation" target="_blank">std::option</a>). Each parent owns its children. You need something heavier only for parent pointers or shared subtrees. Then use <code>Rc&lt;RefCell&lt;…&gt;&gt;</code> with <code>Weak</code> back-links (<a href="https://doc.rust-lang.org/book/ch15-06-reference-cycles.html" target="_blank">§15.6</a>), or an index arena (<code>Vec&lt;Node&gt;</code> with <code>Option&lt;usize&gt;</code> children), which is often cleaner (<a href="https://users.rust-lang.org/t/need-help-creating-a-tree-node-struct/79866/2" target="_blank">Rust users forum</a>). If a practice site’s stub hands you <code>Rc&lt;RefCell&lt;TreeNode&gt;&gt;</code>, that is the harness’s choice. On a whiteboard, choose <code>Box</code>.</p>
+
+  <h2 id="tree-recursion">One template: base case, then combine the children</h2>
+  <p>Decide what <code>f(subtree)</code> returns. <code>None</code> is the base case. <code>Some(n)</code> combines <code>f(left)</code>, <code>f(right)</code> and <code>n.val</code>. Don’t trace the recursion: assume the subcalls are right and check only the combine (<a href="0008-recursion-and-backtracking.html#recursion-tree">lesson 8</a> generalizes this). It is your <code>eval</code> from <a href="../../logic/lessons/0003-truth-tables.html">Logic lesson 3</a>, a post-order walk of an expression tree.</p>
+  <pre><code><span class="kw">fn</span> <span class="fn">max_depth</span>(node: <span class="ty">Option</span>&lt;&amp;<span class="ty">TreeNode</span>&gt;) -&gt; <span class="ty">usize</span> {
+    <span class="kw">match</span> node {
+        <span class="ty">None</span> =&gt; <span class="nm">0</span>,                                      <span class="cm">// base case</span>
+        <span class="ty">Some</span>(n) =&gt; <span class="nm">1</span> + <span class="fn">max_depth</span>(n.left.<span class="fn">as_deref</span>())    <span class="cm">// combine</span>
+                        .<span class="fn">max</span>(<span class="fn">max_depth</span>(n.right.<span class="fn">as_deref</span>())),
+    }
+}
+
+<span class="kw">fn</span> <span class="fn">invert</span>(node: &amp;<span class="kw">mut</span> <span class="ty">Option</span>&lt;<span class="ty">Box</span>&lt;<span class="ty">TreeNode</span>&gt;&gt;) {
+    <span class="kw">if let</span> <span class="ty">Some</span>(n) = node {
+        std::mem::<span class="fn">swap</span>(&amp;<span class="kw">mut</span> n.left, &amp;<span class="kw">mut</span> n.right);
+        <span class="fn">invert</span>(&amp;<span class="kw">mut</span> n.left);
+        <span class="fn">invert</span>(&amp;<span class="kw">mut</span> n.right);
+    }
+}
+<span class="cm">// Both: O(n) time (one call per node), O(h) stack space.
+// Can you do better? Not on time: every node must be read once.</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(n)</span><span class="label">Space</span><span class="val">O(h)</span></div>
+
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Problem</th><th><code>None</code> returns</th><th><code>Some(n)</code> combines</th></tr>
+    <tr><td>Max depth</td><td>0</td><td>1 + max(l, r)</td></tr>
+    <tr><td>Same tree (a, b)</td><td>both → true; one → false</td><td>vals equal ∧ same(l) ∧ same(r)</td></tr>
+    <tr><td>Path sum (t)</td><td>false</td><td>leaf: t == val; else l(t − val) ∨ r(t − val)</td></tr>
+    <tr><td>Invert</td><td>nothing</td><td>swap children, recurse on both</td></tr>
+  </table></div>
+  <p>In Path Sum, a node with one child is not a leaf: test “both children <code>None</code>” explicitly. When the parent needs something other than the answer, <strong>return two values</strong>. A diameter (longest path, in edges) through a node is left height + right height, but the parent needs the height:</p>
+  <pre><code><span class="cm">// (height in nodes, best diameter in edges anywhere below)</span>
+<span class="kw">fn</span> <span class="fn">diameter</span>(node: <span class="ty">Option</span>&lt;&amp;<span class="ty">TreeNode</span>&gt;) -&gt; (<span class="ty">usize</span>, <span class="ty">usize</span>) {
+    <span class="kw">match</span> node {
+        <span class="ty">None</span> =&gt; (<span class="nm">0</span>, <span class="nm">0</span>),
+        <span class="ty">Some</span>(n) =&gt; {
+            <span class="kw">let</span> (lh, ld) = <span class="fn">diameter</span>(n.left.<span class="fn">as_deref</span>());
+            <span class="kw">let</span> (rh, rd) = <span class="fn">diameter</span>(n.right.<span class="fn">as_deref</span>());
+            (<span class="nm">1</span> + lh.<span class="fn">max</span>(rh), (lh + rh).<span class="fn">max</span>(ld).<span class="fn">max</span>(rd))
+        }
+    }
+}
+<span class="cm">// O(n) time, O(h) space. Is-balanced has the same shape: return (height, ok).</span></code></pre>
+  <blockquote class="quote">“One call per node with constant work, so O(n) time. Space is the recursion stack, O(h): O(log n) if balanced, O(n) for a chain. If the tree can be very deep, I’d switch to an explicit stack.”</blockquote>
+  <p>That last sentence is not paranoia. Measured on Linux (rustc 1.97, release build), recursive <code>max_depth</code> survived a 100,000-node chain on the main thread (8 MiB, the usual <code>ulimit -s</code> default) and overflowed the stack at 1,000,000. A spawned thread (<a href="https://doc.rust-lang.org/std/thread/index.html#stack-size" target="_blank">currently 2 MiB by default</a>) overflowed at 100,000. Even <em>dropping</em> the million-node chain overflowed, because a <code>Box</code> chain drops recursively (<a href="https://rust-unofficial.github.io/too-many-lists/first-drop.html" target="_blank">Too Many Lists</a>).</p>
+
+  <h2 id="dfs-traversal-orders">Pre-, in- and post-order: where the visit sits</h2>
+  <pre><code><span class="kw">fn</span> <span class="fn">walk</span>(node: <span class="ty">Option</span>&lt;&amp;<span class="ty">TreeNode</span>&gt;, out: &amp;<span class="kw">mut</span> <span class="ty">Vec</span>&lt;<span class="ty">i32</span>&gt;) {
+    <span class="kw">if let</span> <span class="ty">Some</span>(n) = node {
+        <span class="cm">// pre-order:  out.push(n.val) here</span>
+        <span class="fn">walk</span>(n.left.<span class="fn">as_deref</span>(), out);
+        <span class="cm">// in-order:   out.push(n.val) here</span>
+        <span class="fn">walk</span>(n.right.<span class="fn">as_deref</span>(), out);
+        <span class="cm">// post-order: out.push(n.val) here</span>
+    }
+}</code></pre>
+  <ul>
+    <li><strong>Pre-order</strong> (node, left, right): act before the children. Copy or serialize a tree, or pass information <em>down</em> (a running sum, a depth, bounds).</li>
+    <li><strong>In-order</strong> (left, node, right): on a BST, the keys come out sorted.</li>
+    <li><strong>Post-order</strong> (left, right, node): the node needs its children’s answers first. Height, diameter, freeing memory and evaluating expressions all work this way.</li>
+  </ul>
+  <p>In-order alone does not pin down the shape. Rebuilding a tree from value lists (with distinct values) takes in-order plus pre- or post-order (<a href="https://www.techinterviewhandbook.org/algorithms/tree/" target="_blank">Tech Interview Handbook</a>). Pre-order that also records each <code>None</code> does pin it down, which is one standard way to solve Serialize and Deserialize. The handbook also warns that interviewers ask for an <em>iterative</em> version when the recursive one comes too fast. Iterative in-order is the one to know. Dive left while pushing the path onto a <code>Vec</code>, pop, visit, then step right.</p>
+  <pre><code><span class="kw">fn</span> <span class="fn">inorder_iter</span>(root: <span class="ty">Option</span>&lt;&amp;<span class="ty">TreeNode</span>&gt;) -&gt; <span class="ty">Vec</span>&lt;<span class="ty">i32</span>&gt; {
+    <span class="kw">let</span> (<span class="kw">mut</span> out, <span class="kw">mut</span> stack, <span class="kw">mut</span> cur) = (<span class="ty">Vec</span>::<span class="fn">new</span>(), <span class="ty">Vec</span>::<span class="fn">new</span>(), root);
+    <span class="kw">loop</span> {
+        <span class="kw">while let</span> <span class="ty">Some</span>(n) = cur {           <span class="cm">// dive left, stacking the path</span>
+            stack.<span class="fn">push</span>(n);
+            cur = n.left.<span class="fn">as_deref</span>();
+        }
+        <span class="kw">let</span> <span class="ty">Some</span>(n) = stack.<span class="fn">pop</span>() <span class="kw">else</span> { <span class="kw">return</span> out };
+        out.<span class="fn">push</span>(n.val);                    <span class="cm">// visit the leftmost unvisited node</span>
+        cur = n.right.<span class="fn">as_deref</span>();           <span class="cm">// then its right subtree</span>
+    }
+}
+<span class="cm">// O(n) time; the stack holds at most one root-to-leaf path: O(h) space.</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(n)</span><span class="label">Space</span><span class="val">O(h)</span></div>
+
+  <h2 id="level-order">Level order: a queue, one level per round</h2>
+  <p>“By level”, “each depth” or “right side view” means breadth-first search with a <code>VecDeque</code>. At the start of each round the queue holds exactly one level, so snapshot <code>q.len()</code> and pop that many.</p>
+  <pre><code><span class="kw">use</span> std::collections::<span class="ty">VecDeque</span>;
+
+<span class="kw">fn</span> <span class="fn">levels</span>(root: <span class="ty">Option</span>&lt;&amp;<span class="ty">TreeNode</span>&gt;) -&gt; <span class="ty">Vec</span>&lt;<span class="ty">Vec</span>&lt;<span class="ty">i32</span>&gt;&gt; {
+    <span class="kw">let mut</span> out = <span class="ty">Vec</span>::<span class="fn">new</span>();
+    <span class="kw">let mut</span> q: <span class="ty">VecDeque</span>&lt;&amp;<span class="ty">TreeNode</span>&gt; = root.<span class="fn">into_iter</span>().<span class="fn">collect</span>();
+    <span class="kw">while</span> !q.<span class="fn">is_empty</span>() {
+        <span class="kw">let mut</span> level = <span class="ty">Vec</span>::<span class="fn">with_capacity</span>(q.<span class="fn">len</span>());
+        <span class="kw">for</span> _ <span class="kw">in</span> <span class="nm">0</span>..q.<span class="fn">len</span>() {                  <span class="cm">// this level only</span>
+            <span class="kw">let</span> n = q.<span class="fn">pop_front</span>().<span class="fn">unwrap</span>();
+            level.<span class="fn">push</span>(n.val);
+            q.<span class="fn">extend</span>(n.left.<span class="fn">as_deref</span>());       <span class="cm">// an Option yields 0 or 1 items</span>
+            q.<span class="fn">extend</span>(n.right.<span class="fn">as_deref</span>());
+        }
+        out.<span class="fn">push</span>(level);
+    }
+    out
+}
+<span class="cm">// O(n) time, O(w) space for max width w: (n+1)/2 on a perfect tree.</span></code></pre>
+  <p>No visited set: a tree is acyclic and every node has one parent, so each node is enqueued once. Graphs break both, which is why <a href="0006-graph-traversal-bfs-dfs.html#visited-set">lesson 6</a> adds one.</p>
+
+  <h2>Drill: click the traversal</h2>
+  <p>Click the nodes in visit order. The tree is deliberately <em>not</em> a BST, so in-order will not come out sorted.</p>
+  <div class="tw" id="tw">
+    <div class="tw-row" id="tw-modes" role="group" aria-label="Traversal order"></div>
+    <p class="tw-prompt" id="tw-prompt"></p>
+    <div class="tw-stage" id="tw-stage"><svg class="tw-edges" id="tw-edges" viewBox="0 0 100 224" preserveAspectRatio="none" aria-hidden="true"></svg></div>
+    <div class="tw-seq"><span class="tw-k">visited</span><span id="tw-seq"></span></div>
+    <p class="tw-msg" id="tw-msg" aria-live="polite"></p>
+    <pre class="tw-code" id="tw-code" hidden></pre>
+    <div class="tw-row"><button type="button" id="tw-reset">Restart this order</button><button type="button" id="tw-next" hidden>Next order →</button></div>
+  </div>
+
+  <h2 id="bst-property">The BST property: in-order is sorted</h2>
+  <p>In a binary search tree, every key in a node’s <em>left subtree</em> is smaller than the node’s key, and every key in its <em>right subtree</em> is larger (<a href="https://algs4.cs.princeton.edu/32bst/" target="_blank">Sedgewick &amp; Wayne §3.2</a>). That means whole subtrees, not just children. Equivalently, the in-order traversal is sorted (<a href="https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/resources/mit6_006s20_lec6/" target="_blank">MIT 6.006 L6</a>). Each comparison discards a whole subtree, which makes a BST <a href="0007-binary-search.html#search-invariant">binary search</a> stored in pointers:</p>
+  <pre><code><span class="kw">use</span> std::cmp::<span class="ty">Ordering</span>;
+
+<span class="kw">fn</span> <span class="fn">contains</span>(<span class="kw">mut</span> node: <span class="ty">Option</span>&lt;&amp;<span class="ty">TreeNode</span>&gt;, x: <span class="ty">i32</span>) -&gt; <span class="ty">bool</span> {
+    <span class="kw">while let</span> <span class="ty">Some</span>(n) = node {
+        node = <span class="kw">match</span> x.<span class="fn">cmp</span>(&amp;n.val) {
+            <span class="ty">Ordering</span>::Less    =&gt; n.left.<span class="fn">as_deref</span>(),
+            <span class="ty">Ordering</span>::Greater =&gt; n.right.<span class="fn">as_deref</span>(),
+            <span class="ty">Ordering</span>::Equal   =&gt; <span class="kw">return true</span>,
+        };
+    }
+    <span class="kw">false</span>
+}
+<span class="cm">// O(h) time, O(1) space: one root-to-leaf path, no recursion.</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(h)</span><span class="label">Space</span><span class="val">O(1)</span></div>
+  <p>Insert follows the same path and hangs a new leaf where the search fell off, so it is O(h) too. <strong>Kth smallest</strong> is <code>inorder_iter</code> with a counter that returns on the k-th pop, in O(h + k) time and O(h) space. When a question says “BST”, the interviewer usually wants the ordering used to beat O(n) (<a href="https://www.techinterviewhandbook.org/algorithms/tree/" target="_blank">TIH</a>).</p>
+
+  <h3 id="validate-bst">Validating a BST: pass the bounds down</h3>
+  <p>Every node inherits an open interval (lo, hi) from its ancestors. Going left sets <em>hi</em> to the parent’s key, and going right sets <em>lo</em>. The bounds flow down, so this is pre-order.</p>
+  <pre><code><span class="kw">fn</span> <span class="fn">is_bst</span>(node: <span class="ty">Option</span>&lt;&amp;<span class="ty">TreeNode</span>&gt;, lo: <span class="ty">Option</span>&lt;<span class="ty">i32</span>&gt;, hi: <span class="ty">Option</span>&lt;<span class="ty">i32</span>&gt;) -&gt; <span class="ty">bool</span> {
+    <span class="kw">match</span> node {
+        <span class="ty">None</span> =&gt; <span class="kw">true</span>,
+        <span class="ty">Some</span>(n) =&gt; lo.<span class="fn">is_none_or</span>(|l| l &lt; n.val)
+            &amp;&amp; hi.<span class="fn">is_none_or</span>(|h| n.val &lt; h)
+            &amp;&amp; <span class="fn">is_bst</span>(n.left.<span class="fn">as_deref</span>(), lo, <span class="ty">Some</span>(n.val))
+            &amp;&amp; <span class="fn">is_bst</span>(n.right.<span class="fn">as_deref</span>(), <span class="ty">Some</span>(n.val), hi),
+    }
+}
+<span class="cm">// is_bst(root, None, None): O(n) time, O(h) space.
+// Alternative: inorder_iter, then check strictly increasing. Also O(n).</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(n)</span><span class="label">Space</span><span class="val">O(h)</span></div>
+  <div class="callout warn">
+    <strong>Common interview trap</strong>
+    Checking only <code>left.val &lt; n.val &lt; right.val</code> accepts 5 → left 3 → right 6. Every edge passes, but 6 sits in 5’s left subtree. The second trap is <code>i32::MIN</code>/<code>i32::MAX</code> as “no bound” sentinels. A node whose value <em>is</em> <code>i32::MIN</code> then fails <code>lo &lt; val</code>. Use <code>Option</code> bounds or widen to <code>i64</code>.
+  </div>
+
+  <h3>Drill: valid BST?</h3>
+  <p>Use the strict definition: left subtree smaller, right subtree larger, so a repeated key counts as a violation. For an invalid tree, say whether a direct parent–child pair is out of order, or a deeper node breaks an older ancestor’s bound.</p>
+  <div id="bst-exercise" class="mc-exercise"></div>
+
+  <h2 id="tree-height">Height decides the cost: O(h), not O(log n)</h2>
+  <p>Height is the number of edges on the longest root-to-leaf path (<code>max_depth</code> counts nodes, so say which you mean). BST search, insert, min, max, floor and delete all take time proportional to the height in the worst case (<a href="https://algs4.cs.princeton.edu/32bst/" target="_blank">algs4</a>). The height depends on insertion order. Here are the keys 1…1000 inserted into a plain BST three ways:</p>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>Insertion order</th><th>Height</th><th>Search</th></tr>
+    <tr><td>Median first, recursively</td><td>9 (⌊log₂ 1000⌋)</td><td>O(log n)</td></tr>
+    <tr><td>Random order</td><td>≈ 21 on average; 90% of 10,000 shuffles gave 18 to 24</td><td>O(log n) expected</td></tr>
+    <tr><td>Sorted: 1, 2, 3, …</td><td>999, a linked list</td><td>O(n)</td></tr>
+  </table></div>
+  <p>So “BST ops are O(log n)” assumes balance. A sorted stream turns a BST into a list, and recursing on it costs O(n) <a href="0008-recursion-and-backtracking.html#call-stack-space">call-stack space</a>. Self-balancing trees restructure on insert to keep h = O(log n), and MIT’s framing is to design operations in O(h) and then keep h = O(log n) (<a href="https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/resources/mit6_006s20_lec6/" target="_blank">6.006</a>). This lesson skips the rotations. Know what they guarantee.</p>
+  <p><strong>Rust’s std has no BST.</strong> Its ordered map is <code>BTreeMap</code>, a B-tree that packs many keys into each node for cache efficiency (<a href="https://doc.rust-lang.org/std/collections/struct.BTreeMap.html" target="_blank">docs</a>), with O(log n) get, insert, remove and <code>range</code> (<a href="https://doc.rust-lang.org/std/collections/index.html#cost-of-collection-operations" target="_blank">std::collections</a>). Recognition cue: sorted iteration, ranges, min/max, or “largest key ≤ t” (<code>map.range(..=t).next_back()</code>) mean <code>BTreeMap</code>. Membership or counts alone mean a <a href="0002-arrays-and-hashmaps.html#hash-table">HashMap</a>, which is expected O(1) and unordered.</p>
+
+  <div class="callout">
+    <strong>Why interviewers care</strong>
+    Trees are the cleanest test of whether you can decompose a problem into “the answer for my subtree”, and of whether you cost recursion honestly. Saying “O(n) time, O(h) space, and h is n for a skewed tree” without prompting is the part most candidates fumble.
+  </div>
+
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Recursive <code>max_depth</code> runs on a tree of n nodes that is a single left-leaning chain. Time and extra space?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','The time is right, but each pending call holds a stack frame. A chain keeps n frames alive at once, and the Big-O space rule counts that as extra memory.')">O(n) time, O(1) extra space</button>
+        <button onclick="quizAnswer(this,false,'q1','log n needs a balanced tree. A chain has height n − 1, and max_depth touches every node anyway, so the time is O(n) whatever the shape.')">O(log n) time, O(log n) space</button>
+        <button onclick="quizAnswer(this,true,'q1','Right. Each node gets one call, so O(n) time. At the deepest point n frames sit on the stack, so O(h) space, which is O(n) for a chain.')">O(n) time, O(n) extra space</button>
+        <button onclick="quizAnswer(this,false,'q1','Each call does O(1) work besides its two subcalls, and each node gets exactly one call. That totals O(n), not quadratic.')">O(n²) time, O(n) extra space</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Return a binary tree’s values grouped by depth, top level first. What do you reach for?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right. At the start of each round the queue holds exactly one level. Snapshot its length, pop that many, push their children. O(n) time, O(w) space.')">VecDeque, draining q.len() nodes per round</button>
+        <button onclick="quizAnswer(this,false,'q2','An explicit stack gives depth-first order: it dives down one branch before finishing a level, so values recorded as they pop interleave depths. DFS works only if you also carry each node’s depth and push into out[depth].')">Vec stack, recording each node as it pops</button>
+        <button onclick="quizAnswer(this,false,'q2','A heap orders by key, not by depth. It would emit the values in sorted order and mix the levels together.')">BinaryHeap keyed on each node’s value</button>
+        <button onclick="quizAnswer(this,false,'q2','Post-order emits every node after its descendants, so leaves come out before their ancestors and each level is scattered across the output, unless you also pass the depth down and index out[depth].')">Recursive post-order, record after children</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. A candidate validates a BST by checking only that each left child is smaller and each right child larger than its parent. Which tree passes their check but is <em>not</em> a BST?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','Their child check catches this one: 12 is a left child but larger than 10. The question asks for a tree that slips through.')">10 with left child 12, nothing more</button>
+        <button onclick="quizAnswer(this,false,'q3','This really is a BST: 20 &gt; 15 &gt; 10, so it respects every ancestor. Both checks accept it, correctly.')">10, right child 15, 15’s right child 20</button>
+        <button onclick="quizAnswer(this,false,'q3','2 &lt; 5 &lt; 10 respects every ancestor bound. This is a genuine BST, and both checks agree.')">10, left child 5, 5’s left child 2</button>
+        <button onclick="quizAnswer(this,true,'q3','Right. Each edge passes (5 &lt; 10, 12 &gt; 5), but 12 sits in 10’s left subtree, where everything must be below 10. Only bounds passed down catch it.')">10, left child 5, 5’s right child 12</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Timestamped events arrive out of order, interleaved with queries for “the latest event at or before time t”. Which std collection, at what cost per operation?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','Inserts are expected O(1), but a hash map has no order. Finding the latest key at or before t means scanning every key, O(n) per query.')">HashMap: expected O(1) insert and query</button>
+        <button onclick="quizAnswer(this,true,'q4','Right. Ordered keys make it a floor lookup, map.range(..=t).next_back(), in O(log n), and inserts are O(log n) too.')">BTreeMap: O(log n) insert and query</button>
+        <button onclick="quizAnswer(this,false,'q4','partition_point finds the slot in O(log n), but Vec::insert shifts every later element, so an out-of-order insert is O(n).')">Sorted Vec: O(log n) insert and query</button>
+        <button onclick="quizAnswer(this,false,'q4','A heap exposes only its maximum. Finding the largest key at or below t needs a full scan, which is O(n).')">BinaryHeap: O(log n) insert and query</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Solve these in Rust from a blank file with <code>Option&lt;Box&lt;TreeNode&gt;&gt;</code>. Before you type, say what <code>f(subtree)</code> returns, the base case, the combine step, and the time and space. Most are on the handbook’s <a href="https://www.techinterviewhandbook.org/algorithms/tree/" target="_blank">tree page</a>.</p>
+  <ol>
+    <li><strong>Maximum Depth of Binary Tree</strong>, <strong>Invert Binary Tree</strong> and <strong>Same Tree</strong>, each in under five minutes.</li>
+    <li><strong>Path Sum</strong> (mind the one-child case) and <strong>Diameter of Binary Tree</strong> with the tuple return.</li>
+    <li><strong>Binary Tree Level Order Traversal</strong>, then <strong>Binary Tree Right Side View</strong> with the same loop.</li>
+    <li><strong>Validate Binary Search Tree</strong>, <strong>Kth Smallest Element in a BST</strong> (iteratively), then <strong>Lowest Common Ancestor of a BST</strong> in O(h).</li>
+    <li>Stretch: <strong>Construct Binary Tree from Preorder and Inorder Traversal</strong>, then <strong>Serialize and Deserialize Binary Tree</strong>.</li>
+  </ol>
+  <p>Tomorrow, redo the traversal drill cold, before rereading any code.</p>
+
+  <h2>Primary resource</h2>
+  <p>Read Sedgewick &amp; Wayne, <a href="https://algs4.cs.princeton.edu/32bst/" target="_blank"><em>Algorithms</em> 4e, §3.2 Binary Search Trees</a> (free online). It covers recursive search and insert, in-order traversal yielding sorted keys, and why every operation costs time proportional to height, with the best- and worst-case shapes. Skim the Java; read the prose and figures.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> A good drill: “Give me a tree problem I haven’t seen. Before I code, make me state what f(subtree) returns, the base case and the combine step, then push back like a Google interviewer.” Or ask how to write <code>is_bst</code> iteratively, or how to give a deep <code>Box</code> tree a non-recursive <code>Drop</code>. Type a question in Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0004-stacks-and-queues.html">← Lesson 4: Stacks &amp; Queues</a>
+    <span class="spacer"></span>
+    <a href="0006-graph-traversal-bfs-dfs.html">Lesson 6: Graph Traversal (BFS / DFS) →</a>
+  </div>
+
+</div>
+
+<style>
+blockquote.quote { border-left: 3px solid var(--accent); padding: .6rem 1rem; margin: 1rem 0; color: var(--ink-dim); font-style: italic; font-size: .95rem; }
+.tbl-wrap { overflow-x: auto; margin: 1rem 0 1.25rem; }
+.tbl { width: 100%; border-collapse: collapse; font-family: var(--font-ui); font-size: .84rem; }
+.tbl th, .tbl td { border-bottom: 1px solid var(--border); padding: .45rem .5rem; text-align: left; vertical-align: top; }
+.tbl th { color: var(--muted); font-weight: normal; text-transform: uppercase; font-size: .7rem; letter-spacing: .06em; }
+.tw { background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin: 1.25rem 0; font-family: var(--font-ui); font-size: .88rem; }
+.tw button { background: var(--bg-sunken); color: var(--ink); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .35rem .7rem; font: inherit; cursor: pointer; }
+.tw button:hover:not(:disabled) { border-color: var(--accent-border); background: var(--accent-soft); }
+.tw button.on { border-color: var(--accent); color: var(--accent-strong); background: var(--accent-soft); }
+.tw-row { display: flex; flex-wrap: wrap; gap: .4rem; }
+.tw-prompt { margin: .75rem 0 .25rem; color: var(--ink-dim); }
+.tw-stage { position: relative; height: 224px; margin: .25rem 0 .5rem; }
+.tw-edges { position: absolute; inset: 0; width: 100%; height: 100%; }
+.tw-edges line { stroke: var(--faint); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.tw .tw-node { position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; padding: 0; border-radius: 50%; border: 2px solid var(--accent-border); font-family: var(--font-mono); font-size: .9rem; }
+.tw .tw-node.done { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-strong); cursor: default; }
+.tw button.tw-node.bad, .tw button.tw-node.bad:hover { background: var(--err-lt); border-color: var(--err); color: var(--err); }
+.tw-seq { font-family: var(--font-mono); display: flex; gap: .75rem; min-height: 1.4em; }
+.tw-k { color: var(--muted); font-family: var(--font-ui); }
+.tw-msg { min-height: 2.6em; margin: .5rem 0; color: var(--ink-dim); }
+.tw-msg.good { color: var(--accent-strong); }
+.tw-msg.bad { color: var(--err); }
+.tw-code { font-size: .78rem; margin: .5rem 0 .75rem; padding: .75rem; white-space: pre-wrap; }
+.tw [hidden] { display: none; }
+.mini-tree { margin: 0 0 .75rem; }
+.mini-tree svg { display: block; max-width: 100%; height: auto; }
+.mini-tree line { stroke: var(--faint); stroke-width: 1.5; }
+.mini-tree circle { fill: var(--bg-sunken); stroke: var(--accent); stroke-width: 1.5; }
+.mini-tree text { fill: var(--ink); font-family: var(--font-mono); font-size: 12px; text-anchor: middle; dominant-baseline: central; }
+</style>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+// Trees are nested arrays [val, left, right]; x = in-order index, so no two nodes share a column.
+function layoutTree(spec) {
+  const nodes = [];
+  let col = 0;
+  (function go(t, depth, parent) {
+    if (!t) return null;
+    const me = { val: t[0], depth, parent };
+    nodes.push(me);
+    me.left = go(t[1], depth + 1, me);
+    me.x = col++;
+    me.right = go(t[2], depth + 1, me);
+    return me;
+  })(spec, 0, null);
+  return nodes;
+}
+
+// ---- Drill 1: click the traversal ----
+(function () {
+  const nodes = layoutTree([8, [3, [1], [9, [4], [7]]], [5, null, [2, [6], null]]]);
+  const root = nodes[0], N = nodes.length;
+  const X = n => (n.x + 0.5) * 100 / N, Y = n => 28 + n.depth * 56;
+  const $ = id => document.getElementById(id);
+  const msg = $('tw-msg');
+
+  const MODES = [
+    { id: 'pre', name: 'Pre-order', rule: 'node, left subtree, right subtree',
+      code: 'Some(n) => { visit(n.val); walk(left); walk(right); }  // visit first' },
+    { id: 'in', name: 'In-order', rule: 'left subtree, node, right subtree',
+      code: 'Some(n) => { walk(left); visit(n.val); walk(right); }  // visit between' },
+    { id: 'post', name: 'Post-order', rule: 'left subtree, right subtree, node',
+      code: 'Some(n) => { walk(left); walk(right); visit(n.val); }  // visit last' },
+    { id: 'level', name: 'Level order', rule: 'depth by depth, each left to right',
+      code: 'while let Some(n) = q.pop_front() { visit(n.val); q.extend(n.left.as_deref()); q.extend(n.right.as_deref()); }' },
+  ];
+
+  function orderOf(mode) {
+    const out = [];
+    if (mode === 'level') {
+      for (const q = [root]; q.length;) { const n = q.shift(); out.push(n); if (n.left) q.push(n.left); if (n.right) q.push(n.right); }
+      return out;
+    }
+    (function go(n) {
+      if (!n) return;
+      if (mode === 'pre') out.push(n);
+      go(n.left);
+      if (mode === 'in') out.push(n);
+      go(n.right);
+      if (mode === 'post') out.push(n);
+    })(root);
+    return out;
+  }
+
+  const isAnc = (a, b) => { for (let p = b.parent; p; p = p.parent) if (p === a) return true; return false; };
+  const lca = (a, b) => { for (let p = a; p; p = p.parent) if (isAnc(p, b)) return p; return root; };
+
+  // Why must e (the correct next node) come before the clicked node c?
+  function why(mode, e, c) {
+    const E = e.val, C = c.val;
+    if (mode === 'level') return c.depth > e.depth
+      ? `Level order finishes depth ${e.depth} before depth ${c.depth}, and ${E} at depth ${e.depth} is still unvisited.`
+      : `${E} and ${C} share depth ${e.depth}, and level order reads each depth left to right.`;
+    if (mode === 'pre' && isAnc(e, c)) return `Pre-order visits a node before everything below it, and ${C} is below ${E}.`;
+    if (mode === 'post' && isAnc(c, e)) return `Post-order visits ${C} only after its whole subtree, and ${E} below it is not done yet.`;
+    if (mode === 'in' && isAnc(c, e)) return `In-order finishes ${C}’s whole left subtree before visiting ${C}, and ${E} is still waiting there.`;
+    if (mode === 'in' && isAnc(e, c)) return `${C} is in ${E}’s right subtree, and in-order visits ${E} before its right subtree.`;
+    const l = lca(e, c).val;
+    return `${E} is in ${l}’s left subtree and ${C} is in its right. ` +
+      (mode === 'in' ? `In-order goes left subtree, then ${l}, then right subtree.` : 'The left subtree is finished first.');
+  }
+
+  nodes.forEach(n => {
+    if (n.parent) {
+      const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      [['x1', X(n.parent)], ['y1', Y(n.parent)], ['x2', X(n)], ['y2', Y(n)]].forEach(([k, v]) => l.setAttribute(k, v));
+      $('tw-edges').appendChild(l);
+    }
+    const b = n.btn = document.createElement('button');
+    b.type = 'button';
+    b.className = 'tw-node';
+    b.textContent = n.val;
+    b.style.left = X(n) + '%';
+    b.style.top = Y(n) + 'px';
+    b.addEventListener('click', () => click(n));
+    $('tw-stage').appendChild(b);
+  });
+
+  let mi = 0, seq = [], slips = 0, target = [];
+  const modeBtns = MODES.map((m, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = m.name;
+    b.addEventListener('click', () => start(i));
+    $('tw-modes').appendChild(b);
+    return b;
+  });
+
+  function start(i) {
+    mi = i; seq = []; slips = 0; target = orderOf(MODES[i].id);
+    modeBtns.forEach((b, j) => { b.classList.toggle('on', j === i); b.setAttribute('aria-pressed', j === i); });
+    nodes.forEach(n => { n.btn.disabled = false; n.btn.classList.remove('done', 'bad'); n.btn.setAttribute('aria-label', 'node ' + n.val); });
+    $('tw-prompt').textContent = `${MODES[i].name} (${MODES[i].rule}). Click the nodes in visit order.`;
+    $('tw-seq').textContent = '';
+    $('tw-code').hidden = $('tw-next').hidden = true;
+    msg.textContent = ''; msg.className = 'tw-msg';
+  }
+
+  function click(n) {
+    if (seq.length >= N || n.btn.disabled) return;
+    const e = target[seq.length];
+    if (n !== e) {
+      slips++;
+      msg.className = 'tw-msg bad';
+      msg.textContent = `Not ${n.val} yet. ` + why(MODES[mi].id, e, n);
+      n.btn.classList.add('bad');
+      setTimeout(() => n.btn.classList.remove('bad'), 700);
+      return;
+    }
+    seq.push(n);
+    n.btn.disabled = true;
+    n.btn.classList.add('done');
+    n.btn.setAttribute('aria-label', `node ${n.val}, visited ${seq.length}`);
+    $('tw-seq').textContent = seq.map(s => s.val).join(' ');
+    msg.className = 'tw-msg'; msg.textContent = '';
+    if (seq.length === N) {
+      msg.className = 'tw-msg good';
+      msg.textContent = `Complete, ${slips ? slips + ' slip' + (slips > 1 ? 's' : '') : 'no slips'}. The only difference between orders is where the visit sits:`;
+      $('tw-code').textContent = MODES[mi].code;
+      $('tw-code').hidden = $('tw-next').hidden = false;
+    }
+  }
+
+  $('tw-reset').addEventListener('click', () => start(mi));
+  $('tw-next').addEventListener('click', () => start((mi + 1) % MODES.length));
+  start(0);
+})();
+
+// ---- Drill 2: valid BST? ----
+function miniTreeSVG(spec) {
+  const nodes = layoutTree(spec), W = 34, H = 40;
+  const w = nodes.length * W, h = (Math.max(...nodes.map(n => n.depth)) + 1) * H;
+  const px = n => n.x * W + W / 2, py = n => n.depth * H + H / 2;
+  let s = `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-label="binary tree">`;
+  nodes.forEach(n => { if (n.parent) s += `<line x1="${px(n.parent)}" y1="${py(n.parent)}" x2="${px(n)}" y2="${py(n)}"/>`; });
+  nodes.forEach(n => { s += `<circle cx="${px(n)}" cy="${py(n)}" r="13"/><text x="${px(n)}" y="${py(n)}">${n.val}</text>`; });
+  return s + '</svg>';
+}
+
+const BST_TREES = [
+  [5, [3, null, [6]], [8]],
+  [5, [5], [7]],
+  [1, null, [2, null, [3, null, [4]]]],
+  [10, [5, [2], [7]], [15, [9], [20]]],
+];
+const V = 'Valid: every bound holds', PC = 'Invalid: parent–child order broken', AN = 'Invalid: ancestor bound broken';
+renderMC('bst-exercise', [
+  { prompt: 'Tree 1: valid BST?', options: [
+    { text: V, explain: 'Every edge looks fine (3 < 5, 6 > 3, 8 > 5), but 6 sits in the left subtree of 5, where the bound is (−∞, 5).' },
+    { text: PC, explain: 'Check each edge: 3 < 5, 6 > 3 and 8 > 5 are all correct. The violation is against the root, two levels up.' },
+    { text: AN, correct: true, explain: '6 is a legal right child of 3, but it is inside the left subtree of 5, so its bound is (3, 5), and 6 > 5. This is the grandchild trap.' },
+  ]},
+  { prompt: 'Tree 2: valid BST?', options: [
+    { text: V, explain: 'Under the strict definition a left child must be smaller than its parent, and 5 is not smaller than 5.' },
+    { text: PC, correct: true, explain: 'The left child equals its parent, and the strict rule needs left < node. Some definitions allow ≤ (MIT 6.006 does), so ask the interviewer how duplicates are stored.' },
+    { text: AN, explain: 'The only violation is on a direct edge, 5 directly under 5. No deeper node is involved.' },
+  ]},
+  { prompt: 'Tree 3: valid BST?', options: [
+    { text: V, correct: true, explain: 'Each key sits in the right subtrees of all its ancestors and is larger than each of them, and in-order is 1 2 3 4. It is valid, but with height 3 for 4 nodes it is a list in disguise, so search is O(n).' },
+    { text: PC, explain: 'Each node is the right child of a smaller parent, which is exactly where larger keys belong.' },
+    { text: AN, explain: '4 sits in the right subtrees of 1, 2 and 3, so it must exceed all three, and it does. A skewed tree is slow, not invalid.' },
+  ]},
+  { prompt: 'Tree 4: valid BST?', options: [
+    { text: V, explain: '9 is a fine left child of 15, but it lives in the right subtree of 10, whose bound is (10, ∞).' },
+    { text: PC, explain: 'Every edge is locally correct: 2 < 5 < 7, 5 < 10 < 15 and 9 < 15 < 20. The break is with the root.' },
+    { text: AN, correct: true, explain: '9 must lie in (10, 15): above 10 because it is in the root’s right subtree, below 15 because it is a left child. 9 < 10 breaks the root’s bound.' },
+  ]},
+]);
+BST_TREES.forEach((t, i) => {
+  const card = document.getElementById('bst-exercise-card-' + i);
+  if (!card) return;
+  const div = document.createElement('div');
+  div.className = 'mini-tree';
+  div.innerHTML = miniTreeSVG(t);
+  card.insertBefore(div, card.querySelector('.mc-options'));
+});
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

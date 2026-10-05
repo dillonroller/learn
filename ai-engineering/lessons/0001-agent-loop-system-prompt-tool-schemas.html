@@ -89,7 +89,7 @@ loop:
       <p>1. What is the system prompt's role in the agent loop?</p>
       <div class="options">
         <button onclick="quizAnswer(this,true,'q1','Right — the system prompt is standing instructions resent with every single model call, setting scope and behavior before any user turn is even considered.')">Persistent instructions sent with every model call, setting behavior and scope</button>
-        <button onclick="quizAnswer(this,false,'q1','The model has no persistent memory between calls, so nothing can be configured "permanently" — the system prompt has to be resent as part of every call\'s transcript, not set once and forgotten.')">A one-time setup step that configures the model permanently so it doesn't need to be resent</button>
+        <button onclick="quizAnswer(this,false,'q1','The model has no persistent memory between calls, so nothing can be configured &quot;permanently&quot; — the system prompt has to be resent as part of every call\'s transcript, not set once and forgotten.')">A one-time setup step that configures the model permanently so it doesn't need to be resent</button>
         <button onclick="quizAnswer(this,false,'q1','That describes the ordinary conversation history (user and tool messages) — the system prompt is a separate, standing set of instructions, not the record of what the user has typed.')">The transcript of everything the user has typed so far</button>
         <button onclick="quizAnswer(this,false,'q1','A system prompt is plain instructions, not something invoked with arguments the way a tool is — it isn\'t part of the tools list at all.')">A tool schema that the model can call like any other tool</button>
       </div>
@@ -110,7 +110,7 @@ loop:
     <div class="q-block" id="q3">
       <p>3. In a naive agent loop with no termination condition, what's the most likely failure mode?</p>
       <div class="options">
-        <button onclick="quizAnswer(this,true,'q3','Right — with nothing signaling "task complete," the model keeps proposing tool calls indefinitely, since nothing in the loop ever tells it to stop.')">The model keeps calling tools indefinitely because nothing ever signals the task is done</button>
+        <button onclick="quizAnswer(this,true,'q3','Right — with nothing signaling &quot;task complete,&quot; the model keeps proposing tool calls indefinitely, since nothing in the loop ever tells it to stop.')">The model keeps calling tools indefinitely because nothing ever signals the task is done</button>
         <button onclick="quizAnswer(this,false,'q3','Missing termination logic is a runtime control-flow issue, not something that produces a compile error.')">The model call raises a compile error</button>
         <button onclick="quizAnswer(this,false,'q3','Termination logic is unrelated to whether the tool schemas themselves are valid JSON — those are independent concerns.')">The tool schemas become invalid JSON</button>
         <button onclick="quizAnswer(this,false,'q3','Tool results are appended as separate messages in the transcript — they don\'t overwrite the system prompt, which stays intact at the top of every call.')">The system prompt gets overwritten by the last tool result</button>
@@ -124,7 +124,7 @@ loop:
         <button onclick="quizAnswer(this,true,'q4','Right — OBSERVE is the harness appending the real, executed result of the tool it just ran, so the next READ has genuinely new information to work from.')">The real-world result of the tool the harness just executed, appended as a new message</button>
         <button onclick="quizAnswer(this,false,'q4','The system prompt is already present at the top of the transcript from the start — it isn\'t re-added as part of every OBSERVE step.')">A fresh copy of the system prompt</button>
         <button onclick="quizAnswer(this,false,'q4','That would defeat the purpose of calling a real tool at all — OBSERVE is specifically the actual executed result, not a prediction made before the tool runs.')">The model's own prediction of what the tool would return, generated before the tool runs</button>
-        <button onclick="quizAnswer(this,false,'q4','That describes a context-management technique (covered in lesson 3), not what "observe" refers to in the basic loop — OBSERVE is one tool result, not a rolled-up summary of everything.')">A summary of the entire conversation so far</button>
+        <button onclick="quizAnswer(this,false,'q4','That describes a context-management technique (covered in lesson 3), not what &quot;observe&quot; refers to in the basic loop — OBSERVE is one tool result, not a rolled-up summary of everything.')">A summary of the entire conversation so far</button>
       </div>
       <div class="feedback" id="q4-fb"></div>
     </div>
@@ -205,7 +205,7 @@ LOOP_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

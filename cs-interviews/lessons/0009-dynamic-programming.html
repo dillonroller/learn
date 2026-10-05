@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 9 — Dynamic Programming</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">CS Interview Prep</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 9 of 11 &nbsp;·&nbsp; CS Interview Prep &nbsp;·&nbsp; ~35 min</p>
+  <h1>Dynamic Programming</h1>
+  <p>When a prompt asks <em>how many ways</em>, <em>what is the minimum cost</em> or <em>is it possible</em>, the interviewer is testing two things. Can you see that your brute-force recursion keeps solving the same small problem? And can you name that problem in one precise sentence? In <a href="0008-recursion-and-backtracking.html#recursion-tree">lesson 8</a> you sized recursion trees, and naive fib is the O(2ⁿ) “naive recursion” row of <a href="0001-big-o-and-complexity.html">lesson 1</a>’s table (an upper bound; the true growth is φⁿ). Here that tree collapses to a line. In Erickson’s words, dynamic programming is “recursion without repetition” (<a href="https://jeffe.cs.illinois.edu/teaching/algorithms/book/03-dynprog.pdf" target="_blank">Algorithms, ch. 3</a>).</p>
+
+  <h2 id="overlapping-subproblems">Overlapping subproblems: the tree repeats itself</h2>
+  <p><a href="0008-recursion-and-backtracking.html#recursion-tree">Lesson 8</a>’s <code>fib(40)</code> makes 331,160,281 calls but only ever asks about 41 distinct arguments. fib(n − k) is called F(k + 1) times: fib(n − 2) twice, fib(n − 3) three times, fib(n − 4) five times. MIT 6.006 calls a recursion a DP when “subproblem dependencies overlap (DAG, in-degree &gt; 1)” (<a href="https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/resources/mit6_006s20_lec15/" target="_blank">Lecture 15</a>). The tree is really a small DAG whose nodes have several parents. The other ingredient, <em>optimal substructure</em> (answers built from smaller answers), is in the notes’ words “a property of recursion, not just dynamic programming”.</p>
+  <p>Caching also needs the answer below an argument to be independent of how you reached it. <a href="0008-recursion-and-backtracking.html#backtracking">Backtracking</a> that returns every permutation has nothing to reuse: each leaf is a distinct answer you must write out. A count, minimum or yes/no is one value per argument, so it caches.</p>
+
+  <h2 id="memoization">Memoization: the same recurrence, plus a cache</h2>
+  <p><strong>Memoization</strong> (top-down) keeps the recursion as written. It checks the cache before computing and stores the result after.</p>
+<pre><code><span class="kw">fn</span> <span class="fn">fib</span>(n: <span class="ty">usize</span>) -&gt; <span class="ty">u64</span> {
+    <span class="kw">fn</span> <span class="fn">go</span>(n: <span class="ty">usize</span>, memo: &amp;<span class="kw">mut</span> [<span class="ty">Option</span>&lt;<span class="ty">u64</span>&gt;]) -&gt; <span class="ty">u64</span> {
+        <span class="kw">if</span> n &lt; <span class="nm">2</span> { <span class="kw">return</span> n <span class="kw">as</span> <span class="ty">u64</span>; }
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ty">Some</span>(v) = memo[n] { <span class="kw">return</span> v; }      <span class="cm">// reuse</span>
+        <span class="kw">let</span> v = <span class="fn">go</span>(n - <span class="nm">1</span>, memo) + <span class="fn">go</span>(n - <span class="nm">2</span>, memo);  <span class="cm">// same recurrence</span>
+        memo[n] = <span class="ty">Some</span>(v);                          <span class="cm">// remember</span>
+        v
+    }
+    <span class="fn">go</span>(n, &amp;<span class="kw">mut</span> vec![<span class="ty">None</span>; n + <span class="nm">1</span>])
+}
+<span class="cm">// O(n) time: n + 1 states × O(1) work. O(n) space: memo + n stack frames.</span>
+<span class="cm">// Can you do better? Fill it bottom-up, then keep only two values.</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(n)</span><span class="label">Space</span><span class="val">O(n)</span></div>
+  <p><code>fib(40)</code> drops from 331 million calls to 79, which is 2n − 1 (counted by running it), though the first descent still goes <a href="0008-recursion-and-backtracking.html#call-stack-space">n frames deep</a>. Pass the memo as <code>&amp;mut</code>. A <code>Vec&lt;Option&lt;_&gt;&gt;</code> over small dense integers indexes in worst-case O(1). A <code>HashMap&lt;(usize, usize), i64&gt;</code> is <a href="0002-arrays-and-hashmaps.html#hash-table">expected O(1) plus hashing</a>, so save it for sparse or unbounded states. Key on index tuples, not <code>format!</code>ed strings, and never use a global <code>static mut</code>.</p>
+
+  <h2 id="tabulation">Tabulation: fill in topological order</h2>
+  <p>Draw each argument as a node, with an edge from each subproblem to every caller that reads it. That is the <em>subproblem DAG</em>. <strong>Tabulation</strong> (bottom-up) fills it in a <a href="0006-graph-traversal-bfs-dfs.html#topological-sort">topological order</a>, so each value is ready before anything reads it. For fib that is a plain loop, <code>dp[i] = dp[i - 1] + dp[i - 2]</code> for i in 2..=n: O(n) time, no recursion. Erickson calls this “Fill Deliberately”.</p>
+  <div class="tb-wrap"><table class="tb-table">
+    <tr><th></th><th>Top-down (memo)</th><th>Bottom-up (table)</th></tr>
+    <tr><td>Cost</td><td>states × work per state</td><td>the same</td></tr>
+    <tr><td>Visits</td><td>only reachable states</td><td>every state in range</td></tr>
+    <tr><td>Order</td><td>found by the recursion</td><td>you pick a topological order</td></tr>
+    <tr><td>Stack</td><td>O(depth), can overflow</td><td>none</td></tr>
+    <tr><td>Rolling array</td><td>awkward</td><td>natural</td></tr>
+  </table></div>
+  <div class="callout warn">
+    <strong>Common interview trap</strong>
+    “Bottom-up is faster.” Asymptotically the two are identical, because both pay states × work per state. Name the real differences: top-down skips unreachable states, while bottom-up has no recursion depth and can roll its array.
+  </div>
+
+  <h2 id="dp-state">State and transition: the real work</h2>
+  <p>The <strong>state</strong> is the smallest set of parameters that fixes a subproblem’s answer. The <strong>transition</strong> (recurrence) computes that answer from smaller states. If the state forgets something the future depends on, the recurrence is wrong. If it carries more than it needs, the table explodes. Erickson: “Dynamic programming is not about filling in tables. It’s about smart recursion!”</p>
+
+  <h3 id="srtbot">SRTBOT: six lines you can say out loud</h3>
+  <p>MIT 6.006’s checklist (<a href="https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/resources/mit6_006s20_lec15/" target="_blank">Lecture 15</a>), applied to <strong>Coin Change</strong>: the fewest coins summing to <code>amount</code>, with unlimited supply.</p>
+  <ul class="srt">
+    <li><b>S</b>ubproblem: dp[x] is the fewest coins summing to x, or none.</li>
+    <li><b>R</b>elate: guess the last coin, dp[x] = 1 + min over c ≤ x of dp[x − c].</li>
+    <li><b>T</b>opological order: increasing x, since every edge comes from a smaller sum.</li>
+    <li><b>B</b>ase case: dp[0] = 0. <b>O</b>riginal: dp[amount].</li>
+    <li><b>T</b>ime: (amount + 1) states × k coins = O(amount·k), not just “amount”.</li>
+  </ul>
+<pre><code><span class="kw">fn</span> <span class="fn">coin_change</span>(coins: &amp;[<span class="ty">usize</span>], amount: <span class="ty">usize</span>) -&gt; <span class="ty">Option</span>&lt;<span class="ty">usize</span>&gt; {
+    <span class="kw">let</span> <span class="kw">mut</span> dp = vec![<span class="ty">usize</span>::<span class="ty">MAX</span>; amount + <span class="nm">1</span>];  <span class="cm">// MAX = no way to make x</span>
+    dp[<span class="nm">0</span>] = <span class="nm">0</span>;                                   <span class="cm">// B</span>
+    <span class="kw">for</span> x <span class="kw">in</span> <span class="nm">1</span>..=amount {                        <span class="cm">// T: increasing x</span>
+        <span class="kw">for</span> &amp;c <span class="kw">in</span> coins {                        <span class="cm">// R: try each last coin</span>
+            <span class="kw">if</span> c &lt;= x &amp;&amp; dp[x - c] != <span class="ty">usize</span>::<span class="ty">MAX</span> {
+                dp[x] = dp[x].<span class="fn">min</span>(dp[x - c] + <span class="nm">1</span>);
+            }
+        }
+    }
+    (dp[amount] != <span class="ty">usize</span>::<span class="ty">MAX</span>).<span class="fn">then_some</span>(dp[amount])  <span class="cm">// O</span>
+}
+<span class="cm">// O(amount·k) time, O(amount) space. [1, 3, 4] gives dp = [0, 1, 2, 1, 1, 2, 2].</span></code></pre>
+  <p>Top-down is the same recurrence. <code>Option&lt;Option&lt;usize&gt;&gt;</code> separates “not solved yet” (<code>None</code>) from “solved, and impossible” (<code>Some(None)</code>). A <code>-1</code> sentinel blurs those two.</p>
+<pre><code><span class="kw">fn</span> <span class="fn">coin_change</span>(coins: &amp;[<span class="ty">usize</span>], amount: <span class="ty">usize</span>) -&gt; <span class="ty">Option</span>&lt;<span class="ty">usize</span>&gt; {
+    <span class="kw">fn</span> <span class="fn">go</span>(x: <span class="ty">usize</span>, coins: &amp;[<span class="ty">usize</span>],
+          memo: &amp;<span class="kw">mut</span> [<span class="ty">Option</span>&lt;<span class="ty">Option</span>&lt;<span class="ty">usize</span>&gt;&gt;]) -&gt; <span class="ty">Option</span>&lt;<span class="ty">usize</span>&gt; {
+        <span class="kw">if</span> x == <span class="nm">0</span> { <span class="kw">return</span> <span class="ty">Some</span>(<span class="nm">0</span>); }
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ty">Some</span>(ans) = memo[x] { <span class="kw">return</span> ans; }  <span class="cm">// outer Some: already solved</span>
+        <span class="kw">let</span> ans = coins.<span class="fn">iter</span>()
+            .<span class="fn">filter</span>(|&amp;&amp;c| c &lt;= x)
+            .<span class="fn">filter_map</span>(|&amp;c| <span class="fn">go</span>(x - c, coins, memo)) <span class="cm">// skip unreachable x − c</span>
+            .<span class="fn">min</span>()
+            .<span class="fn">map</span>(|best| best + <span class="nm">1</span>);
+        memo[x] = <span class="ty">Some</span>(ans);                         <span class="cm">// caches “impossible” too</span>
+        ans
+    }
+    <span class="fn">go</span>(amount, coins, &amp;<span class="kw">mut</span> vec![<span class="ty">None</span>; amount + <span class="nm">1</span>])
+}
+<span class="cm">// Same O(amount·k) time; O(amount) space, but up to amount frames deep.</span></code></pre>
+  <p>The depth is real. With coins [1, 3, 4] this version aborts with “has overflowed its stack” at amount 100,000 on a spawned thread with the default stack, <a href="https://doc.rust-lang.org/std/thread/index.html#stack-size" target="_blank">currently 2 MiB</a> on Tier-1 platforms. The bottom-up loop handles 10⁶ (both measured with rustc 1.97, optimized).</p>
+
+  <h2>Fill the table</h2>
+  <p>Run the recurrence by hand, one cell at a time. A wrong value shows the candidates it should have compared. The second tab is a 2D state: the number of paths into a grid cell moving only right or down, which is <em>up + left</em>.</p>
+  <div class="fill" id="fill">
+    <div class="fill-row">
+      <button type="button" class="fill-tab on" data-tab="coin">Coin Change, coins [1, 3, 4]</button>
+      <button type="button" class="fill-tab" data-tab="grid">Unique Paths, 3 × 4 grid</button>
+    </div>
+    <p class="fill-rule" id="fill-rule"></p>
+    <div class="fill-board" id="fill-board"></div>
+    <div class="fill-row">
+      <label for="fill-in" id="fill-label"></label>
+      <input id="fill-in" type="text" inputmode="numeric" autocomplete="off">
+      <button type="button" id="fill-check">Check</button>
+      <button type="button" id="fill-reset">Restart</button>
+      <span class="fill-score" id="fill-score"></span>
+    </div>
+    <p class="fill-msg" id="fill-msg" aria-live="polite"></p>
+    <div class="complexity" id="fill-badge" hidden></div>
+  </div>
+
+  <h2 id="greedy-vs-dp">Greedy vs DP: why not take the biggest coin?</h2>
+  <p>Greedy commits to the locally best choice and never revisits it. For coins {1, 3, 4} and amount 6 it picks 4 + 1 + 1, three coins, while 3 + 3 needs two (<a href="https://cses.fi/book/book.pdf" target="_blank">CPH</a> §6.1). DP tries every last coin, so it can’t be fooled. Greedy does work for some coin systems: CPH sketches the argument for euro coins and warns that “it can be difficult to argue that a greedy algorithm works”. Erickson’s section title is “Warning: Greed is Stupid”: it “almost never works”. In an interview, find a counterexample in 30 seconds or prove the greedy choice safe. If you can do neither, use DP.</p>
+
+  <h2>Two indices: grids and two strings</h2>
+  <p>With two sequences, the state is a pair of prefixes: dp[i][j] over a[..i] and b[..j]. <strong>Longest Common Subsequence</strong> takes diagonal + 1 on a match, else max(up, left), in O(m·n) (<a href="https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/resources/mit6_006s20_lec16/" target="_blank">MIT Lecture 16</a> uses suffixes). <strong>Edit Distance</strong> has the same shape: a match copies the diagonal, else 1 + min(up, left, diagonal) for delete, insert, replace (CPH §7.5). CPH maps n ≤ 5000 to O(n²) (§2.3): a cue for a two-index table.</p>
+
+  <h2 id="rolling-array">Rolling arrays: keep only what the recurrence reads</h2>
+  <p>List what the transition touches. Fib reads two earlier values, so two variables do: <code>(a, b) = (b, a + b)</code>. Unique Paths reads the row above and the cell to the left, so one row does. LCS and Edit Distance also read the diagonal, which an in-place update would overwrite, so keep two rows (or one row plus the saved diagonal). Swap them with <code>std::mem::swap</code> and index the columns by the shorter string, for O(min(m, n)) space. The <a href="https://www.techinterviewhandbook.org/algorithms/dynamic-programming/" target="_blank">Tech Interview Handbook</a> says “the last two values or the last two rows of the matrix will suffice”.</p>
+<pre><code><span class="kw">fn</span> <span class="fn">unique_paths</span>(m: <span class="ty">usize</span>, n: <span class="ty">usize</span>) -&gt; <span class="ty">u64</span> {
+    <span class="kw">let</span> <span class="kw">mut</span> row = vec![<span class="nm">1u64</span>; n];      <span class="cm">// row 0: one way into each cell</span>
+    <span class="kw">for</span> _ <span class="kw">in</span> <span class="nm">1</span>..m {
+        <span class="kw">for</span> c <span class="kw">in</span> <span class="nm">1</span>..n {
+            row[c] += row[c - <span class="nm">1</span>];     <span class="cm">// up (old row[c]) + left (new row[c − 1])</span>
+        }
+    }
+    row[n - <span class="nm">1</span>]
+}
+<span class="cm">// O(m·n) time, O(n) space instead of O(m·n).</span></code></pre>
+  <p>Once rows share storage, loop direction decides whether you read old or new values. Here <code>row[c − 1]</code> must already be new and <code>row[c]</code> still old, so you go left to right. In 0/1 subset sum each item is used once, so the sum loop runs <em>right to left</em>. Run it forward and [2, 6] “reaches” 4 by using the 2 twice. Rolling also throws away the table. If they want the actual coins or characters, keep the full table and walk back through the choices (MIT’s “parent pointers”).</p>
+
+  <h2>Recognise it, then say it</h2>
+  <p><strong>Cues:</strong> “how many ways” (sum the choices), “minimum / maximum” (min or max them), “is it possible” (OR them), a brute force that revisits the same (index, remaining) pairs, and one number as output. “Return all” is backtracking.</p>
+  <div class="callout">
+    <strong>Why interviewers care</strong>
+    They grade the recurrence, not the loop. Erickson insists you first state what the subproblem means “in coherent and precise English”. That sentence (“dp[x] is the fewest coins summing to x”) lets the interviewer follow you and lets you debug a wrong cell.
+  </div>
+  <blockquote class="quote">“Brute force tries every last coin, which is exponential, but there are only amount + 1 distinct sums. dp[x] is the fewest coins making x: 1 + min over coins of dp[x − c], with dp[0] = 0, filled for increasing x. That’s O(amount·k) time and O(amount) space with no recursion depth. For the coins themselves I’d store the winning coin at each x and walk back.”</blockquote>
+  <p><strong>What would a Google interviewer ask next?</strong> “Count the ways.” Then replace min with a sum, and the loop order starts to matter. With amounts on the outside you count ordered sequences, 9 ways to make 6 from {1, 3, 4}. With coins on the outside you count combinations, 4 ways. That is Coin Change II.</p>
+
+  <h2>Drill: define the state</h2>
+  <p>Every wrong option either loses information or answers a different question.</p>
+  <div id="state-exercise" class="mc-exercise"></div>
+
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+    <div class="q-block" id="q1">
+      <p>1. Coin Change with amount A and k coin values. The table has A + 1 entries. What does the bottom-up solution cost?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','That counts states only. Each of the A + 1 states tries all k coins, and time is states × work per state, so it is O(A·k).')">O(A) time, O(A) space</button>
+        <button onclick="quizAnswer(this,true,'q1','Right: A + 1 states, each scanning k coins, gives O(A·k) time. The table stores one value per amount, so space is O(A).')">O(A·k) time, O(A) space</button>
+        <button onclick="quizAnswer(this,false,'q1','That is the naive recursion, which re-solves the same sums again and again. With a table every sum is solved exactly once.')">O(kᴬ) time, O(A) space</button>
+        <button onclick="quizAnswer(this,false,'q1','The time is right, but the table holds one value per amount, not one per (amount, coin) pair. The inner loop reads entries without adding any.')">O(A·k) time, O(A·k) space</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Your top-down Coin Change passes every test, then aborts with “has overflowed its stack” at amount 100,000 on a spawned thread. What is the best fix?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','The memo is not the problem. go(x) calls go(x − 1) first, so the chain is about amount frames deep, and a HashMap does not shorten it.')">Swap the Vec memo for a HashMap</button>
+        <button onclick="quizAnswer(this,false,'q2','A recursive call cannot be inlined away, and Rust does not guarantee tail calls. The depth stays near 100,000 frames.')">Mark the helper fn as #[inline]</button>
+        <button onclick="quizAnswer(this,false,'q2','That shrinks each frame by a constant factor, but the depth is still O(amount). A slightly larger amount overflows again.')">Trim locals so frames get smaller</button>
+        <button onclick="quizAnswer(this,true,'q2','Right: the same recurrence, filled for increasing x, needs no recursion and keeps O(amount·k) time. The measured bottom-up run handles 10⁶.')">Fill the table bottom-up instead</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. LCS of two strings with lengths m ≥ n. The interviewer wants only the length. What is the least extra space for the O(m·n) DP?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right: row i reads only row i − 1 and its own left cell, so two rows of n + 1 entries suffice once the columns run over the shorter string.')">O(n): two rows on the shorter string</button>
+        <button onclick="quizAnswer(this,false,'q3','Only if you must reconstruct the subsequence itself. For the length alone, each row reads just the previous one.')">O(m·n): the whole table is required</button>
+        <button onclick="quizAnswer(this,false,'q3','dp[i][j] reads dp[i − 1][j], which is a whole row back, so two scalars cannot hold what the next row needs.')">O(1): keep only the last two values</button>
+        <button onclick="quizAnswer(this,false,'q3','That works, but it is not the least. Swap the strings so the columns run over the shorter one, and two rows cost O(n).')">O(m): two rows over the longer string</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. You memoize Edit Distance on (i, j), with 0 ≤ i ≤ m and 0 ≤ j ≤ n, and every state is reachable. Which memo do you pick?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','A hash map is expected O(1), not worst case, and every lookup hashes the tuple (SipHash by default). On a dense grid of states that is pure overhead.')"><code>HashMap&lt;(usize, usize), usize&gt;</code>, worst-case O(1)</button>
+        <button onclick="quizAnswer(this,false,'q4','A String key allocates and formats on every lookup, then hashes the bytes. The index pair already names the state for free.')"><code>HashMap&lt;String, usize&gt;</code> with <code>format!</code> keys</button>
+        <button onclick="quizAnswer(this,true,'q4','Right: the states fill a dense (m + 1) × (n + 1) grid, so direct indexing is worst-case O(1) with no hashing. Keep HashMap for sparse or unbounded states.')"><code>Vec&lt;Vec&lt;Option&lt;usize&gt;&gt;&gt;</code> indexed <code>[i][j]</code></button>
+        <button onclick="quizAnswer(this,false,'q4','static mut needs unsafe, leaks state between test cases and races across threads. Pass the memo down as a &amp;mut argument instead.')">A global <code>static mut</code> table for all calls</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Use a blank Rust file and 25 minutes per problem, and write the SRTBOT lines as comments first. Do <strong>Climbing Stairs</strong>, <strong>House Robber</strong>, <strong>Coin Change</strong> (top-down, then bottom-up), <strong>Unique Paths</strong> (then cut it to one row), <strong>Longest Common Subsequence</strong> and <strong>Word Break</strong>, all on the <a href="https://www.techinterviewhandbook.org/algorithms/dynamic-programming/" target="_blank">Tech Interview Handbook DP cheatsheet</a>. As a stretch, do <strong>Partition Equal Subset Sum</strong> and <strong>Edit Distance</strong>. Your count-only Combination Sum from <a href="0008-recursion-and-backtracking.html#backtracking">lesson 8</a> is Coin Change II. Memoize it on (index, remaining) and watch the call count collapse.</p>
+
+  <h2>Primary resource</h2>
+  <p>Read <a href="https://jeffe.cs.illinois.edu/teaching/algorithms/book/03-dynprog.pdf" target="_blank">Jeff Erickson, <em>Algorithms</em>, ch. 3 “Dynamic Programming”</a> (free PDF): the Fibonacci sections from “Memo(r)ization: Remember Everything” to “Don’t Remember Everything After All”, then “The Pattern: Smart Recursion” and “Warning: Greed is Stupid”. It builds DP from recursion, as this lesson does, and treats the table as a detail.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Try: “Give me a DP problem I haven’t seen, and make me say all six SRTBOT lines before I write any Rust.” Or ask why Coin Change II puts the coin loop outside the amount loop. Type a question in Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0008-recursion-and-backtracking.html">← Lesson 8: Recursion &amp; Backtracking</a>
+    <span class="spacer"></span>
+    <a href="0010-sorting-algorithms.html">Lesson 10: Sorting Algorithms →</a>
+  </div>
+
+</div>
+
+<style>
+blockquote.quote { border-left: 3px solid var(--accent); padding: .6rem 1rem; margin: 1rem 0; color: var(--ink-dim); font-style: italic; font-size: .95rem; }
+.tb-wrap { overflow-x: auto; margin: 1rem 0; }
+.tb-table { width: 100%; border-collapse: collapse; font-family: var(--font-ui); font-size: .82rem; }
+.tb-table th, .tb-table td { border-bottom: 1px solid var(--border); padding: .45rem .5rem; text-align: left; }
+.tb-table th, .tb-table td:first-child { color: var(--muted); font-weight: normal; }
+ul.srt { list-style: none; padding-left: 0; }
+ul.srt b { color: var(--accent-strong); font-family: var(--font-mono); }
+.fill { background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin: 1.25rem 0; font-family: var(--font-ui); font-size: .88rem; }
+.fill [hidden] { display: none; }
+.fill-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.fill button, .fill input { background: var(--bg-sunken); color: var(--ink); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .4rem .75rem; font: inherit; }
+.fill button { cursor: pointer; }
+.fill button:hover:not(:disabled), .fill button.on { border-color: var(--accent); background: var(--accent-soft); }
+.fill button:disabled, .fill input:disabled { opacity: .45; cursor: default; }
+.fill input, .fill label, .fill-rule, .fill-cell { font-family: var(--font-mono); }
+.fill input { width: 4.5rem; }
+.fill-rule { color: var(--ink-dim); margin: .75rem 0; font-size: .8rem; }
+.fill-board { display: grid; gap: .3rem; margin-bottom: .75rem; }
+.fill-cell { border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-sunken); text-align: center; padding: .25rem 0; min-width: 0; font-size: 1rem; }
+.fill-ix { display: block; color: var(--muted); font-size: .68rem; }
+.fill-cell.base { color: var(--muted); }
+.fill-cell.cur { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.fill-cell.hint { border-color: var(--amber); background: var(--amber-soft); }
+.fill-cell.best { border-color: var(--accent); background: var(--accent-soft); }
+.fill-score { color: var(--muted); margin-left: auto; }
+.fill-msg { min-height: 2.6em; margin-top: .6rem; color: var(--ink-dim); }
+.fill-msg.good { color: var(--accent-strong); }
+.fill-msg.bad { color: var(--err); }
+</style>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+// Fill-the-table widget: Coin Change (1D) and Unique Paths (2D), one cell at a time.
+(function () {
+  const $ = id => document.getElementById(id);
+  const COINS = [1, 3, 4], COIN = [0, 1, 2, 1, 1, 2, 2], GRID = [[1, 1, 1, 1], [1, 2, 3, 4], [1, 3, 6, 10]];
+  const T = {
+    coin: { rule: 'dp[x] = 1 + min of dp[x − c] for c in [1, 3, 4], c ≤ x;  dp[0] = 0', cols: 7,
+            cells: [0, 1, 2, 3, 4, 5, 6], order: [1, 2, 3, 4, 5, 6] },
+    grid: { rule: 'dp[r][c] = dp[r − 1][c] + dp[r][c − 1];  row 0 and column 0 are 1', cols: 4,
+            cells: [].concat(...GRID.map((r, i) => r.map((_, j) => [i, j]))),
+            order: [[1, 1], [1, 2], [1, 3], [2, 1], [2, 2], [2, 3]] }
+  };
+  let tab, k, first, right, marks;
+  const coin = () => tab === 'coin', K = String;
+  const name = t => coin() ? 'dp[' + t + ']' : 'dp[' + t[0] + '][' + t[1] + ']';
+  const val = t => coin() ? COIN[t] : GRID[t[0]][t[1]];
+  const isBase = t => coin() ? t === 0 : t[0] === 0 || t[1] === 0;
+
+  function why(t) {
+    if (!coin()) {
+      const up = GRID[t[0] - 1][t[1]], left = GRID[t[0]][t[1] - 1];
+      return { hint: [[t[0] - 1, t[1]], [t[0], t[1] - 1]], best: null, text: 'up ' + up + ' + left ' + left + ' = ' + (up + left) };
+    }
+    const fits = COINS.filter(c => c <= t);
+    const best = fits.reduce((b, c) => COIN[t - c] < COIN[t - b] ? c : b);
+    const parts = fits.map(c => 'dp[' + (t - c) + '] + 1 = ' + (COIN[t - c] + 1))
+      .concat(COINS.filter(c => c > t).map(c => 'coin ' + c + ' doesn’t fit'));
+    return { hint: fits.map(c => t - c), best: t - best, text: parts.join(', ') + '. Min ' + COIN[t] + ', last coin ' + best };
+  }
+
+  function render() {
+    const cur = T[tab].order[k], done = new Set(T[tab].order.slice(0, k).map(K)), board = $('fill-board');
+    board.textContent = '';
+    board.style.gridTemplateColumns = 'repeat(' + T[tab].cols + ', minmax(0, 1fr))';
+    T[tab].cells.forEach(c => {
+      const d = document.createElement('div'), ix = document.createElement('span'), v = document.createElement('span');
+      const here = cur !== undefined && K(c) === K(cur);
+      d.className = 'fill-cell' + (isBase(c) ? ' base' : '') + (here ? ' cur' : '') +
+        (K(c) === K(marks.best) ? ' best' : marks.hint.some(m => K(m) === K(c)) ? ' hint' : '');
+      ix.className = 'fill-ix'; ix.textContent = coin() ? 'x=' + c : c[0] + ',' + c[1];
+      v.className = 'fill-v'; v.textContent = isBase(c) || done.has(K(c)) ? val(c) : here ? '?' : '·';
+      d.append(ix, v); board.appendChild(d);
+    });
+    const end = k === T[tab].order.length;
+    $('fill-label').textContent = end ? 'Done' : name(cur) + ' =';
+    $('fill-in').disabled = $('fill-check').disabled = end;
+    $('fill-score').textContent = 'First try: ' + right + ' / ' + T[tab].order.length;
+  }
+
+  function say(msg, cls) { $('fill-msg').textContent = msg; $('fill-msg').className = 'fill-msg ' + (cls || ''); }
+
+  function check() {
+    const t = T[tab].order[k], raw = $('fill-in').value.trim();
+    if (!/^\d+$/.test(raw)) return say('Type a whole number for ' + name(t) + '.');
+    const w = why(t);
+    if (+raw !== val(t)) {
+      first = false; marks = w;
+      say('✗ ' + name(t) + ' is not ' + raw + ': ' + w.text + '. Type it in to continue.', 'bad');
+      return render();
+    }
+    if (first) right++;
+    k++; first = true; marks = { hint: [], best: null }; $('fill-in').value = '';
+    let msg = '✓ ' + name(t) + ' = ' + val(t) + ': ' + w.text + '.';
+    if (k === T[tab].order.length) {
+      const b = $('fill-badge'), badge = (t1, s1) => '<span class="label">Time</span><span class="val">' + t1 +
+        '</span><span class="label">Space</span><span class="val">' + s1 + '</span>';
+      b.hidden = false;
+      if (coin()) {
+        msg += ' Done: 6 takes 2 coins (3 + 3). Greedy grabs 4, 1, 1: three coins. Work: amount × k = 6 × 3 = 18 coin checks.';
+        b.innerHTML = badge('O(amount·k)', 'O(amount)');
+      } else {
+        msg += ' Done: 10 = C(5, 2) paths. Each cell read only the row above and its left neighbour, so one row would do.';
+        b.innerHTML = badge('O(m·n)', 'O(n) rolling');
+      }
+    } else $('fill-in').focus();
+    say(msg, 'good'); render();
+  }
+
+  function reset(t) {
+    tab = t; k = 0; first = true; right = 0; marks = { hint: [], best: null };
+    $('fill-in').value = ''; $('fill-badge').hidden = true; $('fill-rule').textContent = T[t].rule;
+    document.querySelectorAll('.fill-tab').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+    say(coin() ? 'dp[0] = 0 is the base case. Fill dp[1] to dp[6].' : 'Row 0 and column 0 are base cases (one straight path each). Fill the rest row by row.');
+    render();
+  }
+
+  document.querySelectorAll('.fill-tab').forEach(b => b.addEventListener('click', () => reset(b.dataset.tab)));
+  $('fill-check').addEventListener('click', check);
+  $('fill-in').addEventListener('keydown', e => { if (e.key === 'Enter') check(); });
+  $('fill-reset').addEventListener('click', () => reset(tab));
+  reset('coin');
+})();
+
+renderMC('state-exercise', [
+  { prompt: 'Climbing Stairs: n steps, each move climbs 1 or 2. How many distinct ways reach the top?', options: [
+    { text: 'dp[i] = ways to reach step i; dp[i−1] × dp[i−2]', explain: 'Multiplying counts pairs of paths. The last move was a 1-step or a 2-step, two disjoint cases, so the counts add.' },
+    { text: 'dp[i] = ways to reach step i; dp[i−1] + dp[i−2]', correct: true, explain: 'Right: the last move came from i − 1 or i − 2, disjoint cases, so they add. dp[0] = dp[1] = 1 gives dp[5] = 8, Fibonacci again.' },
+    { text: 'dp[i] = fewest moves to i; 1 + min(dp[i−1], dp[i−2])', explain: 'That answers a minimum question (it is just ⌈i/2⌉). A count combines the choices with +, not min.' },
+    { text: 'dp[i] = ways to reach step i; 2 × dp[i−1]', explain: 'A 2-step from i − 1 overshoots, so not every path doubles. Only i − 1 and i − 2 lead into i.' } ] },
+  { prompt: 'House Robber: values v[0..n], never rob two adjacent houses. Maximise the total.', options: [
+    { text: 'dp[i] = best if house i robbed; dp[i−1] + v[i]', explain: 'dp[i−1] may include house i − 1, so this can rob two neighbours. Taking house i must fall back to dp[i−2].' },
+    { text: 'dp[i] = best from houses 0..=i; always dp[i−2] + v[i]', explain: 'That forces house i in. On [2, 7, 9, 3, 1] at i = 3, skipping gives 11 but forcing gives 10.' },
+    { text: 'dp[i] = best single house in houses 0..=i; max(dp[i−1], v[i])', explain: 'That never sums. The state must be the best total over a prefix, across many non-adjacent houses.' },
+    { text: 'dp[i] = best from houses 0..=i; max(dp[i−1], dp[i−2] + v[i])', correct: true, explain: 'Right: skip house i (dp[i−1]) or take it (dp[i−2] + v[i]). [2, 7, 9, 3, 1] gives 12, and two variables suffice.' } ] },
+  { prompt: 'Longest Common Subsequence of strings a and b. Return its length.', options: [
+    { text: 'dp[i][j] = LCS of a[..i], b[..j]; match: diagonal + 1, else max(up, left)', correct: true, explain: 'Right: a matching last pair extends the diagonal; otherwise drop the last character of one side, whichever is better. abcde vs ace gives 3.' },
+    { text: 'dp[i] = LCS of a[..i] and all b; dp[i−1] + 1 on match', explain: 'One index loses your position in b, so a used part of b could be matched again. The state needs j.' },
+    { text: 'dp[i][j] = LCS of a[..i], b[..j]; match: diagonal + 1, else diagonal only', explain: 'A mismatch drops one character, not both. Dropping both loses matches: abcde vs ace gives 1, not 3.' },
+    { text: 'dp[i][j] = LCS of a[..i], b[..j]; match: max(up, left), else diagonal + 1', explain: 'The cases are swapped: it adds 1 when the characters differ. Only a matching pair extends a common subsequence.' } ] },
+  { prompt: 'Edit Distance: fewest inserts, deletes or replacements turning a into b (horse → ros takes 3).', options: [
+    { text: 'dp[i][j] = edits from a[..i] to b[..j]; match or mismatch: 1 + min(up, left, diagonal)', explain: 'A match should cost nothing and copy the diagonal. Charging 1 makes horse → ros cost 5.' },
+    { text: 'dp[i][j] = LCS of a[..i], b[..j]; then answer m + n − 2 × LCS', explain: 'That is the distance with replacement banned (delete plus insert per mismatch). horse → ros gives 4.' },
+    { text: 'dp[i][j] = edits from a[..i] to b[..j]; match: diagonal, else 1 + min(up, left, diagonal)', correct: true, explain: 'Right: up deletes, left inserts, diagonal replaces, a match is free. dp[i][0] = i and dp[0][j] = j are the base cases.' },
+    { text: 'dp[i] = edits from a[..i] to all of b; match: dp[i−1], else 1 + dp[i−1]', explain: 'Without j, “match” has no meaning: which character of b does a[i − 1] line up with? Two sequences need two indices.' } ] },
+  { prompt: 'Partition Equal Subset Sum: can [1, 5, 11, 5] split into two groups with equal sums?', options: [
+    { text: 'dp[i] = the first i items can be split into equal halves; dp[i−1] and v[i] even', explain: 'A prefix splitting evenly says nothing about the two sums the next item must join. The state must carry a subset sum.' },
+    { text: 'dp[s] = some subset of items so far sums to s; dp[s] |= dp[s − x]', correct: true, explain: 'Right: the total is 22, so ask whether a subset reaches 11. Loop s downward so each x is used once. {11} works.' },
+    { text: 'dp[s] = fewest items summing to s, reuse allowed; 1 + min over dp[s − x]', explain: 'That is the Coin Change state: reuse allowed, minimising. Here each number is used once and the answer is yes or no.' },
+    { text: 'dp[i] = largest subset sum we can form from the first i items; dp[i−1] + v[i]', explain: 'The largest subset sum is just the prefix total. An exact target needs the set of reachable sums.' } ] }
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

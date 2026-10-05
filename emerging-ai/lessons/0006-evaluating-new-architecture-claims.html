@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 6 — Forming an Informed Opinion: Evaluating New Architecture Claims</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Emerging AI Research</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 6 of 6 &nbsp;·&nbsp; Emerging AI Research &nbsp;·&nbsp; ~40 min</p>
+  <h1>Forming an Informed Opinion: Evaluating New Architecture Claims</h1>
+  <p>Lesson 3 gave you <a href="0003-reading-a-paper-claims-vs-evidence.html#misuse-check">four questions to ask before repeating a result</a>. Lessons 4 and 5 gave you two yardsticks: <a href="0004-mechanistic-interpretability-circuits.html#probing-vs-intervention">the evidence ladder</a> for mechanistic claims and <a href="0005-scaling-laws-established-vs-debated.html#offset-vs-exponent">offset versus exponent</a> for scaling claims. This lesson combines them into a fixed audit for the field’s most common claim, “new architecture X beats Transformers.” The goal: given a headline and its paper, run five checks and write a calibrated verdict. It is the same rigor-over-rhetoric habit as <a href="../../logic/lessons/0011-godels-incompleteness-theorems.html#incompleteness-misuse">Gödel-misuse</a> in Logic and <a href="../../quantum-mechanics/lessons/0001-state-vectors-superposition-born-rule.html#misuse-check">superposition-misuse</a> in Quantum Mechanics. The worked example is Mamba; the drill uses KAN.</p>
+
+  <h2 id="claim-audit">The audit: five checks, then a verdict</h2>
+  <div class="callout">
+    <strong>The architecture-claim audit</strong>
+    <ol>
+      <li><strong>Triage.</strong> Which of five claim types is this? Each needs different evidence.</li>
+      <li><strong>Matched comparison.</strong> Compute, data and size as in lesson 3, plus tuning effort.</li>
+      <li><strong>Regime.</strong> One scale or a curve? Which benchmark? Contaminated, or within seed noise?</li>
+      <li><strong>Base rate.</strong> How often do claims like this survive? Start there.</li>
+      <li><strong>Evidence trail.</strong> What did later, more independent work find?</li>
+    </ol>
+    Then write the verdict: a bucket, a confidence, and what would change your mind.
+  </div>
+  <p>Steps 2, 3 and 5 extend lesson 3’s questions 2, 1 and 3. Question 4 (the headline set beside the limitations) becomes the verdict. Steps 1 and 4 are new.</p>
+
+  <h2 id="claim-triage">Step 1: triage the claim type</h2>
+  <p>A headline usually bundles several claims. Sort them first, because each type needs its own evidence:</p>
+  <ol>
+    <li><strong>Efficiency at matched quality</strong> (“5× faster inference”): throughput or memory on stated hardware, at equal quality.</li>
+    <li><strong>Quality at matched compute and scale</strong> (“outperforms Transformers of the same size”): step 2’s matched baseline.</li>
+    <li><strong>Better scaling</strong> (“faster scaling laws”): a curve over several scales, never one point.</li>
+    <li><strong>Mechanism</strong> (“it works because…”): ablations that remove the named component and retrain. Claims about a trained model’s internals go on lesson 4’s ladder.</li>
+    <li><strong>Necessity or impossibility</strong> (“X is required for general intelligence”, “Transformers can’t Y”): a proof about a precisely defined task class, or evidence against every plausible alternative route.</li>
+  </ol>
+  <p>Type 5 is asserted most and established least. <a href="0002-jepa-self-supervised-architecture.html#the-bet">JEPA’s thesis</a> is type 5; I-JEPA’s benchmark numbers are type 2, and evidence for the second does not carry over to the first. A well-established type-5 result looks like Jelassi et al.’s copying proof below: narrow, formal and proved.</p>
+
+  <h2>Step 2: a matched comparison also matches tuning effort</h2>
+  <p>Lesson 3’s question 2 covers compute, data and size. The less visible confound is effort. When Gábor Melis, Chris Dyer and Phil Blunsom <a href="https://arxiv.org/abs/1707.05589" target="_blank">re-tuned recurrent language models with large-scale automatic hyperparameter search</a>, properly regularised standard LSTMs outperformed the newer architectures that had claimed state-of-the-art results. Zachary Lipton and Jacob Steinhardt call this trend (ii) in their <a href="https://arxiv.org/abs/1807.03341" target="_blank">survey of troubling trends</a>: “failure to identify the sources of empirical gains.”</p>
+  <div class="callout warn">
+    <strong id="tuning-asymmetry">Tuning-effort asymmetry (working definition)</strong>
+    The new method gets a hyperparameter sweep and a modern recipe; the baseline gets defaults copied from an older paper. The measured gap then mixes architecture with tuning budget, the confound that <a href="../../ai-engineering/lessons/0004-failure-modes-debugging-agents.html#isolate-one-variable">changing one variable at a time</a> prevents. Ask who tuned the baseline, with what budget, and whether its recipe is current.
+  </div>
+
+  <h2>Step 3: check the regime (scale, benchmark, noise)</h2>
+  <p><strong>Scale.</strong> A win at one scale is a point, not a curve. By lesson 5’s <a href="0005-scaling-laws-established-vs-debated.html#offset-vs-exponent">offset-versus-exponent</a> distinction, an advantage at 125M parameters can shrink, vanish or reverse at 8B.</p>
+  <div class="callout warn">
+    <strong id="benchmark-contamination">Benchmark contamination (working definition)</strong>
+    Test items, or close paraphrases, leak into training data, so the score partly measures memorization rather than the ability the benchmark names. <a href="https://arxiv.org/abs/2310.18018" target="_blank">Oscar Sainz and colleagues</a> argue this inflates results and can produce wrong published conclusions. The cleanest test is a matched fresh benchmark: Hugh Zhang and colleagues’ <a href="https://arxiv.org/abs/2405.00332" target="_blank">GSM1k</a> mirrors GSM8k and showed accuracy drops of up to 8% for some model families, while frontier models showed minimal overfitting. Contamination is measured, not a universal excuse.
+  </div>
+  <p><strong>Noise.</strong> <a href="https://arxiv.org/abs/2103.03098" target="_blank">Xavier Bouthillier and colleagues</a> show that variance from data sampling, initialization and hyperparameter choice markedly changes benchmark conclusions. A single-seed gap smaller than the seed-to-seed spread is not a finding.</p>
+
+  <h2 id="architecture-base-rate">Step 4: start from the base rate</h2>
+  <p>Sharan Narang and colleagues at Google <a href="https://arxiv.org/abs/2102.11972" target="_blank">re-implemented about fifty Transformer modifications in one shared codebase</a> and found that “most modifications do not meaningfully improve performance.” The ones that helped were mostly minor (SwiGLU, RMSNorm), added parameters or FLOPs, or came from the same codebase. Their own caveat is fixed hyperparameters, though a 25-configuration sweep still could not make the Universal Transformer match the baseline.</p>
+  <p>So your prior that a new architecture generally beats a well-tuned Transformer should be modest; skipping that step is <a href="../../rationality/lessons/0002-probabilistic-bayesian-reasoning.html#base-rate-neglect">base-rate neglect</a>. Modest is not zero: SwiGLU and RMSNorm survived, and both are part of the “Transformer++” recipe that Mamba benchmarks against. Update <a href="../../rationality/lessons/0002-probabilistic-bayesian-reasoning.html#proportional-updating">proportionally</a>; never snap to 0 or 1.</p>
+
+  <h2 id="evidence-trail">Step 5: follow the evidence trail</h2>
+  <p>A paper is one data point; the trail is what came after. Rank follow-ups by independence, from least to most: same authors, new team with the same code, new team with new code, formal theory. Peer review is a different check. Mamba was <a href="https://openreview.net/forum?id=AL1fq05o7H" target="_blank">rejected at ICLR 2024</a> and <a href="https://openreview.net/forum?id=tEYskw1VY2" target="_blank">published at COLM 2024</a>; KAN was <a href="https://mlanthology.org/iclr/2025/liu2025iclr-kan/" target="_blank">accepted at ICLR 2025</a>, with its abstract narrowed to “small-scale AI + Science tasks.” Neither decision substitutes for the controlled follow-ups.</p>
+
+  <h2 id="calibrated-verdict">The calibrated verdict</h2>
+  <div class="callout">
+    <strong>Verdict format</strong>
+    <em>Claim</em> (scoped: which model, scale, tasks) · <em>Bucket</em>: established under these conditions / promising but unproven / overclaim · <em>Confidence</em> (a number you would bet at) · <em>What would change my mind</em> (a specific result).
+  </div>
+  <p>The buckets are this course’s three columns (demonstrated, reasonable bet, marketing) turned into a verdict. Keep two answers apart, as in step 5 of Logic’s <a href="../../logic/lessons/0014-evaluating-real-debates.html#five-step-process">five-step process</a>: is the evidence real under its stated setup, and does the general claim follow? A paper can get “yes” and “no.” Your confidence should be <a href="../../rationality/lessons/0002-probabilistic-bayesian-reasoning.html#calibration">calibrated</a>: 80% verdicts right about 80% of the time.</p>
+  <p>There are two ways to fail. <em>Swallowing</em>: <a href="../../logic/lessons/0012-informal-fallacies.html#appeal-to-authority">appeal to authority</a> (a famous lab tells you who is betting, not whether the bet pays) or <a href="../../logic/lessons/0012-informal-fallacies.html#hasty-generalization">hasty generalization</a> from one benchmark. <em>Dismissing</em>: equally miscalibrated, so <a href="../../rationality/lessons/0003-charitable-interpretation-steelmanning.html#steelmanning">steelman</a> the architecture’s case first. Lipton and Steinhardt’s other trends are useful red flags: speculation presented as explanation, mathiness, and suitcase words such as “reasoning” in a results section.</p>
+
+  <h2 id="mamba-case-study">Worked example: Mamba, from abstract to trail</h2>
+  <p>Albert Gu and Tri Dao’s <a href="https://arxiv.org/abs/2312.00752" target="_blank">Mamba paper</a> (2023) claims “5× higher throughput than Transformers” and that “Mamba-3B outperforms Transformers of the same size and matches Transformers twice its size.”</p>
+  <ol>
+    <li><strong>Triage.</strong> Type 1 (throughput, linear in sequence length) plus type 2 (quality at equal size), with a type-4 story: input-dependent “selection” enables content-based reasoning.</li>
+    <li><strong>Matched comparison.</strong> Mostly good: the downstream baselines are Pythia models trained on the same Pile data, tokenizer and 300B tokens. But ask lesson 3’s <a href="0003-reading-a-paper-claims-vs-evidence.html#abstract-vs-claim">“outperforms against what?”</a> In the language results, the strongest recipe, Transformer++, appears in the 125M–1.3B scaling curves, where the paper’s own word is “match.” “Outperforms” is against Pythia: 63.3 versus 59.1 average zero-shot accuracy at 2.8B, and 1.6 points above Pythia-6.9B.</li>
+    <li><strong>Regime.</strong> At most 2.8B parameters, short-context zero-shot tasks. The synthetic selective-copying and induction-heads wins are small models trained on those tasks, recalling one token; nothing yet on larger scale or on copying long spans from context in a pretrained model.</li>
+    <li><strong>Base rate.</strong> Modest. The abstract itself says earlier subquadratic models “have not performed as well as attention” on language.</li>
+    <li><strong>Trail.</strong> The table below.</li>
+  </ol>
+  <table class="trail">
+    <tr><th>Follow-up</th><th>What it showed</th></tr>
+    <tr><td><a href="https://arxiv.org/abs/2402.01032" target="_blank">Jelassi et al. 2024</a><br>Harvard, ICML; independent.</td><td>Proof that a fixed-size state limits copying, while a two-layer Transformer can copy exponentially long strings. Among similar-size pretrained models, Pythia beats Mamba at copying and retrieval despite Mamba’s lower Pile perplexity.</td></tr>
+    <tr><td><a href="https://arxiv.org/abs/2406.07887" target="_blank">Waleffe et al. 2024</a><br>NVIDIA, with Gu and Dao as co-authors: controlled, not fully independent.</td><td>8B models, same data. Pure SSMs match or exceed on many tasks. Mamba-2’s five-shot MMLU gap: <span class="n">17.1</span> points at 1.1T tokens, <span class="n">1.4</span> at 3.5T. Phonebook breaks down beyond about 500 tokens, even at 3.5T. A hybrid (24 Mamba-2, 4 attention, 28 MLP layers) wins all 12 standard tasks, <span class="n">+2.65</span> points on average.</td></tr>
+    <tr><td>Production, 2025</td><td>NVIDIA’s <a href="https://arxiv.org/abs/2504.03624" target="_blank">Nemotron-H</a> and IBM’s <a href="https://www.ibm.com/new/announcements/ibm-granite-4-0-hyper-efficient-high-performance-hybrid-models" target="_blank">Granite 4.0</a> (Mamba-2 to attention, 9:1) ship as hybrids.</td></tr>
+  </table>
+  <div class="callout">
+    <strong>Hold these together, not apart</strong>
+    Mamba’s headline was accurate under its setup, and pure SSMs are provably worse at copying from context. Both are true; they measure different things (average zero-shot accuracy versus retrieval). And the MMLU gap measured at one training budget mostly closed at another, so one comparison does not settle it.
+  </div>
+  <div class="callout">
+    <strong>Verdict (on this lesson’s evidence, as of 2026)</strong>
+    <em>“Pure Mamba-class SSMs match same-size Transformers on standard language benchmarks”</em>: established under these conditions (to 8B parameters and 3.5T tokens, most short-context tasks, with five-shot MMLU still slightly behind), about 80% confident, since the large-scale evidence is one study with the original authors on it. <em>“SSMs can replace attention in general”</em>: overclaim; they lag on copying and in-context retrieval, and a proof explains why. <em>“Hybrids beat Transformers at equal size”</em>: promising but unproven beyond one controlled 8B study and vendor reports. A matched frontier-scale comparison by a team without a stake would change my mind.
+  </div>
+
+  <h2 id="misuse-check">Before saying “X beats Transformers”, or “it’s all hype”</h2>
+  <p>Same discipline as <a href="0003-reading-a-paper-claims-vs-evidence.html#misuse-check">lesson 3’s misuse check</a>, applied to architecture headlines in both directions.</p>
+  <div class="callout warn">
+    <strong>“A top lab built it, so it’s the future”</strong> — <a href="../../logic/lessons/0012-informal-fallacies.html#appeal-to-authority">Appeal to authority</a>. LeCun’s JEPA thesis is a serious bet, not a result. KAN came from a strong MIT-led team and passed peer review, yet its general accuracy claim did not survive a matched-FLOPs comparison, and the published version scopes it to small-scale science tasks.
+  </div>
+  <div class="callout warn">
+    <strong>“New architectures are always hype; Transformers win”</strong> — The base-rate error run backwards: a modest prior is not a zero prior. SwiGLU survived Narang et al.’s test, and Mamba’s core result survived an 8B controlled study.
+  </div>
+  <div class="callout warn">
+    <strong>“Transformers or SSMs: which one wins?”</strong> — A <a href="../../logic/lessons/0012-informal-fallacies.html#false-dilemma">false dilemma</a>, and the concrete case behind <a href="0002-jepa-self-supervised-architecture.html#misuse-check">lesson 2’s warning against “pick one”</a>. The best 8B model in Waleffe et al. was a hybrid with attention in 4 of 56 layers. A verdict judges a claim under conditions; crowning an architecture is outside this course’s mission.
+  </div>
+
+  <h2>Try it: run the audit on KAN</h2>
+  <p>Ziming Liu, Max Tegmark and colleagues’ <a href="https://arxiv.org/abs/2404.19756" target="_blank">KAN</a> (2024) replaces an MLP’s fixed activations and linear weights with learnable splines on edges. Each card is one piece of the real trail, including <a href="https://arxiv.org/abs/2407.16674" target="_blank">Yu, Yu and Wang’s fairer comparison</a> and a <a href="https://arxiv.org/abs/2406.14529" target="_blank">tabular benchmark by Poeta et al.</a> Diagnose each with the audit; card 3 is lesson 3’s <a href="0003-reading-a-paper-claims-vs-evidence.html#ablations-and-limitations">ablation</a> doing its job.</p>
+  <div id="audit-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Melis et al. re-tuned older LSTM language models with large-scale hyperparameter search. What did that reveal about earlier architecture comparisons?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Melis et al. point to differing codebases and limited tuning compute, not extra data; a data mismatch is lesson 3’s question 2.')">The newer models had been trained on noticeably more data</button>
+        <button onclick="quizAnswer(this,false,'q1','Contamination is a separate failure; the LSTM result came from re-tuning on the same benchmarks, not from leaked test items.')">Benchmark test items had leaked into the LSTMs’ training data</button>
+        <button onclick="quizAnswer(this,true,'q1','Right. With equal tuning budgets, regularised standard LSTMs beat the newer models, so the earlier gaps mixed architecture with tuning effort.')">Some credited architecture gains were really tuning effort</button>
+        <button onclick="quizAnswer(this,false,'q1','The study compared recurrent architectures with each other; reading it as a verdict on attention is a hasty generalization.')">Recurrent networks are fundamentally better than attention</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Narang et al. found most of about fifty Transformer modifications did not meaningfully help in a shared setting. How should that shape your reading of a new architecture paper?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right. Most such claims do not transfer, so start modest; strong matched evidence and independent follow-ups should still move you, proportionally.')">Start from a modest prior, then update in proportion to evidence</button>
+        <button onclick="quizAnswer(this,false,'q2','That snaps the prior to zero. Narang et al. also found real winners such as SwiGLU, so a strong matched result earns partial credit before replication.')">Assume the paper is wrong until someone outside replicates it</button>
+        <button onclick="quizAnswer(this,false,'q2','That is base-rate neglect: how often similar claims survived is exactly the prior you need before weighing this paper’s evidence.')">Ignore it, since a base rate says nothing about one paper</button>
+        <button onclick="quizAnswer(this,false,'q2','That is appeal to authority; Narang et al. tested modifications from many strong groups, and most still failed to transfer.')">Trust it if the authors’ lab has a strong track record in the field</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. What did Waleffe et al.’s 8B controlled study add to Mamba’s original headline?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','No. At 8B on the same data, pure SSMs matched or exceeded the Transformer on many standard tasks, consistent with the headline.')">It showed that the original Mamba numbers could not be reproduced</button>
+        <button onclick="quizAnswer(this,false,'q3','No. Pure SSMs lagged on copying and in-context tasks such as five-shot MMLU and Phonebook; only the hybrid won all 12 tasks.')">It showed pure SSMs beat Transformers on every task at 8B</button>
+        <button onclick="quizAnswer(this,false,'q3','No. The best model in the study was a Mamba-2 hybrid, and one study at one scale cannot settle a field’s direction.')">It settled that Transformers will stay the dominant architecture</button>
+        <button onclick="quizAnswer(this,true,'q3','Right. The picture became conditional: parity on standard tasks, a copying gap that Jelassi et al. explain with a proof, and a hybrid that won all 12 tasks.')">Parity on many tasks, but gaps on copying and in-context learning</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Which of these is a calibrated verdict, in this lesson’s sense?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','Unscoped and leaning on authority: the 8B study found gaps on copying and in-context tasks, so “beats” without conditions misreports it.')">“Mamba beats Transformers outright; NVIDIA’s big 8B study settles the matter.”</button>
+        <button onclick="quizAnswer(this,true,'q4','Right. It scopes the claim to conditions, gives a confidence you could be scored on, and names the evidence that would move it.')">“Matches at 8B on standard tasks; ~80% sure; a frontier run could flip it.”</button>
+        <button onclick="quizAnswer(this,false,'q4','Reflexive dismissal: it ignores parity under matched data and makes an unfalsifiable prediction with no confidence attached.')">“Mamba is just hype; serious labs will always come back to plain Transformers.”</button>
+        <button onclick="quizAnswer(this,false,'q4','This abdicates rather than calibrates: the evidence supports a scoped verdict now, held with a stated confidence and revised as the trail grows.')">“No one can judge this until the whole research community reaches consensus.”</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>This is the last lesson, so the practice closes the loop. Write a five-line audit plus a verdict for <a href="0002-jepa-self-supervised-architecture.html#the-bet">JEPA’s claims from lesson 2</a>, triaging I-JEPA’s benchmark numbers and LeCun’s necessity thesis separately, or for any architecture headline from the past month. One line per check, then the verdict with a confidence and what would change your mind. Building evaluations for your own systems is AI Engineering’s <a href="../../ai-engineering/lessons/0007-evaluation-evals-regression-tests.html">evaluation lesson</a>.</p>
+
+  <h2>Primary resource</h2>
+  <p>Zachary C. Lipton and Jacob Steinhardt, <a href="https://arxiv.org/abs/1807.03341" target="_blank">“Troubling Trends in Machine Learning Scholarship”</a> (ICML 2018: The Debates). A field insider’s account of the failure patterns this audit guards against (speculation posing as explanation, unidentified sources of gains with Melis et al. as the case, mathiness, misuse of language), which turns “is this hype?” into checkable red flags.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Bring your five-line JEPA audit to Claude Code and ask it to argue for the opposite verdict. Then decide whether your confidence should move, and by how much.
+  </div>
+
+  <div class="nav">
+    <a href="0005-scaling-laws-established-vs-debated.html">← Lesson 5: Scaling Laws</a>
+    <span class="spacer"></span>
+    <a href="../index.html">Emerging AI Research: All Lessons →</a>
+  </div>
+
+</div>
+
+<style>
+.trail { width: 100%; border-collapse: collapse; table-layout: fixed; font-family: var(--font-ui); font-size: .84rem; margin: 1rem 0 1.25rem; }
+.trail th, .trail td { text-align: left; vertical-align: top; padding: .5rem .45rem; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
+.trail th { color: var(--muted); font-weight: normal; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; }
+.trail td:first-child { width: 34%; color: var(--ink-dim); }
+.trail .n { color: var(--accent-strong); font-variant-numeric: tabular-nums; }
+</style>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+renderMC('audit-exercise', [
+  {
+    prompt: "KAN’s original arXiv abstract: “much smaller KANs can achieve comparable or better accuracy than much larger MLPs … KANs possess faster neural scaling laws than MLPs.” Which claim types does this sentence make?",
+    options: [
+      { text: "Quality at matched compute", explain: "Not as stated: a smaller KAN is compared with a larger MLP in parameters, so nothing holds compute fixed. Card 2 tests that gap." },
+      { text: "Efficiency + better scaling", correct: true, explain: "Right. “Much smaller … comparable accuracy” is efficiency at matched quality (type 1); “faster scaling laws” is an exponent claim (type 3), which needs a curve." },
+      { text: "Mechanism (why it works)", explain: "The sentence reports outcomes, not a causal story; KAN’s mechanism, splines on edges, is tested by ablation in card 3." },
+      { text: "Necessity or impossibility", explain: "Nothing says MLPs cannot do something or that KANs are required; it is a comparative efficiency and scaling claim." }
+    ]
+  },
+  {
+    prompt: "KAN measures “smaller” in parameters, and its own final section says KANs are “usually 10x slower than MLPs, given the same number of parameters.” Yu, Yu and Wang re-run KAN vs MLP with parameters or FLOPs held equal across ML, vision, NLP, audio and symbolic formulas: MLPs generally win, except on formulas. Which check did the original leave open?",
+    options: [
+      { text: "Claim type", explain: "Triage was card 1. This evidence concerns whether the two sides were compared on equal terms." },
+      { text: "Regime", explain: "The issue is not which scale or task was tested but what was held equal: parameters versus FLOPs." },
+      { text: "Matched baseline", correct: true, explain: "Right. Parameter count is not compute when each KAN parameter is a spline; at equal FLOPs the general accuracy advantage disappears." },
+      { text: "Base rate", explain: "The base rate sets your prior before evidence; this card is evidence about one comparison’s fairness." }
+    ]
+  },
+  {
+    prompt: "Yu et al.’s ablation: KAN’s edge on symbolic formulas comes mainly from its B-spline activation. Give a plain MLP B-spline activations and it matches or beats KAN there, but splines do not help the MLP on vision. What does this tell you?",
+    options: [
+      { text: "The symbolic-formula result was never real", explain: "No. KAN still beats a plain MLP on formulas; the ablation explains that win rather than refuting it." },
+      { text: "Ablations cannot bear on architecture claims", explain: "Backwards: swapping one component at a time is how you learn which part of an architecture carries a gain." },
+      { text: "MLPs now win on every task, formulas too", explain: "Too strong: a plain MLP still loses on formulas, and splines do not lift MLPs elsewhere." },
+      { text: "The gain is real; its source is a component", correct: true, explain: "Right. Lesson 3’s ablation at work, answering Lipton and Steinhardt’s trend (ii): the gain is real but belongs to the spline, not to KAN as a whole." }
+    ]
+  },
+  {
+    prompt: "KAN derives test loss ∝ N⁻⁴ and confirms it on synthetic functions known to have smooth Kolmogorov–Arnold representations. Its discussion adds that “future research is required” to know whether this holds for tasks like language modeling. Which check does this flag?",
+    options: [
+      { text: "Regime", correct: true, explain: "Right. The exponent is real inside its regime, small synthetic tasks where the premise holds, and the authors say so. Beside this sentence, the abstract’s unqualified “faster neural scaling laws” fails lesson 3’s question 4." },
+      { text: "Claim type", explain: "The type is clear (an exponent claim, type 3); the open question is where that exponent holds." },
+      { text: "Matched baseline", explain: "The MLP curves ran on the same tasks; the limitation is the task family, not the fairness of the comparison." },
+      { text: "Evidence trail", explain: "This is the original paper’s own discussion, not later work; it bounds what the result covers." }
+    ]
+  },
+  {
+    prompt: "A model scores far higher on GSM8k than on GSM1k, a fresh benchmark matched to GSM8k on difficulty, step count and answer size. Across models, a higher probability of generating GSM8k items goes with a bigger gap. Diagnosis?",
+    options: [
+      { text: "Tuning asymmetry", explain: "Tuning effort concerns how two methods were trained; here one model is scored on two matched benchmarks." },
+      { text: "Seed variance", explain: "Seed noise would not correlate with how easily a model regenerates GSM8k items; that correlation points to memorization." },
+      { text: "Offset, not exponent", explain: "That distinction is about how an advantage changes with scale; this is one model on two benchmarks at one scale." },
+      { text: "Contamination", correct: true, explain: "Right. This is the GSM1k design (Zhang et al., 2024): a matched fresh benchmark plus a memorization-gap link points to partial memorization, not missing ability." }
+    ]
+  },
+  {
+    prompt: "Verdict time. Claim: “KANs outperform MLPs in accuracy,” read as a general replacement claim. Add a tabular benchmark (Poeta et al., 2024) that found KANs comparable or better at higher compute cost. Which verdict is calibrated?",
+    options: [
+      { text: "Established: KANs beat MLPs on accuracy", explain: "This ignores the matched-FLOPs result: with compute equal, MLPs generally won outside symbolic formulas." },
+      { text: "Promising: no evidence either way yet", explain: "There is evidence, a matched comparison across five task families. “Unproven” fits the scaling exponent beyond synthetic tasks, not this claim." },
+      { text: "Overclaim in general; real niche on formulas", correct: true, explain: "Right. The general claim fails a matched comparison; the formula edge is real and traced to splines. The authors’ own published version now scopes the accuracy claim to “small-scale AI + Science tasks.” Hold it near 80%, and revise if a larger matched-FLOPs study put KANs ahead on standard tasks." },
+      { text: "Hype: the KAN paper should be ignored", explain: "Dismissal overshoots: the formula advantage held up, the authors flagged their own limits, and a tabular study found KANs competitive at higher cost." }
+    ]
+  }
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

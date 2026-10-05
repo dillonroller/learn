@@ -91,7 +91,7 @@
         <button onclick="quizAnswer(this,false,'q4','Variance isn’t always exactly the square of the mean — the square root specifically undoes variance’s own squared units, not a relationship to E[X] as such.')">Because variance is always exactly the square of the mean</button>
         <button onclick="quizAnswer(this,true, 'q4','Right — variance is computed from squared deviations, which puts it in squared units (e.g. dollars²); the square root converts back to the original units (dollars), making it directly comparable to the mean.')">Because variance's squaring puts it in squared units; the square root converts back to the variable's original units for direct comparison</button>
         <button onclick="quizAnswer(this,false,'q4','Standard deviation isn’t generally a smaller number by convention — depending on the values, either could be numerically larger or smaller.')">Because standard deviation is always a smaller, more convenient number</button>
-        <button onclick="quizAnswer(this,false,'q4','Variance is a well-defined, directly computable quantity — it isn’t "impossible" to interpret, just in squared units, which is precisely why standard deviation exists as a complementary measure.')">Because variance itself is impossible to compute directly</button>
+        <button onclick="quizAnswer(this,false,'q4','Variance is a well-defined, directly computable quantity — it isn’t &quot;impossible&quot; to interpret, just in squared units, which is precisely why standard deviation exists as a complementary measure.')">Because variance itself is impossible to compute directly</button>
       </div>
       <div class="feedback" id="q4-fb"></div>
     </div>
@@ -112,7 +112,7 @@
   <div class="nav">
     <a href="0001-probability-spaces-random-variables.html">← Lesson 1: Probability Spaces &amp; Random Variables</a>
     <span class="spacer"></span>
-    <a href="../index.html#lesson-03">Lesson 3: Common Distributions →</a>
+    <a href="0003-common-distributions.html">Lesson 3: Common Distributions →</a>
   </div>
 
 </div>
@@ -172,7 +172,7 @@ EV2_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

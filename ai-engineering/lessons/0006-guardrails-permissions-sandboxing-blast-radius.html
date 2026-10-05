@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 6 — Guardrails &amp; Permissions</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">AI Engineering</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 6 of 8 &nbsp;·&nbsp; AI Engineering &nbsp;·&nbsp; ~35 min</p>
+  <h1>Guardrails &amp; Permissions: Sandboxing, Human-in-the-Loop, and Blast Radius</h1>
+  <p>The <a href="0001-agent-loop-system-prompt-tool-schemas.html#tool-schema">agent loop</a> split every tool call into two halves: the model proposes, the harness disposes. So far the harness’s half has only validated arguments and run the call. This lesson adds its other job, <em>authorization</em>: deciding whether a proposed call may run at all. The example <a href="0001-agent-loop-system-prompt-tool-schemas.html#system-prompt">system prompt</a> carried the constraint “never delete a file without confirming.” By the end of this lesson you should be able to say why that sentence enforces nothing, and where the real check has to go.</p>
+
+  <h2 id="prompt-injection">Proposed calls are untrusted output</h2>
+  <p>A proposed tool call can go wrong in two ways. The model can simply be wrong. Or it can be steered: <strong>prompt injection</strong> is input you, the builder, did not write that changes what the model does in ways you did not intend. In <em>direct</em> injection it is the user’s own message, from a malicious user or an honest one pasting text that carries instructions. In <em>indirect</em> injection the text arrives as data, through a web page, a file, an issue comment or an email that a tool returns (<a href="https://genai.owasp.org/llmrisk/llm01-prompt-injection/" target="_blank">OWASP LLM01:2025</a>). Indirect injection gets in through the OBSERVE step of the <a href="0001-agent-loop-system-prompt-tool-schemas.html#read-act-observe-loop">read-act-observe loop</a>:</p>
+  <pre><code>result = execute("read_file", {"path": "vendor/jwt/src/lib.rs"})   # ACT
+messages.append({role: "tool", content: result})                     # OBSERVE
+# Suppose a doc comment in that file contains text addressed to "the AI
+# assistant", asking it to do something unrelated to the task. On the next
+# call_model(messages), that text sits in the same transcript as your own
+# instructions. Nothing in the token stream marks it as data, not orders.</code></pre>
+  <p>Greshake et al. demonstrated this against deployed systems in 2023 by planting prompts “into data likely to be retrieved”, and observed that LLM-integrated applications “blur the line between data and instructions” (<a href="https://arxiv.org/abs/2302.12173" target="_blank">arXiv 2302.12173</a>). OWASP’s current edition, the <a href="https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/" target="_blank">Top 10 for LLM Applications 2026</a> (August 2026), is blunt about defences: “no reliable prevention mechanism exists today,” so defence is “architectural rather than interceptive.” A <a href="0003-context-memory-summarization-retrieval.html#retrieval-augmented-state">retrieved document</a> is the same kind of input as a fetched page.</p>
+  <div class="callout">
+    <strong>Design for the worst call the tools allow.</strong>
+    You can’t prove the model will never propose a harmful call. Assume that some day, by mistake or injection, it will propose the worst call its tools permit. OWASP frames the risk the same way: damage “regardless of what is causing the LLM to malfunction” (<a href="https://genai.owasp.org/llmrisk/llm062025-excessive-agency/" target="_blank">Excessive Agency</a>: LLM06 in 2025, LLM03 in the 2026 edition, same wording).
+  </div>
+
+  <h2 id="blast-radius">Blast radius: what the tools permit, not what the task asks</h2>
+  <p>The <strong>blast radius</strong> of an agent is the worst outcome a fully mistaken or fully hijacked agent could cause with the tools and credentials it holds right now. The task doesn’t enter into it. Here are two agents given the same request, “fix the failing test in <code>auth.rs</code>”:</p>
+  <pre><code># Agent A: one general tool
+TOOLS = [bash]                 # any command, running as your user account
+
+# Agent B: three narrow tools
+TOOLS = [read_file,            # paths inside the repo only
+         edit_file,            # paths under src/ only
+         run_tests]            # one fixed command (cargo test), sandboxed</code></pre>
+  <p>Agent A’s blast radius is everything your account can do: read <code>~/.ssh</code>, delete files outside the repo, push, reach any host. Agent B’s is a bad edit under <code>src/</code> that <code>git</code> can revert, plus whatever a test run can do inside its sandbox. Same model, same task, very different worst cases. The <a href="0002-tool-design-schemas-error-surfaces.html#bad-vs-good-description">narrow, well-described tools</a> from tool design turn out to be the first guardrail.</p>
+  <p>OWASP names three levers that widen the radius: <em>excessive functionality</em> (tools that do more than the job needs), <em>excessive permissions</em> (credentials with more access than the job needs) and <em>excessive autonomy</em> (high-impact actions with no independent verification). The fix for the first two dates from 1975. <strong id="least-privilege">Least privilege</strong>: “Every program and every user of the system should operate using the least set of privileges necessary to complete the job.” Saltzer and Schroeder give its purpose in the next sentence: it “limits the damage that can result from an accident or error” (<a href="https://www.cs.virginia.edu/~evans/cs551/saltzer/" target="_blank">The Protection of Information in Computer Systems</a>). It applies per worker too: a <a href="0005-orchestration-planner-worker-subagents.html#subagent">subagent</a> with a restricted tool list is a least-privilege boundary, and its <a href="0005-orchestration-planner-worker-subagents.html#delegation-brief">delegation brief</a> can state that boundary, but only the harness enforces it.</p>
+  <div class="callout warn">
+    <strong>Reversibility is where the risk concentrates.</strong>
+    A wrong edit in a git working tree costs a revert. A force-push to a shared branch, a sent email or a card charge acts outside your machine and can’t be undone from inside the loop. Sort every capability by two questions: <em>can I undo it?</em> and <em>does it leave the box?</em> OWASP’s 2026 edition draws the same line: let “low-consequence or easily reversible actions” auto-approve and route “high-consequence or irreversible ones” to a human.
+  </div>
+
+  <h2 id="enforcement-boundary">Where the check lives: prompt, harness, or OS</h2>
+  <p>Back to “never delete a file without confirming.” It is a sentence a <a href="0001-agent-loop-system-prompt-tool-schemas.html#stateless-model-call">stateless model</a> reads on every call. A mistaken or injected model can propose the deletion anyway, and nothing in the loop stops it. Claude Code’s permission docs say the same of <code>CLAUDE.md</code> guidance: it shapes “what Claude tries but doesn’t enforce a boundary” (<a href="https://code.claude.com/docs/en/permissions" target="_blank">Configure permissions</a>). A real check sits between <code>call_model</code> and <code>execute</code> and runs on every call, which is what Saltzer and Schroeder call <em>complete mediation</em>: “Every access to every object must be checked for authority.”</p>
+  <pre><code>RULES = {                                     # rule strings in Claude Code’s documented syntax
+  "deny":  ["Read(./.env)", "Bash(git push *)"],
+  "ask":   ["Bash(cargo publish *)"],
+  "allow": ["Edit(src/**)", "Bash(cargo test *)"]
+}
+
+def authorize(call):
+    for decision in ["deny", "ask", "allow"]:  # deny first; the first match decides
+        if any(matches(rule, call) for rule in RULES[decision]):
+            return decision
+    return "ask"                               # fail-safe default: no match is not a yes
+
+loop:
+    response = call_model(messages, tools=TOOLS)
+    if response.tool_call is None:
+        return response.text
+    call = response.tool_call
+    decision = authorize(call)                 # every call, every iteration
+    if decision == "ask":
+        decision = ask_human(call.name, call.arguments)   # exact arguments, not a summary
+    if decision == "deny":
+        result = {"ok": false, "error": "permission_denied", "rule": "..."}
+    else:
+        result = execute_in_sandbox(call.name, call.arguments)
+    messages.append({role: "assistant", tool_call: call})
+    messages.append({role: "tool", tool_call_id: call.id, content: result})</code></pre>
+  <p>The order is documented: “deny, then ask, then allow. The first match in that order determines the outcome.” The unmatched default is generic design, not a claim about any product: Saltzer and Schroeder’s <em>fail-safe defaults</em>, “Base access decisions on permission rather than exclusion.”</p>
+  <div class="callout warn">
+    <strong>A rule on command text is not a boundary around the program.</strong>
+    The harness sees the string the model wrote, not what the program does once running. The docs list the gaps: <code>Bash(git push *)</code> stops <code>git push origin main</code> but not <code>git -C . push origin main</code>, so such a rule “isn’t a security boundary around the program” (<a href="https://code.claude.com/docs/en/permissions#bash-rule-limits" target="_blank">what a Bash rule doesn’t match</a>), and <code>Read</code> deny rules miss “arbitrary subprocesses that read or write files indirectly.” In the running example, <code>cargo test</code> compiles and executes build scripts, yours and your dependencies’, “just before building the package” (<a href="https://doc.rust-lang.org/cargo/reference/build-scripts.html" target="_blank">Cargo book</a>), then runs the test binaries. Any of that code can open <code>.env</code>.
+  </div>
+  <p>Hence three layers, each seeing what the one above cannot:</p>
+  <table class="layers">
+    <thead><tr><th>Layer</th><th>What it checks</th><th>What it cannot see</th></tr></thead>
+    <tbody>
+      <tr><td>System prompt</td><td>Nothing. It asks.</td><td>Any call the model proposes anyway</td></tr>
+      <tr><td>Harness rules</td><td>Each proposed call’s name and arguments, before it runs</td><td>What an allowed process does once running: build scripts, child processes</td></tr>
+      <tr><td>OS sandbox</td><td>Every file and network access by the process and all its children</td><td>Whether an allowed action is wise: a bad edit in <code>src/</code> is still allowed</td></tr>
+    </tbody>
+  </table>
+  <p>This is <a href="0004-failure-modes-debugging-agents.html#root-cause-vs-symptom">root cause vs. symptom</a> applied to security: a new “please don’t” sentence after an incident patches the symptom. The root cause is that the capability was there, so the fix belongs in a layer that enforces.</p>
+
+  <h2 id="sandbox">Sandbox: filesystem and network, both</h2>
+  <p>A <strong>sandbox</strong> is an OS-enforced boundary around the processes an agent starts: which paths they may read or write, which hosts they may reach. The OS enforces it on every process in the tree, whatever the command string said. Claude Code’s is built on Linux bubblewrap and macOS Seatbelt and covers “any scripts, programs, or subprocesses that are spawned by the command” (<a href="https://www.anthropic.com/engineering/claude-code-sandboxing" target="_blank">Beyond permission prompts</a>, October 2025). It “holds regardless of what the model chose to run” (<a href="https://code.claude.com/docs/en/sandboxing" target="_blank">Sandboxing docs</a>). This is the concrete form of <a href="https://www.anthropic.com/research/building-effective-agents" target="_blank">Building Effective Agents</a>’ advice: “extensive testing in sandboxed environments, along with the appropriate guardrails.”</p>
+  <div class="callout">
+    <strong>Isolate both the filesystem and the network.</strong>
+    Anthropic: “Without network isolation, a compromised agent could exfiltrate sensitive files like SSH keys; without filesystem isolation, a compromised agent could easily escape the sandbox and gain network access.” The documented defaults (as of October 2026) show the division of labour: a sandboxed command may still <em>read</em> most of the machine, <code>~/.ssh</code> included, unless you add <code>filesystem.denyRead</code> entries, while its network goes through a proxy whose allowed-domain list starts empty. There, the network layer is what stands between a read key and the outside world.
+  </div>
+  <p>The sandbox has edges too: it wraps shell commands, while built-in file tools follow permission rules, so “a <code>denyRead</code> entry doesn’t stop the Read tool.” Defence in depth means a deny rule for the tool <em>and</em> a sandbox path rule for processes: two paths to one file, two layers. Two documented defaults also decide whether the sandbox is there at all: a command that fails inside it may be retried unsandboxed, subject to your permission mode (<code>allowUnsandboxedCommands: false</code> closes that), and if the sandbox cannot start, commands run without it unless <code>failIfUnavailable</code> is set. Here the fail-safe default is a setting you have to choose.</p>
+
+  <h2 id="lethal-trifecta">The lethal trifecta: cut a leg, don’t filter</h2>
+  <p>Simon Willison’s <a href="https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/" target="_blank">lethal trifecta</a> (June 2025) names the combination that turns injection into theft: (1) access to private data, (2) exposure to untrusted content, and (3) “the ability to externally communicate in a way that could be used to steal your data.” Models “will happily follow any instructions that make it to the model, whether or not they came from their operator or from some other source,” so an agent with all three can be talked into sending your data out. One tool can supply two legs: a URL fetcher brings in untrusted pages <em>and</em> its request can carry data out; an inbox holds private mail written by strangers. Tick tools to see which legs light up and which single removal, if any, breaks the combination.</p>
+  <div class="trifecta" id="trifecta">
+    <div class="tf-tools">
+      <label><input type="checkbox" value="read_private_repo"> <code>read_private_repo</code></label>
+      <label><input type="checkbox" value="fetch_url"> <code>fetch_url</code></label>
+      <label><input type="checkbox" value="read_inbox" checked> <code>read_inbox</code></label>
+      <label><input type="checkbox" value="send_email" checked> <code>send_email</code></label>
+      <label><input type="checkbox" value="post_public_comment"> <code>post_public_comment</code></label>
+    </div>
+    <div class="tf-legs"><span class="leg" data-leg="P">private data</span><span class="leg" data-leg="U">untrusted content</span><span class="leg" data-leg="X">external communication</span></div>
+    <p class="tf-out" id="tf-out" aria-live="polite"></p>
+  </div>
+  <div class="callout warn">
+    <strong>A filter that catches 95% is a failing grade.</strong>
+    Injection classifiers are probabilistic. Willison notes they advertise catching “95% of attacks,” but “in web application security 95% is very much a failing grade”: an adversary keeps searching for the 5%. Use them as defence in depth, never as the boundary. The boundary is structural: “once an LLM agent has ingested untrusted input, it must be constrained so that it is impossible for that input to trigger any consequential actions” (Beurer-Kellner et al., <a href="https://arxiv.org/abs/2506.08837" target="_blank">Design Patterns for Securing LLM Agents</a>, 2025). Planted-instruction cases belong in a <a href="0007-evaluation-evals-regression-tests.html#regression-eval">regression eval</a>, so a classifier or prompt change that reopens a hole fails a test.
+  </div>
+
+  <h2 id="human-in-the-loop">Human approval: gate the irreversible, show the exact call</h2>
+  <p>A <strong>human-in-the-loop approval gate</strong> pauses the loop before a specific call, shows a person the exact call, and waits for yes or no. OWASP: “require a human to approve high-impact actions before they are taken”; <a href="https://www.anthropic.com/research/building-effective-agents" target="_blank">Building Effective Agents</a>: agents can “pause for human feedback at checkpoints.” The <a href="0002-tool-design-schemas-error-surfaces.html#tool-exercise">payment tool</a> from tool design, where a wrong guess is “a real transaction,” is the textbook case. Render what the payment system will receive, not the model’s summary, because a hijacked model can describe a bad call in innocent words:</p>
+  <pre><code>{
+  "tool": "charge_customer",
+  "arguments": { "customer_id": "cus_8812", "amount": 4999, "currency": "usd", "unit": "cents" },
+  "renders_as": "Charge cus_8812 USD 49.99",
+  "reversible": false
+}</code></pre>
+  <p>Read as dollars, the same <code>4999</code> is $4,999.00, a factor of 100. The gate is the last place a human can catch that.</p>
+  <p>The gate has its own failure mode. <strong id="approval-fatigue">Approval fatigue</strong>: asked to approve constantly, people stop reading. Anthropic describes users who “might not pay close attention to what they’re approving,” making development “less safe.” Prompt on everything and approvals become rubber stamps. Decide what to gate by <a href="../../rationality/lessons/0004-calibration-and-expected-value.html#expected-value">expected value</a>. With <em>illustrative</em> numbers: if 1 in 1,000 proposed force-pushes is wrong and a wrong one costs 40 hours, each push carries 0.04 h (144 s) of expected damage against ~15 s to approve, so the gate pays for itself if the reviewer catches more than 15/144, about 1 bad push in 10. Gate it. Two hundred sandboxed <code>cargo test</code> runs a day at 15 s each is 50 minutes spent approving calls whose worst case the sandbox already bounds (writes inside the working tree, network only to allowed hosts), so don’t. Anthropic reports sandboxing “reduces permission prompts by 84%” in its internal usage, leaving attention for the calls that matter.</p>
+  <p>A denied call still needs something to OBSERVE. Return a structured <a href="0002-tool-design-schemas-error-surfaces.html#error-surface">error surface</a> so the model replans instead of retrying a reworded version of the same call:</p>
+  <pre><code>{
+  "ok": false,
+  "error": "permission_denied",
+  "rule": "deny: Bash(git push *)",
+  "message": "This agent may not push. Commit to a local branch and report its name; a human pushes after review."
+}</code></pre>
+  <p>Claude Code’s sandbox does likewise: a blocked connection “names the denied host in the command’s result, so Claude sees what was blocked.” Step and spend caps are the runtime side of these controls, set as a <a href="0008-production-latency-cost-observability.html#runtime-budget">runtime budget</a>.</p>
+
+  <h2>Try it: assign the control</h2>
+  <p>For each capability, choose the control that bounds its blast radius at the right layer. Each wrong answer says which lever (functionality, permissions or autonomy) it leaves open, or what it breaks.</p>
+  <div id="guardrail-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. You ask an agent only to fix the failing test in <code>auth.rs</code>, but it runs an unrestricted shell under your own user account. What is its blast radius?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','That is the task, not the blast radius. Blast radius is the worst a mistaken or hijacked agent could do with what it holds, and an unrestricted shell holds far more than auth.rs.')">Just the edits needed to make the failing test pass</button>
+        <button onclick="quizAnswer(this,true,'q1','Right. An unrestricted shell under your account inherits every file, credential and network route you have, so the worst case is set by your account, not by the request.')">Everything your user account can read, change, or send</button>
+        <button onclick="quizAnswer(this,false,'q1','The system prompt is a request to the model. A mistaken or injected model is not bound by it, so the prompt cannot shrink the worst case.')">Whatever the system prompt permits it to attempt</button>
+        <button onclick="quizAnswer(this,false,'q1','Nothing confines an unrestricted shell to the working directory. Only narrow tools or an OS sandbox would make that true.')">Only files inside the working directory, where the task lives</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. After an agent force-pushed to <code>main</code>, someone adds “NEVER push to main” to the system prompt. Which change addresses the root cause?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Still a request to the model, now resent on every call. That is symptom-patching: a confused or injected model can ignore any wording.')">Repeat the rule in capitals near the end of the prompt</button>
+        <button onclick="quizAnswer(this,false,'q2','Better than prose, but a Bash rule matches command text only. The docs show git -C . push origin main slipping past it, so on its own it is not a boundary.')">Add a Bash(git push *) deny rule and call it done</button>
+        <button onclick="quizAnswer(this,false,'q2','A probabilistic filter is defence in depth, not a boundary. An adversary keeps searching for the calls it misses.')">Add a guardrail model that screens every proposed call</button>
+        <button onclick="quizAnswer(this,true,'q2','Right. Least privilege at the source: if the credentials the agent holds cannot push to main, no wording, rule bypass or injection makes the push succeed. A human gate on pushes can sit on top.')">Give the agent credentials that cannot push to main</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. An agent holds exactly two tools: <code>read_private_repo</code> and <code>fetch_url</code> (fetches any URL). Does it have the lethal trifecta?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right. One tool can supply two legs. Fetched pages are untrusted content, and the URL the agent requests can carry stolen data out in its path or query string.')">Yes: fetch_url can bring pages in and carry data out</button>
+        <button onclick="quizAnswer(this,false,'q3','Exfiltration does not need a messaging tool. A request to a URL the attacker controls is itself external communication.')">No: it has no tool whose purpose is sending messages</button>
+        <button onclick="quizAnswer(this,false,'q3','Read-only for the remote page, perhaps, but the request itself leaves your machine carrying whatever the agent put in the URL.')">No: fetching a URL is a read-only operation on the web</button>
+        <button onclick="quizAnswer(this,false,'q3','A classifier that catches most attacks still lets the rest through, and Willison calls 95% a failing grade. The combination exists with or without it.')">Yes, unless an injection classifier screens fetched pages</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. A team requires a human to approve every tool call, including each <code>cargo test</code> run. What does this lesson predict?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','Safety depends on attention, and attention runs out. Hundreds of near-identical prompts train people to click approve without reading.')">The safest possible design, at the cost of some speed</button>
+        <button onclick="quizAnswer(this,false,'q4','The human sees the command text, not what build.rs or the tests do once running. Only the OS sandbox sees every process.')">No sandbox is needed, since a human sees every command</button>
+        <button onclick="quizAnswer(this,true,'q4','Right. That is approval fatigue. Sandbox the routine calls so they need no prompt, and save human attention for the few irreversible ones.')">Approvals become reflexive, so a risky one slips by</button>
+        <button onclick="quizAnswer(this,false,'q4','Approvals do not retrain the model, and each call is stateless. The gate changes what runs, not what the model proposes.')">The model learns to stop proposing risky tool calls</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>List the tools (or tool categories) of the harness you use daily. For each, write its worst case, whether it is reversible, and whether it leaves the machine; then assign allow, ask, sandbox or remove. Circle any lethal-trifecta combination and name the leg you would cut. Finally, note where each control actually lives: prompt, harness rule, or OS. A control that lives only in the prompt is a finding.</p>
+
+  <h2>Primary resource</h2>
+  <p>OWASP, <a href="https://genai.owasp.org/llmrisk/llm062025-excessive-agency/" target="_blank">Excessive Agency</a>: a short standards-body treatment of exactly this lesson’s question, splitting agent risk into excessive functionality, permissions and autonomy, with mitigations for each, from “minimize extensions” to complete mediation. Read its mail-assistant scenario with the trifecta checker open. As of October 2026 the web page still carries the 2025 text (LLM06:2025); the <a href="https://genai.owasp.org/resource/owasp-genai-llm-top-10-2026/" target="_blank">August 2026 edition</a> (a PDF download) renumbers it LLM03:2026 with the same three root causes. For design, Beurer-Kellner et al.’s <a href="https://arxiv.org/abs/2506.08837" target="_blank">six patterns</a> (action-selector, plan-then-execute, dual LLM and others) each enforce some isolation between untrusted data and the agent’s control flow, at a cost in utility.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Bring a real permission prompt from this session, or a call that ran without one. Work out together, honestly and without over-claiming about the harness’s internals, which layer decided it (a rule, the sandbox, or you) and what its blast radius would have been if the model had been hijacked at that moment.
+  </div>
+
+  <div class="nav">
+    <a href="0005-orchestration-planner-worker-subagents.html">← Lesson 5: Orchestration Patterns</a>
+    <span class="spacer"></span>
+    <a href="0007-evaluation-evals-regression-tests.html">Lesson 7: Evaluation →</a>
+  </div>
+
+</div>
+
+<style>
+.layers { width: 100%; border-collapse: collapse; margin: .75rem 0 1.25rem; font-size: .86rem; table-layout: fixed; }
+.layers th, .layers td { text-align: left; padding: .45rem .5rem; border-bottom: 1px solid var(--border); vertical-align: top; overflow-wrap: anywhere; }
+.layers th { font-family: var(--font-ui); font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.layers td:first-child { color: var(--accent-strong); width: 26%; }
+.trifecta { background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.1rem; margin: 1rem 0 1.25rem; font-family: var(--font-ui); font-size: .88rem; }
+.tf-tools { display: flex; flex-wrap: wrap; gap: .4rem .9rem; margin-bottom: .8rem; }
+.tf-tools label { cursor: pointer; color: var(--ink-dim); }
+.tf-legs { display: flex; flex-wrap: wrap; gap: .4rem; }
+.leg { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .2rem .55rem; color: var(--muted); background: var(--bg-sunken); }
+.leg.on { border-color: var(--amber); color: var(--amber); }
+.trifecta.lethal .leg.on { border-color: var(--err); color: var(--err); background: var(--err-lt); }
+.tf-out { margin: .7rem 0 0; color: var(--ink-dim); min-height: 2.6em; }
+</style>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+// Trifecta checker: which legs do the ticked tools supply, and which single removal breaks it?
+const TF_LEGS = {
+  read_private_repo:   ['P'],
+  fetch_url:           ['U', 'X'],  // fetched pages are untrusted; the URL itself can carry data out
+  read_inbox:          ['P', 'U'],  // private mail, written by strangers
+  send_email:          ['X'],
+  post_public_comment: ['X'],
+};
+const TF_NAMES = { P: 'private data', U: 'untrusted content', X: 'external communication' };
+function tfLegs(tools) {
+  const s = new Set();
+  tools.forEach(t => TF_LEGS[t].forEach(l => s.add(l)));
+  return s;
+}
+function tfUpdate() {
+  const box = document.getElementById('trifecta');
+  const on = Array.from(box.querySelectorAll('input:checked')).map(i => i.value);
+  const legs = tfLegs(on);
+  box.querySelectorAll('.leg').forEach(el => el.classList.toggle('on', legs.has(el.dataset.leg)));
+  const out = document.getElementById('tf-out');
+  if (legs.size < 3) {
+    box.classList.remove('lethal');
+    const missing = ['P', 'U', 'X'].filter(l => !legs.has(l)).map(l => TF_NAMES[l]);
+    out.textContent = on.length === 0
+      ? 'Tick some tools.'
+      : 'No trifecta. Nothing supplies ' + missing.join(' or ') + '.';
+    return;
+  }
+  box.classList.add('lethal');
+  const cuts = on.filter(t => tfLegs(on.filter(u => u !== t)).size < 3);
+  out.textContent = cuts.length
+    ? 'Lethal trifecta. Removing ' + cuts.join(' or ') + ' alone breaks it.'
+    : 'Lethal trifecta, and no single removal breaks it: every leg has two suppliers. Remove more, or narrow a tool (for example, send_email to one fixed internal address).';
+}
+document.querySelectorAll('#trifecta input').forEach(i => i.addEventListener('change', tfUpdate));
+tfUpdate();
+
+const OPTS = ['Allow it automatically', 'Ask a human first', 'Run it in a sandbox', 'Remove the capability'];
+function card(prompt, correctIdx, explains) {
+  return { prompt, options: OPTS.map((text, i) => ({ text, correct: i === correctIdx, explain: explains[i] })) };
+}
+renderMC('guardrail-exercise', [
+  card('A coding agent calls read_file("src/auth.rs") inside its working directory.', 0, [
+    'Right. Read-only, in scope, nothing to undo. A path-scoped allow rule is least privilege already; no lever is left open.',
+    'Prompting for an in-scope read spends attention on a call with no blast radius. That is how approval fatigue starts.',
+    'A narrow file tool spawns no processes and a path-scoped rule already bounds it. (Claude Code’s sandbox wraps shell commands, not the Read tool.)',
+    'The agent cannot fix auth.rs without reading it. Removing a capability the task needs is not least privilege, it is a broken agent.',
+  ]),
+  card('A coding agent runs bash("cargo test"), which compiles and runs build scripts and test code. It does this dozens of times per session.', 2, [
+    'Excessive permissions: build.rs and the tests are arbitrary programs that can open any file your account can and reach any host. Nothing bounds them.',
+    'You would approve the command text, never the code it runs, dozens of times a session. Approval fatigue, with nothing useful shown.',
+    'Right. Routine, frequent, and it runs code no rule can inspect. The OS sandbox bounds every spawned process, filesystem and network, so no prompt is needed.',
+    'Without a test run the agent cannot OBSERVE whether its fix worked, which breaks the read-act-observe loop. Contain the run instead of removing it.',
+  ]),
+  card('The agent’s job ends with pushing its finished branch. This time it proposes: git push --force origin main.', 1, [
+    'Excessive autonomy: a force-push rewrites shared history that others have already pulled. Irreversible and shared is exactly what not to auto-approve.',
+    'Right. Irreversible, shared, and rare, so a gate costs little. Show the exact command, remote and branch. Here the human should decline and ask for a normal push of the feature branch.',
+    'The effect lands on the remote, outside any local box: block the host and legitimate pushes fail too; allow it and the damage happens anyway.',
+    'Pushing is part of this agent’s job, so removing it removes the product. Narrowing it is worth doing too (credentials or branch protection that refuse force-pushes to main), but the push capability stays, and its rare irreversible uses still need a person to look.',
+  ]),
+  card('A support-triage agent reads untrusted inbound tickets, can query the customer database, and has send_email to any address.', 3, [
+    'This is the full lethal trifecta: private data (the database), untrusted content (tickets anyone can write) and an outbound channel. One planted ticket could ask for records to be mailed out.',
+    'Approving each email is a weak boundary at support volume: replies look plausible, and leaked data can hide in an innocent one. A gate on autonomy leaves the excess functionality in place.',
+    'Sending email is the tool’s sanctioned purpose, so its network route has to be open, and a sandbox cannot tell a leak from a reply. The excess is functionality, not process isolation.',
+    'Right. Cut a leg: replace send-to-anyone with a tool that can only reach one fixed internal address. The trifecta is gone by design, not by filtering.',
+  ]),
+  card('A billing agent proposes charge_customer({"customer_id": "cus_8812", "amount": 4999}). The schema does not state the unit.', 1, [
+    'Real money with an ambiguous unit: 4999 cents is $49.99 and 4999 dollars is $4,999.00, a factor of 100. Auto-running it is excessive autonomy on an irreversible external action.',
+    'Right. High impact, external, hard to reverse. Gate it, and render the exact arguments the payment system will receive, including currency and unit, not the model’s summary of them.',
+    'The harm is the charge itself, which happens at the payment provider, outside any local box. Isolation cannot contain a wrong transaction.',
+    'Charging is a billing agent’s job; removing it removes the product. Keep the capability and put a human gate on each call (and fix the schema’s unit).',
+  ]),
+  card('The system prompt says “never read .env”. The agent also has an unrestricted bash tool, which it needs for cargo test. What should enforce the rule?', 2, [
+    'Leaving it to the prompt is a request, not a control. A mistaken or injected model can still run a script that opens .env, so the permissions lever is wide open.',
+    'Approving each command shows you its text, not the files the program will open. A test helper that reads .env looks identical to one that does not.',
+    'Right. A filesystem deny on .env, enforced by the OS for every process, holds for scripts and subprocesses too. Pair it with a Read(./.env) deny rule, since the sandbox wraps shell commands, not the file tool.',
+    'Removing bash would also remove cargo test and break the OBSERVE step. Keep the shell, and deny the one path underneath it at the OS.',
+  ]),
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

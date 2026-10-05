@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 9 — Decoherence, Noise &amp; Quantum Error Correction</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Quantum Computing</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 9 of 10 &nbsp;·&nbsp; Quantum Computing &nbsp;·&nbsp; ~40 min</p>
+  <h1>Decoherence, Noise &amp; Quantum Error Correction</h1>
+  <p>Every algorithm so far, from <a href="0004-interference-deutsch-jozsa.html#interference">Deutsch-Jozsa's interference</a> to <a href="0007-shors-algorithm-breaking-rsa.html#period-finding">Shor's period finding</a>, assumed that relative phases stay where the gates put them. <a href="0007-shors-algorithm-breaking-rsa.html#shor-resource-estimates">Lesson 7</a> then priced RSA-2048 at a bit over 4,096 perfect qubits, yet every published estimate counts far more physical ones. This lesson explains the gap: real qubits lose their phases through decoherence, and one idea protects quantum information anyway, measuring <em>parities</em> of qubits instead of the qubits. You will encode a qubit in the 3-qubit bit-flip code, decode any single bit flip from its syndrome, and compute when encoding helps.</p>
+
+  <h2 id="decoherence">Decoherence: entanglement you did not ask for</h2>
+  <p>A qubit is never perfectly isolated. Stray fields, defects in the chip and the control wiring all interact with it, and an interaction is unitary evolution of qubit plus <strong>environment</strong>. If the environment ends up in a different state depending on whether the qubit is |0⟩ or |1⟩:</p>
+  <pre><code>(α|0⟩ + β|1⟩) ⊗ |E⟩
+  ──▶  α|0⟩|E₀⟩ + β|1⟩|E₁⟩</code></pre>
+  <p>This is <a href="../../quantum-mechanics/lessons/0004-schrodinger-equation.html#measurement-vs-evolution">Quantum Mechanics lesson 4's remark that measurement is just entanglement with a measuring device</a>, except that nobody built the device and nobody reads it. Unless |E₀⟩ = |E₁⟩, the qubit is no longer in a <a href="../../quantum-mechanics/lessons/0002-entanglement-epr-puzzle.html#product-vs-entangled">product state</a> with its surroundings.</p>
+  <div class="callout">
+    <strong>Worked example: interference gets multiplied by ⟨E₀|E₁⟩</strong>
+    Measure the qubit in the {|+⟩, |−⟩} basis. Projecting onto |+⟩ = (|0⟩+|1⟩)/√2 leaves (α|E₀⟩ + β|E₁⟩)/√2. Its squared norm, using |α|² + |β|² = 1 and then α = β = 1/√2, is
+    <pre><code>P(+) = ½ + Re(α*β·⟨E₀|E₁⟩)
+     = ½ + ½·Re⟨E₀|E₁⟩
+
+⟨E₀|E₁⟩  P(+)  environment has
+1        1     learned nothing
+0.6      0.8   a partial record
+0        0.5   a full record</code></pre>
+    The odds of |0⟩ and |1⟩ never move. What vanishes is the cross term, the part <a href="0004-interference-deutsch-jozsa.html#interference">interference</a> runs on. That is why noise kills quantum speedup in particular: Deutsch-Jozsa, Grover and the QFT all work by making amplitudes cancel.
+  </div>
+  <div class="callout warn">
+    <strong>What decoherence is not</strong>
+    It is not the state being destroyed, and not a physical collapse. The joint evolution stays unitary; the phase information now sits in correlations with an environment you cannot control or measure. Decoherence explains why interference disappears; as the <a href="https://plato.stanford.edu/entries/qm-decoherence/" target="_blank">Stanford Encyclopedia entry on decoherence</a> puts it, it “does not explain why we do observe measurement results in the first place”, so on its own it does not solve the measurement problem.
+  </div>
+
+  <h2 id="t1-t2">T1 and T2: two ways the Bloch vector shrinks</h2>
+  <p>A qubit entangled with its environment has no pure state of its own, so its <a href="0001-qubits-bloch-sphere-single-qubit-gates.html#bloch-sphere">Bloch vector</a> moves inside the sphere and gets shorter. Two time scales describe how (<a href="https://arxiv.org/abs/1904.06560" target="_blank">Krantz et al. 2019, §III.B</a>):</p>
+  <ul>
+    <li><strong>T1, energy relaxation.</strong> An excited |1⟩ gives its energy to the environment and decays to |0⟩. The Bloch vector slides toward the north pole, and P(1) decays like e<sup>−t/T1</sup>.</li>
+    <li><strong>T2, dephasing.</strong> The relative phase φ between |0⟩ and |1⟩ drifts randomly. The equatorial part of the Bloch vector shrinks toward the z-axis, even if the z-component stays put.</li>
+  </ul>
+  <p>They are not independent. Relaxation also erases phase: once the qubit has decayed to |0⟩ there is no phase left. The cross term involves the amplitude β, not the probability |β|², so it decays at half the rate of P(1), and the rates add: Γ₂ = Γ₁/2 + Γ<sub>φ</sub>, where Γ = 1/T and Γ<sub>φ</sub> ≥ 0 is pure dephasing. Hence <strong>T2 ≤ 2T1</strong>.</p>
+  <div class="callout">
+    <strong>Worked example: precession with a jittery frequency</strong>
+    In <a href="../../quantum-mechanics/lessons/0004-schrodinger-equation.html#worked-example-qubit-precession">Quantum Mechanics lesson 4</a>, |+⟩ evolving under H = (ℏω/2)Z gave P(+) = cos²(ωt/2) = (1 + cos ωt)/2, a clean fringe. Now let the splitting fluctuate between runs: ω̄ + δ half the time, ω̄ − δ the other half. Averaging the two fringes:
+    <pre><code>P(+) = ½ + ½·cos(ω̄t)·cos(δt)
+
+δt        0     π/4    π/2
+cos(δt)   1     0.71   0</code></pre>
+    At t = π/(2δ) the two kinds of run are π out of phase, and P(+) = ½ for every ω̄: the |+⟩ test is a coin. Each run was a pure state; what kills the fringe is the spread of phases across runs, Bloch vectors fanning out around the equator. A continuous Gaussian spread of width σ gives contrast e<sup>−σ²t²/2</sup>, which never revives. (Drift that stays constant within a run can be undone by an echo pulse.)
+  </div>
+  <p>Typical T1 and T2 values, and how many gates fit inside them, belong to <a href="0010-physical-qubits-nisq-era.html#noise-depth-budget">lesson 10</a>.</p>
+
+  <h2>Why quantum error correction looks impossible</h2>
+  <p>Classical machines fight noise with redundancy: store bit b as bbb and take a majority vote. Three things block the quantum version (<a href="https://arxiv.org/abs/1907.09415" target="_blank">de Wolf, §21.3</a>):</p>
+  <ol>
+    <li><strong>No copying.</strong> The <a href="0003-universal-gates-reversibility-no-cloning.html#no-cloning-theorem">no-cloning theorem</a> forbids |ψ⟩ ↦ |ψ⟩|ψ⟩|ψ⟩.</li>
+    <li><strong>Looking destroys.</strong> Checking a qubit by measuring it collapses α|0⟩ + β|1⟩.</li>
+    <li><strong>Errors are continuous.</strong> A bit is flipped or not; a qubit can be rotated by any small angle about any axis.</li>
+  </ol>
+  <p>Each has an answer; the next four sections give them.</p>
+
+  <h2 id="bit-flip-code">The 3-qubit bit-flip code: entangle, don't copy</h2>
+  <p><a href="0003-universal-gates-reversibility-no-cloning.html#no-cloning-theorem">Lesson 3</a> promised that error correction cannot make three copies and vote. Here is what it does instead: two <a href="0002-multi-qubit-entanglement-circuits.html#cnot-gate">CNOTs</a> from the data qubit q0 onto two fresh qubits.</p>
+  <pre><code>q0: α|0⟩+β|1⟩ ──●──●──
+                │  │
+q1: |0⟩       ──⊕──┼──
+                   │
+q2: |0⟩       ─────⊕──
+
+output: α|000⟩ + β|111⟩</code></pre>
+  <p>Each CNOT copies the <em>basis label</em>: |0⟩|00⟩ ↦ |000⟩ and |1⟩|00⟩ ↦ |111⟩, and linearity does the rest. Compare three genuine copies:</p>
+  <pre><code>encoded: α|000⟩ + β|111⟩
+         (2 terms, entangled)
+copies:  (α|0⟩+β|1⟩)⊗3
+       = α³|000⟩ + … + β³|111⟩
+         (8 terms, a product state)</code></pre>
+  <p>The two agree only when α or β is 0, the basis-state case that <a href="0003-universal-gates-reversibility-no-cloning.html#no-cloning-theorem">the no-cloning proof</a> showed a copier can handle. No single qubit of the encoded state carries α and β. Measure any one of them and you see |0⟩ with probability |α|² and no phase at all. The information lives in the correlations among all three.</p>
+
+  <h2 id="error-syndrome">Syndrome measurement: ask about parities, never values</h2>
+  <p>Suppose X hits one qubit. Instead of reading the qubits, ask two yes/no questions: do q0 and q1 agree? Do q1 and q2 agree? These are the parity checks Z₀Z₁ and Z₁Z₂. Each is computed into a fresh ancilla by two CNOTs, and only the ancillas are measured:</p>
+  <pre><code>q0:     ──●────────────
+          │
+q1:     ──┼──●──●──────
+          │  │  │
+q2:     ──┼──┼──┼──●───
+          │  │  │  │
+a0: |0⟩ ──⊕──⊕──┼──┼──[M] s_a
+                │  │
+a1: |0⟩ ────────⊕──⊕──[M] s_b</code></pre>
+  <p>The pair (s_a, s_b) = (q0⊕q1, q1⊕q2) is the <strong>error syndrome</strong>; 1 means “these two differ”. Writing X₀ for X on q0:</p>
+  <pre><code>error  state            syndrome  fix
+none   α|000⟩+β|111⟩    (0,0)     none
+X₀     α|100⟩+β|011⟩    (1,0)     X₀
+X₁     α|010⟩+β|101⟩    (1,1)     X₁
+X₂     α|001⟩+β|110⟩    (0,1)     X₂</code></pre>
+  <p>In every row, both branches have the same parities: with X on q1, |010⟩ and |101⟩ both have q0 ≠ q1 and q1 ≠ q2. So after the ancilla CNOTs the joint state factors as (α|010⟩ + β|101⟩) ⊗ |11⟩, and the ancillas read (1,1) with probability 1. A measurement with a certain outcome does not disturb the state: α and β survive, and the syndrome says where the error is but nothing about what is encoded. Apply X to q1 and you are back at α|000⟩ + β|111⟩.</p>
+  <div class="callout warn">
+    <strong>The trap: “to check for errors, measure the data”</strong>
+    Measuring q0 in the computational basis returns 0 with probability |α|² and leaves |000⟩, or 1 and leaves |111⟩. Either way the superposition you were protecting is gone. The parity checks work because they ask a question that both branches answer the same way.
+  </div>
+
+  <h2 id="phase-flip-code">Phase flips, and Shor's 9-qubit code</h2>
+  <p>Now let Z hit any of the three qubits. Z leaves |0⟩ alone and negates |1⟩, so all three cases give the same state:</p>
+  <pre><code>Z on q0, q1 or q2:  α|000⟩ − β|111⟩
+syndrome:           (0,0)</code></pre>
+  <p>The code reports “no error” while the encoded qubit has taken a phase flip. <a href="0001-qubits-bloch-sphere-single-qubit-gates.html#pauli-gates">Lesson 1</a> warned that Z does nothing visible in the {|0⟩,|1⟩} basis; parity checks in that basis cannot see it either.</p>
+  <p>The fix is a change of basis. The <a href="0001-qubits-bloch-sphere-single-qubit-gates.html#hadamard-gate">Hadamard</a> turns a phase flip into a bit flip (HZH = X), so apply H to all three qubits after encoding: α|+++⟩ + β|−−−⟩. A Z now swaps one |+⟩ ↔ |−⟩, and the checks X₀X₁ and X₁X₂ locate it with the same table. This <strong>phase-flip code</strong> is blind to X instead. <strong>Shor's 9-qubit code</strong> nests the two: encode with the phase-flip code, then encode each of its three qubits with the bit-flip code (<a href="https://quantum.cloud.ibm.com/learning/en/courses/foundations-of-quantum-error-correction/correcting-quantum-errors/shor-code" target="_blank">IBM, “The 9-qubit Shor code”</a>):</p>
+  <pre><code>|0_L⟩ = (|000⟩ + |111⟩)⊗3 / 2√2
+|1_L⟩ = (|000⟩ − |111⟩)⊗3 / 2√2</code></pre>
+  <p>Bit-flip checks inside each block catch an X; comparing the signs of the three blocks catches a Z. The code corrects an X, a Z, or both on any one of the nine qubits.</p>
+
+  <h2 id="error-discretization">Continuous errors become discrete</h2>
+  <p>The third obstacle falls to linearity. I, X, Y, Z span all 2×2 matrices, so any single-qubit error is E = c₀I + c₁X + c₂Y + c₃Z, and Y = iXZ is a bit flip and a phase flip together (de Wolf, §21.3). Measuring the syndrome forces the error to pick one term.</p>
+  <div class="callout">
+    <strong>Worked example: a 0.2-radian over-rotation</strong>
+    A faulty gate applies R<sub>x</sub>(ε) = cos(ε/2)·I − i·sin(ε/2)·X to q0 of α|000⟩ + β|111⟩, with ε = 0.2:
+    <pre><code>  cos(0.1)·(α|000⟩+β|111⟩)
+      syndrome (0,0)
+− i·sin(0.1)·(α|100⟩+β|011⟩)
+      syndrome (1,0)</code></pre>
+    Measure the syndrome. With probability cos²(0.1) = 0.990 it reads (0,0) and the state collapses to the clean codeword: the measurement itself removed the error. With probability sin²(0.1) = 0.010 it reads (1,0) and the state collapses to a plain X on q0, times a global phase −i that changes nothing; apply X to q0. Either way you get α|000⟩ + β|111⟩ back exactly, and neither probability depends on α or β.
+  </div>
+  <p>So a code that corrects X, Z and their product Y on a qubit corrects <em>every</em> single-qubit error, small rotations included (<a href="https://quantum.cloud.ibm.com/learning/en/courses/foundations-of-quantum-error-correction/correcting-quantum-errors/discretization-of-errors" target="_blank">IBM, “Discretization of errors”</a>). Decoherence is covered too: expanding the qubit-environment entanglement in Paulis gives Pauli errors each tagged with an environment state, and the syndrome measurement picks one; de Wolf (§21.3, footnote 2) notes that such non-unitary errors are correctable too.</p>
+
+  <h2 id="logical-qubit">Logical qubits, and when encoding pays</h2>
+  <p>The encoded qubit, spanned by |0_L⟩ = |000⟩ and |1_L⟩ = |111⟩, is a <strong>logical qubit</strong>. The three qubits that carry it are <strong>physical qubits</strong>. Encoding is not free, because three qubits give errors three places to land. Let each physical qubit independently suffer an X with probability p, with everything else perfect. One flip is fixed; two fool the decoder: X on q0 and q1 gives syndrome (0,1), and its “correction” on q2 completes a logical X. So the logical error rate is</p>
+  <pre><code>P_L = P(2 flips) + P(3 flips)
+    = 3p²(1−p) + p³ = 3p² − 2p³
+
+P_L &lt; p  ⟺  p(2p−1)(p−1) &gt; 0
+         ⟺  p &lt; 1/2</code></pre>
+  <div class="callout">
+    <strong>Worked example: below and above break-even</strong>
+    <pre><code>p      P_L         verdict
+0.01   2.98×10⁻⁴   34× better
+0.1    0.028       3.6× better
+0.5    0.5         break-even
+0.6    0.648       worse</code></pre>
+    Below break-even you can repeat the trick: encode each of the three qubits again (9 qubits), and again (27). Each level roughly squares the error. At p = 0.01:
+    <pre><code>k   qubits 3ᵏ   P_L
+0   1           10⁻²
+1   3           2.98×10⁻⁴
+2   9           2.66×10⁻⁷
+3   27          2.13×10⁻¹³</code></pre>
+    Qubits grow exponentially in k while the error falls doubly exponentially, about (3p)<sup>2ᵏ</sup>/3. So k = O(log log T) levels push a T-step computation's error below 1/T, at only polylogarithmic overhead (de Wolf, §21.2 and §21.6).
+  </div>
+
+  <h2 id="threshold-theorem">The threshold theorem</h2>
+  <p>The real theorem drops the toy's free lunches: syndrome extraction is itself noisy, and gates must act on encoded qubits without turning one error into two. With all of that counted:</p>
+  <div class="callout">
+    <strong>Threshold theorem</strong>
+    A quantum circuit of size N can be run with high accuracy on noisy hardware, provided the error probability at each location is below a fixed constant p<sub>th</sub> &gt; 0. The noisy circuit has size O(N·log<sup>c</sup> N) (<a href="https://quantum.cloud.ibm.com/learning/en/courses/foundations-of-quantum-error-correction/fault-tolerant-quantum-computing/threshold-theorem" target="_blank">IBM, “The threshold theorem”</a>; proved in 1996–97 by <a href="https://arxiv.org/abs/quant-ph/9906129" target="_blank">Aharonov and Ben-Or</a> and by Knill, Laflamme and Zurek, among others).
+  </div>
+  <div class="callout warn">
+    <strong>Keep this in perspective: the threshold is not 50%, and not one number</strong>
+    The toy break-even of 1/2 assumed perfect checks and only X errors. If a correction round has L places where a fault can occur, a pair of faults among them can sink it, so P_L grows like L²p² and break-even drops to roughly 1/L² (de Wolf, §21.6). The 9-qubit Shor code already stops helping above about 3.23% (same IBM page). The threshold depends on the noise model, the gate set and the code: surface-code estimates are about 0.1% to 1% (IBM), and the best rigorous lower bounds are around 0.1% (de Wolf). It is a theorem under assumptions, chiefly that errors are not strongly correlated, not a promise about any machine.
+  </div>
+  <p>The experimental evidence is recent (as of 2026). In a landmark 2024 experiment, Google ran surface-code memories (a code laid out on a 2D grid of qubits; its details are beyond this course) at distances 3, 5 and 7. Below threshold a distance-d surface code's logical error scales as ε<sub>d</sub> ∝ (p/p<sub>th</sub>)<sup>(d+1)/2</sup>, so each step d → d + 2 divides it by Λ ≈ p<sub>th</sub>/p. Google measured Λ = 2.14 ± 0.02. The distance-7 logical qubit used 101 physical qubits (49 data, 48 measurement, 4 for leakage removal), failed 0.143% of cycles, and outlived the chip's best physical qubit 2.4-fold (<a href="https://arxiv.org/abs/2408.13687" target="_blank">Google Quantum AI, Nature 2025</a>).</p>
+  <div class="complexity"><span class="label">Surface code, distance d:</span><span class="val">2d² − 1 physical qubits</span><span class="label">10⁻⁶ per cycle at Λ = 2.14:</span><span class="val">d = 27, 1,457 qubits</span></div>
+  <p>That badge, from the same paper's extrapolation, is the price of one good logical qubit, and the paper puts many applications' needs below 10⁻¹⁰. The multiplier is why <a href="0007-shors-algorithm-breaking-rsa.html#shor-resource-estimates">lesson 7's RSA-2048 estimates</a> run from 20 million down to under 100,000 physical qubits for one to a few thousand logical ones. Error <em>correction</em> is not error <em>mitigation</em>, which post-processes noisy results at a sampling cost that grows exponentially with circuit size; that is <a href="0010-physical-qubits-nisq-era.html#error-mitigation">lesson 10</a>'s subject.</p>
+
+  <h2>Try it: decode the syndrome</h2>
+  <p>Kets list q0, q1, q2 from left to right, and the syndrome is (q0⊕q1, q1⊕q2). Work out the parities yourself before you click.</p>
+  <div id="syndrome-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. A qubit starts in |+⟩ and ends as (|0⟩|E₀⟩ + |1⟩|E₁⟩)/√2 with ⟨E₀|E₁⟩ = 0. What do measurements on the qubit alone show?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','The weights of |0⟩ and |1⟩ stay 1/2 each. Decoherence leaves Z-basis odds alone and removes only the cross term.')">Z-basis outcomes become certain, always 0</button>
+        <button onclick="quizAnswer(this,true,'q1','Right. P(+) = 1/2 + (1/2)Re⟨E₀|E₁⟩ = 1/2. The interference term is multiplied by the overlap of the two environment states, which here is zero.')">Z odds stay 1/2; the |+⟩ test becomes a coin</button>
+        <button onclick="quizAnswer(this,false,'q1','Nothing collapsed. Qubit plus environment evolved unitarily and is still in superposition; the phase moved into correlations you cannot reach.')">The qubit physically collapsed to |0⟩ or |1⟩</button>
+        <button onclick="quizAnswer(this,false,'q1','The joint evolution is unitary, but the qubit is now entangled. Restricted to the qubit, the |+⟩ fringe is gone: P(+) is 1/2 instead of 1.')">Nothing changes, since the evolution was unitary</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Why does measuring the parities Z₀Z₁ and Z₁Z₂ leave α and β undisturbed?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','The CNOTs couple ancilla and data completely. What protects α and β is that both branches give the same parity.')">The ancillas couple too weakly to collapse it</button>
+        <button onclick="quizAnswer(this,false,'q2','The correction undoes the X error. There is no measurement disturbance to undo, because the syndrome outcome is certain.')">It does, but the correction step undoes it</button>
+        <button onclick="quizAnswer(this,true,'q2','Right. |000⟩ and |111⟩, and each single-flip pair such as |010⟩ and |101⟩, agree on every parity, so the outcome is certain and says nothing about α or β.')">Every branch has the same parities, so nothing leaks</button>
+        <button onclick="quizAnswer(this,false,'q2','They do not commute with everything: Z₀Z₁ anticommutes with X₀, which is exactly why an X on q0 flips that parity and shows up in the syndrome.')">Parity checks commute with every error that can occur</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Each physical qubit flips independently with probability p = 0.2. What is the bit-flip code’s logical error rate?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right. 3p²(1−p) + p³ = 3(0.04)(0.8) + 0.008 = 0.096 + 0.008 = 0.104, about half of p, so p = 0.2 is below break-even.')">0.104, so encoding helps</button>
+        <button onclick="quizAnswer(this,false,'q3','0.12 is 3p², the leading term. It counts the all-three case three times; subtracting the extra 2p³ = 0.016 gives 0.104.')">0.120, so encoding helps</button>
+        <button onclick="quizAnswer(this,false,'q3','0.488 = 1 − 0.8³ is the chance that at least one qubit flips. Single flips are corrected; only two or three flips cause a logical error.')">0.488, so encoding hurts</button>
+        <button onclick="quizAnswer(this,false,'q3','0.008 = p³ is only the all-three case. Two flips also fool the decoder, adding 3p²(1−p) = 0.096.')">0.008, so encoding helps</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Shor’s algorithm for RSA-2048 needs a few thousand qubits on paper, yet published estimates count far more physical qubits. Why?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','No-cloning forbids backup copies; codes entangle instead. The extra qubits hold an encoding such as α|000⟩ + β|111⟩, not copies.')">No-cloning forces backup copies of every qubit</button>
+        <button onclick="quizAnswer(this,false,'q4','Shor needs only a modest number of repetitions. The multiplier comes from encoding each qubit, not from running the algorithm many times.')">The algorithm must run thousands of times in parallel</button>
+        <button onclick="quizAnswer(this,false,'q4','Codes fix transient errors on qubits in use; none of the count is idle spares.')">Spare qubits replace ones that fail permanently</button>
+        <button onclick="quizAnswer(this,true,'q4','Right. To push per-step errors far below what hardware achieves, each logical qubit becomes a code block; Google’s extrapolation needs 1,457 physical qubits per logical qubit for 10⁻⁶.')">Each logical qubit is encoded in many physical ones</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>By hand, on paper:</p>
+  <ol>
+    <li>Take α|+++⟩ + β|−−−⟩, apply Z to q2, and rewrite using Z|+⟩ = |−⟩ and Z|−⟩ = |+⟩. Show that the checks “do q0 and q1 agree in the ± basis?” and “do q1 and q2?” read (0,1), and name the correction.</li>
+    <li>Factor 3p² − 2p³ − p to prove that break-even is exactly p = 1/2.</li>
+    <li>Concatenate twice at p = 0.05 by applying P_L = 3p² − 2p³ to its own output. You should get 7.25 × 10⁻³, then about 1.6 × 10⁻⁴, from 9 physical qubits.</li>
+  </ol>
+  <p>Then <a href="0010-physical-qubits-nisq-era.html#nisq">lesson 10</a> asks how close today's hardware is to these numbers.</p>
+
+  <h2>Primary resource</h2>
+  <p>Read <a href="https://quantum.cloud.ibm.com/learning/en/courses/foundations-of-quantum-error-correction/correcting-quantum-errors/repetition-codes" target="_blank">“Repetition codes” in John Watrous’s Foundations of Quantum Error Correction (IBM Quantum Learning)</a>. It derives 3p² − 2p³ and the 1/2 break-even, builds the non-destructive parity circuit with the full syndrome table, and shows why phase flips slip through; its next pages cover the Shor code and the threshold theorem.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> The densest idea here is why measuring parities leaves α and β alone. Ask Claude Code to write out the full five-qubit state (three data qubits, two ancillas) after the four syndrome CNOTs for an X on q1 and show that it factors as data ⊗ |11⟩. Then ask it to redo the calculation for the 0.2-radian over-rotation, where the state only becomes a product after you measure.
+  </div>
+
+  <div class="nav">
+    <a href="0008-quantum-complexity-bqp.html">← Lesson 8: Quantum Complexity &amp; BQP</a>
+    <span class="spacer"></span>
+    <a href="0010-physical-qubits-nisq-era.html">Lesson 10: Physical Qubits &amp; the NISQ Era →</a>
+  </div>
+
+</div>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+const SYN = ['(0,0): no correction', '(1,0): apply X to q0', '(1,1): apply X to q1', '(0,1): apply X to q2'];
+const synCard = (prompt, right, why) =>
+  ({ prompt, options: SYN.map((text, i) => ({ text, correct: i === right, explain: why[i] })) });
+renderMC('syndrome-exercise', [
+  synCard('After one unknown error the state is α|100⟩ + β|011⟩. Syndrome and correction?', 1, [
+    'q0 differs from q1 in both branches (1 vs 0, then 0 vs 1), so the first check fires.',
+    'Right. q0 ≠ q1 and q1 = q2 in both branches, so (1,0) with certainty: q0 is the odd one out.',
+    '(1,1) means q1 disagrees with both neighbours, but here q1 and q2 match (00 and 11).',
+    'q1 and q2 agree in both branches, so the second parity is 0, not 1. The odd one out is q0.',
+  ]),
+  synCard('The state is α|010⟩ + β|101⟩. Syndrome and correction?', 2, [
+    'Both checks fire here: q1 differs from q0 and from q2 in each branch.',
+    'q1 and q2 also differ (1 vs 0, then 0 vs 1), so the second parity is 1 as well.',
+    'Right. q1 disagrees with both neighbours in both branches, so (1,1): flip q1.',
+    'q0 and q1 differ too (0 vs 1, then 1 vs 0), so the first parity is 1 as well.',
+  ]),
+  { prompt: 'A Z error hit q1, leaving α|000⟩ − β|111⟩. What does the bit-flip decoder do?',
+    options: [
+      { text: 'Reads (1,1) and applies X to q1', explain: 'Z changes no bit value, so no parity changes. (1,1) would need q1 to disagree with both neighbours.' },
+      { text: 'Reads (0,0) and applies Z to q1', explain: '(0,0) is exactly the no-error syndrome, so the decoder has nothing to act on. It cannot know a Z happened, let alone where.' },
+      { text: 'Reads (0,0) and does nothing; Z survives', correct: true, explain: 'Right. Both branches keep equal parities, so the syndrome is (0,0). The minus sign on β is a logical Z the bit-flip code cannot see; the phase-flip code exists for this.' },
+      { text: 'Measures q1 directly to find the sign of β', explain: 'A Z-basis measurement of q1 collapses the state to |000⟩ or |111⟩, destroying α and β, and it cannot see a sign anyway.' },
+    ] },
+  { prompt: 'Two flips: X on q0 and on q1, giving α|110⟩ + β|001⟩. What happens?',
+    options: [
+      { text: 'Syndrome (1,1); flipping q1 leaves one error', explain: 'q0 and q1 are equal in both branches (11 and 00), so the first parity is 0, not 1.' },
+      { text: 'Syndrome (0,0); the two flips cancel out', explain: 'Flips on different qubits do not cancel. q1 and q2 differ in both branches, so the second check fires.' },
+      { text: 'Syndrome (1,0); flipping q0 fixes one of them', explain: 'The first check compares q0 and q1, which were both flipped, so they still agree: parity 0.' },
+      { text: 'Syndrome (0,1); flipping q2 makes a logical X', correct: true, explain: 'Right. q0 = q1 and q1 ≠ q2, so the decoder blames q2. Its fix produces α|111⟩ + β|000⟩, a logical X. Two errors beat the code, which is where 3p² comes from.' },
+    ] },
+  { prompt: 'Which of these measurements destroys the encoded superposition α|000⟩ + β|111⟩?',
+    options: [
+      { text: 'The parity Z₀Z₁, via an ancilla', explain: 'Both branches have q0 = q1, so the outcome is 0 with certainty and the state is untouched.' },
+      { text: 'q0 alone, in the computational basis', correct: true, explain: 'Right. It returns 0 with probability |α|² and leaves |000⟩, or 1 and leaves |111⟩. The superposition is gone either way.' },
+      { text: 'The parity Z₁Z₂, via an ancilla', explain: 'Both branches have q1 = q2, so the outcome is 0 with certainty and nothing about α or β is revealed.' },
+      { text: 'Both parities, one after the other, via ancillas', explain: 'Each check has a certain outcome on this state, so running both still reveals nothing about α or β.' },
+    ] },
+  { prompt: 'An over-rotation Rx(0.2) hits q2 of α|000⟩ + β|111⟩. How likely is the syndrome (0,1)?',
+    options: [
+      { text: 'cos²(0.1) ≈ 0.990, for any α, β', explain: 'That is the probability of (0,0), where the measurement projects the error away and nothing needs fixing.' },
+      { text: '0.2, the rotation angle itself', explain: 'Probabilities are squared amplitudes. The X term has amplitude sin(ε/2) = sin(0.1), so the probability is sin²(0.1) ≈ 0.010.' },
+      { text: 'sin²(0.1)·|β|², so it depends on β', explain: 'Both branches carry the same syndrome, so the probability cannot depend on α or β. If it did, the measurement would leak the encoded state.' },
+      { text: 'sin²(0.1) ≈ 0.010, for any α, β', correct: true, explain: 'Right. The error splits into cos(0.1)·I − i·sin(0.1)·X₂. Measuring picks the X₂ branch with probability sin²(0.1) ≈ 0.010; then apply X to q2.' },
+    ] },
+  { prompt: 'Each qubit flips independently with probability p = 0.6. Does the code help?',
+    options: [
+      { text: 'Yes: P_L = 0.36 < 0.6', explain: '0.36 = p² counts one pair. The full count is 3p²(1−p) + p³ = 0.432 + 0.216 = 0.648.' },
+      { text: 'No: P_L = 0.648 > 0.6', correct: true, explain: 'Right. 3(0.36) − 2(0.216) = 1.08 − 0.432 = 0.648. Above p = 1/2 each qubit is more likely flipped than not, so a majority-style decoder picks the wrong value more often.' },
+      { text: 'Yes: P_L = 0.216 < 0.6', explain: '0.216 = p³ counts only the all-three case; two flips also fool the decoder.' },
+      { text: 'Even: P_L = 0.600 = p', explain: 'Break-even is exactly p = 1/2, where 3(0.25) − 2(0.125) = 0.5. At 0.6 the code is already losing.' },
+    ] },
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

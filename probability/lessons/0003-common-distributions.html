@@ -116,7 +116,7 @@
   <div class="nav">
     <a href="0002-expectation-variance.html">← Lesson 2: Expectation &amp; Variance</a>
     <span class="spacer"></span>
-    <a href="../index.html#lesson-04">Lesson 4: The Central Limit Theorem →</a>
+    <a href="0004-central-limit-theorem.html">Lesson 4: The Central Limit Theorem →</a>
   </div>
 
 </div>
@@ -179,7 +179,7 @@ DIST_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

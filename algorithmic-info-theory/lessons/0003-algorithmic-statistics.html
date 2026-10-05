@@ -69,7 +69,7 @@
     <div class="q-block" id="q2">
       <p>2. Why does S = {x} (the singleton set containing only x) fail to be a useful sufficient statistic, even though it technically satisfies K(S) + log|S| ≈ K(x)?</p>
       <div class="options">
-        <button onclick="quizAnswer(this,false,'q2','The inequality K(x) ≤ K(S) + log|S| does hold here — that\'s exactly why it "technically satisfies" the bound; the problem is elsewhere, in how the work is distributed.')">Because it violates the basic K(x) ≤ K(S) + log|S| inequality</button>
+        <button onclick="quizAnswer(this,false,'q2','The inequality K(x) ≤ K(S) + log|S| does hold here — that\'s exactly why it &quot;technically satisfies&quot; the bound; the problem is elsewhere, in how the work is distributed.')">Because it violates the basic K(x) ≤ K(S) + log|S| inequality</button>
         <button onclick="quizAnswer(this,true, 'q2','Right — {x} puts all the descriptive work into K(S) (which must encode x directly) and none into the index (log|S|=log(1)=0), failing to separate genuine structure from residual randomness — the whole point of the exercise.')">Because it puts all the work into K(S) directly encoding x, doing none of the actual separating-structure-from-randomness work a useful model should do</button>
         <button onclick="quizAnswer(this,false,'q2','A singleton set is a perfectly well-defined, finite set — there\'s no issue with S being uncomputable here; the problem is that it\'s a degenerate, unhelpful choice of model, not an invalid one.')">Because {x} is not a computable set</button>
         <button onclick="quizAnswer(this,false,'q2','log|S| = log(1) = 0 is a perfectly valid (if degenerate) value, not undefined — the issue is that this degenerate case reveals nothing about x\'s actual structure, not a mathematical error.')">Because log|S| is undefined when S has only one element</button>
@@ -81,7 +81,7 @@
       <p>3. Why does a purely random string have LOW sophistication despite having maximal K(x)?</p>
       <div class="options">
         <button onclick="quizAnswer(this,false,'q3','This has the relationship backwards — the lesson specifically shows maximal K(x) and low sophistication CAN coexist, precisely for purely random strings, because sophistication measures something different from raw K(x).')">Because sophistication and K(x) always move together, so this situation is actually impossible</button>
-        <button onclick="quizAnswer(this,true, 'q3','Right — its simplest sufficient statistic is the trivial "all strings of length n" model (tiny K(S)), with the full complexity pushed into the index (log|S|=n) — there\'s no genuine structure to extract, so sophistication (measured by that minimal K(S)) is low.')">Because its simplest sufficient statistic is the trivial "all strings of this length" model, which has very low complexity K(S) itself — all the string's complexity sits in the index, not in any extractable structure</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — its simplest sufficient statistic is the trivial &quot;all strings of length n&quot; model (tiny K(S)), with the full complexity pushed into the index (log|S|=n) — there\'s no genuine structure to extract, so sophistication (measured by that minimal K(S)) is low.')">Because its simplest sufficient statistic is the trivial "all strings of this length" model, which has very low complexity K(S) itself — all the string's complexity sits in the index, not in any extractable structure</button>
         <button onclick="quizAnswer(this,false,'q3','K(x) is genuinely uncomputable in general (lesson 1) — but this fact about computability isn\'t what explains why sophistication specifically comes out low for random strings; that\'s about the shape of the best available model.')">Because K(x) is impossible to compute for random strings, so sophistication defaults to zero</button>
         <button onclick="quizAnswer(this,false,'q3','A single random string is still one specific, particular object once generated — sophistication isn\'t about needing many strings, it\'s about the structure-vs-residual trade-off for that one string.')">Because sophistication requires comparing many different strings at once, which isn't possible for a single string</button>
       </div>
@@ -115,7 +115,7 @@
   <div class="nav">
     <a href="0002-chaitins-omega.html">← Lesson 2: Chaitin's Ω</a>
     <span class="spacer"></span>
-    <a href="../index.html#lesson-04">Lesson 4: Solomonoff Induction →</a>
+    <a href="0004-solomonoff-induction.html">Lesson 4: Solomonoff Induction →</a>
   </div>
 
 </div>
@@ -175,7 +175,7 @@ ALGSTAT_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

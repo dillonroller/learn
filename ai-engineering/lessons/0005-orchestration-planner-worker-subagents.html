@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 5 — Orchestration Patterns</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">AI Engineering</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 5 of 8 &nbsp;·&nbsp; AI Engineering &nbsp;·&nbsp; ~35 min</p>
+  <h1>Orchestration Patterns: Planner/Worker and Subagent Delegation</h1>
+  <p>So far everything has been one loop: one <a href="0001-agent-loop-system-prompt-tool-schemas.html#read-act-observe-loop">read-act-observe loop</a>, one transcript, one <a href="0003-context-memory-summarization-retrieval.html#context-window">context window</a>, kept healthy by <a href="0003-context-memory-summarization-retrieval.html#compaction">compaction</a> and debugged with the <a href="0004-failure-modes-debugging-agents.html#four-layer-diagnosis">four-layer diagnosis</a>. This lesson adds a second loop. A subagent is nothing exotic: it is one tool call whose ACT step runs another loop. The real question is when splitting work across agents beats one agent, what the split costs, and how to write the brief that crosses the boundary.</p>
+
+  <h2 id="workflow-vs-agent">Workflow vs. agent: who picks the next step?</h2>
+  <p>Anthropic's <a href="https://www.anthropic.com/research/building-effective-agents" target="_blank">Building Effective Agents</a> draws the line. A <strong>workflow</strong> is a system where “LLMs and tools are orchestrated through predefined code paths”. An <strong>agent</strong> is one where “LLMs dynamically direct their own processes and tool usage”. To tell them apart, ask one question: is the next step chosen by code you wrote, or by the model at run time?</p>
+  <p>Its catalogue of workflows, in rising complexity: <em>prompt chaining</em> (a fixed sequence), <em>routing</em> (classify, then dispatch), <em>parallelization</em> (simultaneous calls combined by code: <em>sectioning</em> into independent subtasks, or <em>voting</em> on one task), <em>orchestrator-workers</em> (a model splits the task at run time and combines the results), and <em>evaluator-optimizer</em> (generate, critique, repeat). It files orchestrator-workers under workflows even though a model picks the subtasks, because your code still fixes the plan, fan-out, synthesize shape: the line is a spectrum, not a switch. The read-act-observe loop, where the model picks every step, is the far end: a full agent.</p>
+  <div class="callout">
+    <strong>Use the least autonomy that does the job.</strong>
+    “Agentic systems often trade latency and cost for better task performance, and you should consider when this tradeoff makes sense.” If you can write the subtasks down before you see the input, write them down in code.
+  </div>
+
+  <h2 id="subagent">A subagent is a tool call whose ACT step is another loop</h2>
+  <p>To the parent, delegation is one more <a href="0001-agent-loop-system-prompt-tool-schemas.html#tool-schema">tool schema</a>:</p>
+  <pre><code>{
+  "name": "spawn_subagent",
+  "description": "Delegate a self-contained subtask to a fresh agent. It sees ONLY this brief, not this conversation, and returns only its final answer.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "brief": { "type": "string", "description": "Objective, output format, tools and sources, boundaries." },
+      "tools": { "type": "array", "items": { "type": "string" } }
+    },
+    "required": ["brief", "tools"]
+  }
+}</code></pre>
+  <p>The harness implements it by calling the loop you already have, recursively:</p>
+  <pre><code>def run_agent(system_prompt, task, tools, max_steps):
+    messages = [ {role: "system", content: system_prompt},
+                 {role: "user",   content: task} ]          # a FRESH transcript
+    for step in range(max_steps):                           # its own termination condition
+        response = call_model(messages, tools=tools)        # READ
+        if response.tool_call is None:
+            return response.text                            # the only thing that crosses back
+        result = execute(response.tool_call.name,           # ACT (may spawn again: recursion)
+                         response.tool_call.arguments)
+        messages.append({role: "assistant", tool_call: response.tool_call})
+        messages.append({role: "tool", tool_call_id: response.tool_call.id,
+                         content: result})                  # OBSERVE
+    return "stopped: step budget exhausted"
+
+def execute(name, args):
+    if name == "spawn_subagent":                            # this ACT step is a whole loop
+        return run_agent(WORKER_PROMPT, args.brief, pick(TOOLS, args.tools), max_steps=15)
+    ...                                                     # read_file, edit_file, run_tests</code></pre>
+  <p>Read it as a C programmer would. The worker's <code>messages</code> is a local: created fresh, discarded like a stack frame when <code>run_agent</code> returns. Only the return value reaches the parent. Because every <a href="0001-agent-loop-system-prompt-tool-schemas.html#stateless-model-call">model call is stateless</a>, the worker knows only what its brief says and the parent learns only what the worker returns. A fresh subagent is closer to <code>posix_spawn()</code> plus <code>waitpid()</code> than to a thread: a new process with no shared address space, the brief its argv, the returned text its stdout. It also needs its own <a href="0001-agent-loop-system-prompt-tool-schemas.html#termination-condition">termination condition</a> (here a step cap), or one runaway worker stalls the tree.</p>
+  <p>The harness you work in documents the same shape, as behaviour rather than implementation. As of October 2026, Claude Code's <a href="https://code.claude.com/docs/en/sub-agents" target="_blank">subagent docs</a> say each subagent “runs in its own context window with a custom system prompt, specific tool access, and independent permissions”, returns only a summary, and can nest up to three layers below the main conversation by default. A <em>fork</em>, closer to a bare <code>fork()</code>, inherits the whole conversation: it “drops the input isolation” but still returns only its final result. A per-worker tool list is <a href="0006-guardrails-permissions-sandboxing-blast-radius.html#least-privilege">least privilege, enforced in the guardrails lesson</a>.</p>
+
+  <h2 id="orchestrator-worker">Orchestrator-worker: plan, fan out, synthesize</h2>
+  <p>Give a lead agent <code>spawn_subagent</code> and you get the <strong>orchestrator-worker</strong> (planner/worker) pattern. The lead decomposes the task, workers run (usually in parallel), each worker returns a condensed result, and the lead combines them. What separates this pattern from sectioning is where the subtask list lives:</p>
+  <pre><code># Sectioning (a fixed workflow): the subtasks live in YOUR code
+checks  = [LINT_PROMPT, LICENSE_PROMPT, CHANGELOG_PROMPT]
+results = parallel_map(lambda p: call_model(p, pr_diff), checks)
+report  = merge(results)                                    # combined by code
+
+# Orchestrator-worker: the subtasks live in the MODEL's output
+plan    = call_model(PLANNER_PROMPT, user_task)             # 2 briefs, or 7, or 12
+results = parallel_map(lambda b: run_agent(WORKER_PROMPT, b.brief,
+                                           pick(TOOLS, b.tools), max_steps=15),
+                       plan.briefs)                         # returns when the SLOWEST worker does
+answer  = call_model(SYNTHESIS_PROMPT, user_task, results)  # combined by a model</code></pre>
+  <p>In Building Effective Agents' words, the “subtasks aren't pre-defined, but determined by the orchestrator based on the specific input.” (A real lead is itself a loop issuing several <code>spawn_subagent</code> calls per turn; the sketch flattens that.)</p>
+  <p>Anthropic's <a href="https://www.anthropic.com/engineering/multi-agent-research-system" target="_blank">write-up of its Research feature</a> (June 2025) is a first-hand account of this pattern in production. The lead spins up 3–5 subagents in parallel, and because agents misjudged effort (early versions made errors like “spawning 50 subagents for simple queries”), its prompt carries scaling rules: one agent and 3–10 tool calls for simple fact-finding, more than 10 subagents for complex research.</p>
+
+  <h2 id="context-isolation">Why split: context isolation, breadth, specialization</h2>
+  <p><strong>1. Context isolation.</strong> A worker can churn through a verbose search, a long log or a large file in its own window and hand back only the conclusion. Anthropic's <a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" target="_blank">context-engineering guide</a> describes subagents that use “tens of thousands of tokens or more” but return “a condensed, distilled summary of its work (often 1,000-2,000 tokens)”. It lists this beside <a href="0003-context-memory-summarization-retrieval.html#compaction">compaction</a> and note-taking: delegation is a context strategy, the worker's return is a <a href="0003-context-memory-summarization-retrieval.html#summarization">summarization</a> step with the same controlled loss, and the lead's short transcript resists <a href="0003-context-memory-summarization-retrieval.html#context-rot">context rot</a>. That alone can justify a split, even with one worker and no parallelism.</p>
+  <p>Illustrative: three workers each read about 40k tokens and return 1.5k. The lead's window grows by 4.5k instead of 120k (about 27× less), but all 120k are still read and billed, in the workers' windows instead of the lead's, plus the briefs, the returns and the lead's own calls. (Strictly more than 120k: each worker resends its growing transcript on every model call.) <strong>Isolation moves tokens out of the lead's window; it does not make them free.</strong></p>
+  <p><strong>2. Breadth-first parallelism.</strong> Independent directions run at once. In the Research system, parallel subagents plus parallel tool calls “cut research time by up to 90% for complex queries”, and an Opus 4 lead with Sonnet 4 workers beat single-agent Opus 4 by 90.2% on Anthropic's internal research eval.</p>
+  <p><strong>3. Specialization.</strong> Each worker gets a narrower prompt and tool list, which the Research write-up calls “separation of concerns”.</p>
+
+  <h2 id="multi-agent-cost">What splitting costs: the token multiplier</h2>
+  <div class="complexity"><span><span class="label">chat</span> <span class="val">1×</span></span><span><span class="label">single agent</span> <span class="val">≈4×</span></span><span><span class="label">multi-agent</span> <span class="val">≈15×</span></span><span class="label">tokens, Anthropic Research, 2025</span></div>
+  <p>The Research write-up reports that “agents typically use about 4× more tokens than chat interactions, and multi-agent systems use about 15× more tokens than chats.” On BrowseComp, “token usage by itself explains 80% of the variance” in performance; such systems “work mainly because they help spend enough tokens to solve the problem.” Splitting buys capacity and breadth, not free intelligence. Dividing the averages gives a crude 15 ÷ 4 ≈ 3.75× a single agent's spend (crude, because the two averages were not measured on the same tasks), and only a valuable task repays it. The other costs:</p>
+  <ul>
+    <li><strong>Waiting.</strong> The Research lead waits for each batch, so “the entire system can be blocked while waiting for a single subagent to finish searching.” Illustrative: workers taking 40, 55, 90 and 300 s finish in 300 s, a 1.6× speedup over running them in sequence (485 s), not 4×. That is <a href="0008-production-latency-cost-observability.html#tail-latency">fan-out tail latency</a>, priced in the production lesson.</li>
+    <li><strong>Duplication.</strong> Given the vague brief “research the semiconductor shortage”, one Research subagent explored the 2021 automotive chip crisis while two others duplicated each other on current 2025 supply chains.</li>
+    <li><strong>New failure modes.</strong> The MAST study (<a href="https://arxiv.org/abs/2503.13657" target="_blank">Cemri et al., 2025</a>) annotated 1,600+ traces from 7 multi-agent frameworks against a taxonomy of 14 failure modes, one whole category of them inter-agent misalignment. Finding them needs each subagent as its own span in an <a href="0008-production-latency-cost-observability.html#agent-trace">agent trace</a>.</li>
+  </ul>
+  <div class="callout warn" id="implicit-decisions">
+    <strong>Actions carry implicit decisions.</strong>
+    Cognition's <a href="https://cognition.com/blog/dont-build-multi-agents" target="_blank">Don't Build Multi-Agents</a> (June 2025) names the cost that hits coding hardest: “Actions carry implicit decisions, and conflicting decisions carry bad results.” Split “build a Flappy Bird clone” between a background worker and a bird worker. Even when both see the full task, the bird and the background can come back in completely different visual styles, because neither saw what the other was doing. Every edit settles something nobody wrote down (error type, naming, edge cases), and parallel workers settle it differently. The post's default is a single-threaded agent that compresses its history, which is <a href="0003-context-memory-summarization-retrieval.html#compaction">compaction</a> again. Anthropic agrees: “most coding tasks involve fewer truly parallelizable tasks than research”.
+  </div>
+  <p>As of October 2026 the two positions sit closer together. Cognition's <a href="https://cognition.com/blog/multi-agents-working" target="_blank">April 2026 follow-up</a> reports multi-agent setups that work when “writes stay single-threaded and the additional agents contribute intelligence rather than actions”. A controlled study from Google Research, DeepMind and MIT (<a href="https://arxiv.org/abs/2512.08296" target="_blank">Kim et al., preprint revised April 2026</a>) found performance relative to a single agent ranged “from +80.8% on decomposable financial reasoning to -70.0% on sequential planning”. Whether a split beats one agent on <em>your</em> task is empirical, and a <a href="0007-evaluation-evals-regression-tests.html#capability-eval">capability eval</a> is how you find out.</p>
+  <div class="callout">
+    <strong>The split decision, in three questions.</strong>
+    <ol>
+      <li>Can you list the subtasks before seeing the input? Use a fixed workflow; no model needs to plan.</li>
+      <li>Do the subtasks share decisions or write the same state? Keep one agent (plus compaction); delegate only read-only side tasks whose conclusion is all you need.</li>
+      <li>Is the work breadth-first, the subtask count input-dependent, and the result worth ~15× chat tokens? Use orchestrator-workers.</li>
+    </ol>
+  </div>
+
+  <h2 id="delegation-brief">The delegation brief is a contract</h2>
+  <p>The Research write-up says each worker “needs an objective, an output format, guidance on the tools and sources to use, and clear task boundaries.” A brief is a <a href="0002-tool-design-schemas-error-surfaces.html#tool-description">tool description</a> pointed the other way. One model writes it for another, and it is still a contract with a reader who can't ask a clarifying question. In the running example, the lead suspects the expiry check in <code>auth.rs</code> and hands off a read-only investigation:</p>
+  <pre><code>{
+  "objective": "Find why auth::tests::rejects_expired_token fails. Locate where token expiry is computed and every caller of Token::is_expired in crates/auth/. Lead's hypothesis: the comparison at auth.rs:118 uses the wrong clock.",
+  "output_format": {
+    "findings":   [{ "file": "crates/auth/src/auth.rs", "line": 118, "role": "computes | calls | tests", "note": "one sentence" }],
+    "verdict":    "confirmed | refuted | unclear, plus at most two sentences citing file:line",
+    "max_tokens": 1500
+  },
+  "tools": ["read_file", "search_codebase"],
+  "boundaries": "Read only: do not edit files or run tests. Stay inside crates/auth/. Stop after 15 tool calls, or once a file:line confirms or refutes the hypothesis."
+}</code></pre>
+  <p>Each field closes a known failure. The objective carries the lead's hypothesis, because the worker cannot see the lead's transcript. The output format is the worker's <a href="0002-tool-design-schemas-error-surfaces.html#error-surface">error surface</a>: a bare <code>"done"</code> gives the lead nothing to observe, and 30k tokens of raw grep output undoes the isolation you split for. The verdict lets the worker refute the hypothesis instead of hunting for confirmation. The boundaries prevent duplication, keep writes with the lead, and set a stop condition. When workers still duplicate each other, the four-layer diagnosis says check the prompt layer before the model: Anthropic saw exactly this from vague briefs.</p>
+  <p>A live example: the second half of this course (<a href="0005-orchestration-planner-worker-subagents.html">lessons 5–8</a>) was written by parallel writer agents from one planner's plan, and none saw another's draft. Each writer got its scope, an out-of-scope list and fixed anchor ids such as <code>#delegation-brief</code>, so the <a href="0006-guardrails-permissions-sandboxing-blast-radius.html">guardrails lesson</a> could link here before this page existed. Those fixed fields settled implicit decisions in advance. A reviewer agent then checked each lesson in a clean context, and edits to shared files (topic index, search index) wait for one central integration pass: many writers on separate files, one writer on shared state.</p>
+
+  <h2>Try it: split or not?</h2>
+  <p>For cards 1–4, pick the architecture. For cards 5–6, a worker has misbehaved: diagnose the brief.</p>
+  <div id="orchestration-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. A lead agent has read <code>auth.rs</code> and suspects the expiry check. It spawns a fresh (non-fork) subagent whose brief says only “list the callers of Token::is_expired.” What does the worker know about the lead’s hypothesis?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','A fresh subagent starts a new transcript containing its own system prompt and the brief. Only a fork would inherit the lead’s messages.')">All of it, since it shares the lead’s whole transcript</button>
+        <button onclick="quizAnswer(this,false,'q1','Model calls are stateless, so serving the lead leaves nothing behind in the model. Anything the worker knows has to be in its own transcript.')">Whatever the model recalls from serving the lead</button>
+        <button onclick="quizAnswer(this,true,'q1','Right. The brief is the worker’s entire view of the task. That is why the example brief states the hypothesis and names auth.rs:118.')">Nothing, unless the lead wrote it into the brief</button>
+        <button onclick="quizAnswer(this,false,'q1','The worker gets its own system prompt, not the lead’s, and the harness copies none of the lead’s reasoning across.')">Only what the harness copies from the lead’s prompt</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. In Anthropic’s Research data, multi-agent runs used about 15× the tokens of chat, and token usage alone explained 80% of the variance in performance. Which reading follows?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right. On BrowseComp, performance mostly tracked tokens spent, and a split spends roughly 15× chat to get there. That pays off only on a valuable, breadth-first task.')">Splitting mostly buys token capacity; the task must justify it</button>
+        <button onclick="quizAnswer(this,false,'q2','No single call gets smarter. Performance follows how many tokens are spent, and parallel workers are a way to spend more of them.')">Adding agents makes each model call smarter per token</button>
+        <button onclick="quizAnswer(this,false,'q2','Tighter briefs do cut duplicated work, but most of the 15× is the mechanism itself. Remove that spending and the gain goes with it.')">The 15× is mostly waste that tighter briefs would remove</button>
+        <button onclick="quizAnswer(this,false,'q2','Parallelism changes elapsed time, not the bill. Every token each worker uses is still paid for.')">Token spend stops mattering once all the workers run in parallel</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. A lead splits “add a settings page” between a form-UI worker and an API-handler worker, running in parallel. Each passes its own tests, but their field names disagree. What is the best fix?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','Neither worker ran out of room. Each one never saw the other’s choices, and a bigger window holding the same brief does not change that.')">Give each of the two workers a larger context window</button>
+        <button onclick="quizAnswer(this,false,'q3','No model can see a sibling’s unwritten decision. The cause is missing information, not weak reasoning.')">Move both of the workers onto a more capable model</button>
+        <button onclick="quizAnswer(this,false,'q3','Order alone changes nothing: the second worker still sees only its own brief, not the first worker’s field names.')">Run the two workers one after the other instead</button>
+        <button onclick="quizAnswer(this,true,'q3','Right. These are conflicting implicit decisions. Either settle the shared decision up front in both briefs, or keep the coupled work in one context.')">Pin the schema in both briefs, or use one agent</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Four workers each read about 30k tokens and return 2k-token summaries. Compared with one agent reading all 120k tokens itself, what does the split save?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','Every token each worker reads and writes is billed, plus the briefs and the lead’s own calls. The 120k of reading is moved, not removed.')">The bill: only the 8k returned tokens are paid for</button>
+        <button onclick="quizAnswer(this,true,'q4','Right. 4 × 2k = 8k enters the lead’s transcript instead of 120k, 15× less. Isolation protects the window; the reading is still paid for.')">The lead’s window: it grows by about 8k, not 120k</button>
+        <button onclick="quizAnswer(this,false,'q4','The lead waits for the slowest worker, so if the workers take uneven time the speedup is under 4×, and planning and synthesis add time on top.')">Elapsed time: four workers always take a quarter as long</button>
+        <button onclick="quizAnswer(this,false,'q4','A 2k summary cannot hold everything in 30k of reading, because summarizing loses detail. The lead gets only the conclusions, and its smaller window is the saving.')">Nothing: the summaries hold everything the reads held</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Write the JSON delegation brief that card 1’s lead would send to one competitor-pricing worker: all four fields, a return shape the lead can merge straight into the table, a boundary that stops two workers covering the same competitor, and a stop condition. Then budget it: if one agent would spend <em>T</em> tokens on the whole job, the crude 15 ÷ 4 ratio of the published averages suggests roughly 3.75<em>T</em> for the split. Which numbers in your own brief (worker count, sources per worker) would push that up or down, and what would make the comparison table worth it?</p>
+
+  <h2>Primary resource</h2>
+  <p>Anthropic Engineering, <a href="https://www.anthropic.com/engineering/multi-agent-research-system" target="_blank">How we built our multi-agent research system</a>: a first-hand production account of orchestrator-workers, with the 4× and 15× multipliers, when the pattern fits (and why most coding does not), what a good brief contains, and the failures the team hit. Read Cognition's <a href="https://cognition.com/blog/dont-build-multi-agents" target="_blank">Don't Build Multi-Agents</a> and its <a href="https://cognition.com/blog/multi-agents-working" target="_blank">2026 follow-up</a> beside it for the counterpoint.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Try asking Claude Code: “Which of my requests in this session would you have delegated to a subagent, and what brief would you have written?” Then check its answer against the four brief fields and the three split questions. Ask it to answer honestly, without over-claiming how the harness works inside.
+  </div>
+
+  <div class="nav">
+    <a href="0004-failure-modes-debugging-agents.html">← Lesson 4: Failure Modes</a>
+    <span class="spacer"></span>
+    <a href="0006-guardrails-permissions-sandboxing-blast-radius.html">Lesson 6: Guardrails &amp; Permissions →</a>
+  </div>
+
+</div>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+renderMC('orchestration-exercise', [
+  {
+    prompt: 'Find every competitor that changed its pricing this quarter (you won’t know how many until you look) and compile a comparison table.',
+    options: [
+      { text: 'Fixed parallel workflow', explain: 'Sectioning needs the subtask list in code before the run starts, but you only learn how many competitors there are by searching.' },
+      { text: 'Orchestrator with workers', correct: true, explain: 'Right. The subtasks are breadth-first, independent and read-only, and their number is decided at run time. Each worker returns one table row.' },
+      { text: 'Single agent, one context', explain: 'It works and spends fewer tokens, but it goes one competitor at a time with every page piling into one transcript. Independent subtasks and a valuable result make parallelism and isolation worth the extra spend.' },
+    ],
+  },
+  {
+    prompt: 'Change a function signature used at 40 call sites in one Rust crate so that it returns a Result instead of panicking.',
+    options: [
+      { text: 'Single agent, one context', correct: true, explain: 'Right. The edits are coupled: the new error type is one shared decision, and using ? at a call site can force that caller to return a Result too, rippling to its own callers. One agent with compaction keeps those implicit decisions consistent.' },
+      { text: 'Orchestrator with workers', explain: 'Each worker would pick its own error handling, and a ? in one worker’s slice can change a signature that another worker’s slice calls. Parallel writers collide on shared state.' },
+      { text: 'Fixed parallel workflow', explain: 'Splitting the call sites in code has the same coupling problem, and no model ever sees the whole change.' },
+    ],
+  },
+  {
+    prompt: 'On every pull request, run the same lint, license-header and changelog checks and post one combined report.',
+    options: [
+      { text: 'Orchestrator with workers', explain: 'A planner would rediscover the same three subtasks on every PR, paying for planning tokens and risking a skipped check.' },
+      { text: 'Single agent, one context', explain: 'A looping agent adds autonomy you don’t need: it might reorder, skip or extend the checks. The steps are known in advance.' },
+      { text: 'Fixed parallel workflow', correct: true, explain: 'Right. The subtasks are known in advance and independent, and code combines the results. That is sectioning: cheap, predictable and testable.' },
+    ],
+  },
+  {
+    prompt: 'Partway through a task, the agent must find one error signature in 2M lines of logs. The main task needs only the conclusion: which service, and at what time.',
+    options: [
+      { text: 'Keep it in the main loop', explain: 'Every grep result would stay in the main transcript for the rest of the task, crowding the window just to produce a two-fact answer.' },
+      { text: 'One subagent, for isolation', correct: true, explain: 'Right. Nothing runs in parallel, but one worker absorbs the noisy search and returns two facts. Isolation alone justifies the split.' },
+      { text: 'Orchestrator, many workers', explain: 'Fanning out over log shards multiplies token spend for a search that has a single answer. One isolated worker gets the same context benefit.' },
+    ],
+  },
+  {
+    prompt: 'Two workers were both told “research the auth module.” They return nearly identical findings, and neither looked at the session-token code.',
+    options: [
+      { text: 'Model too weak to divide work', explain: 'Check the model last. Both workers did exactly what their identical briefs asked.' },
+      { text: 'Lead context window too small', explain: 'The lead received two short results. The duplication was already decided when the briefs were written.' },
+      { text: 'Brief lacks task boundaries', correct: true, explain: 'Right. This is a bug in the prompt layer: identical briefs with no boundaries produce identical work and leave gaps.' },
+    ],
+  },
+  {
+    prompt: 'A worker returns 30,000 tokens of raw grep output to the lead, and the lead’s next step is to start summarizing it.',
+    options: [
+      { text: 'Brief lacks an output format', correct: true, explain: 'Right. The return value is the worker’s error surface. With no output format, the worker dumps its raw observations and the isolation is lost.' },
+      { text: 'Too few workers were spawned', explain: 'More workers would just return more raw output. The problem is the shape of what comes back.' },
+      { text: 'Lead model needs an upgrade', explain: 'A stronger lead would still have to fit 30k tokens into its window. The cheaper fix is to specify what the worker returns.' },
+    ],
+  },
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

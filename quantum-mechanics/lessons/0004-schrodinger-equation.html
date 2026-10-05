@@ -74,7 +74,7 @@
       <div class="options">
         <button onclick="quizAnswer(this,false,'q2','This is backwards — measurement/collapse has no such inverse operation defined; it\'s Schrödinger evolution that has this property.')">Because measurement always has a well-defined inverse operation that undoes it</button>
         <button onclick="quizAnswer(this,true, 'q2','Right — because U(t) is unitary, U†(t) = U(t)⁻¹ always exists, letting you run the evolution backward and recover any earlier state exactly. Collapse has no such inverse operation.')">Because U(t) being unitary guarantees U†(t) = U(t)⁻¹ exists, so evolution can always be run backward — collapse has no equivalent inverse</button>
-        <button onclick="quizAnswer(this,false,'q2','H being Hermitian is a real requirement for U to be unitary, but the reversibility described here follows specifically from U†U=I giving U an inverse, not from H being merely "very large."')">Because H is required to be extremely large in magnitude</button>
+        <button onclick="quizAnswer(this,false,'q2','H being Hermitian is a real requirement for U to be unitary, but the reversibility described here follows specifically from U†U=I giving U an inverse, not from H being merely &quot;very large.&quot;')">Because H is required to be extremely large in magnitude</button>
         <button onclick="quizAnswer(this,false,'q2','This has the causal relationship backwards — reversibility is a genuine mathematical consequence of unitarity (having a well-defined inverse), not an independent assumption made separately.')">Because reversibility is simply assumed as an independent axiom, unrelated to unitarity</button>
       </div>
       <div class="feedback" id="q2-fb"></div>
@@ -178,7 +178,7 @@ SCH_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

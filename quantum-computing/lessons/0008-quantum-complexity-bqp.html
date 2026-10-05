@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 8 — Quantum Complexity: BQP and the Limits of Quantum Speedup</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Quantum Computing</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 8 of 10 &nbsp;·&nbsp; Quantum Computing &nbsp;·&nbsp; ~40 min</p>
+  <h1>Quantum Complexity: BQP and the Limits of Quantum Speedup</h1>
+  <p>You have just finished <a href="0007-shors-algorithm-breaking-rsa.html#period-finding">Shor's period finding</a>: factoring in polynomial time, exponentially faster than any known classical method. Earlier you met the opposite kind of result: <a href="0005-grovers-algorithm.html#grover-optimality">Grover's √N is a ceiling</a>. Both are true. This lesson adds the map that holds them together: the class BQP, which statements about it are theorems and which are beliefs, and a four-bin sort for any claimed quantum speedup. It also keeps the promise made in <a href="0004-interference-deutsch-jozsa.html#interference">the Deutsch-Jozsa lesson</a> to show why quantum computers are not known to solve NP-complete problems efficiently.</p>
+
+  <h2 id="bqp">BQP: what "efficient" means for a quantum computer</h2>
+  <p>Complexity classes are sets of decision problems: is x in the language L? Since any quantum computation is a circuit over a <a href="0003-universal-gates-reversibility-no-cloning.html#universal-gate-set">universal gate set</a>, L is in <strong>BQP</strong> (bounded-error quantum polynomial time) when some circuit family C₁, C₂, … satisfies (<a href="https://arxiv.org/abs/1907.09415" target="_blank">de Wolf §13.2</a>; <a href="https://complexityzoo.net/Complexity_Zoo:B#bqp" target="_blank">Complexity Zoo</a>):</p>
+  <pre><code>1. Size      C_n has poly(n) gates from a fixed
+             universal set, on poly(n) qubits.
+2. Uniform   a classical poly-time program,
+             given n, prints C_n.
+3. Bounded   for every x of length n, measuring
+   error     qubit 1 of C_n|x⟩|0…0⟩ gives L(x)
+             with probability ≥ 2/3.</code></pre>
+  <p><strong>BPP</strong> is the same with a classical randomized circuit, and <strong>P</strong> is the deterministic version with no error. The 2/3 is arbitrary: run the circuit k times and take a majority vote, and the error falls exponentially in k, so any constant above 1/2 gives the same class. BQP is not "what a quantum computer solves exactly"; bounded error is built in.</p>
+  <div class="callout">
+    <strong>Worked example: majority vote at p = 2/3</strong>
+    Exact binomial tails, error = P(at most half of k runs are right):
+    <pre><code>runs k    1       11      51      101
+error    33.3%   12.2%   0.69%   0.027%</code></pre>
+    101 runs turn one-in-three into about one in 3,700, a constant overhead that never moves a problem into or out of BQP.
+  </div>
+  <p>Uniformity matters because otherwise C_n could have answers wired in, such as a bit recording whether the n-th Turing machine halts, which no algorithm can compute (de Wolf §13.2, footnote 1).</p>
+
+  <h2 id="complexity-containments">The map: P ⊆ BPP ⊆ BQP ⊆ PP ⊆ PSPACE</h2>
+  <p>Every inclusion in this chain is a theorem:</p>
+  <ul>
+    <li><strong>P ⊆ BPP</strong>: a randomized algorithm may ignore its coins.</li>
+    <li><strong>BPP ⊆ BQP</strong>: the <a href="0003-universal-gates-reversibility-no-cloning.html#toffoli-gate">Toffoli gate</a> runs any classical circuit reversibly, and H on |0⟩ then a measurement is a fair coin.</li>
+    <li><strong>BQP ⊆ PP</strong>: Adleman, DeMarrais and Huang, 1997 (Complexity Zoo). PP, probabilistic time with no gap requirement, sits inside PSPACE. Take this one as stated.</li>
+    <li><strong>BQP ⊆ PSPACE</strong>: a classical machine can compute any output probability of a quantum circuit in polynomial memory and exponential time. The proof is interference written as arithmetic.</li>
+  </ul>
+  <div class="callout">
+    <strong>Worked example: an amplitude as a sum over paths</strong>
+    Insert every intermediate basis state z: <code>⟨y|U₂U₁|x⟩ = Σ_z ⟨y|U₂|z⟩⟨z|U₁|x⟩</code>. With U₁ = U₂ = H and x = 0, each path 0 → z → y multiplies two Hadamard entries:
+    <pre><code>y = 0:  z=0   (1/√2)(1/√2)  = +1/2
+        z=1   (1/√2)(1/√2)  = +1/2   sum 1
+y = 1:  z=0   (1/√2)(1/√2)  = +1/2
+        z=1   (−1/√2)(1/√2) = −1/2   sum 0</code></pre>
+    The two paths into |1⟩ cancel: that is <a href="0004-interference-deutsch-jozsa.html#interference">interference</a>, and HH|0⟩ = |0⟩. A classical program can do this for any circuit, visiting paths one at a time and keeping only the current path and a running total. In a Hadamard-plus-Toffoli circuit (a gate set that already suffices for all of BQP) only Hadamards branch, so h Hadamards give at most 2ʰ paths: exponential time, polynomial memory (de Wolf §13.3).
+  </div>
+  <p>Compare the brute force of <a href="0002-multi-qubit-entanglement-circuits.html#exponential-state-space">storing every amplitude</a>: 50 qubits are 2⁵⁰ amplitudes, about 18 petabytes at 16 bytes each. The path sum trades memory for time, and every known classical simulation of general circuits takes exponential time (de Wolf ch. 9, footnote 3).</p>
+  <div class="callout warn">
+    <strong>Keep this in perspective: nobody can yet prove quantum is faster</strong>
+    If P = PSPACE, the chain collapses: BQP ⊆ PSPACE = P ⊆ BPP. So a proof of BPP ≠ BQP would also prove P ≠ PSPACE, open since the 1960s (de Wolf §13.2; <a href="https://www.scottaaronson.com/qclec.pdf" target="_blank">Aaronson, Lecture 24</a>). "Quantum computers are exponentially faster" is a well-supported belief, resting on decades without fast classical factoring and on oracle separations, which are proofs only relative to a black box. Oracles cut both ways: relative to some, P = BQP (Complexity Zoo).
+  </div>
+  <div class="complexity"><span class="label">Factoring an n-bit N, best known classical:</span><span class="val">2^(O(n^(1/3)·(log n)^(2/3))), heuristic</span><span class="label">Shor:</span><span class="val">poly(n)</span></div>
+  <p>Factoring (as a decision problem) is in BQP by Shor, and in NP ∩ coNP, as the <a href="../../cryptography/lessons/0003-why-factoring-is-hard-shors-algorithm.html#factoring-hardness">cryptography lesson on factoring hardness</a> noted. That is why most computer scientists think it is <em>not</em> NP-complete (<a href="https://www.scottaaronson.com/writings/limitsqc-draft.pdf" target="_blank">Aaronson</a>): if a coNP problem were NP-complete, all of NP would reduce to it, forcing NP = coNP. Shor tells you nothing about SAT.</p>
+
+  <h2 id="bqp-vs-np">BQP vs NP: open in both directions</h2>
+  <p><strong>Is NP ⊆ BQP?</strong> Believed not. The main evidence is <a href="0005-grovers-algorithm.html#grover-optimality">Grover's optimality</a> in complexity language: <a href="https://arxiv.org/abs/quant-ph/9701001" target="_blank">Bennett, Bernstein, Brassard and Vazirani</a> proved that relative to a random oracle, with probability 1, NP cannot be solved by a quantum machine in time o(2^(n/2)). Grover over all 2ⁿ assignments meets that bound, so brute-force quantum SAT costs about 2^(n/2), the square root of an exponential, which is still an exponential.</p>
+  <div class="callout">
+    <strong>Worked example: Grover against an n-variable formula</strong>
+    <pre><code>              n = 100          n = 200
+brute force   2^100 ≈ 1.3e30   2^200 ≈ 1.6e60
+Grover        (π/4)·2^50       (π/4)·2^100
+                ≈ 8.8e14         ≈ 1.0e30</code></pre>
+    Doubling the number of variables cancels the whole quadratic gain: Grover at n = 200 (about 1.0e30 iterations) costs roughly what brute force costs at n = 100 (1.3e30).
+  </div>
+  <div class="callout warn">
+    <strong>The trap: an oracle result is not a proof about SAT</strong>
+    BBBV rules out quantum algorithms that treat the formula as a black box. A real formula has structure a cleverer algorithm might exploit; none is known (de Wolf §13.2). A proof that NP ⊄ BQP would imply P ≠ NP (Aaronson, Lecture 24).
+  </div>
+  <p><strong>Is BQP ⊆ NP?</strong> Also open. A quantum computer might solve problems whose answers have no short classical certificate. <a href="https://eccc.weizmann.ac.il/report/2018/107/" target="_blank">Raz and Tal (2018)</a> built an oracle relative to which BQP is not even in the polynomial hierarchy PH, which contains NP. De Wolf: "it may well be that BQP and NP are incomparable". But an oracle result is not a real problem: Aaronson notes there are no good concrete candidates among ordinary decision problems yet (Lecture 24), so the field has no settled expectation here.</p>
+  <pre><code>PROVEN    P ⊆ BPP ⊆ BQP ⊆ PP ⊆ PSPACE
+          factoring, discrete log ∈ BQP
+BELIEVED  BPP ≠ BQP   (proof ⇒ P ≠ PSPACE)
+          NP ⊄ BQP    (proof ⇒ P ≠ NP)
+          factoring not NP-complete
+OPEN      BQP ⊆ NP ?  (oracle: BQP ⊄ PH)</code></pre>
+
+  <h2 id="query-lower-bounds">Provable limits: parity, majority and total functions</h2>
+  <p>Running time is where almost nothing is proven. In the <a href="0004-interference-deutsch-jozsa.html#oracle">query model</a> you count only oracle calls, and lower bounds are real theorems, some showing quantum provably cannot help much.</p>
+  <p><strong>Parity.</strong> Given N bits through an oracle, compute x₁ ⊕ … ⊕ x_N. Classically you must read every bit, since an unread bit could flip the answer. <a href="0004-interference-deutsch-jozsa.html#deutsch-jozsa">Deutsch's algorithm</a> learns x₁ ⊕ x₂ with one query (set f(0) = x₁, f(1) = x₂; it outputs f(0) ⊕ f(1)). Run it on pairs.</p>
+  <div class="callout">
+    <strong>Worked example: N = 8</strong>
+    <pre><code>x        1 0 | 1 1 | 0 1 | 1 1
+Deutsch    1  |  0  |  1  |  0    (4 queries)
+parity   1 ⊕ 0 ⊕ 1 ⊕ 0 = 0       (six 1s: even)</code></pre>
+    Four quantum queries against eight classical, and N/2 is optimal even with bounded error (<a href="https://arxiv.org/abs/quant-ph/9802049" target="_blank">Beals et al. 1998</a>; Aaronson, Lecture 24). A factor of 2 is a constant: no asymptotic speedup.
+  </div>
+  <p><strong>Majority</strong> needs order N quantum queries, so again no asymptotic gain (Aaronson, Lecture 24). For any symmetric function (one depending only on the number of 1s) the quantum speedup is at most quadratic, and Grover's OR is the quadratic case (de Wolf ch. 11).</p>
+  <p><strong>Total functions</strong> are defined on every input, with no promise. <a href="https://arxiv.org/abs/quant-ph/9802049" target="_blank">Beals et al.</a> proved that T quantum queries can be replaced by O(T⁶) deterministic ones; <a href="https://arxiv.org/abs/2004.13231" target="_blank">Aaronson, Ben-David, Kothari and Tal (2020)</a> tightened this to O(T⁴), matching a known separation up to log factors. Polynomial, never exponential, so every exponential query gap needs a <em>promise</em>, like Deutsch-Jozsa's "constant or balanced" or Simon's hidden XOR mask (de Wolf ch. 3).</p>
+  <div class="callout warn">
+    <strong>What these theorems are not claiming</strong>
+    Query bounds count oracle calls, not running time. Deutsch-Jozsa's gap is only against deterministic algorithms: a randomized one decides it with two queries and success probability 2/3 (de Wolf ch. 2, exercise 12). Even Simon's exponential separation from randomized algorithms "does not prove an exponential separation in the usual circuit model, because we are counting queries rather than ordinary operations" (de Wolf §3.3.2).
+  </div>
+
+  <h2 id="sources-of-speedup">Where quantum speedups come from</h2>
+  <p>Every claimed speedup lands in one of four bins. Interference is the mechanism in all of them; what differs is how much structure it has to work with.</p>
+  <ol>
+    <li><strong>Exponential over the best known classical algorithm</strong>, from <em>structure</em>. The abelian hidden subgroup problem (period finding, factoring, discrete log) falls to the <a href="0006-quantum-fourier-transform-phase-estimation.html#qft-definition">QFT</a> (de Wolf ch. 6). Simulating quantum dynamics, Feynman's original motivation, is the other family (de Wolf ch. 9). "Best known" is the honest qualifier: no gap is proven against every classical algorithm. The non-abelian case is open: graph isomorphism is a hidden subgroup problem over the symmetric group with no efficient quantum algorithm, and classically it is already quasi-polynomial (<a href="https://arxiv.org/abs/1512.03547" target="_blank">Babai 2015</a>), so it belongs in the fourth bin, not this one.</li>
+    <li><strong>Quadratic, provably no better for black boxes</strong>, from <a href="0005-grovers-algorithm.html#amplitude-amplification">amplitude amplification</a>. <a href="0009-decoherence-noise-error-correction.html#logical-qubit">Error correction</a> makes every logical gate expensive, and <a href="https://arxiv.org/abs/2011.04149" target="_blank">Babbush et al.</a> conclude quadratic speedups will not yield a runtime advantage on early fault-tolerant machines; quartic ones look far more practical.</li>
+    <li><strong>None asymptotically</strong>: parity, majority, anything whose quantum lower bound matches classical up to a constant.</li>
+    <li><strong>No proven speedup: heuristics and open cases</strong>, such as graph isomorphism above, <a href="0010-physical-qubits-nisq-era.html#variational-algorithms">VQE and QAOA</a>, and quantum annealing. As of 2026 the evidence is benchmarks and projections; a March 2026 QAOA paper calls beating strong classical solvers "an open challenge" and can only <em>project</em> a crossover on future error-corrected hardware (<a href="https://arxiv.org/abs/2603.10191" target="_blank">He et al.</a>).</li>
+  </ol>
+  <p><strong id="dequantization">Dequantization.</strong> Problems change bins. Kerenidis and Prakash's quantum recommendation system ran in time polylogarithmic in the matrix size, a leading candidate for an exponential machine-learning speedup. <a href="https://arxiv.org/abs/1807.04271" target="_blank">Ewin Tang (2018)</a> gave a classical algorithm with the same kind of data access (ℓ²-norm sampling) running in poly(k)·log(mn) time, only polynomially slower. Dequantization means matching a claimed quantum speedup with a classical algorithm given equivalent input access; Aaronson saw it as "killing off one of [quantum machine learning's] flagship applications" (<a href="https://scottaaronson.blog/?p=3880" target="_blank">blog</a>). Sampling-based "supremacy" experiments are a different kind of claim, covered under <a href="0010-physical-qubits-nisq-era.html#quantum-advantage-claims">reading quantum-advantage claims</a>.</p>
+
+  <h2 id="extended-church-turing-thesis">Computability vs complexity: which thesis is at stake</h2>
+  <p>The <strong>Church-Turing thesis</strong> (anything physically computable is Turing-computable) survives: the path sum is a slow but finite Turing-machine simulation of any circuit. No quantum computer decides halting (<a href="../../logic/lessons/0017-computability-turing-degrees.html">Logic: computability</a>) or computes <a href="../../algorithmic-info-theory/lessons/0001-kolmogorov-complexity.html#uncomputability-of-k">Kolmogorov complexity</a>.</p>
+  <p>The <strong>extended Church-Turing thesis</strong> adds that classical simulation of any reasonable model costs at most a polynomial blowup (<a href="https://www.scottaaronson.com/qclec.pdf" target="_blank">Aaronson, Lecture 1</a>). That is what quantum computing threatens: if factoring is in BQP but not BPP, the thesis is false (de Wolf §5.1 calls it the "strong" thesis). Aaronson calls quantum computing "a glaring counterexample", but it rests on factoring ∉ BPP, the same unproven belief as before.</p>
+
+  <h2>Try it: place the speedup, then name the status</h2>
+  <p>Cards alternate. "Speedup": pick the bin. "Status": proven, or open and which way the evidence points.</p>
+  <div id="complexity-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. BQP requires success probability at least 2/3 on every input. Why does the exact value 2/3 not matter?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','The 2/3 is a constant in the abstract model, not a hardware error rate. Physical noise is a separate problem, handled by error correction.')">Real qubits fail about one run in three, so 2/3 was picked to match hardware</button>
+        <button onclick="quizAnswer(this,true,'q1','Right. Majority of k runs: at p = 2/3 the error is 12% after 11 runs and 0.027% after 101, falling exponentially, so any constant above 1/2 gives the same class.')">Any constant above 1/2 works: repeat-and-vote cuts error exponentially</button>
+        <button onclick="quizAnswer(this,false,'q1','Majority voting turns a 2/3 algorithm into a 99/100 one with a constant number of extra runs, so the class is unchanged.')">Raising it to 99/100 would define a strictly smaller, more useful class</button>
+        <button onclick="quizAnswer(this,false,'q1','Bounded error is part of the definition. Grover for general N and Shor succeed only with high probability, even on perfect hardware.')">BQP algorithms are exact in principle; the 1/3 only absorbs readout noise</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Every inclusion in P ⊆ BPP ⊆ BQP ⊆ PP ⊆ PSPACE is proven. What would a proof of BPP ≠ BQP also establish?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Beating BPP says nothing about NP. Factoring could separate the classes while SAT stays out of reach, which is the believed picture.')">NP ⊆ BQP, since quantum machines would then beat classical ones</button>
+        <button onclick="quizAnswer(this,false,'q2','Leaving BPP does not make a problem NP-complete. Factoring is in NP ∩ coNP, so NP-completeness would force NP = coNP.')">That factoring is NP-complete, since it would lie outside BPP</button>
+        <button onclick="quizAnswer(this,false,'q2','It has a classical consequence: if P equalled PSPACE the chain would collapse to BPP = BQP, so separating them proves P ≠ PSPACE.')">Nothing about classical classes; it is a purely quantum result</button>
+        <button onclick="quizAnswer(this,true,'q2','Right. If P = PSPACE then BQP ⊆ PSPACE = P ⊆ BPP. Contrapositive: BPP ≠ BQP implies P ≠ PSPACE, so no such proof is expected soon.')">P ≠ PSPACE, a classical question open since the 1960s</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. N-bit parity needs N classical queries and exactly N/2 quantum queries. How should you file this?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right. Deutsch on pairs gives N/2, Beals et al. prove N/2 optimal even with bounded error, and N/2 against N is a fixed ratio.')">A constant factor of 2: provably no asymptotic speedup</button>
+        <button onclick="quizAnswer(this,false,'q3','Quadratic would mean about √N queries: 1,000 for N = 1,000,000, where parity still needs 500,000.')">A quadratic speedup of the same kind Grover gives search</button>
+        <button onclick="quizAnswer(this,false,'q3','The Deutsch-Jozsa gap needs its promise. Parity is a total function, where quantum and classical query counts are polynomially related.')">An exponential speedup, as Deutsch-Jozsa showed for n bits</button>
+        <button onclick="quizAnswer(this,false,'q3','The N/2 lower bound is a theorem from the polynomial method, so no quantum algorithm can do better.')">Unknown so far; a better quantum algorithm may still exist</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. A headline reads: “Shor’s algorithm proves quantum computers can crack NP-complete problems.” What is the precise error?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','Factoring is believed not to be NP-complete: it sits in NP ∩ coNP, where NP-completeness would force NP = coNP.')">None: factoring is NP-complete, so Shor already covers all of NP</button>
+        <button onclick="quizAnswer(this,false,'q4','Shor runs in time polynomial in the number of digits for every N. Today the limits are hardware and error correction.')">Shor works only for small N and stops working on larger numbers</button>
+        <button onclick="quizAnswer(this,true,'q4','Right. Factoring is believed intermediate, so nothing follows for SAT, and NP ⊆ BQP is itself believed false (BBBV).')">Factoring is in NP ∩ coNP and is not believed NP-complete</button>
+        <button onclick="quizAnswer(this,false,'q4','Shor’s running time and success probability are proven. The headline errs about which problem was solved, not whether Shor works.')">Shor is a heuristic with no proof that it runs in polynomial time</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <ol>
+    <li><strong>Path sum.</strong> Compute ⟨0|HZH|0⟩ and ⟨1|HZH|0⟩ by summing over intermediate basis states (Z only multiplies |1⟩ by −1). Which pair of paths cancels? You should recover HZH = X.</li>
+    <li><strong>Sort three claims</strong> into the bins, one sentence each: (a) "quantum computers will solve 1,000-city travelling-salesman instances exponentially faster"; (b) "Grover search of the 2¹²⁸ AES-128 key space" (compute (π/4)·2⁶⁴); (c) "simulating the dynamics of a catalyst molecule". Compare (b) with <a href="0007-shors-algorithm-breaking-rsa.html#quantum-vulnerable-crypto">what Shor breaks and what it doesn't</a>.</li>
+  </ol>
+
+  <h2>Primary resource</h2>
+  <p>Scott Aaronson, <a href="https://www.scottaaronson.com/writings/limitsqc-draft.pdf" target="_blank">"The Limits of Quantum Computers"</a> (draft of his March 2008 Scientific American article). A leading quantum complexity theorist answers this lesson's question for a general reader without losing rigor: he dismantles the picture of “trying every answer in parallel”, places factoring and graph isomorphism on the P/BQP/NP/PSPACE map, and explains BBBV's √N barrier. For proofs, see <a href="https://arxiv.org/abs/1907.09415" target="_blank">de Wolf's lecture notes</a>, chapter 13.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> The slipperiest idea here is what an oracle separation does and doesn't prove. Ask Claude Code why BBBV rules out every black-box quantum SAT algorithm yet leaves room for one that exploits a formula's structure, and how oracles can point both ways: BQP outside PH relative to one, P = BQP relative to another.
+  </div>
+
+  <div class="nav">
+    <a href="0007-shors-algorithm-breaking-rsa.html">← Lesson 7: Shor's Algorithm &amp; Breaking RSA</a>
+    <span class="spacer"></span>
+    <a href="0009-decoherence-noise-error-correction.html">Lesson 9: Decoherence, Noise &amp; Quantum Error Correction →</a>
+  </div>
+
+</div>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+const BINS = ['Exponential over best known classical', 'Quadratic, and provably no better', 'None: provably no asymptotic gain', 'No proven speedup: an open question'];
+const STATUS = ['Proven theorem', 'Open, believed true', 'Open, believed false', 'Open, no consensus'];
+const card = (prompt, labels, right, why) =>
+  ({ prompt, options: labels.map((text, i) => ({ text, correct: i === right, explain: why[i] })) });
+renderMC('complexity-exercise', [
+  card('Speedup: factoring an n-bit integer N.', BINS, 0, [
+    'Right. Shor is poly(n); the best known classical method (the number field sieve) takes about 2^(n^(1/3)) up to log factors in the exponent. “Best known”: no theorem rules out a fast classical algorithm.',
+    'Quadratic is the Grover bin. Shor exploits the periodicity of aˣ mod N via the QFT, which buys far more than a square root.',
+    'The gap is huge: poly(n) against about 2^(n^(1/3)) up to log factors. Constant-factor gains are the parity story.',
+    'Shor’s polynomial running time is a theorem, not a heuristic. Only the classical side is unproven, hence “over best known classical”.',
+  ]),
+  card('Status: BQP ⊆ PSPACE.', STATUS, 0, [
+    'Right. Sum the paths one at a time, reusing memory: exponential time, polynomial space.',
+    'Not open: the path-sum simulation is a complete proof.',
+    'It is proven true; the path sum computes any output probability in polynomial space.',
+    'Nothing to disagree about: the path-sum argument settles it.',
+  ]),
+  card('Speedup: brute-force 3-SAT on n variables, treating the formula as a black box.', BINS, 1, [
+    'Grover over 2ⁿ assignments costs about 2^(n/2): still exponential, just a square root of brute force.',
+    'Right. 2^(n/2) against 2ⁿ, and BBBV says no black-box method does better. A square root of an exponential is still exponential.',
+    'There is a gain: at n = 100, about 10^15 Grover iterations against 10^30 evaluations. Quadratic, not constant.',
+    'For black-box search both bounds are proven (Grover and BBBV). Only structure-exploiting algorithms are open.',
+  ]),
+  card('Status: NP ⊆ BQP (quantum computers solve NP-complete problems efficiently).', STATUS, 2, [
+    'No such theorem. BBBV only shows black-box methods fail.',
+    'The evidence points the other way: BBBV caps black-box search at 2^(n/2), and no structure-exploiting quantum SAT algorithm is known.',
+    'Right. Open, believed false: relative to a random oracle NP needs 2^(n/2) quantum time, and a proof of NP ⊄ BQP would imply P ≠ NP.',
+    'Experts largely agree: de Wolf and Aaronson both report the belief that NP-complete problems are not in BQP.',
+  ]),
+  card('Speedup: parity of N bits given through an oracle.', BINS, 2, [
+    'Parity is total, with no promise, and costs N/2 quantum queries. Exponential query gaps need a promise.',
+    'Quadratic would be about √N queries. Parity needs N/2, proven optimal by the polynomial method.',
+    'Right. Deutsch on pairs gives N/2, proven optimal even with bounded error. N/2 against N is a constant factor.',
+    'Known exactly: N/2 quantum queries, matched by a lower bound. Nothing open.',
+  ]),
+  card('Status: BPP ≠ BQP (quantum computers are strictly more powerful).', STATUS, 1, [
+    'Not proven, and it cannot be without also proving P ≠ PSPACE, because BQP ⊆ PSPACE.',
+    'Right. Widely believed (Shor, oracle separations), but a proof would imply P ≠ PSPACE, so it stays open.',
+    'The evidence favours a separation: factoring is in BQP, with no fast classical algorithm after decades.',
+    'Experts broadly agree BQP is larger. What is missing is a proof, not a consensus.',
+  ]),
+  card('Speedup: simulating the time evolution of a many-body quantum system, such as a molecule.', BINS, 0, [
+    'Right. Quantum computers simulate local dynamics in polynomial time; the best known classical methods are exponential for generic systems. Feynman’s motivation.',
+    'This is not search, and amplitude amplification is not the source. The gain comes from the circuit obeying the same local dynamics (Hamiltonian simulation), not from a square root.',
+    'Known classical methods are exponential for generic dynamics, quantum simulation is polynomial: far more than a constant.',
+    'Efficient quantum simulation is proven (de Wolf ch. 9). Only the classical lower bound is unproven, hence “best known classical”.',
+  ]),
+  card('Status: factoring is NP-complete.', STATUS, 2, [
+    'No such theorem. Factoring is in NP ∩ coNP, where an NP-complete problem would force NP = coNP.',
+    'If it were NP-complete then NP = coNP, which almost nobody believes. That is why Shor does not solve NP.',
+    'Right. Open, believed false: NP-completeness would force NP = coNP. Factoring looks intermediate.',
+    'The field leans clearly one way: most computer scientists believe factoring is intermediate (Aaronson).',
+  ]),
+  card('Speedup: graph isomorphism on n-vertex graphs.', BINS, 3, [
+    'It is a hidden subgroup problem over the non-abelian symmetric group, where the QFT method is not known to work.',
+    'Grover over all n! vertex maps costs about √(n!), far worse than Babai’s quasi-polynomial classical algorithm.',
+    'No lower bound rules out a quantum speedup here. The question is open, not settled.',
+    'Right. No efficient quantum algorithm is known for this non-abelian hidden subgroup problem, and classically it is already quasi-polynomial.',
+  ]),
+  card('Status: BQP ⊆ NP (every quantum-easy problem has a short classical proof).', STATUS, 3, [
+    'Not proven. Raz and Tal give an oracle relative to which BQP is not even in PH.',
+    'No strong case for inclusion exists, and the oracle evidence (Raz and Tal) points the other way.',
+    'An oracle (Raz and Tal) leans this way, but oracle results do not settle real problems, and Aaronson notes there are no good concrete candidate decision problems yet. De Wolf says only that the classes “may well be” incomparable.',
+    'Right. Open: an oracle puts BQP outside PH, de Wolf says the classes may be incomparable, and concrete candidates are missing.',
+  ]),
+  card('Speedup: QAOA for MaxCut on today’s noisy hardware.', BINS, 3, [
+    'No proof of any exponential gain exists for QAOA. Claims rest on benchmarks against particular solvers.',
+    'QAOA is not amplitude amplification, and no theorem gives it even a quadratic speedup over the best heuristics.',
+    'No lower bound rules QAOA out either. Nobody has proven it cannot help.',
+    'Right. A heuristic with no proven speedup; as of 2026, beating strong classical solvers is still an open challenge.',
+  ]),
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

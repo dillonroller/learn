@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 5 — Scaling Laws: What's Actually Established vs. Debated</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    .sl-eq{font-family:var(--font-mono);font-size:.86rem;line-height:1.9;background:var(--bg-sunken);border:1px solid var(--border);border-radius:var(--radius);padding:.8rem 1rem;margin:1rem 0 1.25rem;overflow-x:auto}
+    .sl-eq .c{color:var(--muted);font-family:var(--font-ui);font-size:.8rem}
+    .sl-fig{margin:1.5rem 0}
+    .sl-fig svg{display:block;width:100%;height:auto;background:var(--bg-sunken);border:1px solid var(--border);border-radius:var(--radius)}
+    .sl-fig figcaption{font-family:var(--font-ui);font-size:.82rem;color:var(--muted);margin-top:.5rem;line-height:1.5}
+    .sl-axis{stroke:var(--muted);stroke-width:1}
+    .sl-range{fill:var(--accent-soft)}
+    .sl-base{stroke:var(--accent);stroke-width:2.4}
+    .sl-off{stroke:var(--amber);stroke-width:2.4;stroke-dasharray:7 4}
+    .sl-exp{stroke:var(--ink-dim);stroke-width:2.4;stroke-dasharray:1 5;stroke-linecap:round}
+    .sl-dot{fill:var(--ink)}
+    .sl-txt{fill:var(--ink-dim);font-family:var(--font-ui);font-size:11px}
+    .sl-bins{display:grid;grid-template-columns:repeat(auto-fit, minmax(190px, 1fr));gap:.75rem;margin:1.25rem 0 1.5rem}
+    .sl-bin{background:var(--bg-raised);border:1px solid var(--border);border-top:3px solid var(--accent);border-radius:var(--radius);padding:.75rem .9rem;font-size:.88rem;line-height:1.5}
+    .sl-bin.mid{border-top-color:var(--amber)}
+    .sl-bin.out{border-top-color:var(--err)}
+    .sl-bin h4{font-family:var(--font-ui);font-size:.76rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:.45rem}
+    .sl-bin ul{margin:0 0 0 1.05rem}
+    .sl-bin li{margin-bottom:.3rem}
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Emerging AI Research</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 5 of 6 &nbsp;·&nbsp; Emerging AI Research &nbsp;·&nbsp; ~35 min</p>
+  <h1>Scaling Laws: What's Actually Established vs. Debated</h1>
+  <p>“Just scale it up” is the stock answer to every open question this course has raised. It shows up as the wrong quiz answer in <a href="0001-beyond-next-token-prediction-world-models.html#does-an-llm-have-a-world-model">lesson 1</a> (“more scale will resolve it automatically”), and it is the thesis <a href="0002-jepa-self-supervised-architecture.html#the-bet">LeCun’s bet</a> argues against. Scaling laws are the evidence behind that answer. They are real and unusually clean, but they describe one quantity: the <a href="0001-beyond-next-token-prediction-world-models.html#next-token-prediction">next-token cross-entropy</a> from <a href="0001-beyond-next-token-prediction-world-models.html">lesson 1</a>, measured on held-out text. The win for this lesson is to sort any scaling claim as <em>established</em>, <em>revised or contested</em>, or <em>not in the laws at all</em>, and to do the two-line power-law arithmetic that keeps you honest. Along the way, <a href="0003-reading-a-paper-claims-vs-evidence.html#misuse-check">lesson 3’s four questions</a> get applied to a famous paper.</p>
+
+  <h2>What a scaling law says, exactly</h2>
+  <p>Jared Kaplan and colleagues at OpenAI trained Transformer language models across a wide range of sizes, datasets and compute budgets, with some trends spanning “more than seven orders of magnitude”. Test loss followed three power laws, each holding when the other two resources are not the bottleneck (<a href="https://arxiv.org/abs/2001.08361" target="_blank">Kaplan et al. 2020</a>, eqs. 1.1–1.3):</p>
+  <div class="sl-eq">
+    L(N) ≈ (N<sub>c</sub>/N)<sup>0.076</sup> &nbsp;<span class="c">N = non-embedding parameters</span><br>
+    L(D) ≈ (D<sub>c</sub>/D)<sup>0.095</sup> &nbsp;<span class="c">D = training tokens</span><br>
+    L(C) ≈ (C<sub>c</sub>/C)<sup>0.050</sup> &nbsp;<span class="c">C = training compute</span>
+  </div>
+  <div class="callout warn">
+    <strong id="scaling-law-def">Scaling law (working definition)</strong>
+    An empirical fit of the form L(X) = (X<sub>c</sub>/X)<sup>α</sup>, sometimes plus a constant. It relates pretraining loss to parameters N, data D or compute C, for a fixed recipe and data distribution, and is valid within the range where it was measured. On log-log axes it is a straight line with slope −α.
+  </div>
+  <p>Three consequences follow. <strong>The y-axis is loss</strong> (nats per token), not a capability score. <strong>Small exponents mean steep diminishing returns:</strong> ten times the parameters multiplies loss by 10<sup>−0.076</sup> ≈ 0.84, only 16% lower; halving it would take 2<sup>1/0.076</sup> ≈ 9,100× the parameters, or 2<sup>20</sup> ≈ 10<sup>6</sup>× the compute. <strong>The regularity is empirical, not derived.</strong> Joel Hestness and colleagues saw power laws in translation, language modelling, image processing and speech, with exponents “yet to be explained by theoretical work” (<a href="https://arxiv.org/abs/1712.00409" target="_blank">Hestness et al. 2017</a>); Tom Henighan and colleagues found power law plus a constant for images, video, multimodal models and mathematics (<a href="https://arxiv.org/abs/2010.14701" target="_blank">Henighan et al. 2020</a>). The laws are established because they replicate across domains and labs, not because anyone has proved they must hold.</p>
+
+  <h2>The floor: irreducible loss</h2>
+  <p>A pure power law falls toward zero, but real loss cannot. Kaplan’s own Section 6.3, “Contradictions and a Conjecture”, says: “Our trends must eventually level off, though, since natural language has non-zero entropy.” Henighan et al. split cross-entropy into S(True) + D<sub>KL</sub>(True‖Model). The first term is the <a href="../../algorithmic-info-theory/lessons/0001-kolmogorov-complexity.html#shannon-vs-kolmogorov">Shannon entropy of the source</a>, and no model can remove it. Only the KL term shrinks with scale. The Chinchilla paper (<a href="https://arxiv.org/abs/2203.15556" target="_blank">Hoffmann et al. 2022</a>, eq. 2, fitted in Appendix D.2) gives</p>
+  <div class="sl-eq">L(N, D) = E + A/N<sup>α</sup> + B/D<sup>β</sup> &nbsp;<span class="c">E = 1.69, A = 406.4, B = 410.7, α = 0.34, β = 0.28</span></div>
+  <div class="callout warn">
+    <strong id="irreducible-loss">Irreducible loss (working definition)</strong>
+    The constant E in a power-law-plus-constant fit: the loss that an ideal model of the data distribution would still incur, which Hoffmann et al. say “should correspond to the entropy of natural text”. Scale shrinks only the reducible part, L − E.
+  </div>
+  <p>Plug Chinchilla itself into the fit (70B parameters, 1.4T tokens) and you get L ≈ 1.94, of which 1.69 is floor, so only about 0.25 nats per token is left to remove. Under this fit, no amount of scale halves a loss of 2.0. Two cautions apply. E is itself fitted (the replication below re-estimates it at ≈ 1.82), and loss values depend on tokenizer and dataset, so Kaplan’s numbers cannot be compared directly with Chinchilla’s. These are empirical fits within a range, not laws of nature.</p>
+
+  <h2 id="compute-optimal">Compute-optimal training: a confident prescription, revised twice</h2>
+  <p>Training costs roughly 6ND FLOPs, so a fixed budget forces a trade between model size and tokens. Kaplan’s fit gave N<sub>opt</sub> ∝ C<sup>0.73</sup>, which means “training very large models on a relatively modest amount of data and stopping significantly before convergence”. Per 10× of compute, that is a model 5.5× bigger but only 1.8× more data, as Hoffmann et al. summarise it. The field followed: GPT-3 (175B), Jurassic-1 (178B) and Gopher (280B) were all trained on about 300B tokens (Chinchilla, Table 1).</p>
+  <p>Jordan Hoffmann and colleagues at DeepMind trained over 400 models (70M to over 16B parameters, 5B to 500B tokens) and estimated the optimum three independent ways: a = 0.50, 0.49 and 0.46, against Kaplan’s 0.73 (Table 2). Parameters and tokens should grow at the same rate, about 3.2× each per 10× of compute; Table 3 pairs 1B parameters with 20.2B tokens, the source of the “≈ 20 tokens per parameter” rule. Then they tested it. Chinchilla (70B parameters, 1.4T tokens) used the same compute as Gopher (280B, 300B) and “uniformly and significantly outperforms” it and other larger models, reaching 67.5% on MMLU against Gopher’s 60.0%. That is a matched-compute comparison, <a href="0003-reading-a-paper-claims-vs-evidence.html#misuse-check">lesson 3’s second question</a>. They also diagnosed Kaplan’s error. Kaplan used “a fixed number of training tokens and learning rate schedule for all models”, which overstated the loss of shorter runs, and many of Kaplan’s runs were under 100M parameters. The prescription came from a choice of method, not from the power law itself.</p>
+  <p>The second revision came in 2024. Tamay Besiroglu and colleagues at Epoch AI reconstructed Chinchilla’s data from its plots and refit Approach 3 (<a href="https://arxiv.org/abs/2404.10102" target="_blank">Besiroglu et al. 2024</a>). The published estimates were “inconsistent with their first two estimation methods”, fit the data poorly, and had confidence intervals so narrow they “would require over 600,000 experiments, while they likely only ran fewer than 500.” The published constants imply about 70 tokens per parameter; the refit implies about 20, matching Approaches 1–2 and Chinchilla’s actual run. That is <a href="0003-reading-a-paper-claims-vs-evidence.html#misuse-check">lesson 3’s third question</a>, independent reproduction, doing its job.</p>
+  <div class="callout">
+    <strong>Hold these together, not apart</strong>
+    Kaplan’s allocation was revised, Chinchilla’s constants were corrected, and the power-law structure survived both. What held is that loss is a smooth, predictable function of N and D for a given recipe. “The scaling laws were wrong” and “the scaling numbers are settled” both misread this history.
+  </div>
+
+  <h2 id="offset-vs-exponent">Offset vs exponent: shifting the curve vs changing its slope</h2>
+  <p>On log-log axes, an improvement such as a new architecture, optimizer or data filter can change a scaling curve in two ways, and which one it is decides what a small-scale win is worth.</p>
+  <ul>
+    <li><strong>Offset.</strong> The line shifts but keeps its slope. This is a constant <em>compute multiplier</em> k: the method reaches any loss with 1/k of the compute, at every scale. With α<sub>C</sub> = 0.05, a 2× multiplier is worth 2<sup>−0.05</sup> ≈ 0.966, about 3.4% lower loss. Small loss gaps can be large compute gaps.</li>
+    <li><strong>Exponent.</strong> The slope changes, so the gap grows or shrinks with scale and the curves can cross. Something that looks worse at small scale can win at large scale, and the reverse can also happen.</li>
+  </ul>
+  <figure class="sl-fig">
+    <svg viewBox="0 0 340 210" role="img" aria-label="Log-log plot: a baseline line, a parallel line shifted below it (offset), and a steeper line that starts above the baseline and crosses it (exponent)">
+      <rect class="sl-range" x="50" y="20" width="80" height="160"/>
+      <text class="sl-txt" x="54" y="16">small-scale runs</text>
+      <line class="sl-axis" x1="40" y1="20" x2="40" y2="182"/>
+      <line class="sl-axis" x1="38" y1="180" x2="325" y2="180"/>
+      <line class="sl-base" x1="50" y1="40" x2="315" y2="150"/>
+      <line class="sl-off" x1="50" y1="58" x2="315" y2="168"/>
+      <line class="sl-exp" x1="50" y1="28" x2="315" y2="172"/>
+      <circle class="sl-dot" cx="143.5" cy="78.8" r="3.2"/>
+      <line class="sl-base" x1="200" y1="26" x2="222" y2="26"/><text class="sl-txt" x="228" y="30">baseline</text>
+      <line class="sl-off" x1="200" y1="42" x2="222" y2="42"/><text class="sl-txt" x="228" y="46">offset: same slope</text>
+      <line class="sl-exp" x1="200" y1="58" x2="222" y2="58"/><text class="sl-txt" x="228" y="62">exponent: steeper</text>
+      <text class="sl-txt" x="150" y="200">log compute →</text>
+      <text class="sl-txt" x="16" y="120" transform="rotate(-90 16 120)">log loss</text>
+    </svg>
+    <figcaption>The dotted line has a steeper exponent. It is worse than the baseline inside the small-scale band and better past the crossing (dot). Points from the band alone cannot tell you which kind of curve you are on.</figcaption>
+  </figure>
+  <p>The literature has both cases. Hestness et al. found that “model improvements only shift the error but do not appear to affect the power-law exponent”, which are offsets. Kaplan’s Figure 7 shows the other kind: LSTMs match Transformers on early-context tokens but plateau after fewer than 100 tokens, and Transformers “asymptotically outperform LSTMs due to improved use of long contexts”. So comparing architectures means comparing <em>curves</em> at several matched scales, not single points. <a href="0006-evaluating-new-architecture-claims.html#claim-audit">Lesson 6</a> turns this into a check you can run on new claims.</p>
+
+  <h2 id="open-scaling-questions">Where it stops being settled</h2>
+  <p>Everything above concerns average pretraining loss for a fixed recipe. Three live questions lie outside what the fits establish.</p>
+
+  <h3 id="emergent-abilities-debate">1. From loss to abilities: emergence vs the metric “mirage”</h3>
+  <p>Jason Wei and colleagues call an ability emergent “if it is not present in smaller models but is present in larger models”, so it “cannot be predicted simply by extrapolating” (<a href="https://arxiv.org/abs/2206.07682" target="_blank">Wei et al. 2022</a>). Rylan Schaeffer, Brando Miranda and Sanmi Koyejo answered that “nonlinear or discontinuous metrics produce apparent emergent abilities”, while continuous metrics show smooth change (<a href="https://arxiv.org/abs/2304.15004" target="_blank">Schaeffer et al. 2023</a>). The mechanism fits in one line. If per-token accuracy p improves smoothly, exact match on a 10-token answer scores p<sup>10</sup>, so p = 0.5, 0.7, 0.9 gives 0.1%, 2.8%, 35%: flat, then a cliff.</p>
+  <p>That did not close the question. Zhengxiao Du and colleagues held data, tokenizer and architecture fixed and found some tasks jump once pretraining loss crosses a threshold, “regardless of the continuity of metrics” (<a href="https://arxiv.org/abs/2403.15796" target="_blank">Du et al. 2024</a>). The Inverse Scaling Prize found 11 tasks where larger models do <em>worse</em> (<a href="https://arxiv.org/abs/2306.09479" target="_blank">McKenzie et al. 2023</a>). And mechanistic work shows continuous change under apparent jumps: grokking “arises from the gradual amplification of structured mechanisms” (<a href="https://arxiv.org/abs/2301.05217" target="_blank">Nanda et al. 2023</a>), and <a href="0004-mechanistic-interpretability-circuits.html#induction-heads">induction heads</a> form at a visible bump in the training loss. A 2025 survey still calls it “an intense scientific debate” (<a href="https://arxiv.org/abs/2503.05788" target="_blank">Berti et al. 2025</a>). The honest answer is: sometimes, partially, and it’s contested. A smooth fall in average loss does not say whether a particular structure or ability appears, which is why <a href="0001-beyond-next-token-prediction-world-models.html#does-an-llm-have-a-world-model">lesson 1’s</a> “more scale will resolve it” was wrong.</p>
+
+  <h3>2. How long the trends continue, and where compute should go</h3>
+  <p>If current trends continue, training sets will match the stock of public human text “between 2026 and 2032” (<a href="https://arxiv.org/abs/2211.04325" target="_blank">Villalobos et al., revised 2024</a>). As of October 2026 we are inside that window, and whether the limit binds depends on synthetic data, data efficiency and other modalities, none of which the fitted laws cover. Repeating data is nearly free for up to 4 epochs, after which “the value of adding compute eventually decays to zero” (<a href="https://arxiv.org/abs/2305.16264" target="_blank">Muennighoff et al. 2023</a>). Chinchilla-optimal also minimises <em>training</em> compute only. With heavy inference demand it pays to train smaller models for longer, and quality keeps improving out to 10,000 tokens per parameter (<a href="https://arxiv.org/abs/2401.00448" target="_blank">Sardana et al. 2023</a>). Test-time compute is a separate axis: FLOPs-matched, on problems where a smaller model already has some success, it can beat a 14× larger model (<a href="https://arxiv.org/abs/2408.03314" target="_blank">Snell et al. 2024</a>). These add axes to optimise; they do not overturn the pretraining laws.</p>
+
+  <h3 id="bitter-lesson">3. The Bitter Lesson vs the bet on new objectives</h3>
+  <p>Rich Sutton argues that “general methods that leverage computation are ultimately the most effective, and by a large margin” (<a href="http://www.incompleteideas.net/IncIdeas/BitterLesson.html" target="_blank">The Bitter Lesson, 2019</a>). It is a historical induction from chess, Go, speech and vision, not a theorem. Against it stands <a href="0002-jepa-self-supervised-architecture.html#the-bet">LeCun’s bet</a> that autoregressive prediction alone is insufficient. Sutton himself, in 2025: “It’s an interesting question whether large language models are a case of the bitter lesson. They are clearly a way of using massive computation… But they’re also a way of putting in lots of human knowledge” (<a href="https://www.dwarkesh.com/p/richard-sutton" target="_blank">Dwarkesh Podcast, Sept 2025</a>). Both are positions, not results: a scaling law measures loss for one recipe and cannot decide whether a different objective is necessary.</p>
+
+  <p>Every scaling claim you meet should land in one of these three bins:</p>
+  <div class="sl-bins">
+    <div class="sl-bin"><h4>Established (in range)</h4><ul><li>Loss falls as a power law in N, D and C</li><li>Small exponents, steep diminishing returns</li><li>An entropy floor exists</li><li>Data must grow with parameters</li></ul></div>
+    <div class="sl-bin mid"><h4>Revised or contested</h4><ul><li>Kaplan’s allocation (revised)</li><li>Chinchilla’s exact constants (corrected)</li><li>Emergence vs mirage</li><li>Data limits, inference and test-time trade-offs</li></ul></div>
+    <div class="sl-bin out"><h4>Not in the laws</h4><ul><li>Specific capabilities at a given scale</li><li>AGI dates or FLOP thresholds</li><li>“Hit a wall” as a refutation</li><li>Which objective is necessary</li></ul></div>
+  </div>
+
+  <h2 id="misuse-check">Before repeating “the scaling laws show…”</h2>
+  <p>Same discipline as <a href="0003-reading-a-paper-claims-vs-evidence.html#misuse-check">lesson 3’s misuse check</a>, applied to scaling claims, which get misused in both directions.</p>
+  <div class="callout warn">
+    <strong>“Scaling laws show AGI arrives once we pass 10<sup>X</sup> FLOPs”</strong> — Overclaim. The laws relate compute to average next-token loss on one distribution, within a measured range. Nothing in them maps loss to a named capability, and that mapping is exactly the contested part. Kaplan’s own Section 6.3 says the trends must break down.
+  </div>
+  <div class="callout warn">
+    <strong>“Scaling has hit a wall, so the scaling laws were wrong”</strong> — Overclaim in the other direction. The fits predicted diminishing returns all along (−16% loss per 10× parameters) and a floor. A refutation would be loss departing from the fitted curve under a matched recipe and data distribution. Stories about one lab’s unpublished runs fail <a href="0003-reading-a-paper-claims-vs-evidence.html#misuse-check">lesson 3’s peer-review question</a> before they get that far.
+  </div>
+  <div class="callout warn">
+    <strong>“Chinchilla proved the optimal ratio is 20 tokens per parameter”</strong> — Overclaim of precision. About 20 is a compute-optimal estimate for training loss on one data mix. The Approach 3 constants needed correcting, the optimum shifts with data quality (Besiroglu et al. cite work finding lower ratios for higher-quality data), and heavy inference makes smaller-and-longer the cheaper choice.
+  </div>
+
+  <h2>Try it: read the power law, then sort the claim</h2>
+  <p>Part A drills the arithmetic, so compute before you click. Part B drills the three bins.</p>
+  <h3>Part A: reading the curve</h3>
+  <div id="scaling-exercise" class="mc-exercise"></div>
+  <h3>Part B: established, debated, or overclaim?</h3>
+  <div id="scaling-sort" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Under Chinchilla’s fit L = 1.69 + 406.4/N<sup>0.34</sup> + 410.7/D<sup>0.28</sup>, why can no amount of scale halve a loss of 2.0?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','The exponents only set how fast the two reducible terms shrink. Even with both terms at zero, the loss stops at E = 1.69, which is above 1.0.')">Because exponents of 0.34 and 0.28 are too small to matter</button>
+        <button onclick="quizAnswer(this,true,'q1','Right. Scale only removes L − E. With E = 1.69, a loss of 2.0 has at most 0.31 nats left to lose, so it can never reach 1.0.')">Because the fitted floor E = 1.69 is above half of 2.0</button>
+        <button onclick="quizAnswer(this,false,'q1','Running out of data is a practical limit, not the reason here. Even with unlimited parameters and tokens, the fit forbids going below E = 1.69.')">Because the training data runs out before loss falls that far</button>
+        <button onclick="quizAnswer(this,false,'q1','Kaplan’s Section 6.3 only conjectures a breakdown near 10¹² parameters, with values it calls highly uncertain. That says nothing about Chinchilla’s floor E.')">Because Kaplan showed loss stops falling past 10¹² parameters</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. What did Besiroglu et al.’s 2024 replication of Chinchilla actually change?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','The opposite. Their refit agrees with Approaches 1–2, which scale parameters and tokens roughly equally, so Kaplan’s model-heavy allocation stays revised.')">It restored Kaplan’s rule of growing the model faster than data</button>
+        <button onclick="quizAnswer(this,false,'q2','They refit the same functional form to data reconstructed from the original 70M–16B runs. They made no claim about where the form breaks down.')">It showed the power-law form breaks down above 16B parameters</button>
+        <button onclick="quizAnswer(this,false,'q2','They found that the rounded published constants biased predictions, and their estimates of E, B and β differ significantly from Hoffmann et al.’s.')">It confirmed every published constant to within rounding error</button>
+        <button onclick="quizAnswer(this,true,'q2','Right. The published Approach 3 constants implied about 70 tokens per parameter, with implausibly narrow intervals. The refit gives about 20, matching Approaches 1–2.')">It corrected Approach 3’s constants but kept equal scaling</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. A new architecture matches the baseline’s loss with half the compute at three small scales, and its log-log line runs parallel to the baseline’s. What does that evidence support?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right. Parallel lines mean the same exponent plus an offset, here a constant 2× compute multiplier. The data cannot say whether the slope differs beyond the tested range.')">A constant 2× compute multiplier in the tested range</button>
+        <button onclick="quizAnswer(this,false,'q3','Parallel lines mean the same slope. A gap that widens at scale needs a steeper exponent, and this data shows no sign of one.')">A steeper exponent, so its lead will widen at frontier scale</button>
+        <button onclick="quizAnswer(this,false,'q3','With α ≈ 0.05, a 2× compute multiplier is only about 3.4% lower loss. Whether a gap is noise depends on error bars and seeds, not on its size.')">Nothing, since a few percent of loss is always just noise</button>
+        <button onclick="quizAnswer(this,false,'q3','Three small-scale points cannot rule out a slope difference that appears later; Kaplan’s LSTM curves diverge from the Transformer’s with scale.')">A guarantee that it beats the baseline at every future scale</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Why did Schaeffer et al.’s “mirage” paper not end the emergence debate?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','They tested InstructGPT/GPT-3 and ran a BIG-Bench meta-analysis. Vision tasks were used only to show that a metric choice can manufacture emergence.')">It only tested vision models and never any language models</button>
+        <button onclick="quizAnswer(this,false,'q4','Scaling laws predict average pretraining loss, not per-task accuracy, and inverse scaling shows that task trends can even reverse.')">Scaling laws already predict each task’s accuracy exactly</button>
+        <button onclick="quizAnswer(this,true,'q4','Right. With data, tokenizer and architecture fixed, Du et al. still saw some tasks jump once loss crossed a threshold, under continuous metrics. Metric choice explains some emergence, maybe not all.')">Some tasks jump at a loss threshold even on smooth metrics</button>
+        <button onclick="quizAnswer(this,false,'q4','Wei et al. is empirical: a definition plus a collection of observed curves, not a theorem. There was no proof to overturn.')">Wei et al. had already proved emergence with a formal theorem</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Open the Chinchilla paper (linked below). In Table 3, compute tokens per parameter for three rows and check that they sit near 20. Read the abstract of <a href="https://arxiv.org/abs/2404.10102" target="_blank">Besiroglu et al.</a> and write two sentences: what in Hoffmann et al. is established, and what was a revisable estimate. Then take any open model card that lists parameters and training tokens, compute its ratio, and decide whether a departure from about 20 looks like a mistake or a deliberate inference-cost choice in Sardana et al.’s sense.</p>
+
+  <h2>Primary resource</h2>
+  <p>See Jordan Hoffmann et al., <a href="https://arxiv.org/abs/2203.15556" target="_blank">“Training Compute-Optimal Large Language Models”</a> (Chinchilla, 2022). It confirms the power-law structure across 400+ training runs and overturns a confident earlier prescription in the same paper, which makes it the clearest single source for telling the established parts of scaling from the revisable recipes. Its Table 2 puts the competing exponents side by side.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> For example, ask Claude Code to derive a = β/(α+β) from the Chinchilla fit under the 6ND constraint, or to show with numbers how a fixed learning-rate schedule biases the measured optimum toward bigger models.
+  </div>
+
+  <div class="nav">
+    <a href="0004-mechanistic-interpretability-circuits.html">← Lesson 4: Mechanistic Interpretability</a>
+    <span class="spacer"></span>
+    <a href="0006-evaluating-new-architecture-claims.html">Lesson 6: Forming an Informed Opinion →</a>
+  </div>
+
+</div>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+renderMC('scaling-exercise', [
+  {
+    prompt: 'Under Kaplan’s fit L ∝ N^−0.076 (within the measured range), how much lower is the loss after a 10× increase in parameters?',
+    options: [
+      { text: 'About 2% lower', explain: 'Too small: a 2% cut needs only about 1.3× the parameters. 10^−0.076 ≈ 0.84, a 16% cut.' },
+      { text: 'About 16% lower', correct: true, explain: 'Right. 10^−0.076 ≈ 0.840, so ten times the parameters buys 16% lower loss. That is what a small exponent means.' },
+      { text: 'About 50% lower', explain: 'Halving needs 2^(1/0.076) ≈ 9,100× the parameters, not 10×.' },
+    ],
+  },
+  {
+    prompt: 'Same fit. Roughly how much bigger must the model be to cut the loss by 10%?',
+    options: [
+      { text: 'About 1.1×', explain: '1.1^−0.076 ≈ 0.993, only a 0.7% cut. With an exponent this small, N must move by large factors.' },
+      { text: 'About 4×', correct: true, explain: 'Right. (1/0.9)^(1/0.076) ≈ 4.0, so a 10% cut costs about four times the parameters.' },
+      { text: 'About 40×', explain: 'Overshoots: 40^−0.076 ≈ 0.755, a 24% cut. The answer is (1/0.9)^(1/0.076) ≈ 4×.' },
+    ],
+  },
+  {
+    prompt: 'GPT-3 had 175B parameters trained on 300B tokens. By Chinchilla’s standard, it was…',
+    options: [
+      { text: 'Undertrained', correct: true, explain: 'Right. 300/175 ≈ 1.7 tokens per parameter, about 12× below 20. Table 3 pairs 175B with 3.7T tokens.' },
+      { text: 'About optimal', explain: 'Compute the ratio: 300B / 175B ≈ 1.7 tokens per parameter, far below about 20.' },
+      { text: 'Overtrained', explain: 'Overtrained means well above 20 tokens per parameter, the smaller-and-longer regime Sardana et al. defend. GPT-3 was at 1.7.' },
+    ],
+  },
+  {
+    prompt: 'By Chinchilla’s rule of about 20 tokens per parameter, a compute-optimal 7B-parameter model should be trained on roughly…',
+    options: [
+      { text: 'About 14B tokens', explain: 'That is 2 tokens per parameter, GPT-3’s regime, about 10× too few. 7B × 20 = 140B.' },
+      { text: 'About 1.4T tokens', explain: 'That is 200 tokens per parameter, 10× the rule (and Chinchilla 70B’s budget). 7B × 20 = 140B.' },
+      { text: 'About 140B tokens', correct: true, explain: 'Right. 7 × 10⁹ × 20 = 1.4 × 10¹¹ tokens. Training far beyond that can still be sensible if inference cost dominates, but it is not training-compute-optimal.' },
+    ],
+  },
+]);
+
+renderMC('scaling-sort', [
+  {
+    prompt: 'Pretraining cross-entropy loss falls smoothly as a power law in compute across many orders of magnitude, within the measured range.',
+    options: [
+      { text: 'Established', correct: true, explain: 'Right. Replicated by Kaplan, Hestness, Henighan and Hoffmann across labs and domains. “Within the measured range” is what keeps it accurate.' },
+      { text: 'Debated', explain: 'The power-law form of pretraining loss is not in dispute. What is debated is how loss maps to abilities and how long the trend lasts.' },
+      { text: 'Overclaim', explain: 'Without the range qualifier it would be. As stated, it is scoped to loss and to the measured range, which is the defensible version.' },
+    ],
+  },
+  {
+    prompt: 'Whether specific downstream abilities appear abruptly or smoothly as models scale.',
+    options: [
+      { text: 'Established', explain: 'Neither answer is established: Schaeffer et al. tie much abruptness to metrics, while Du et al. find loss-threshold jumps under continuous metrics.' },
+      { text: 'Debated', correct: true, explain: 'Right. Wei, Schaeffer and Du each have real evidence, and a 2025 survey still calls it an intense debate.' },
+      { text: 'Overclaim', explain: 'As phrased this is an open question, not an assertion, so there is nothing to overclaim.' },
+    ],
+  },
+  {
+    prompt: 'Scaling laws show AGI will arrive once training compute passes a specific FLOP threshold.',
+    options: [
+      { text: 'Established', explain: 'No scaling law has a capability term. The laws predict average next-token loss, and Kaplan says even those trends must break down.' },
+      { text: 'Debated', explain: 'It is not a claim the laws could support or refute, since they say nothing about named capabilities. “Debated” gives it too much credit.' },
+      { text: 'Overclaim', correct: true, explain: 'Right. It jumps from loss to a capability, and from the measured range to far beyond it. Neither step is in the fits.' },
+    ],
+  },
+  {
+    prompt: 'Kaplan’s allocation, growing the model about 5.5× and the data only 1.8× per 10× of compute, is the right recipe.',
+    options: [
+      { text: 'Established', explain: 'It was the accepted recipe in 2020–21, but Chinchilla’s three approaches found a ≈ 0.5, not 0.73.' },
+      { text: 'Debated', explain: 'Not a live dispute: Hoffmann et al. diagnosed the cause (a fixed learning-rate schedule, small models) and the replication still lands near equal scaling.' },
+      { text: 'Overclaim', correct: true, explain: 'Right. Stating a revised prescription as current is an overclaim. Parameters and tokens should grow about equally.' },
+    ],
+  },
+  {
+    prompt: 'Scaling has hit a wall, so the scaling laws have been refuted.',
+    options: [
+      { text: 'Established', explain: 'No published result shows loss departing from the fitted curve under a matched recipe. Slower gains are what a power law with a floor predicts.' },
+      { text: 'Debated', explain: 'How long trends continue is debated (data limits, for example), but refutation does not follow from slowing gains.' },
+      { text: 'Overclaim', correct: true, explain: 'Right. Diminishing returns and a floor are part of the laws. Refuting them takes a measured departure from the fit.' },
+    ],
+  },
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

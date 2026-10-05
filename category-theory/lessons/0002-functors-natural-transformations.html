@@ -107,7 +107,7 @@
       <p>4. In the preorder-to-Set functor example, what plays the role of "morphism mapping"?</p>
       <div class="options">
         <button onclick="quizAnswer(this,false,'q4','This describes the object mapping (numbers to sets) — the question asks specifically about what happens to morphisms (the ≤ relations), not objects.')">Sending each number n to the set {1,...,n}</button>
-        <button onclick="quizAnswer(this,true, 'q4','Right — each morphism "m ≤ n" in the preorder gets sent to the actual inclusion function embedding {1,...,m} into {1,...,n}, which is the morphism-level part of the functor.')">Sending each morphism "m ≤ n" to the inclusion function from {1,...,m} into {1,...,n}</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — each morphism &quot;m ≤ n&quot; in the preorder gets sent to the actual inclusion function embedding {1,...,m} into {1,...,n}, which is the morphism-level part of the functor.')">Sending each morphism "m ≤ n" to the inclusion function from {1,...,m} into {1,...,n}</button>
         <button onclick="quizAnswer(this,false,'q4','This isn’t part of this functor’s definition at all — no map()-style lifting over a container appears in this non-container example.')">Applying Option::map to each set</button>
         <button onclick="quizAnswer(this,false,'q4','The identity law (F(id_n) = id_{F(n)}) is one of the two laws the functor must satisfy — it’s not itself the morphism mapping, just one property that mapping must have.')">Checking that F(id_n) = id_{F(n)} for every n</button>
       </div>
@@ -130,7 +130,7 @@
   <div class="nav">
     <a href="0001-categories-objects-morphisms.html">← Lesson 1: Categories, Objects &amp; Morphisms</a>
     <span class="spacer"></span>
-    <a href="../index.html#lesson-03">Lesson 3: Universal Properties &amp; Products →</a>
+    <a href="0003-universal-properties-products.html">Lesson 3: Universal Properties &amp; Products →</a>
   </div>
 
 </div>
@@ -190,7 +190,7 @@ FUNC_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

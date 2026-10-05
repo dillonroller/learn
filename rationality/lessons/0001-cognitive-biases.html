@@ -75,7 +75,7 @@
       <p>3. Why does the availability heuristic make one dramatic argument feel more representative of a relationship than it is?</p>
       <div class="options">
         <button onclick="quizAnswer(this,false,'q3','This isn’t about wanting a particular conclusion to be true — it’s about how easily an event comes to mind, independent of any desired outcome.')">Because people want to believe their relationships are worse than they are</button>
-        <button onclick="quizAnswer(this,true, 'q3','Right — ease of recall (vividness) gets mistaken for actual frequency, so a rare but memorable event outweighs many unremarkable ordinary ones in how "typical" it feels.')">Because ease of recall gets mistaken for actual frequency — vivid, rare events are easier to remember than an unremarkable ordinary evening</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — ease of recall (vividness) gets mistaken for actual frequency, so a rare but memorable event outweighs many unremarkable ordinary ones in how &quot;typical&quot; it feels.')">Because ease of recall gets mistaken for actual frequency — vivid, rare events are easier to remember than an unremarkable ordinary evening</button>
         <button onclick="quizAnswer(this,false,'q3','This bias isn’t about attributing behavior to character vs. circumstance — that’s the fundamental attribution error, a different bias.')">Because people attribute their partner's calm evenings to good character</button>
         <button onclick="quizAnswer(this,false,'q3','Nothing here is being reverse-engineered from a desired conclusion — it’s a memorability/frequency mismatch, not motivated reasoning.')">Because it confirms a conclusion they already wanted to reach</button>
       </div>
@@ -172,7 +172,7 @@ BIAS_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

@@ -103,7 +103,7 @@
         <button onclick="quizAnswer(this,true,'q4','Right — the BBBV theorem proves Ω(√N) queries are necessary for any quantum algorithm solving unstructured search, so √N is a provable floor, not just the best known result.')">The BBBV theorem proves any quantum algorithm needs at least Ω(√N) queries for this problem</button>
         <button onclick="quizAnswer(this,false,'q4','This is a proven mathematical lower bound, not an open research question waiting for a cleverer oracle construction.')">Nobody has found a clever enough oracle construction yet</button>
         <button onclick="quizAnswer(this,false,'q4','The √N bound is a fundamental limit on the algorithm itself, true on any hardware whatsoever — it isn’t about today’s noisy qubits catching up.')">It's a hardware limitation of current quantum computers, not a fundamental one</button>
-        <button onclick="quizAnswer(this,false,'q4','Grover's algorithm needs Θ(√N) queries, not O(1) — for large N that’s far more than a constant number of queries.')">Grover's algorithm already achieves O(1), so there's nothing left to speed up</button>
+        <button onclick="quizAnswer(this,false,'q4','Grover’s algorithm needs Θ(√N) queries, not O(1) — for large N that’s far more than a constant number of queries.')">Grover's algorithm already achieves O(1), so there's nothing left to speed up</button>
       </div>
       <div class="feedback" id="q4-fb"></div>
     </div>
@@ -124,7 +124,7 @@
   <div class="nav">
     <a href="0004-interference-deutsch-jozsa.html">← Lesson 4: Interference &amp; Deutsch-Jozsa</a>
     <span class="spacer"></span>
-    <a href="../index.html#lesson-06">Lesson 6: The Quantum Fourier Transform &amp; Phase Estimation →</a>
+    <a href="0006-quantum-fourier-transform-phase-estimation.html">Lesson 6: The Quantum Fourier Transform &amp; Phase Estimation →</a>
   </div>
 
 </div>
@@ -184,7 +184,7 @@ GROVER_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

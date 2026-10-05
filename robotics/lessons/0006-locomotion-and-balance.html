@@ -62,9 +62,9 @@ KI=6, 35s hold (final): verified reproducible over 3 consecutive fresh-sim
       <p>1. The first captured stand_up run had a nearly-level IMU reading but still failed. Why doesn't a level IMU alone prove the robot is stably standing?</p>
       <div class="options">
         <button onclick="quizAnswer(this,true,'q1','Right — the IMU reports orientation (tilt), not joint positions or center-of-mass location. A robot can have a level torso while individual joints, and therefore its actual limb geometry, are off from the intended stance.')">It only reports torso tilt, not joint angles or center of mass</button>
-        <button onclick="quizAnswer(this,false,'q1','The IMU has nothing to do with battery charge — it's an inertial sensor reporting orientation and motion, not power state.')">It only reports battery charge</button>
-        <button onclick="quizAnswer(this,false,'q1','Foot-force sensing is a separate sensor entirely; the IMU doesn't read ground contact force.')">It only reports foot contact force</button>
-        <button onclick="quizAnswer(this,false,'q1','Network delay isn't something an IMU measures — that's a DDS/transport-layer concern, unrelated to this sensor.')">It only reports network delay</button>
+        <button onclick="quizAnswer(this,false,'q1','The IMU has nothing to do with battery charge — it’s an inertial sensor reporting orientation and motion, not power state.')">It only reports battery charge</button>
+        <button onclick="quizAnswer(this,false,'q1','Foot-force sensing is a separate sensor entirely; the IMU doesn’t read ground contact force.')">It only reports foot contact force</button>
+        <button onclick="quizAnswer(this,false,'q1','Network delay isn’t something an IMU measures — that’s a DDS/transport-layer concern, unrelated to this sensor.')">It only reports network delay</button>
       </div>
       <div class="feedback" id="q1-fb"></div>
     </div>
@@ -75,7 +75,7 @@ KI=6, 35s hold (final): verified reproducible over 3 consecutive fresh-sim
         <button onclick="quizAnswer(this,true,'q2','Right — 12 individually well-tuned loops still went unstable together, because each leg\'s correction physically shifts the load the other three legs carry: a coupling no single joint\'s controller can see.')">Balance is a whole-body property, not a per-joint one</button>
         <button onclick="quizAnswer(this,false,'q2','The incident was reproduced across identical hardware/sim conditions with only the gain changed — nothing points to a broken IMU.')">The IMU sensor was broken</button>
         <button onclick="quizAnswer(this,false,'q2','Quaternion scalar order is a Lesson 1 topic and unrelated to this integral-gain tuning story.')">The quaternion order was wrong</button>
-        <button onclick="quizAnswer(this,false,'q2','The DDS topic names (rt/lowcmd, rt/lowstate) were unchanged throughout this tuning history — that's not what caused the oscillation.')">The DDS topic was misnamed</button>
+        <button onclick="quizAnswer(this,false,'q2','The DDS topic names (rt/lowcmd, rt/lowstate) were unchanged throughout this tuning history — that’s not what caused the oscillation.')">The DDS topic was misnamed</button>
       </div>
       <div class="feedback" id="q2-fb"></div>
     </div>
@@ -85,8 +85,8 @@ KI=6, 35s hold (final): verified reproducible over 3 consecutive fresh-sim
       <div class="options">
         <button onclick="quizAnswer(this,true,'q3','Right — standing holds one fixed support polygon indefinitely. Walking continuously shrinks and reshapes it as feet lift and land, so the center of mass has to be actively managed, not just placed once.')">Walking's polygon keeps changing shape as feet lift and land</button>
         <button onclick="quizAnswer(this,false,'q3','Polygon size isn\'t the distinguishing factor here — a stationary quadruped\'s polygon doesn\'t change size at all while standing; the real difference is whether it changes shape over time.')">Walking simply uses a bigger polygon</button>
-        <button onclick="quizAnswer(this,false,'q3','Standing still has a support polygon too — it's just fixed, formed by whichever feet are on the ground.')">Standing has no support polygon at all</button>
-        <button onclick="quizAnswer(this,false,'q3','A quadruped can stand stably on three or even two feet with a smaller polygon — four feet just makes the margin larger, it isn't a requirement.')">Standing requires exactly four feet down</button>
+        <button onclick="quizAnswer(this,false,'q3','Standing still has a support polygon too — it’s just fixed, formed by whichever feet are on the ground.')">Standing has no support polygon at all</button>
+        <button onclick="quizAnswer(this,false,'q3','A quadruped can stand stably on three or even two feet with a smaller polygon — four feet just makes the margin larger, it isn’t a requirement.')">Standing requires exactly four feet down</button>
       </div>
       <div class="feedback" id="q3-fb"></div>
     </div>

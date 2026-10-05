@@ -58,7 +58,7 @@
 
   <div class="callout" id="antecedent-consequent">
     <strong>Antecedent and consequent</strong>
-    In <code>P → Q</code>, <strong id="antecedent">P is the antecedent</strong> (the "if" part) and <strong id="consequent">Q is the consequent</strong> (the "then" part). These names keep coming up — the fallacy <span id="affirming-the-consequent"><em>affirming the consequent</em></span> mistakes "Q is true" for proof that "P is true"; <span id="denying-the-antecedent"><em>denying the antecedent</em></span> mistakes "P is false" for proof that "Q is false." Both are covered properly in <a href="../index.html#lesson-12">lesson 12 (Informal Fallacies)</a>.
+    In <code>P → Q</code>, <strong id="antecedent">P is the antecedent</strong> (the "if" part) and <strong id="consequent">Q is the consequent</strong> (the "then" part). These names keep coming up — the fallacy <span id="affirming-the-consequent"><em>affirming the consequent</em></span> mistakes "Q is true" for proof that "P is true"; <span id="denying-the-antecedent"><em>denying the antecedent</em></span> mistakes "P is false" for proof that "Q is false." Both are covered properly in <a href="0012-informal-fallacies.html">lesson 12 (Informal Fallacies)</a>.
   </div>
 
   <h2 id="well-formed-formulas">Well-formed formulas (WFFs)</h2>
@@ -236,9 +236,9 @@
     <div class="q-block" id="q4">
       <p>4. "You may enter only if you have a ticket" — let <code>Admitted</code> = "you are permitted to enter" — symbolizes as…</p>
       <div class="options">
-        <button onclick="quizAnswer(this,false,'q4','That reverses the necessary condition — it would claim having a ticket guarantees admission, which "only if" never promised.')">Ticket → Admitted</button>
+        <button onclick="quizAnswer(this,false,'q4','That reverses the necessary condition — it would claim having a ticket guarantees admission, which &quot;only if&quot; never promised.')">Ticket → Admitted</button>
         <button onclick="quizAnswer(this,true, 'q4','Right — the falsification test: the only scenario that breaks the sentence is being admitted without a ticket. That’s exactly Admitted → Ticket.')">Admitted → Ticket</button>
-        <button onclick="quizAnswer(this,false,'q4','↔ would additionally claim having a ticket guarantees admission — "only if" states a necessary condition, not a sufficient one.')">Admitted ↔ Ticket</button>
+        <button onclick="quizAnswer(this,false,'q4','↔ would additionally claim having a ticket guarantees admission — &quot;only if&quot; states a necessary condition, not a sufficient one.')">Admitted ↔ Ticket</button>
         <button onclick="quizAnswer(this,false,'q4','∨ would claim at least one of the two holds — that loses the conditional relationship entirely.')">Admitted ∨ Ticket</button>
       </div>
       <div class="feedback" id="q4-fb"></div>
@@ -376,7 +376,7 @@ MC_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><code>${item.formula}</code></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.symbol}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.symbol}</button>`).join('')}
     </div>
     <div class="mc-fb" id="mc-fb-${i}"></div>
   `;
@@ -420,7 +420,7 @@ SYM_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.symbol}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.symbol}</button>`).join('')}
     </div>
     <div class="mc-fb" id="sym-fb-${i}"></div>
   `;

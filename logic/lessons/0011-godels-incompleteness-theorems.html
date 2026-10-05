@@ -113,7 +113,7 @@
       <p>4. Someone argues: "Gödel proved formal systems have limits, therefore human certainty about anything is impossible." This is best described as…</p>
       <div class="options">
         <button onclick="quizAnswer(this,false,'q4','That’s exactly backwards — this is a textbook case of stretching a narrow technical result past its actual scope, not a faithful application of it.')">A correct and faithful application of the theorem</button>
-        <button onclick="quizAnswer(this,true, 'q4','Right — this equivocates on "certainty," sliding from a precise claim about formal systems that encode arithmetic to a sweeping claim about human knowledge in general, which the theorem never addresses.')">An equivocation — stretching a narrow technical result to a domain it never covered</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — this equivocates on &quot;certainty,&quot; sliding from a precise claim about formal systems that encode arithmetic to a sweeping claim about human knowledge in general, which the theorem never addresses.')">An equivocation — stretching a narrow technical result to a domain it never covered</button>
         <button onclick="quizAnswer(this,false,'q4','The theorem is a proven mathematical result, not an unproven conjecture — the problem here isn’t that Gödel’s work is shaky, it’s how far this argument drags it.')">Correct, because the theorem itself is only a conjecture</button>
         <button onclick="quizAnswer(this,false,'q4','The theorem does have real, specific, narrow content (about consistent systems that encode arithmetic) — the flaw is the leap to an unrelated domain, not that the theorem says nothing at all.')">Irrelevant, since the theorem doesn't actually say anything meaningful</button>
       </div>
@@ -124,7 +124,7 @@
   </div>
 
   <h2>Practice before next lesson</h2>
-  <p>Next time you encounter "Gödel's theorem proves X" outside of mathematics — in an article, a debate, a podcast — apply the test from the callout above: which formal system, which statement, what exactly is claimed unprovable? Write down whether the argument can actually answer that, or whether "Gödel" is doing rhetorical work the theorem never licensed. This is your first real rehearsal for <a href="../index.html#lesson-12">lesson 12 (Informal Fallacies)</a>, which formalizes exactly this kind of misstep.</p>
+  <p>Next time you encounter "Gödel's theorem proves X" outside of mathematics — in an article, a debate, a podcast — apply the test from the callout above: which formal system, which statement, what exactly is claimed unprovable? Write down whether the argument can actually answer that, or whether "Gödel" is doing rhetorical work the theorem never licensed. This is your first real rehearsal for <a href="0012-informal-fallacies.html">lesson 12 (Informal Fallacies)</a>, which formalizes exactly this kind of misstep.</p>
 
   <h2>Primary resource</h2>
   <p>See the <a href="https://plato.stanford.edu/entries/goedel-incompleteness/" target="_blank">Stanford Encyclopedia of Philosophy — Gödel's Incompleteness Theorems</a> for the full formal construction, including the actual Gödel numbering scheme and a careful accounting of what the theorems do and don't imply philosophically.</p>
@@ -136,7 +136,7 @@
   <div class="nav">
     <a href="0010-modal-logic.html">← Lesson 10: Modal Logic — Necessity & Possibility</a>
     <span class="spacer"></span>
-    <a href="../index.html#lesson-12">Lesson 12: Informal Fallacies →</a>
+    <a href="0012-informal-fallacies.html">Lesson 12: Informal Fallacies →</a>
   </div>
 
 </div>
@@ -203,7 +203,7 @@ GODEL_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

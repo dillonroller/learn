@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 7 — The Standard Model Zoo: Fermions, Bosons, and the Four Forces</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Frontier Science</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 7 of 8 &nbsp;·&nbsp; Frontier Science &nbsp;·&nbsp; ~40 min</p>
+  <h1>The Standard Model Zoo: Fermions, Bosons, and the Four Forces</h1>
+  <p>Pop science sells a poster: a dozen little balls of matter, “force particles” tossed between them like tennis balls, and a “God particle” that gives everything its mass. This lesson replaces it with the real catalogue, built on <a href="0006-quantum-fields-particles-as-excitations.html">lesson 6’s quantum fields</a>. Every entry is the <a href="0006-quantum-fields-particles-as-excitations.html#particles-as-quanta">quantum of one field</a>, and the two big columns, fermions and bosons, are two occupation rules in <a href="0006-quantum-fields-particles-as-excitations.html#fock-space">Fock space</a>. You will place any named particle in the table (fermion or boson, quark or lepton, generation, charge, spin, forces felt) and sort claims about it into established physics, oversimplification, or open question. First up is “the Higgs gives the proton its mass”: one line of arithmetic shows it is off by a factor of about 100.</p>
+
+  <h2 id="spin-and-statistics">Two occupation rules: fermions and bosons</h2>
+  <p><a href="0006-quantum-fields-particles-as-excitations.html">Lesson 6</a> ended on a rule it did not explain: photon modes take any number of quanta, electron modes only 0 or 1 (<a href="0006-quantum-fields-particles-as-excitations.html#identical-particles">identical particles</a>). That rule splits every field in nature in two.</p>
+  <ul>
+    <li>A <strong id="fermions">fermion</strong> field allows <code>n = 0</code> or <code>1</code> per mode, so two identical fermions are never in the same mode: the Pauli exclusion principle. A mode includes the spin state, so an atomic orbital holds two electrons (spin up, spin down) and a third must go a shell higher. Hence atomic shells, the periodic table, and matter that resists squeezing: exclusion “controls the formation of matter” (<a href="https://en.wikipedia.org/wiki/Spin%E2%80%93statistics_theorem" target="_blank">spin–statistics theorem</a>).</li>
+    <li>A <strong id="bosons">boson</strong> field allows any <code>n = 0, 1, 2, …</code>. Piling quanta into one mode is a laser, and a classical radio wave is a mode with enormous <code>n</code>: “lasers can be made from photons … but not from electrons” (<a href="https://profmattstrassler.com/articles-and-posts/particle-physics-basics/fields-and-their-particles-with-math/7-particles-are-quanta/7a-how-bosons-and-fermions-differ/" target="_blank">Strassler 7a</a>).</li>
+  </ul>
+  <p>The rule is fixed by <em>spin</em>, a quantum’s intrinsic angular momentum in units of <code>ħ</code>. The spin–statistics theorem of relativistic QFT says half-integer spin means fermion and integer spin means boson. The electron’s spin-½ is the <a href="../../quantum-mechanics/lessons/0001-state-vectors-superposition-born-rule.html#state-vectors">qubit state in ℂ²</a> you already know. The Standard Model sorts cleanly:</p>
+  <pre><code>spin ½   fermions   all 12 matter particles (quarks, leptons)
+spin 1   bosons     force carriers: photon, 8 gluons, W⁺, W⁻, Z
+spin 0   boson      the Higgs boson
+spin 2   boson      graviton: hypothetical, not in the model</code></pre>
+
+  <h2 id="quarks-and-leptons">Twelve matter fields in three generations</h2>
+  <p><strong>Quarks</strong> feel the strong force; <strong>leptons</strong> do not. Each family has two charge slots, and the four-slot pattern appears three times. Each copy is a <strong>generation</strong>: same charges and forces, heavier masses. Rest energies <code>mc²</code> in MeV (<a href="https://pdg.lbl.gov/2026/tables/rpp2026-sum-quarks.pdf" target="_blank">PDG 2026 quarks</a>, <a href="https://pdg.lbl.gov/2026/tables/rpp2026-sum-leptons.pdf" target="_blank">leptons</a>):</p>
+  <pre><code>               gen 1      gen 2       gen 3
+quarks   +2/3  u  2.16    c  1273     t  172 600
+         −1/3  d  4.70    s  92.9     b  4186
+leptons   −1   e  0.511   μ  105.66   τ  1776.9
+           0   ν_e        ν_μ         ν_τ      (all &lt; 1 eV)
+
+feels:  quarks           strong, weak, EM
+        charged leptons  weak, EM
+        neutrinos        weak only     (all: gravity)</code></pre>
+  <ul>
+    <li><strong>You are generation 1.</strong> “All stable matter in the universe is made from particles that belong to the first generation” (<a href="https://home.cern/science/physics/standard-model" target="_blank">CERN</a>). <a href="0001-postulates-special-relativity-time-dilation.html#time-dilation">Lesson 1’s</a> cosmic-ray muon is a generation-2 “heavy electron”: same charge and spin, 206.8× the mass, and its 2.197 μs life ends in the weak decay <code>μ⁻ → e⁻ ν̄_e ν_μ</code>.</li>
+    <li><strong>Every fermion has an antiparticle</strong> of opposite charge (<a href="https://home.cern/science/physics/antimatter" target="_blank">CERN</a>). Positrons are routine: <a href="https://en.wikipedia.org/wiki/Positron_emission_tomography" target="_blank">PET scanners</a> image the gamma-ray pairs from their annihilation. Whether neutrinos are their own antiparticles is open.</li>
+    <li><strong>Three is measured, not explained.</strong> Z decays count 2.996 ± 0.007 light neutrino types (PDG 2026). Why three, and why masses spanning at least 11 orders of magnitude (the top quark weighs 3.4×10⁵ electrons), nobody knows.</li>
+  </ul>
+
+  <h2 id="four-forces">Four forces, three of them in the Standard Model</h2>
+  <p>In field language, a force is a boson field coupling to a charge that matter fields carry. The Standard Model’s three are carried by <strong id="gauge-bosons">gauge bosons</strong>, the spin-1 quanta of gauge fields, a special kind of <a href="0006-quantum-fields-particles-as-excitations.html#quantum-field">quantum field</a> (<a href="https://pdg.lbl.gov/2026/tables/rpp2026-sum-gauge-higgs-bosons.pdf" target="_blank">PDG 2026 bosons</a>):</p>
+  <pre><code>force     carrier     spin  mass (GeV)     couples to
+strong    8 gluons     1    0              color charge
+EM        photon γ     1    0              electric charge
+weak      W⁺ W⁻, Z     1    80.36, 91.19   weak charge (W: left-handed)
+gravity   graviton?    2    —              energy; NOT in the SM</code></pre>
+  <ul>
+    <li><strong>Electromagnetic:</strong> the massless photon couples to electric charge and reaches arbitrarily far. Neutrinos have no charge, so light ignores them.</li>
+    <li><strong>Strong:</strong> each quark carries one of three “colors” (labels, not hues). The 8 massless gluons carry color too, unlike the neutral photon, so they interact with each other. As a result the interaction weakens as quarks come close (asymptotic freedom, <a href="https://www.nobelprize.org/prizes/physics/2004/popular-information/" target="_blank">Nobel 2004</a>) and stops weakening as they separate. The result is <strong id="color-confinement">color confinement</strong>: quarks and gluons appear only inside color-neutral hadrons, such as the proton <code>uud</code> (charge <code>⅔+⅔−⅓ = +1</code>) and neutron <code>udd</code> (0). Pull on a quark and the field energy becomes new quark–antiquark pairs (<a href="0006-quantum-fields-particles-as-excitations.html#fock-space">lesson 6’s pair creation</a>), so you get more hadrons, never a free quark. Experiment and lattice simulation establish this; a rigorous derivation does not exist, and the closely related Yang–Mills “mass gap” is a <a href="https://www.claymath.org/millennium/yang-mills-the-maths-gap/" target="_blank">Clay Millennium Problem</a>.</li>
+    <li><strong>Weak:</strong> heavy W and Z give a short range, <code>ħ/(m_W c) ≈ 2.5×10⁻¹⁸ m</code>. It alone changes flavor: a W⁻ turns <code>d</code> into <code>u</code> (<code>−⅓ = +⅔ + (−1)</code>), which is neutron beta decay, <code>n → p e⁻ ν̄_e</code>. The W couples only to left-handed particles, so this force alone breaks mirror symmetry (<a href="https://en.wikipedia.org/wiki/Weak_interaction" target="_blank">weak interaction</a>; <a href="0008-noethers-theorem-symmetry-conservation.html#discrete-symmetries">lesson 8, parity</a>).</li>
+    <li><strong>Gravity</strong> “is not part of the Standard Model” (CERN); <a href="0005-einstein-field-equation-gravity-as-geometry.html#einstein-field-equation">the Einstein field equation</a> describes it. Its would-be quantum, the spin-2 graviton, is “not yet found”.</li>
+  </ul>
+  <p>The gauge group is <code>SU(3)×SU(2)×U(1)</code>, and it predicts the carrier count. SU(N) has <code>N²−1</code> independent directions: 8 for SU(3), the gluons; 3 for SU(2), one per <a href="../../quantum-computing/lessons/0001-qubits-bloch-sphere-single-qubit-gates.html#pauli-gates">Pauli matrix</a>; plus 1 for U(1). Those 3 + 1 mix into W⁺, W⁻, Z and γ, so 12 in all. Why symmetry makes forces is <a href="0008-noethers-theorem-symmetry-conservation.html#gauge-symmetry">lesson 8’s gauge symmetry</a>. The SU(2)×U(1) part is <em>electroweak unification</em>: near the W and Z masses (~100 GeV) and above, electromagnetism and the weak force act as one (<a href="https://www.nobelprize.org/prizes/physics/1979/summary/" target="_blank">Nobel 1979</a>). Folding in the strong force or gravity is unconfirmed (<a href="https://home.cern/science/physics/unified-forces" target="_blank">CERN</a>). And “exchange” is not a game of catch: a “virtual photon” is a term in a perturbative calculation, not a ball in flight (<a href="0006-quantum-fields-particles-as-excitations.html#quantum-vacuum">lesson 6’s warning</a>).</p>
+
+  <h2 id="higgs-boson">The Higgs field and the Higgs boson</h2>
+  <p>The <strong>Higgs field</strong> is the model’s only spin-0 field. In its lowest-energy state it is not zero but has the same value everywhere (<a href="0008-noethers-theorem-symmetry-conservation.html#spontaneous-symmetry-breaking">lesson 8</a> shows how that hides the electroweak symmetry). That value gives the W and Z their masses while leaving the photon massless: it “doesn’t just give masses to things — it rearranges the forces” (<a href="https://profmattstrassler.com/articles-and-posts/particle-physics-basics/the-known-apparently-elementary-particles/" target="_blank">Strassler</a>). In the Standard Model it also gives each charged fermion a mass proportional to that particle’s own coupling, a coupling that is measured rather than predicted. Experiment has confirmed this for the heaviest ones (top, bottom, tau) and the muon; the electron’s and the light quarks’ couplings are still too small to measure directly. It does <em>not</em> give mass to gluons or photons, and how neutrinos get mass is <em>not established</em>.</p>
+  <p>The <strong>Higgs boson</strong> is one quantum of ripple, “a wave in that field” (<a href="https://home.cern/science/physics/higgs-boson" target="_blank">CERN</a>): spin 0, 125.13 ± 0.11 GeV (PDG 2026), announced by ATLAS and CMS on 4 July 2012 (<a href="https://arxiv.org/abs/1207.7214" target="_blank">ATLAS</a>; <a href="https://arxiv.org/abs/1207.7235" target="_blank">CMS</a>). The boson is the <em>evidence</em> that the field exists; it hands out no mass. Even CERN’s page loosely says the field “gives mass to all elementary particles”. The <a href="https://www.nobelprize.org/prizes/physics/2013/summary/" target="_blank">2013 Nobel citation</a> picked its verb with care: a mechanism that “contributes to our understanding of the origin of mass”.</p>
+
+  <div class="callout">
+    <strong>Worked example: where the proton’s mass comes from</strong>
+    <pre><code>proton = uud     m_u = 2.16 MeV   m_d = 4.70 MeV
+quark rest energy:   2 × 2.16 + 4.70 = 9.02 MeV
+proton rest energy:  938.27 MeV
+Higgs-given share:   9.02 / 938.27 ≈ 0.96 %
+the rest:            938.27 − 9.02 = 929.25 MeV ≈ 99 %</code></pre>
+    <p>The other 99% is energy: quark and gluon motion plus energy stored in the gluon field. A bound system’s mass is its total rest energy over <code>c²</code>, which is <a href="0003-e-equals-mc-squared-four-momentum.html#rest-energy">lesson 3’s rest energy</a> at work. The proton is “three quarks …, lots of gluons, and lots of quark-antiquark pairs” (<a href="https://profmattstrassler.com/articles-and-posts/particle-physics-basics/the-structure-of-matter/protons-and-neutrons/" target="_blank">Strassler</a>). The electron, whose mass the model <em>does</em> attribute to the Higgs, adds just 0.054% to a hydrogen atom.</p>
+  </div>
+  <div class="callout warn">
+    <strong>Where this number stops, honestly</strong>
+    Confined quarks cannot be weighed, so their masses are defined in a calculational scheme (PDG quotes them at a 2 GeV scale). A full lattice-QCD bookkeeping that also counts sea quarks finds quark energy 33%, gluon-field energy 37%, a quantum “trace anomaly” 23%, and 9% from quark-mass terms (<a href="https://arxiv.org/abs/1808.08677" target="_blank">Yang et al. 2018</a>). So the Higgs-linked share is 1% naively, about 9% carefully. Either way, over 90% of the proton is QCD energy.
+  </div>
+
+  <h2 id="beyond-standard-model">Established, oversimplified, or open (as of 2026)</h2>
+  <p>Run the <a href="../../quantum-mechanics/lessons/0001-state-vectors-superposition-born-rule.html#misuse-check">misuse check</a> on any particle claim: which field, which coupling, which measurement?</p>
+  <ul>
+    <li><strong>Established:</strong> every particle in the table, the Higgs included; electroweak unification (<a href="https://www.nobelprize.org/prizes/physics/1979/summary/" target="_blank">Nobel 1979</a>), with the W and Z masses measured to 0.01% or better (PDG 2026); confinement as an experimental fact; and neutrino mass, since oscillations show that “the neutrino, for a long time considered to be massless, must have a mass” (<a href="https://www.nobelprize.org/prizes/physics/2015/popular-information/" target="_blank">Nobel 2015</a>).</li>
+    <li><strong>Oversimplified:</strong> forces as thrown balls; the proton as three quarks; the Higgs giving everything mass; “the four forces are unified”; and “the God particle”, a book-title nickname (Lederman’s editor vetoed “The Goddamn Particle”) that physicists, Higgs included, criticise (<a href="https://en.wikipedia.org/wiki/Higgs_boson" target="_blank">Wikipedia</a>).</li>
+    <li><strong>Open:</strong> quantum gravity; dark matter, about 27% of the universe against ordinary matter’s 5%, and on CERN’s list of questions the model does not answer (<a href="https://home.cern/science/physics/dark-matter" target="_blank">CERN</a>); dark energy and <a href="0005-einstein-field-equation-gravity-as-geometry.html#cosmological-constant">Λ</a>; why three generations with these masses; how neutrinos get mass; why there is matter but almost no antimatter; and a proof of confinement.</li>
+  </ul>
+  <div class="callout warn">
+    <strong>A cautionary tale: muon g−2</strong>
+    For years, headlines said the muon’s magnetic moment disagreed with the Standard Model. Fermilab’s final result (June 2025, 127 parts per billion) sits close to the 2025 lattice-based prediction, “dampening the possibility of new physics” (<a href="https://news.fnal.gov/2025/06/muon-g-2-most-precise-measurement-of-muon-magnetic-anomaly/" target="_blank">Fermilab</a>). As of 2026, theorists are still reconciling lattice and older data-driven calculations. An anomaly is a question, not a discovery.
+  </div>
+
+  <h2>Try it: place the particle, then sort the claim</h2>
+  <p>Place each description using its charge, spin and forces, not memory of names.</p>
+  <div id="sm-place-exercise" class="mc-exercise"></div>
+  <p>Now sort each claim. The same three buttons appear every time.</p>
+  <div id="sm-claims-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Why does an atomic orbital hold two electrons but never a third?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Repulsion costs energy but forbids nothing. An exact cap of two points to a rule about states, not a force.')">Electrons repel, so a third one gets pushed away</button>
+        <button onclick="quizAnswer(this,true,'q1','Right. Spin ½ gives two spin states per orbital, so two modes, and a fermion mode holds 0 or 1: Pauli exclusion.')">Each spin state is a mode holding 0 or 1 fermions</button>
+        <button onclick="quizAnswer(this,false,'q1','Electrons have spin ½, so they are fermions. Bosons have no cap at all, which is what a laser exploits.')">Electrons are bosons, and bosons cap modes at two</button>
+        <button onclick="quizAnswer(this,false,'q1','The Higgs coupling sets the electron’s mass everywhere; it plays no part in how many share an orbital.')">The Higgs field lets only two electrons gain mass there</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Which statement about the Higgs is accurate?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Two errors: the field’s nonzero value does the work, not the boson, and photons and gluons stay massless.')">The Higgs boson gives every elementary particle its mass</button>
+        <button onclick="quizAnswer(this,false,'q2','Backwards. The quark masses it supplies add to 9 MeV of the proton’s 938 MeV; the rest is QCD energy.')">The Higgs field supplies about 99% of a proton’s mass</button>
+        <button onclick="quizAnswer(this,false,'q2','ATLAS and CMS announced the 125 GeV boson on 4 July 2012; PDG 2026 lists 125.13 ± 0.11 GeV.')">It was predicted in 1964 but has never been detected</button>
+        <button onclick="quizAnswer(this,true,'q2','Right. The nonzero field gives the W and Z their masses and, through one coupling per particle, the quarks and charged leptons theirs. That last part is confirmed directly for the top, bottom, tau and muon.')">Its field’s value gives W, Z and charged fermions mass</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Why has no detector ever recorded a free quark?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right. Pulling quarks apart raises the field energy until new quark–antiquark pairs form hadrons. Experiment and lattice QCD agree; only a rigorous proof is missing.')">Color confinement allows only color-neutral hadrons</button>
+        <button onclick="quizAnswer(this,false,'q3','Electrons are lighter than every quark and still leave clean tracks. Mass is not the obstacle; the color field is.')">Quarks are too light to leave a track in a detector</button>
+        <button onclick="quizAnswer(this,false,'q3','Quark fields are physical: scattering experiments resolve quarks as “grains” inside the proton, with charges +2/3 and −1/3.')">Quarks are bookkeeping devices, not physical fields</button>
+        <button onclick="quizAnswer(this,false,'q3','Weak decays change flavor but leave color in place, and the up quark, the lightest, cannot decay at all.')">The weak force makes every quark decay before it escapes</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Which of these is still an open question as of 2026?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','Settled: oscillations need mass differences, so at least two neutrinos are massive (Nobel 2015). Only the mechanism is open.')">Whether neutrinos have nonzero masses</button>
+        <button onclick="quizAnswer(this,false,'q4','Settled: electroweak unification won the 1979 Nobel Prize, and the W and Z it requires are measured particles.')">Whether the weak and EM forces unify</button>
+        <button onclick="quizAnswer(this,true,'q4','Right. Z decays count three light neutrino types (2.996 ± 0.007), but nothing in the model explains why three, or why their masses differ so much.')">Why matter comes in three generations</button>
+        <button onclick="quizAnswer(this,false,'q4','Settled since 2012 by ATLAS and CMS, and its spin 0 and couplings have been measured since.')">Whether a 125 GeV Higgs boson exists</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <ol>
+    <li>By hand: the proton’s Higgs-given share, <code>(2 × 2.16 + 4.70) / 938.27</code>, and the neutron’s, <code>(2.16 + 2 × 4.70) / 939.57</code>. Expect about 0.96% and 1.2%. In one sentence each, say where the rest comes from and which lesson’s equation counts it.</li>
+    <li>A muon at rest decays, <code>μ⁻ → e⁻ ν̄_e ν_μ</code>. Check that charge balances, then find the kinetic energy the three products share (<code>m_μc² = 105.66 MeV</code>, <code>m_ec² = 0.511 MeV</code>, neutrino masses negligible).</li>
+    <li>Without scrolling up, place <code>t</code>, <code>ν_τ</code>, a gluon and the Z: fermion or boson, family, generation, charge, spin, forces felt.</li>
+  </ol>
+
+  <h2>Primary resource</h2>
+  <p>Matt Strassler, <a href="https://profmattstrassler.com/articles-and-posts/particle-physics-basics/the-known-apparently-elementary-particles/" target="_blank">“The Known (Apparently) Elementary Particles”</a>. A particle theorist walks the whole table, up to the presumed but undiscovered graviton, pushes back on the simplifications this lesson sorts, and is plain about what the model cannot explain, such as the masses.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Ask Claude Code to walk through neutron beta decay at the quark level with <a href="0006-quantum-fields-particles-as-excitations.html#fock-space">lesson 6’s Fock-space bookkeeping</a>: which field loses a quantum, which gain one, and how charge and energy balance at each step. Then ask why a free neutron decays but one inside a helium nucleus does not.
+  </div>
+
+  <div class="nav">
+    <a href="0006-quantum-fields-particles-as-excitations.html">← Lesson 6: Quantum Fields 101: Particles as Excitations of Fields</a>
+    <span class="spacer"></span>
+    <a href="0008-noethers-theorem-symmetry-conservation.html">Lesson 8: Symmetry &amp; Conservation: Noether's Theorem as the Thread Connecting It All →</a>
+  </div>
+
+</div>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+renderMC('sm-place-exercise', [
+  {
+    prompt: 'Spin ½, charge −1/3, feels the strong force, generation 2.',
+    options: [
+      { text: 'Charm quark', explain: 'Charm is generation 2 but up-type, charge +2/3. The −1/3 slot of generation 2 is the strange quark.' },
+      { text: 'Strange quark', correct: true, explain: 'Right. Charge −1/3 plus the strong force means a down-type quark, and generation 2 picks s (92.9 MeV).' },
+      { text: 'Muon', explain: 'The muon is generation 2 but a lepton: charge −1 and no strong force.' },
+    ],
+  },
+  {
+    prompt: 'Spin ½, charge 0, feels only the weak force (and gravity).',
+    options: [
+      { text: 'A neutrino', correct: true, explain: 'Right. No electric charge and no color leave only the weak force: a neutral lepton.' },
+      { text: 'Neutron', explain: 'Neutral, but made of udd quarks, so it feels the strong force, and it is not elementary.' },
+      { text: 'Z boson', explain: 'The Z is neutral and weak, but it is a spin-1 carrier, not spin-½ matter.' },
+    ],
+  },
+  {
+    prompt: 'Spin 1, massless, and itself carries color charge.',
+    options: [
+      { text: 'Photon', explain: 'Spin 1 and massless, but colorless and neutral, so it never interacts with itself.' },
+      { text: 'Higgs boson', explain: 'The Higgs has spin 0, a mass of about 125 GeV, and no color.' },
+      { text: 'Gluon', correct: true, explain: 'Right. Gluons carry color, so they interact with each other, and that is what makes the strong force confine.' },
+    ],
+  },
+  {
+    prompt: 'In beta decay a down quark becomes an up quark and emits a boson. Balance the charge: which one?',
+    options: [
+      { text: 'W⁺', explain: 'Check the sum: +2/3 + 1 = +5/3, not −1/3. The boson must carry −1.' },
+      { text: 'W⁻', correct: true, explain: 'Right. −1/3 = +2/3 + (−1). The W⁻ then becomes e⁻ plus an electron antineutrino: n → p e⁻ ν̄_e.' },
+      { text: 'Z', explain: 'The Z is neutral, so it cannot carry off charge −1. Only a W changes a quark’s flavor and charge.' },
+      { text: 'Gluon', explain: 'Gluons change a quark’s color, never its flavor or electric charge.' },
+    ],
+  },
+  {
+    prompt: 'The time-dilation lesson’s cosmic-ray muon lives 2.2 μs, then decays. Where does it sit in the table?',
+    options: [
+      { text: 'Generation-1 charged lepton', explain: 'That slot is the electron, which is stable. The muon is one generation up.' },
+      { text: 'Generation-2 charged lepton', correct: true, explain: 'Right. A heavier electron (105.66 MeV, 207 times the mass) whose decay to e⁻ ν̄_e ν_μ goes through a W⁻.' },
+      { text: 'Generation-2 quark', explain: 'Muons feel no strong force and have charge −1, so they are leptons.' },
+    ],
+  },
+]);
+
+renderMC('sm-claims-exercise', [
+  {
+    prompt: 'Claim: “The Higgs field gives the proton its mass.”',
+    options: [
+      { text: 'Established physics', explain: 'Higgs-given quark masses add to about 9 MeV of 938 MeV, about 1%; even the careful lattice count is under a tenth.' },
+      { text: 'Oversimplification', correct: true, explain: 'Right. It gives the quarks their small masses; over 90% of the proton is QCD field and kinetic energy, counted by E = mc².' },
+      { text: 'Open question', explain: 'Not open: both masses are measured, and 9.02 / 938.27 ≈ 1% takes one line.' },
+    ],
+  },
+  {
+    prompt: 'Claim: “Neutrinos have nonzero mass.”',
+    options: [
+      { text: 'Established physics', correct: true, explain: 'Right. Oscillations between flavors require mass differences, so at least two neutrinos are massive (Nobel 2015). Only the mass mechanism is open.' },
+      { text: 'Oversimplification', explain: 'Nothing is distorted here. The original Standard Model had massless neutrinos; nature does not, as oscillation experiments show.' },
+      { text: 'Open question', explain: 'That they have mass is measured through oscillations (Nobel 2015). What is open is how they get it and the absolute mass scale.' },
+    ],
+  },
+  {
+    prompt: 'Claim: “Gravity is carried by a spin-2 particle, the graviton.”',
+    options: [
+      { text: 'Established physics', explain: 'No graviton has been detected and no quantum theory of gravity confirmed; the Standard Model leaves gravity out.' },
+      { text: 'Oversimplification', explain: 'It distorts no known result. It is a reasonable expectation that nobody has been able to test.' },
+      { text: 'Open question', correct: true, explain: 'Right. A gravitational quantum should have spin 2, but none has been detected and quantum gravity is unsolved.' },
+    ],
+  },
+  {
+    prompt: 'Claim: “Quarks are never observed in isolation.”',
+    options: [
+      { text: 'Established physics', correct: true, explain: 'Right. Every experiment sees only hadrons and lattice simulations agree; only a rigorous proof is still open (the Clay mass-gap problem is its closest formal statement).' },
+      { text: 'Oversimplification', explain: 'This is the precise statement, not a cartoon. The cartoon would be “quarks are not real”.' },
+      { text: 'Open question', explain: 'The fact is established. Deriving it rigorously from Yang–Mills theory is the open part, a question in mathematics.' },
+    ],
+  },
+  {
+    prompt: 'Claim: “The four fundamental forces have been unified into one.”',
+    options: [
+      { text: 'Established physics', explain: 'Only two are unified: electromagnetism and the weak force, as electroweak theory (Nobel 1979).' },
+      { text: 'Oversimplification', correct: true, explain: 'Right. Electroweak unification is real; grand unification is unconfirmed and gravity is not even in the model.' },
+      { text: 'Open question', explain: 'Grand unification is open, but this claim says it is done. Stating an open question as settled is an oversimplification.' },
+    ],
+  },
+  {
+    prompt: 'Claim: “Dark matter is made of some particle beyond the Standard Model.”',
+    options: [
+      { text: 'Established physics', explain: 'No dark-matter particle has been detected. Its gravity is measured; its identity is not.' },
+      { text: 'Oversimplification', explain: 'It is a live hypothesis, not a distortion of a known result; CERN lists dark matter as a question the model does not answer.' },
+      { text: 'Open question', correct: true, explain: 'Right. Dark matter is about 27% of the universe against ordinary matter’s 5%, but what it is made of is unknown as of 2026.' },
+    ],
+  },
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

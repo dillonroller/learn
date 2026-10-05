@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 7 — Evaluation</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">AI Engineering</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 7 of 8 &nbsp;·&nbsp; AI Engineering &nbsp;·&nbsp; ~40 min</p>
+  <h1>Evaluation: How Do You Know Your Agent Actually Works?</h1>
+  <p>Lesson 4’s discipline was to <a href="0004-failure-modes-debugging-agents.html#isolate-one-variable">isolate one variable</a>: change one thing, observe, then decide the next change. That works when “observe” is deterministic. An agent isn’t. Run the <a href="0004-failure-modes-debugging-agents.html#worked-example"><code>run_tests</code> worked example</a> twice and you may get a fix once and a loop once, so one observation can’t tell a real fix from a lucky run, or a <a href="0004-failure-modes-debugging-agents.html#root-cause-vs-symptom">symptom-patch</a> from a root-cause fix. <a href="0004-failure-modes-debugging-agents.html">Lesson 4</a> also said model capability “can be tested, for instance via isolated evals”. This lesson builds that instrument: a real failure turned into a repeatable task, scored as a pass rate with an error bar.</p>
+
+  <h2 id="eval-anatomy">Eval anatomy: one run proves nothing</h2>
+  <p>The vocabulary comes from Anthropic’s <a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents" target="_blank">Demystifying evals for AI agents</a> (January 2026). A <strong>task</strong> is “a single test with defined inputs and success criteria”. A <strong>trial</strong> is one attempt at it, and you run several “because model outputs vary between runs”. A <strong>grader</strong> is “logic that scores some aspect of the agent’s performance”. A <strong>transcript</strong> (or trace) is “the complete record of a trial”, every READ, ACT and OBSERVE step of lesson 1’s <a href="0001-agent-loop-system-prompt-tool-schemas.html#read-act-observe-loop">loop</a>. The <strong>outcome</strong> is “the final state in the environment at the end of the trial”: what the agent left behind, which may differ from what it says it did. A <strong>suite</strong> is a set of tasks, and the <strong>evaluation harness</strong> runs it. That harness is separate from the agent harness under test.</p>
+  <p>Here is the <code>run_tests</code> incident, written down as a task:</p>
+  <pre><code>{
+  "id": "auth-expired-token",
+  "origin": "real incident: agent looped on run_tests returning only passed=false",
+  "input": "Fix the failing test in auth.rs.",
+  "fixture": "fixtures/auth-svc@3f2c1e0",
+  "tools": ["read_file", "edit_file", "run_tests"],
+  "trials": 5,
+  "max_turns": 25,
+  "graders": [
+    {"kind": "code", "check": "hidden_tests_pass", "copy_in_after": "hidden/expired_token.rs"},
+    {"kind": "code", "check": "full_suite_passes"},
+    {"kind": "code", "check": "changed_files_within", "paths": ["src/auth.rs"]},
+    {"kind": "code", "check": "existing_tests_unmodified"},
+    {"kind": "code", "check": "stopped_by", "reason": "no_tool_call"}
+  ]
+}</code></pre>
+  <p>The evaluation harness is a loop around the agent loop:</p>
+  <pre><code>def run_trial(task, config):
+    env = fresh_sandbox(task.fixture)        # clean state: no leftovers from the last trial
+    transcript = run_agent(config, task.input, env, max_turns=task.max_turns)
+    outcome = env.snapshot()                 # the repo as left, not the agent's account of it
+    return all(g.grade(outcome, transcript) for g in task.graders)
+
+def run_suite(suite, config):
+    return {t.id: [run_trial(t, config) for _ in range(t.trials)]
+            for t in suite}                  # per task: a list of pass/fail bits</code></pre>
+  <div class="callout warn">
+    <strong>“It worked when I tried it” is one coin flip.</strong>
+    Each trial is a <a href="../../probability/lessons/0003-common-distributions.html#bernoulli-binomial">Bernoulli</a> draw with some unknown success probability <em>p</em>, and a pass count over <em>n</em> tasks is roughly Binomial. A pass rate is an <em>estimate</em> of <em>p</em>, never <em>p</em> itself. Trials should start “from a clean environment”, since shared state “can cause correlated failures” (Anthropic); <code>fresh_sandbox</code> removes that source of correlation. (Trials of the same task still share its difficulty; the error-bar section below deals with that.)
+  </div>
+
+  <h2 id="outcome-grading">Grade the outcome, not the path</h2>
+  <p>The tempting grader checks that the agent called <code>read_file</code>, then <code>edit_file</code>, then <code>run_tests</code>. Anthropic’s guide warns against this: checking “a sequence of tool calls in the right order” is “too rigid and results in overly brittle tests, as agents regularly find valid approaches that eval designers didn’t anticipate.” Grade the final state instead, as agent benchmarks do. SWE-bench gives the model only the issue text and the codebase, then applies its patch and runs “the unit and system tests associated with the task instance”, tests taken from the real fix’s pull request (<a href="https://arxiv.org/abs/2310.06770" target="_blank">Jimenez et al.</a>, 2,294 tasks from real GitHub issues). τ-bench “compares the database state at the end of a conversation with the annotated goal state” (<a href="https://arxiv.org/abs/2406.12045" target="_blank">Yao et al.</a>).</p>
+  <p>The outcome covers more than “the test passes”. The task above checks three things, and none of them reads the agent’s own claims:</p>
+  <ul>
+    <li><strong>The goal.</strong> A hidden test, copied in <em>after</em> the trial, passes. So does the rest of the suite.</li>
+    <li><strong>Side effects.</strong> Only <code>src/auth.rs</code> changed, and no existing test was touched.</li>
+    <li><strong>Termination.</strong> The agent stopped by itself, on a turn with no tool call (lesson 1’s <a href="0001-agent-loop-system-prompt-tool-schemas.html#termination-condition">termination condition</a>), rather than being cut off at <code>max_turns</code>.</li>
+  </ul>
+  <div class="callout warn">
+    <strong>Never grade on evidence the agent can rig.</strong>
+    A grader that checks whether the transcript contains <code>{"passed": true}</code> is grading the agent’s OBSERVE step, not the world. An agent that adds <code>#[ignore]</code> to the failing test, or deletes its assertion, gets <code>passed: true</code> and a green eval. That is the eval version of a symptom-patch, and only the hidden test and the unmodified-tests check catch it.
+  </div>
+
+  <h2 id="grader-types">Three kinds of grader</h2>
+  <ul>
+    <li><strong>Code</strong>: fast, cheap, objective, reproducible, but “brittle to valid variations”.</li>
+    <li><strong>Model</strong>: flexible, scalable, “captures nuance”, but non-deterministic, costlier, and in need of calibration.</li>
+    <li><strong>Human</strong>: “gold standard quality”, but expensive and slow.</li>
+  </ul>
+  <p>That summary follows Anthropic’s guide, which recommends “deterministic graders where possible, LLM graders where necessary”. Prefer code whenever success is checkable state, but expect brittleness: in the same guide Claude Opus 4.5 first scored 42% on CORE-Bench partly because the grader rejected “96.12” when it expected “96.124991…”. With grading bugs fixed and a looser scaffold, the score “jumped to 95%”.</p>
+  <p>Some criteria aren’t state. Did the agent’s final message correctly say <em>why</em> the token check was wrong? For that you use <strong id="llm-as-judge">LLM-as-judge</strong>: a second model that grades the transcript or outcome against an explicit rubric. Anthropic’s guide recommends grading “each dimension with an isolated LLM-as-judge” and giving the judge “a way out”, an <code>Unknown</code> verdict:</p>
+  <pre><code>{
+  "grader": "llm_judge",
+  "judge_model": "a different model from the agent under test",
+  "reads": ["final_message", "diff"],
+  "dimension": "explains_root_cause",
+  "question": "Does the final message state that the expiry comparison in src/auth.rs was wrong, consistent with the diff?",
+  "verdicts": ["yes", "no", "unknown"]
+}</code></pre>
+  <p>The judge is an instrument with known defects. Zheng et al. examined “position, verbosity, and self-enhancement biases”. Position bias was strong (most judges favoured the first answer shown), and every judge tested sometimes preferred an answer padded with repetition, GPT-4 least often. Some judges also favoured their own model’s answers, though the authors could not confirm that as a bias. Strong judges still reached “over 80% agreement” with human preferences, the level humans reach with each other (<a href="https://arxiv.org/abs/2306.05685" target="_blank">Judging LLM-as-a-Judge</a>, 2023). Claude’s docs recommend using “a different model to evaluate than the model used to generate the evaluated output” (<a href="https://platform.claude.com/docs/en/test-and-evaluate/develop-tests" target="_blank">Build evaluations</a>).</p>
+  <div class="callout warn">
+    <strong>A judge is not objective until you have checked it.</strong>
+    Hand-label a small set of transcripts, run the judge on the same set, and measure agreement before trusting its scores: judges “should be closely calibrated with human experts” (Anthropic). When it compares two answers, judge both orders and count a win only if it holds in both, as Zheng et al. do.
+  </div>
+
+  <h2 id="pass-at-k">pass@k or pass^k: one success, or every time?</h2>
+  <p><strong>pass@k</strong> is the probability that <em>at least one</em> of <em>k</em> trials succeeds. It comes from code generation, where a test runner can pick the winner: Codex solved 28.8% of HumanEval problems with one sample but 70.2% with 100 samples per problem (<a href="https://arxiv.org/abs/2107.03374" target="_blank">Chen et al., 2021</a>). <strong id="pass-hat-k">pass^k</strong> is the probability that <em>all</em> <em>k</em> trials succeed. τ-bench introduced it to measure reliability, and found gpt-4o succeeding on under 50% of tasks with pass^8 under 25% in the retail domain. With per-trial success <em>p</em> and independent trials:</p>
+  <pre><code>pass@k = 1 − (1 − p)^k        # rises toward 1 as k grows
+pass^k = p^k                  # falls toward 0 as k grows</code></pre>
+  <div class="complexity"><span><span class="label">p = 0.75, k = 3</span></span><span><span class="label">pass@3</span> <span class="val">98.4%</span></span><span><span class="label">pass^3</span> <span class="val">42.2%</span></span><span class="label">p and k from Anthropic’s example</span></div>
+  <p>The two metrics answer different product questions. Anthropic: “pass@k for tools where one success matters, pass^k for agents where consistency is essential.”</p>
+  <p>The formulas assume you know <em>p</em>. From data, both papers estimate <em>per task</em>: with <em>c</em> passes in <em>n</em> ≥ <em>k</em> trials, pass^k = C(<em>c</em>, <em>k</em>)/C(<em>n</em>, <em>k</em>) and pass@k = 1 − C(<em>n</em>−<em>c</em>, <em>k</em>)/C(<em>n</em>, <em>k</em>), then average over tasks. Plugging p̂ into 1 − (1 − p̂)<sup><em>k</em></sup> instead “results in a consistent underestimate” (Chen et al., appendix A). Averaging per task also exposes a diagnosis. Two suites can share a pass^1 of 0.75: if every task has <em>p</em> = 0.75, pass^8 ≈ 0.10; if three quarters of tasks always pass and the rest never do, pass^8 stays at 0.75. A falling pass^k means flakiness on tasks the agent <em>can</em> do; one that stays flat below 1 means specific tasks it consistently fails, a capability gap or a broken task.</p>
+  <div class="callout">
+    <strong>For an agent acting unattended, pass^k is the honest number.</strong>
+    Nobody picks the best of five nightly runs. If an agent runs five nights in a row, a per-night success rate of 0.9 means a clean week only 0.9<sup>5</sup> ≈ 59% of the time.
+  </div>
+
+  <h2 id="eval-error-bars">Error bars: is the change bigger than the noise?</h2>
+  <p>With one trial per task, a pass rate p̂ over <em>n</em> tasks has standard error <code>SE = √(p̂(1−p̂)/n)</code>, and a 95% confidence interval is about <code>p̂ ± 1.96·SE</code> (<a href="https://www.anthropic.com/research/statistical-approach-to-model-evals" target="_blank">Anthropic, A statistical approach to model evaluations</a>, 2024, summarising <a href="https://arxiv.org/abs/2411.00640" target="_blank">Miller</a>). That is the <a href="../../probability/lessons/0004-central-limit-theorem.html#sample-mean-variance">variance of a sample mean</a>, σ²/<em>n</em>, applied to a Bernoulli trial. The bar shrinks like 1/√<em>n</em>, so halving it takes four times the tasks.</p>
+  <p>Worked example. Your baseline passes 31/50 tasks, and a new prompt passes 34/50:</p>
+  <pre><code>baseline   p̂ = 0.62   SE = √(0.62·0.38/50) = 0.069   95% CI ≈ 49%–75%
+new        p̂ = 0.68   SE = √(0.68·0.32/50) = 0.066
+difference 0.06       SE = √(0.069² + 0.066²) = 0.095   95% CI ≈ −13 to +25 points</code></pre>
+  <p>The interval contains zero by a wide margin: this run can’t tell you whether the prompt helped. Miller adds two corrections. <strong>Pair</strong>: both arms ran the same 50 tasks, so compare per task. If the new prompt fixed 5 tasks and broke 2, the per-task differences give 6 ± 10 points, still inconclusive but much tighter, and those 7 flipped tasks are the transcripts to read. <strong>Cluster</strong>: 50 tasks × 5 trials is not 250 independent samples, because trials of one task share its difficulty; clustered standard errors on popular evals “can be over three times as large as naive standard errors.”</p>
+  <p>This is also how the fourth layer of the <a href="0004-failure-modes-debugging-agents.html#four-layer-diagnosis">four-layer diagnosis</a> gets tested. Hold prompt, tools and memory fixed, swap only the model, and run the same tasks:</p>
+  <pre><code>BASE    = {prompt: P, tools: T, memory: M, model: "model-a"}
+VARIANT = BASE | {model: "model-b"}           # exactly one layer differs
+
+a = run_suite(SUITE, BASE)                    # same tasks, same fixtures,
+b = run_suite(SUITE, VARIANT)                 # several trials per task
+diff, se = paired_difference(a, b, cluster_by="task")
+# CI excludes 0  -> the model layer matters on this suite: that is your evidence
+# CI includes 0  -> not shown on this suite: add trials or tasks before ruling it out</code></pre>
+  <p>The same experiment tells you whether a multi-agent design earns its <a href="0005-orchestration-planner-worker-subagents.html#multi-agent-cost">token multiplier</a> on your task. A public benchmark score can’t: it measures someone else’s tasks, harness and graders, and the CORE-Bench jump shows how far the last two move a number. Emerging-ai lesson 3’s <a href="../../emerging-ai/lessons/0003-reading-a-paper-claims-vs-evidence.html#misuse-check">checks on headline claims</a> (which metric, which baseline) apply to your own eval claims too.</p>
+
+  <h2 id="eval-suites">Two suites, two jobs</h2>
+  <p>A <strong id="capability-eval">capability eval</strong> asks what the agent can do. It “should start at a low pass rate, targeting tasks the agent struggles with and giving teams a hill to climb”. A <strong id="regression-eval">regression eval</strong> asks whether it still does what it used to, and “should have a nearly 100% pass rate” (Anthropic). Near 100%, any failure is a specific event to investigate. Run it on every change, as Hamel Husain runs his “Level 1” evals “on every code change” (<a href="https://hamel.dev/blog/posts/evals/" target="_blank">Your AI Product Needs Evals</a>). Capability tasks that become reliable “graduate” into the regression suite.</p>
+  <p>You don’t need a big suite to start: “20-50 simple tasks drawn from real failures is a great start.” The <a href="0004-failure-modes-debugging-agents.html#worked-example"><code>run_tests</code> loop</a> is task one. Lesson 6’s planted-instruction cases (<a href="0006-guardrails-permissions-sandboxing-blast-radius.html#prompt-injection">prompt injection</a>) belong in the regression suite, graded on outcome: did a consequential call run? Keep reading transcripts, because graders have bugs too: “You won’t know if your graders are working well unless you read the transcripts and grades from many trials.” A 0% pass rate over many trials “is most often a signal of a broken task, not an incapable agent.”</p>
+  <p>Mining production traces for new tasks belongs to lesson 8 (<a href="0008-production-latency-cost-observability.html#agent-trace">agent traces</a>, <a href="0008-production-latency-cost-observability.html#golden-signals">golden signals</a>), as does what a suite run costs (<a href="0008-production-latency-cost-observability.html#cost-per-task">cost per task</a>).</p>
+
+  <h2 id="eval-exercise-section">Try it: read the number, then make the call</h2>
+  <p><strong>A. Reliability calculator.</strong> Start at <em>p</em> = 0.75, <em>k</em> = 3. Raise <em>k</em> to 10 and watch the two metrics separate. Then set <em>n</em> to 30 and to 50 and see how wide the interval is on a starter suite.</p>
+  <div class="relcalc" id="relcalc">
+    <label class="rc-row"><span class="rc-name">per-trial success <em>p</em></span><input type="range" id="rc-p" min="0.05" max="0.99" step="0.01" value="0.75"><output id="rc-p-out">0.75</output></label>
+    <label class="rc-row"><span class="rc-name">trials <em>k</em></span><input type="range" id="rc-k" min="1" max="20" step="1" value="3"><output id="rc-k-out">3</output></label>
+    <label class="rc-row"><span class="rc-name">suite size <em>n</em></span><input type="range" id="rc-n" min="10" max="400" step="10" value="50"><output id="rc-n-out">50</output></label>
+    <div class="rc-bar"><span class="rc-name">pass@k</span><div class="rc-track"><div class="rc-fill" id="rc-at"></div></div><span class="rc-val" id="rc-at-v"></span></div>
+    <div class="rc-bar"><span class="rc-name">pass^k</span><div class="rc-track"><div class="rc-fill hat" id="rc-hat"></div></div><span class="rc-val" id="rc-hat-v"></span></div>
+    <div class="rc-bar"><span class="rc-name">95% CI</span><div class="rc-track"><div class="rc-ci" id="rc-ci"></div><div class="rc-mark" id="rc-mark"></div></div><span class="rc-val" id="rc-ci-v"></span></div>
+    <p class="rc-out" id="rc-out" aria-live="polite"></p>
+  </div>
+  <p><strong>B. Make the call.</strong> Each card is a typical eval situation. Pick what you would do.</p>
+  <div id="eval-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Your grader passes a trial when the transcript shows <code>run_tests</code> returning <code>passed: true</code>. One passing trial’s diff adds <code>#[ignore]</code> to the failing test. What is wrong?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','The prompt is not the defect here. Whatever it says, a grader that trusts the agent’s own test run will keep scoring this trial as a pass.')">The system prompt never forbade ignoring tests</button>
+        <button onclick="quizAnswer(this,true,'q1','Right. The agent edited the very tests that produced passed: true. A hidden test copied in after the trial, plus a check that existing tests are unmodified, grades the outcome instead.')">It trusted a test run the agent could rig</button>
+        <button onclick="quizAnswer(this,false,'q1','More trials would record more false passes. Sample size cannot fix a grader that measures the wrong thing.')">Too few trials were run to catch the problem</button>
+        <button onclick="quizAnswer(this,false,'q1','A tool-order check is path grading, and it misses this failure: a trial that adds #[ignore] can call read_file, edit_file and run_tests in exactly the expected order.')">It should also require the expected tool order</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. An agent succeeds on a task with probability 0.8 per independent trial. What are pass@3 and pass^3?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Swapped. At least one success in three is the easier bar, so pass@3 is the larger number: 1 − 0.2³ = 0.992.')">pass@3 = 0.512, pass^3 = 0.992</button>
+        <button onclick="quizAnswer(this,false,'q2','Probabilities do not add: 0.8 × 3 = 2.4 is not a probability. pass@3 is 1 − 0.2³ = 0.992.')">pass@3 = 2.400, pass^3 = 0.512</button>
+        <button onclick="quizAnswer(this,false,'q2','That is pass@1 and pass^1. With k = 3, one metric rises (1 − 0.2³) and the other falls (0.8³).')">pass@3 = 0.800, pass^3 = 0.800</button>
+        <button onclick="quizAnswer(this,true,'q2','Right. pass@3 = 1 − (1 − 0.8)³ = 0.992, and pass^3 = 0.8³ = 0.512. The same agent looks near-perfect or coin-flip reliable depending on the question.')">pass@3 = 0.992, pass^3 = 0.512</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. On a 30-task suite, a tool change moves the pass count from 18/30 (60%) to 20/30 (67%). At <em>p</em> ≈ 0.6 and <em>n</em> = 30, the SE is about 9 points. What can you conclude?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','A 7-point gap is smaller than one SE of either run, and the unpaired difference has an SE near 12 points. That is not evidence of improvement.')">The tool change improved the agent by 7 points</button>
+        <button onclick="quizAnswer(this,false,'q3','The data cannot show harm either. The interval on the difference spans both directions, so neither conclusion is supported.')">The change hurt, since the gain is below one SE</button>
+        <button onclick="quizAnswer(this,true,'q3','Right. The difference is well inside the noise. Compare per task on the same 30 tasks, run several trials, and read the tasks that flipped.')">Nothing yet: rerun it paired, more trials</button>
+        <button onclick="quizAnswer(this,false,'q3','Scores moving between runs is expected for a stochastic agent. The suite is fine; the comparison is underpowered.')">The suite is broken, since its scores keep moving</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Your regression suite was 50/50. After a change it scores 49/50. What should you do?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q4','Right. Error bars are for comparing aggregate rates. A regression task is expected to pass, so its failure is a specific event. Read that transcript, then rerun that task to see whether it is flaky.')">Read that failing transcript, rerun the task</button>
+        <button onclick="quizAnswer(this,false,'q4','A regression suite sits near 100% precisely so that one failure stands out. Waving it off as noise discards the signal it exists to give.')">Ignore it: 98% is within noise of 100%</button>
+        <button onclick="quizAnswer(this,false,'q4','Capability tasks graduate into the regression suite when they become reliable. Demoting a task because the agent started failing it hides the regression.')">Move the failing task to the capability suite</button>
+        <button onclick="quizAnswer(this,false,'q4','Harder tasks belong in the capability suite. Adding them here would bury the failure you already have in more failures.')">Add harder tasks so the suite stays informative</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Pick one real failure from your own sessions: a wrong edit, a loop that wouldn’t stop, a test “fixed” the wrong way. Write it as a task in the JSON shape above, with an input, a fixture, at least one outcome grader, one side-effect check and one termination check. Then decide which suite it belongs in. If you can, run it five times and report the result as <em>c</em>/5 with its SE. At <em>n</em> = 5 that SE is large, and seeing how large is part of the exercise.</p>
+
+  <h2>Primary resource</h2>
+  <p>Anthropic Engineering, <a href="https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents" target="_blank">Demystifying evals for AI agents</a> (January 2026). Written for agents, it defines this lesson’s vocabulary and covers grader types, pass@k vs pass^k, capability vs regression suites and reading transcripts, with real stories of graders being wrong. For the statistics, follow it with Miller’s <a href="https://arxiv.org/abs/2411.00640" target="_blank">Adding Error Bars to Evals</a>, including power analysis: how many tasks you need before running anything.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Bring a moment from this session where something “worked” on the first try, such as an edit, a test run or a command. Work out together, honestly and without over-claiming about how the harness works inside, what its task and outcome grader would be, which side effects the grader should check, and what pass^k you would want before letting it run unattended.
+  </div>
+
+  <div class="nav">
+    <a href="0006-guardrails-permissions-sandboxing-blast-radius.html">← Lesson 6: Guardrails &amp; Permissions</a>
+    <span class="spacer"></span>
+    <a href="0008-production-latency-cost-observability.html">Lesson 8: Production Concerns →</a>
+  </div>
+
+</div>
+
+<style>
+.relcalc { background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.1rem; margin: 1rem 0 1.5rem; font-family: var(--font-ui); font-size: .86rem; }
+.rc-row, .rc-bar { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr) 3.6rem; align-items: center; gap: .6rem; margin: .45rem 0; }
+.rc-name { color: var(--ink-dim); }
+.rc-row input { width: 100%; accent-color: var(--accent); }
+.rc-row output, .rc-val { text-align: right; color: var(--accent-strong); font-variant-numeric: tabular-nums; }
+.rc-track { position: relative; height: .7rem; background: var(--bg-sunken); border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+.rc-fill { height: 100%; background: var(--accent); }
+.rc-fill.hat { background: var(--amber); }
+.rc-ci { position: absolute; top: 0; bottom: 0; background: var(--accent-border); }
+.rc-mark { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent-strong); }
+.rc-out { margin: .7rem 0 0; color: var(--ink-dim); line-height: 1.5; }
+@media (max-width: 480px) {
+  .rc-row, .rc-bar { grid-template-columns: 6.2rem minmax(0, 1fr) 3.2rem; gap: .45rem; }
+  .relcalc { font-size: .8rem; padding: .85rem .8rem; }
+}
+</style>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+// Reliability calculator: pass@k = 1-(1-p)^k, pass^k = p^k, SE = sqrt(p(1-p)/n)
+function rcUpdate() {
+  const p = parseFloat(document.getElementById('rc-p').value);
+  const k = parseInt(document.getElementById('rc-k').value, 10);
+  const n = parseInt(document.getElementById('rc-n').value, 10);
+  document.getElementById('rc-p-out').textContent = p.toFixed(2);
+  document.getElementById('rc-k-out').textContent = k;
+  document.getElementById('rc-n-out').textContent = n;
+  const at = 1 - Math.pow(1 - p, k), hat = Math.pow(p, k);
+  const se = Math.sqrt(p * (1 - p) / n);
+  const lo = Math.max(0, p - 1.96 * se), hi = Math.min(1, p + 1.96 * se);
+  const pct = x => (100 * x).toFixed(1) + '%';
+  document.getElementById('rc-at').style.width = (100 * at) + '%';
+  document.getElementById('rc-hat').style.width = (100 * hat) + '%';
+  document.getElementById('rc-at-v').textContent = pct(at);
+  document.getElementById('rc-hat-v').textContent = pct(hat);
+  const ci = document.getElementById('rc-ci');
+  ci.style.left = (100 * lo) + '%';
+  ci.style.width = (100 * (hi - lo)) + '%';
+  document.getElementById('rc-mark').style.left = 'calc(' + (100 * p) + '% - 1px)';
+  document.getElementById('rc-ci-v').textContent = '±' + (196 * se).toFixed(1);
+  const gap = 1.96 * Math.SQRT2 * se;
+  document.getElementById('rc-out').textContent =
+    'On ' + n + ' tasks at ' + pct(p) + ': SE = ' + (100 * se).toFixed(1) + ' points, 95% CI ' +
+    (100 * lo).toFixed(0) + '–' + (100 * hi).toFixed(0) + '%. Two unpaired runs must differ by about ' +
+    (100 * gap).toFixed(0) + ' points to clear the noise. (Normal approximation; too narrow near 0% or 100%.)';
+}
+['rc-p', 'rc-k', 'rc-n'].forEach(id => document.getElementById(id).addEventListener('input', rcUpdate));
+rcUpdate();
+
+renderMC('eval-exercise', [
+  {
+    prompt: 'Your grader requires read_file, then edit_file, then run_tests, in that order. The agent read the test file first, then fixed the bug, and the hidden test passes. The grader failed it.',
+    options: [
+      { text: 'Allow this order as a second valid path', explain: 'You would be listing paths forever. Agents regularly find valid approaches you did not anticipate, and each new one fails until you add it.' },
+      { text: 'Tell the agent to follow the expected order', explain: 'That bends the agent to fit a brittle grader and adds prompt text to every call. The grader is what is wrong.' },
+      { text: 'Grade the outcome: the hidden test passes', correct: true, explain: 'Right. The final state is what you care about: hidden test passes, other tests untouched, only src/auth.rs changed. Tool order is not a success criterion.' },
+    ],
+  },
+  {
+    prompt: 'Baseline passes 31/50 tasks. With a new system prompt, the same suite passes 34/50, one run each. Your teammate wants to ship the prompt.',
+    options: [
+      { text: 'Within noise: pair by task, add trials', correct: true, explain: 'Right. Compare per task on the same 50, run several trials each, and read the tasks that flipped. Pairing removes task difficulty from the comparison, which tightens the bar.' },
+      { text: 'Ship it: three more tasks pass than before', explain: 'Each arm has an SE of 6.6–6.9 points and the unpaired difference about 9.5, so the 6-point gap has a 95% CI of about −13 to +25. That does not support shipping.' },
+      { text: 'Revert it: a gain this small cannot matter', explain: 'The data cannot rule out a real gain either: the interval spans roughly −13 to +25 points. Under-powered is not the same as no effect.' },
+    ],
+  },
+  {
+    prompt: 'An unattended nightly agent edits deployment configs. Measured per-night success is 0.9. You need to know how often a full five-night week goes cleanly.',
+    options: [
+      { text: 'pass@5, which is about 1.00 here', explain: 'pass@5 = 1 − 0.1⁵ ≈ 0.99999 asks whether at least one night succeeded. Nobody keeps only the best night of an unattended agent.' },
+      { text: 'pass^5, which is about 0.59 here', correct: true, explain: 'Right. All five nights must succeed: 0.9⁵ ≈ 0.59. Roughly two weeks in five contain at least one failed night.' },
+      { text: 'The per-trial rate, 0.90, as measured', explain: 'That is the chance of one clean night. Across five independent nights the failures compound: 0.9⁵ ≈ 0.59.' },
+    ],
+  },
+  {
+    prompt: 'A code generator samples 10 candidate patches, and a test runner keeps any one that passes. Which metric describes what users experience?',
+    options: [
+      { text: 'pass^10: all ten candidates must pass', explain: 'Requiring all ten would penalise nine discarded candidates no user ever sees. pass^k fits when every run acts on the world.' },
+      { text: 'The single-sample rate, pass@1', explain: 'pass@1 describes a product that ships the first sample. Here the test runner filters ten, so pass@1 understates what users get.' },
+      { text: 'pass@10: any one passing sample wins', correct: true, explain: 'Right. A verifier picks the winner, so one success in ten is all the user sees. This is the setting the Codex paper used pass@k to measure.' },
+    ],
+  },
+  {
+    prompt: 'Your LLM judge compares two summaries of the same fix. On a hand-checked sample, it picks the longer one almost every time, even when the shorter one is more accurate.',
+    options: [
+      { text: 'Verbosity bias: rubric plus human labels', correct: true, explain: 'Right. Zheng et al. name verbosity bias. Grade one narrow rubric dimension at a time, such as whether every claim matches the diff, check agreement on a hand-labelled set, or use a code grader if one fits.' },
+      { text: 'Position bias: swap order and rejudge', explain: 'Position bias tracks where an answer appears, not how long it is. Swapping the order would not change a preference that follows length.' },
+      { text: 'Self-enhancement: the judge likes itself', explain: 'Self-enhancement is a judge favouring its own model’s outputs. Nothing here says the longer summary came from the judge’s model; length is the pattern.' },
+    ],
+  },
+  {
+    prompt: 'You have ruled out the prompt, tools and memory, and now suspect the model itself. How do you test that layer?',
+    options: [
+      { text: 'Swap the model and the prompt in one run', explain: 'Two layers changed, so no difference can be attributed. It breaks the isolate-one-variable rule by changing several layers at once.' },
+      { text: 'Swap only the model; rerun suite, paired', correct: true, explain: 'Right. Prompt, tools and memory held fixed, same tasks, several trials each, paired by task. If the CI on the difference excludes zero, you have evidence about the model layer.' },
+      { text: 'Try the new model on the failed task once', explain: 'One trial is one Bernoulli draw. A single pass or fail cannot separate a better model from a lucky run.' },
+    ],
+  },
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

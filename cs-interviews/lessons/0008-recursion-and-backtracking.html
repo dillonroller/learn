@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 8 — Recursion &amp; Backtracking</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">CS Interview Prep</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 8 of 11 &nbsp;·&nbsp; CS Interview Prep &nbsp;·&nbsp; ~30 min</p>
+  <h1>Recursion &amp; Backtracking</h1>
+  <p>When an interviewer says “return <em>all</em>” (every subset, every ordering, every valid board), the hidden question is: <em>can you walk an exponential search space without corrupting shared state, and can you say how big it is before you write a line?</em> <a href="0001-big-o-and-complexity.html">Lesson 1</a> listed O(2ⁿ) as “naive recursion” without saying why. Here you get the why, then one Rust template (choose, explore, unchoose) for subsets, permutations and combination sums. It is the <a href="0005-binary-trees-and-bsts.html#tree-recursion">tree recursion</a> you already know, run as a <a href="0006-graph-traversal-bfs-dfs.html#graph-dfs">DFS</a> over a tree that you never build.</p>
+
+  <h2 id="recursion-tree">Recursion trees: count nodes, not depth</h2>
+  <p>Draw one node per call, and label it with the work that call does <em>excluding</em> its recursive calls. The running time is the sum over all nodes (<a href="https://jeffe.cs.illinois.edu/teaching/algorithms/book/01-recursion.pdf" target="_blank">Erickson, ch. 1, “Recursion Trees”</a>). With branching factor b ≥ 2 and depth d there are up to bᵈ leaves, and at most (bᵈ⁺¹ − 1)/(b − 1) = O(bᵈ) nodes in all.</p>
+<pre><code><span class="cm">// b = 2 calls per node, depth n</span>
+<span class="kw">fn</span> <span class="fn">fib</span>(n: <span class="ty">u64</span>) -&gt; <span class="ty">u64</span> {
+    <span class="kw">if</span> n &lt; <span class="nm">2</span> { <span class="kw">return</span> n; }
+    <span class="fn">fib</span>(n - <span class="nm">1</span>) + <span class="fn">fib</span>(n - <span class="nm">2</span>)
+}
+
+<span class="cm">// b = 1 call per node, depth ≈ log₂ n</span>
+<span class="kw">fn</span> <span class="fn">pow</span>(x: <span class="ty">f64</span>, n: <span class="ty">u32</span>) -&gt; <span class="ty">f64</span> {
+    <span class="kw">if</span> n == <span class="nm">0</span> { <span class="kw">return</span> <span class="nm">1.0</span>; }
+    <span class="kw">let</span> half = <span class="fn">pow</span>(x, n / <span class="nm">2</span>);
+    <span class="kw">if</span> n % <span class="nm">2</span> == <span class="nm">0</span> { half * half } <span class="kw">else</span> { half * half * x }
+}</code></pre>
+  <div class="complexity"><span class="label">fib</span><span class="val">O(φⁿ) time, O(n) space</span></div>
+  <div class="complexity"><span class="label">pow</span><span class="val">O(log n) time, O(log n) space</span></div>
+  <p>Two calls per node over depth n is the O(2ⁿ) row of <a href="0001-big-o-and-complexity.html">the Big-O table</a>. The exact count is 2·F(n+1) − 1 calls, which grows like φⁿ ≈ 1.618ⁿ (<a href="https://jeffe.cs.illinois.edu/teaching/algorithms/book/03-dynprog.pdf" target="_blank">Erickson, ch. 3</a>). That is below 2ⁿ because the n − 2 side is shallower. One call on half the input is a single path of about log₂ n nodes, the same as <a href="../../cryptography/lessons/0001-modular-arithmetic-eulers-theorem.html#fast-modular-exponentiation">square-and-multiply</a>. Fib’s tree also recomputes fib(n − 2) twice and fib(n − 3) three times. Those are <a href="0009-dynamic-programming.html#overlapping-subproblems">overlapping subproblems</a>, the starting point of dynamic programming. To <em>write</em> recursion, trust the subcall, which Erickson calls the “Recursion Fairy”, and get only your own level right.</p>
+
+  <div class="callout warn">
+    <strong>Common interview trap</strong>
+    “It recurses n deep, so it’s O(n).” Depth bounds <em>space</em>. Time counts <em>nodes</em>, and with b calls per node the bottom level alone has bᵈ of them. Say both numbers.
+  </div>
+
+  <h2 id="call-stack-space">Call-stack space: depth is memory</h2>
+  <p>Each pending call holds a stack frame until it returns, and only one root-to-leaf path is live at a time, so extra space is O(depth). That is the <a href="0001-big-o-and-complexity.html">“space counts extra memory”</a> trap again. Recursion is never O(1) space without guaranteed tail calls (<a href="https://www.techinterviewhandbook.org/algorithms/recursion/" target="_blank">Tech Interview Handbook</a>). Rust gives “no guarantees” that a call becomes a tail call. Its explicit <code>become</code> is still an incomplete, nightly-only feature as of October 2026 (<a href="https://doc.rust-lang.org/std/keyword.become.html" target="_blank">std docs</a>). As of April 2026, its implementers hope to stabilize it in 2027 (<a href="https://trifectatech.org/blog/tail-calls-project-goal/" target="_blank">Trifecta Tech</a>).</p>
+  <p>A spawned thread currently gets a 2 MiB stack by default on all Tier-1 platforms (as of Rust 1.99, October 2026; the docs say this may change). The main thread’s stack size “is not determined by Rust” (<a href="https://doc.rust-lang.org/std/thread/index.html#stack-size" target="_blank">std::thread</a>). A recursive flood fill over an all-land 1000 × 1000 grid goes 10⁶ frames deep. On a default spawned thread (rustc 1.97, <code>-O</code>) it aborts with “has overflowed its stack”. The interview fix is an explicit <code>Vec</code> <a href="0004-stacks-and-queues.html#stack-lifo">stack</a>, as in iterative <a href="0006-graph-traversal-bfs-dfs.html#grid-graph">grid</a> walks. The quick patch is <code>thread::Builder::new().stack_size(512 &lt;&lt; 20)</code>, which completes the same fill.</p>
+
+  <h2 id="backtracking">Backtracking: choose, explore, unchoose</h2>
+  <p>Backtracking builds a solution one decision at a time and recursively evaluates every alternative for the next decision (<a href="https://jeffe.cs.illinois.edu/teaching/algorithms/book/02-backtracking.pdf" target="_blank">Erickson, ch. 2</a>). Each node is a partial solution and each edge is one choice. You mutate one shared <code>path</code>: <strong>choose</strong> (push), <strong>explore</strong> (recurse), <strong>unchoose</strong> (pop). The pop restores <code>path</code> exactly as the parent left it, so siblings never see each other’s choices. It is not blind brute force, because it can abandon a partial solution the moment it can’t succeed (<a href="https://cses.fi/book/book.pdf" target="_blank">CPH</a> §5.3–5.4).</p>
+
+  <h3 id="subsets-pattern">Subsets: one node per answer</h3>
+<pre><code><span class="kw">fn</span> <span class="fn">subsets</span>(nums: &amp;[<span class="ty">i32</span>]) -&gt; <span class="ty">Vec</span>&lt;<span class="ty">Vec</span>&lt;<span class="ty">i32</span>&gt;&gt; {
+    <span class="kw">fn</span> <span class="fn">bt</span>(start: <span class="ty">usize</span>, nums: &amp;[<span class="ty">i32</span>], path: &amp;<span class="kw">mut</span> <span class="ty">Vec</span>&lt;<span class="ty">i32</span>&gt;, out: &amp;<span class="kw">mut</span> <span class="ty">Vec</span>&lt;<span class="ty">Vec</span>&lt;<span class="ty">i32</span>&gt;&gt;) {
+        out.<span class="fn">push</span>(path.<span class="fn">clone</span>());          <span class="cm">// record: every node is a subset</span>
+        <span class="kw">for</span> i <span class="kw">in</span> start..nums.<span class="fn">len</span>() {
+            path.<span class="fn">push</span>(nums[i]);          <span class="cm">// choose</span>
+            <span class="fn">bt</span>(i + <span class="nm">1</span>, nums, path, out);  <span class="cm">// explore</span>
+            path.<span class="fn">pop</span>();                  <span class="cm">// unchoose</span>
+        }
+    }
+    <span class="kw">let</span> <span class="kw">mut</span> out = <span class="ty">Vec</span>::<span class="fn">new</span>();
+    <span class="fn">bt</span>(<span class="nm">0</span>, nums, &amp;<span class="kw">mut</span> <span class="ty">Vec</span>::<span class="fn">new</span>(), &amp;<span class="kw">mut</span> out);
+    out
+}
+<span class="cm">// O(n·2ⁿ) time: 2ⁿ subsets, each cloned in O(n). O(n) extra space: path + n + 1 frames.</span>
+<span class="cm">// Can you do better? Not asymptotically: the output alone holds n·2ⁿ⁻¹ numbers.</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(n·2ⁿ)</span><span class="label">Space</span><span class="val">O(n) extra</span></div>
+  <p>Each element is in or out, which gives 2ⁿ subsets. CPH §5.1 draws this as an include/exclude tree. The loop form makes one call per subset, so it records at every node. In Rust, <code>out.push(path)</code> fails with “expected <code>Vec&lt;i32&gt;</code>, found <code>&amp;mut Vec&lt;i32&gt;</code>”, where garbage-collected languages would silently store one aliased list. The clone is the snapshot, and also the n in n·2ⁿ. One-line alternative: loop <code>mask in 0..1u32 &lt;&lt; n</code> and read the bits, as a <a href="../../logic/lessons/0003-truth-tables.html">truth table</a> does for its 2ⁿ rows.</p>
+
+  <h3 id="permutations-pattern">Permutations: n choices, then n − 1, …</h3>
+<pre><code><span class="kw">fn</span> <span class="fn">bt</span>(nums: &amp;[<span class="ty">i32</span>], used: &amp;<span class="kw">mut</span> [<span class="ty">bool</span>], path: &amp;<span class="kw">mut</span> <span class="ty">Vec</span>&lt;<span class="ty">i32</span>&gt;, out: &amp;<span class="kw">mut</span> <span class="ty">Vec</span>&lt;<span class="ty">Vec</span>&lt;<span class="ty">i32</span>&gt;&gt;) {
+    <span class="kw">if</span> path.<span class="fn">len</span>() == nums.<span class="fn">len</span>() { out.<span class="fn">push</span>(path.<span class="fn">clone</span>()); <span class="kw">return</span>; }  <span class="cm">// record at leaves</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="nm">0</span>..nums.<span class="fn">len</span>() {
+        <span class="kw">if</span> used[i] { <span class="kw">continue</span>; }
+        used[i] = <span class="kw">true</span>; path.<span class="fn">push</span>(nums[i]);   <span class="cm">// choose</span>
+        <span class="fn">bt</span>(nums, used, path, out);             <span class="cm">// explore</span>
+        path.<span class="fn">pop</span>(); used[i] = <span class="kw">false</span>;           <span class="cm">// unchoose</span>
+    }
+}
+<span class="cm">// O(n·n!) time: n! leaves, each cloned in O(n). O(n) extra space.</span>
+<span class="cm">// Can you do better? Not asymptotically: the output alone holds n·n! numbers.</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(n·n!)</span><span class="label">Space</span><span class="val">O(n) extra</span></div>
+  <p>Order matters, so every unused element is a candidate at every level. That gives n! leaves and about e·n! nodes. <code>used</code> is a <a href="0002-arrays-and-hashmaps.html#seen-set">seen-set</a> over indices, and unchoose must clear it. You can drop <code>used</code> by swapping <code>nums[start]</code> with each <code>nums[i]</code>, recursing on <code>start + 1</code>, then swapping back. <strong>Combinations</strong> reuse the subsets template, but record and return when <code>path.len() == k</code>. <strong>Combination Sum</strong> allows reuse, so it recurses with <code>i</code> instead of <code>i + 1</code>. That one index is what controls reuse.</p>
+
+  <div class="size-wrap"><table class="size-table">
+    <tr><th>Shape</th><th>Next call</th><th>Answers</th><th>Output cost</th></tr>
+    <tr><td>Subsets</td><td><code>i + 1</code>, record all</td><td>2ⁿ</td><td>O(n·2ⁿ)</td></tr>
+    <tr><td>k of n</td><td><code>i + 1</code>, record at k</td><td>C(n, k)</td><td>O(k·C(n, k))</td></tr>
+    <tr><td>Permutations</td><td>0, skip <code>used</code></td><td>n!</td><td>O(n·n!)</td></tr>
+    <tr><td>Phone letters</td><td>next digit</td><td>≤ 4ⁿ</td><td>O(n·4ⁿ)</td></tr>
+  </table></div>
+  <p>Output cost is answers × length. Anything that returns every answer must write that much, so it answers “Can you do better?”.</p>
+
+  <div class="callout">
+    <strong>Why interviewers care</strong>
+    Constraints leak the intended complexity. For a one-second limit, CPH’s rule of thumb is that n ≤ 10 suggests O(n!) and n ≤ 20 suggests O(2ⁿ) (§2.3). A “return all” prompt with n ≤ 20 says exponential is expected. What gets graded is a clean template, no leaked state, and an honest bound stated up front.
+  </div>
+  <blockquote class="quote">“There are 2ⁿ subsets and I copy each, so O(n·2ⁿ) time. Extra space is O(n) for the path and the n + 1 frames, not counting output. The output alone has n·2ⁿ⁻¹ numbers, so nothing does better asymptotically. If you only need the count, the subproblems repeat and I’d switch to DP.”</blockquote>
+
+  <h2>Step through the decision tree</h2>
+  <p>Each click runs one line. At each backtrack, meaning the pop after an answer and the push that starts the next branch, predict <code>path</code> before the line runs. The length of <code>stack</code> is the space cost.</p>
+  <div class="bt" id="bt-widget">
+    <div class="bt-row">
+      <button type="button" class="bt-mode on" data-mode="sub">Subsets of [1, 2, 3]</button>
+      <button type="button" class="bt-mode" data-mode="perm">Permutations of [1, 2, 3]</button>
+      <label class="bt-check"><input type="checkbox" id="bt-predict" checked> Predict at backtracks</label>
+    </div>
+    <pre class="bt-code" id="bt-code"></pre>
+    <div class="bt-state">
+      <div><span class="bt-k">stack</span><span id="bt-stack"></span></div>
+      <div><span class="bt-k">path</span><span id="bt-path"></span></div>
+      <div id="bt-used-row" hidden><span class="bt-k">used</span><span id="bt-used"></span></div>
+      <div><span class="bt-k">out</span><span id="bt-out"></span></div>
+    </div>
+    <p class="bt-msg" id="bt-msg" aria-live="polite"></p>
+    <div class="bt-row bt-opts" id="bt-opts"></div>
+    <div class="bt-row">
+      <button type="button" id="bt-next">Next line</button>
+      <button type="button" id="bt-jump">Skip to next prediction</button>
+      <button type="button" id="bt-reset">Restart</button>
+      <span class="bt-score" id="bt-score"></span>
+    </div>
+  </div>
+
+  <h2 id="pruning">Pruning: abandon a branch at the first sign of failure</h2>
+  <p>Pruning notices as early as possible that a partial solution can’t be completed (CPH §5.4). The first common move is <strong>sort, then break</strong>: once a sorted candidate exceeds what remains, every later one does too.</p>
+<pre><code><span class="cm">// c is sorted (sort_unstable) before the first call: bt(0, target, &amp;c, ..)</span>
+<span class="kw">fn</span> <span class="fn">bt</span>(start: <span class="ty">usize</span>, remain: <span class="ty">i32</span>, c: &amp;[<span class="ty">i32</span>], path: &amp;<span class="kw">mut</span> <span class="ty">Vec</span>&lt;<span class="ty">i32</span>&gt;, out: &amp;<span class="kw">mut</span> <span class="ty">Vec</span>&lt;<span class="ty">Vec</span>&lt;<span class="ty">i32</span>&gt;&gt;) {
+    <span class="kw">if</span> remain == <span class="nm">0</span> { out.<span class="fn">push</span>(path.<span class="fn">clone</span>()); <span class="kw">return</span>; }
+    <span class="kw">for</span> i <span class="kw">in</span> start..c.<span class="fn">len</span>() {
+        <span class="kw">if</span> c[i] &gt; remain { <span class="kw">break</span>; }          <span class="cm">// prune: sorted, so the rest are too big</span>
+        path.<span class="fn">push</span>(c[i]);
+        <span class="fn">bt</span>(i, remain - c[i], c, path, out);  <span class="cm">// i, not i + 1: reuse allowed</span>
+        path.<span class="fn">pop</span>();
+    }
+}
+<span class="cm">// candidates [2, 3, 6, 7], target 7  →  [[2, 2, 3], [7]]</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O((T/m)·n^(T/m)) worst case</span><span class="label">Space</span><span class="val">O(T/m) depth</span></div>
+  <p>With n candidates, target T and smallest candidate m, each level subtracts at least m, so the depth is at most T/m and each node has at most n children: O(n^(T/m)) nodes, plus O(T/m) to clone each answer. The break leaves that worst-case bound alone, but it removes every branch that overshoots.</p>
+  <p>The second move is <strong>constraint flags</strong>. N-Queens places one queen per row and keeps an O(1) flag per column and per diagonal (row + col and row − col are constant along one). For n = 8, checking only full boards tests 8⁸ ≈ 1.7 × 10⁷ leaves. With flags, the search visits 2,057 nodes and finds all 92 solutions (both counts are from running the code). In CPH, four simple prunes on a grid-path count cut 76 billion calls to 69 million, nearly 1000× faster.</p>
+
+  <div class="callout warn">
+    <strong>Common interview trap</strong>
+    Claiming that pruning changes the bound. It rarely improves the worst case, and N-Queens is still exponential. What shrinks is the constant and the typical case. Say so: “Worst case is still exponential; the break cuts every branch that overshoots.”
+  </div>
+
+  <h3 id="duplicate-skipping">Skipping duplicates</h3>
+  <p>With repeats like [1, 2, 2], two siblings that pick equal values grow identical subtrees. Sort first, then in the loop: <code>if i &gt; start &amp;&amp; nums[i] == nums[i - 1] { continue; }</code>. That skips an equal value <em>at the same depth</em>. It has to be <code>i &gt; start</code> and not <code>i &gt; 0</code>, because <code>i == start</code> is the first candidate of a new frame, and that is how [2, 2] gets built. On [1, 2, 2] the result is 6 subsets instead of 8 with repeats. Permutations with repeats use the same idea: after sorting, skip <code>nums[i]</code> when <code>i &gt; 0</code>, it equals <code>nums[i - 1]</code> and <code>!used[i - 1]</code> (an equal twin must be placed in order). There <code>i &gt; 0</code> is right, because the loop starts at 0 in every frame.</p>
+
+  <h2>Size it before you code it</h2>
+  <p>State the size before anyone asks. Pick the size of each search space.</p>
+  <div id="size-exercise" class="mc-exercise"></div>
+
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. A function does O(1) work, then calls itself three times on n − 1, stopping at n = 0. Time and extra space?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Only one root-to-leaf path is live at a time. Finished calls pop their frames, so the stack never exceeds n + 1 frames.')">O(3ⁿ) time, O(3ⁿ) space</button>
+        <button onclick="quizAnswer(this,true,'q1','Right: (3ⁿ⁺¹ − 1)/2 nodes of O(1) work give O(3ⁿ) time, but the stack only ever holds one path of depth n.')">O(3ⁿ) time, O(n) space</button>
+        <button onclick="quizAnswer(this,false,'q1','That counts depth, not nodes. Three calls per level multiply (1, 3, 9, …), so the last level alone has 3ⁿ calls.')">O(n) time, O(n) space</button>
+        <button onclick="quizAnswer(this,false,'q1','Branching puts the depth in the exponent, giving 3ⁿ, not n³. And every pending call holds a frame, so space cannot be O(1).')">O(n³) time, O(1) space</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. You delete <code>path.pop()</code> from the subsets template. What does <code>subsets(&amp;[1, 2, 3])</code> do now?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Nothing is borrowed twice, because path is a single &amp;mut passed down the calls. Rust compiles this bug; only the output is wrong.')">It fails to compile: path is still borrowed</button>
+        <button onclick="quizAnswer(this,false,'q2','Without the pop, values from one branch are never removed, so later siblings start from a polluted prefix such as [1, 2, 3, 3].')">It returns the same 8 subsets, just reordered</button>
+        <button onclick="quizAnswer(this,false,'q2','Recording still happens once per call, and the call count does not depend on path, so you still get 8 vectors. Their contents are what go wrong.')">It records only the empty and full sets</button>
+        <button onclick="quizAnswer(this,true,'q2','Right: the length check passes with 8 vectors, but each sibling inherits the last branch: [1, 2, 3, 3], [1, 2, 3, 3, 2], and so on. The pop keeps siblings independent.')">8 vectors, but later ones carry stale values</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Subsets II on sorted [1, 2, 2]. A teammate writes the skip as <code>i &gt; 0 &amp;&amp; nums[i] == nums[i - 1]</code>. What goes wrong?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right: i &gt; 0 also fires when the second 2 is the first candidate of a deeper frame (i == start). That is a new element, not a repeat, so [2, 2] and [1, 2, 2] are lost.')">It drops both subsets containing two 2s</button>
+        <button onclick="quizAnswer(this,false,'q3','At the root the skip does fire for the second 2, so [2] appears once. The real bug runs the other way: it skips too much.')">It still records the subset [2] twice</button>
+        <button onclick="quizAnswer(this,false,'q3','&amp;&amp; short-circuits and i &gt; 0 is checked first, so nums[i − 1] is never read at i = 0. Nothing panics; subsets just go missing.')">It panics reading past the slice start</button>
+        <button onclick="quizAnswer(this,false,'q3','The checks differ exactly when i == start &gt; 0, at the first candidate of a deeper frame. There i &gt; 0 wrongly skips the second 2.')">Nothing changes: the two checks always agree</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Out loud, what does <code>pow(x, n)</code> above cost? It recurses on <code>n / 2</code>.</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','That is the cost of multiplying by x n times. Halving n each call gives about log₂ n levels, just like binary search.')">Linear time and linear stack space</button>
+        <button onclick="quizAnswer(this,false,'q4','The time is right, but each pending call holds a frame. Recursion depth is extra memory, the “space counts extra memory” trap, so space is O(log n).')">Logarithmic time and constant extra space</button>
+        <button onclick="quizAnswer(this,true,'q4','Right: about log₂ n levels, one call each, each holding a frame. Then pivot: a loop over the bits of n keeps O(log n) time in O(1) space.')">Logarithmic time and logarithmic stack space</button>
+        <button onclick="quizAnswer(this,false,'q4','No level loops over n. Each call does O(1) multiplications, so total time is the number of levels, O(log n), not n log n.')">Linearithmic time and logarithmic stack space</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Work in Rust from a blank file, with 20 minutes per problem. State the answer count and output cost aloud before typing. The problems are <strong>Subsets</strong>, <strong>Permutations</strong>, <strong>Combinations</strong>, <strong>Combination Sum</strong>, <strong>Subsets II</strong>, <strong>Letter Combinations of a Phone Number</strong> and <strong>Generate Parentheses</strong>, most of them listed on the <a href="https://www.techinterviewhandbook.org/algorithms/recursion/" target="_blank">Tech Interview Handbook recursion cheatsheet</a>. As a stretch, do <strong>N-Queens</strong> with column and diagonal flags. Then write a count-only Combination Sum and notice the repeated subproblems. That is where <a href="0009-dynamic-programming.html">dynamic programming</a> starts.</p>
+
+  <h2>Primary resource</h2>
+  <p>Read <a href="https://jeffe.cs.illinois.edu/teaching/algorithms/book/02-backtracking.pdf" target="_blank">Jeff Erickson, <em>Algorithms</em>, ch. 2 “Backtracking”</a> (free PDF), especially “N Queens”, “Subset Sum” and “The General Pattern”. It explains why the template has this shape. Pair it with “Recursion Trees” in <a href="https://jeffe.cs.illinois.edu/teaching/algorithms/book/01-recursion.pdf" target="_blank">ch. 1</a>.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Try: “Give me a backtracking problem I haven’t seen, and make me state its answer count and bound before I write any Rust.” Or ask why the swap version of permutations needs no <code>used</code> array. Type a question in Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0007-binary-search.html">← Lesson 7: Binary Search</a>
+    <span class="spacer"></span>
+    <a href="0009-dynamic-programming.html">Lesson 9: Dynamic Programming →</a>
+  </div>
+
+</div>
+
+<style>
+blockquote.quote { border-left: 3px solid var(--accent); padding: .6rem 1rem; margin: 1rem 0; color: var(--ink-dim); font-style: italic; font-size: .95rem; }
+.size-wrap { overflow-x: auto; margin: 1rem 0; }
+.size-table { width: 100%; border-collapse: collapse; font-family: var(--font-ui); font-size: .82rem; }
+.size-table th, .size-table td { border-bottom: 1px solid var(--border); padding: .45rem .5rem; text-align: left; vertical-align: top; }
+.size-table th { color: var(--muted); font-weight: normal; font-size: .72rem; text-transform: uppercase; }
+.size-table td:nth-child(n+3) { font-family: var(--font-mono); color: var(--accent-strong); white-space: nowrap; }
+.bt { background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin: 1.25rem 0; font-family: var(--font-ui); font-size: .88rem; }
+.bt-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.bt button { background: var(--bg-sunken); color: var(--ink); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .4rem .75rem; font: inherit; cursor: pointer; }
+.bt button:hover:not(:disabled) { border-color: var(--accent-border); background: var(--accent-soft); }
+.bt button:disabled { opacity: .45; cursor: default; }
+.bt button.on { border-color: var(--accent); color: var(--accent-strong); background: var(--accent-soft); }
+.bt button.wrong { border-color: var(--err); color: var(--err); background: var(--err-lt); opacity: 1; }
+.bt-check { color: var(--ink-dim); display: flex; gap: .35rem; align-items: center; }
+.bt-code { margin: .75rem 0; font-size: .72rem; padding: .6rem; }
+.bt-code span { display: block; padding: 0 .35rem; white-space: pre; }
+.bt-code .cur { background: var(--accent-soft); box-shadow: inset 3px 0 var(--accent); }
+.bt-code .next { background: var(--amber-soft); box-shadow: inset 3px 0 var(--amber); }
+.bt-state { display: grid; gap: .3rem; font-family: var(--font-mono); font-size: .82rem; }
+.bt-state > div { display: flex; gap: .75rem; }
+.bt-state > div > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+.bt [hidden] { display: none; }
+.bt-k { color: var(--muted); font-family: var(--font-ui); min-width: 3rem; }
+.bt-msg { color: var(--ink-dim); min-height: 2.8em; margin: .75rem 0 .5rem; }
+.bt-msg.good { color: var(--accent-strong); }
+.bt-msg.bad { color: var(--err); }
+.bt-opts { margin-bottom: .75rem; }
+.bt-opts:empty { display: none; }
+.bt-score { color: var(--muted); margin-left: auto; }
+</style>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+// Decision-tree stepper: replays the subsets / permutations template one line at a time.
+(function () {
+  const N = [1, 2, 3], $ = id => document.getElementById(id), f = a => '[' + a.join(', ') + ']';
+  const CODE = {
+    sub: ['fn bt(start: usize, path: &mut Vec<i32>,', '      out: &mut Vec<Vec<i32>>) {',
+      '    out.push(path.clone());   // record', '    for i in start..nums.len() {',
+      '        path.push(nums[i]);   // choose', '        bt(i + 1, path, out); // explore',
+      '        path.pop();           // unchoose', '    }', '}'],
+    perm: ['fn bt(used: &mut [bool],', '      path: &mut Vec<i32>,', '      out: &mut Vec<Vec<i32>>) {',
+      '    if path.len() == nums.len() {', '        out.push(path.clone()); return;', '    }',
+      '    for i in 0..nums.len() {', '        if used[i] { continue; }', '        used[i] = true; path.push(nums[i]);',
+      '        bt(used, path, out);', '        path.pop(); used[i] = false;', '    }', '}']
+  };
+  const LINE = { sub: { enter: 0, rec: 2, choose: 4, explore: 5, unchoose: 6 },
+                 perm: { enter: 0, rec: 4, choose: 8, explore: 9, unchoose: 10 } };
+  let mode, S, k, pending, firstTry, asked, right;
+
+  function trace(m) {
+    const T = [], path = [], out = [], stack = [], used = [false, false, false];
+    let prev = null;
+    const snap = (kind, msg, val) => {
+      T.push({ kind, msg, val, prev, line: LINE[m][kind], path: path.slice(), out: out.map(p => p.slice()),
+        stack: stack.slice(), used: used.slice(),
+        ask: (kind === 'unchoose' && prev === 'rec') || (kind === 'choose' && prev === 'unchoose') });
+      prev = kind;
+    };
+    const go = i => {
+      path.push(N[i]); used[i] = true;
+      snap('choose', 'Choose: push nums[' + i + '] = ' + N[i] + (m === 'perm' ? ' and mark it used.' : '.'), N[i]);
+      stack.push(m === 'sub' ? 'bt(' + (i + 1) + ')' : 'bt(' + f(path) + ')');
+      snap('explore', 'Explore: recurse. ' + stack.length + ' frames on the stack.');
+      m === 'sub' ? sub(i + 1) : perm();
+      stack.pop(); path.pop(); used[i] = false;
+      snap('unchoose', 'Unchoose: the call returned, so pop ' + N[i] + (m === 'perm' ? ' and clear used[' + i + '].' : '.'), N[i]);
+    };
+    function sub(start) {
+      out.push(path.slice());
+      snap('rec', 'Record a copy of ' + f(path) + '. In subsets, every node is an answer.');
+      for (let i = start; i < N.length; i++) go(i);
+    }
+    function perm() {
+      if (path.length === N.length) { out.push(path.slice()); snap('rec', 'Leaf: path is full, so record ' + f(path) + ' and return.'); return; }
+      for (let i = 0; i < N.length; i++) if (!used[i]) go(i);
+    }
+    stack.push(m === 'sub' ? 'bt(0)' : 'bt([])');
+    snap('enter', 'Call bt with an empty path: one frame on the stack.');
+    m === 'sub' ? sub(0) : perm();
+    return T;
+  }
+
+  function options(j) {
+    const s = S[j], p = S[j - 1], cur = p.path, list = [], seen = new Set();
+    const add = (v, ok, why) => { if (!seen.has(f(v))) { seen.add(f(v)); list.push({ v, ok, why }); } };
+    if (s.kind === 'unchoose') {
+      add(s.path, true, 'Right: the call that recorded ' + f(cur) + ' returned, so pop undoes its push of ' + s.val + '.');
+      add(cur, false, 'That skips the unchoose. Leaving ' + s.val + ' in path would leak it into every later sibling.');
+      add(cur.slice(1), false, 'Vec::pop removes from the end, not the front: the last value pushed, ' + s.val + ', leaves first.');
+      add([], false, 'pop removes one element, not the whole path. The earlier values belong to frames still on the stack.');
+      if (p.out.length > 1) add(p.out[p.out.length - 2], false, 'Backtracking does not restore an earlier answer from out. It undoes exactly one push.');
+    } else {
+      add(s.path, true, 'Right: ' + p.val + ' was popped, and the loop moved on to the next ' +
+        (mode === 'sub' ? 'candidate, ' : 'unused candidate, ') + s.val + '.');
+      add(cur.concat([p.val]), false, 'That re-pushes ' + p.val + ', the value just popped. The loop has already advanced i.');
+      add(cur, false, 'The push comes before the recursive call (choose, then explore), so path grows right now.');
+      if (mode === 'perm' && cur.length) add(cur.concat([cur[0]]), false, cur[0] + ' is already in path, so used is true for it and the loop skips it.');
+      add([s.val], false, 'path is not cleared between branches: the prefix ' + f(cur) + ' belongs to frames still on the stack.');
+    }
+    const o = list.slice(0, 4), r = j % o.length;
+    return o.slice(r).concat(o.slice(0, r));
+  }
+
+  function say(msg, cls) { $('bt-msg').textContent = msg; $('bt-msg').className = 'bt-msg ' + (cls || ''); }
+
+  function done() {
+    if (k < S.length - 1) return '';
+    const calls = S.filter(x => x.kind === 'enter' || x.kind === 'explore').length;
+    return ' Done: ' + S[k].out.length + ' answers from ' + calls + ' calls, never more than ' +
+      Math.max(...S.map(x => x.stack.length)) + ' frames deep. Time follows nodes; space follows depth.';
+  }
+
+  function render(nextLine) {
+    const s = S[k], code = $('bt-code');
+    code.textContent = '';
+    CODE[mode].forEach((t, i) => {
+      const ln = document.createElement('span');
+      ln.textContent = t;
+      if (i === (nextLine === undefined ? s.line : nextLine)) ln.className = nextLine === undefined ? 'cur' : 'next';
+      code.appendChild(ln);
+    });
+    $('bt-stack').textContent = s.stack.join(' › ');
+    $('bt-path').textContent = f(s.path);
+    $('bt-used').textContent = f(s.used);
+    $('bt-used-row').hidden = mode !== 'perm';
+    $('bt-out').textContent = s.out.length ? s.out.map(f).join(' ') : '(empty)';
+    const end = k === S.length - 1;
+    $('bt-next').disabled = pending || end;
+    $('bt-jump').disabled = pending || end || !$('bt-predict').checked;
+    $('bt-score').textContent = asked ? 'First-try predictions: ' + right + ' / ' + asked : '';
+  }
+
+  function ask() {
+    const n = S[k + 1], box = $('bt-opts');
+    pending = true; firstTry = true;
+    say(n.kind === 'unchoose' ? 'Predict: the call that recorded ' + f(S[k].path) + ' returns and path.pop() runs. What is path now?'
+      : 'Predict: bt returned and the loop takes its next candidate. What is path after the choose line?');
+    render(n.line);
+    options(k + 1).forEach(o => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = f(o.v);
+      b.addEventListener('click', () => {
+        if (!o.ok) { firstTry = false; b.disabled = true; b.classList.add('wrong'); say('✗ ' + o.why, 'bad'); return; }
+        asked++; if (firstTry) right++;
+        box.textContent = ''; pending = false; k++;
+        say('✓ ' + o.why + done(), 'good'); render();
+      });
+      box.appendChild(b);
+    });
+  }
+
+  function step(jump) {
+    if (pending) return;
+    while (!pending && k < S.length - 1) {
+      if ($('bt-predict').checked && S[k + 1].ask) return ask();
+      k++;
+      if (!jump) break;
+    }
+    say(S[k].msg + done(), done() ? 'good' : ''); render();
+  }
+
+  function reset(m) {
+    mode = m; S = trace(m); k = 0; pending = false; asked = 0; right = 0;
+    $('bt-opts').textContent = '';
+    document.querySelectorAll('.bt-mode').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
+    say(S[0].msg); render();
+  }
+
+  document.querySelectorAll('.bt-mode').forEach(b => b.addEventListener('click', () => reset(b.dataset.mode)));
+  $('bt-next').addEventListener('click', () => step(false));
+  $('bt-jump').addEventListener('click', () => step(true));
+  $('bt-reset').addEventListener('click', () => reset(mode));
+  $('bt-predict').addEventListener('change', () => { if (!pending) render(); });
+  reset('sub');
+})();
+
+renderMC('size-exercise', [
+  { prompt: 'Return every subset of a 20-element array. How many subsets will you record?', options: [
+    { text: '20! ≈ 2.4 × 10¹⁸', explain: 'That counts orderings. A subset ignores order, so [1, 2] and [2, 1] are the same answer.' },
+    { text: '2²⁰ ≈ 1.0 × 10⁶', correct: true, explain: 'Right: in or out, 20 times, gives 2²⁰ = 1,048,576. Cloning them all copies about 10⁷ numbers, which is fast.' },
+    { text: 'C(20,10) ≈ 1.8 × 10⁵', explain: '184,756 counts only the subsets of size exactly 10. Summed over every size from 0 to 20, the total is 2²⁰.' },
+    { text: '20² = 4.0 × 10²', explain: 'Squares come from nested loops over pairs. Each element independently doubles the count, so it is 2²⁰.' } ] },
+  { prompt: 'Return every ordering of 10 distinct items. How many leaves does the decision tree have?', options: [
+    { text: '2¹⁰ ≈ 1.0 × 10³', explain: '1,024 counts subsets (in or out per item). Orderings branch 10, then 9, then 8 ways, not 2.' },
+    { text: '10¹⁰ = 1.0 × 10¹⁰', explain: 'That lets every slot reuse any item. A permutation uses each item once, so the fan-out shrinks: 10 · 9 · … · 1.' },
+    { text: '10! ≈ 3.6 × 10⁶', correct: true, explain: 'Right: 3,628,800 leaves, about 3.6 × 10⁷ copied numbers. CPH treats n ≤ 10 as the O(n!) comfort zone.' },
+    { text: '10² = 1.0 × 10²', explain: 'Nested loops enumerate pairs, not full orderings. The tree is 10 levels deep with shrinking fan-out.' } ] },
+  { prompt: 'Every 3-person team from 10 candidates, where order inside a team does not matter. How many answers?', options: [
+    { text: 'P(10,3) = 720', explain: '720 counts ordered picks, so each team appears 3! = 6 times. Starting the loop at i + 1 removes those repeats.' },
+    { text: '10³ = 1000', explain: '1000 lets one person fill all three seats in any order. Recursing with i + 1 forbids both reuse and reordering.' },
+    { text: '2¹⁰ = 1024', explain: '1024 counts subsets of every size. Recording only when path.len() == 3 keeps just the size-3 ones.' },
+    { text: 'C(10,3) = 120', correct: true, explain: 'Right: with i + 1, each candidate is used once and only in increasing order, giving 10·9·8 / 3! = 120.' } ] },
+  { prompt: 'Letter combinations for a 7-digit phone number, where keys 7 and 9 have 4 letters and the rest have 3. What is the worst-case number of strings?', options: [
+    { text: '4⁷ = 16,384', correct: true, explain: 'Right: 4 choices at each of 7 levels. Copying each string makes the cost O(n·4ⁿ).' },
+    { text: '3⁷ = 2,187', explain: 'That is the count when every key has 3 letters. The worst case uses only 7s and 9s, which gives 4⁷.' },
+    { text: '7! = 5,040', explain: 'Nothing gets reordered, because the digit order is fixed. Each level picks one letter, so the fan-out is 3 or 4.' },
+    { text: '2⁷ = 128', explain: 'That treats each digit as in or out, but every digit must contribute a letter. The fan-out is up to 4.' } ] },
+  { prompt: 'Naive recursive fib(40), the two-call version above. Roughly how many calls does it make?', options: [
+    { text: '≈ 1.1 × 10¹² calls', explain: '2⁴⁰ is a valid but loose upper bound. The fib(n − 2) side is shallower, so the tree is not complete.' },
+    { text: '≈ 4.0 × 10¹ calls', explain: '40 is the depth of the tree, not its size. Depth bounds the stack, while time counts every node.' },
+    { text: '≈ 3.3 × 10⁸ calls', correct: true, explain: 'Right: exactly 2·F(41) − 1 = 331,160,281 calls. The count grows like φⁿ ≈ 1.618ⁿ.' },
+    { text: '≈ 1.6 × 10³ calls', explain: '40² would be a nested-loop cost. Each call spawns two more, so the count is exponential.' } ] },
+  { prompt: '8-Queens, one queen per row. Testing only full boards means 8⁸ ≈ 1.7 × 10⁷ leaves. With column and diagonal flags pruning each placement, how many nodes does the search visit?', options: [
+    { text: 'about 1.7 × 10⁷ nodes', explain: 'That is the unpruned leaf count. The flags kill a branch at its first conflict instead of at a full board.' },
+    { text: 'about 4.0 × 10⁴ nodes', explain: '8! = 40,320 is the number of full boards when you only forbid shared columns. Diagonals cut much deeper.' },
+    { text: 'about 9.2 × 10¹ nodes', explain: '92 is the number of solutions. The search also visits every dead-end partial board on the way.' },
+    { text: 'about 2.1 × 10³ nodes', correct: true, explain: 'Right: 2,057 nodes (counted by running it), about 8,000 times fewer than the unpruned leaves. For general n it is still exponential.' } ] }
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

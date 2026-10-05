@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 3 — Two Pointers & Sliding Window</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">CS Interview Prep</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 3 of 11 &nbsp;·&nbsp; CS Interview Prep &nbsp;·&nbsp; ~30 min</p>
+  <h1>Two Pointers & Sliding Window</h1>
+  <p>When a problem says <em>sorted</em>, <em>subarray</em> or <em>substring</em>, the interviewer is waiting for one move: replace the O(n²) double loop over every (i, j) with two indices that each move in one direction only. In <a href="0002-arrays-and-hashmaps.html#complement-lookup">lesson 2</a> you bought expected O(n) time with an O(n) hash map. These patterns often get the same O(n) time for O(1) extra space, which is the cheap side of the <a href="0002-arrays-and-hashmaps.html#space-time-tradeoff">space-for-time trade-off</a>. Today’s win: name the right tool within a minute, then write its loop with the right shrink condition.</p>
+
+  <h2 id="two-pointers">Converging pointers</h2>
+  <p>Put <code>lo</code> at the start of a sorted slice and <code>hi</code> at the end, and move them towards each other. Take sorted Two Sum (LeetCode’s “Two Sum II”). The interviewer expects a chain of answers: brute force over all pairs is O(n²); a <a href="0007-binary-search.html#lower-bound">binary search</a> for each complement is O(n log n); converging pointers are O(n).</p>
+  <pre><code><span class="kw">use</span> std::cmp::<span class="ty">Ordering</span>;
+
+<span class="kw">fn</span> <span class="fn">two_sum_sorted</span>(v: &amp;[<span class="ty">i32</span>], target: <span class="ty">i32</span>) -&gt; <span class="ty">Option</span>&lt;(<span class="ty">usize</span>, <span class="ty">usize</span>)&gt; {
+    <span class="kw">let</span> (<span class="kw">mut</span> lo, <span class="kw">mut</span> hi) = (<span class="nm">0</span>, v.<span class="fn">len</span>().<span class="fn">checked_sub</span>(<span class="nm">1</span>)?);
+    <span class="kw">while</span> lo &lt; hi {
+        <span class="kw">let</span> sum = v[lo] <span class="kw">as</span> <span class="ty">i64</span> + v[hi] <span class="kw">as</span> <span class="ty">i64</span>; <span class="cm">// i32 + i32 can overflow: widen</span>
+        <span class="kw">match</span> sum.<span class="fn">cmp</span>(&amp;(target <span class="kw">as</span> <span class="ty">i64</span>)) {
+            <span class="ty">Ordering</span>::Equal   =&gt; <span class="kw">return</span> <span class="ty">Some</span>((lo, hi)),
+            <span class="ty">Ordering</span>::Less    =&gt; lo += <span class="nm">1</span>, <span class="cm">// v[hi] is the biggest partner left: v[lo] is dead</span>
+            <span class="ty">Ordering</span>::Greater =&gt; hi -= <span class="nm">1</span>, <span class="cm">// v[lo] is the smallest partner left: v[hi] is dead</span>
+        }
+    }
+    <span class="ty">None</span>
+}
+<span class="cm">// O(n) time, O(1) space. The HashMap version: O(n) expected time, O(n) space.</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(n)</span><span class="label">Space</span><span class="val">O(1)</span></div>
+  <p><strong>Why moving <code>lo</code> is safe.</strong> If <code>v[lo] + v[hi]</code> is too small, then <code>v[hi]</code> is the largest value still in play, so <code>v[lo]</code> is too small with <em>every</em> remaining partner, and no answer uses it. The <code>Greater</code> case is the mirror image. Each step eliminates one index for good, so there are at most n − 1 steps. Laaksonen solves the same “2SUM problem” with a close variant in <a href="https://cses.fi/book/book.pdf" target="_blank">CPH §8.1</a>. Say this argument out loud before the interviewer asks for it.</p>
+  <p>The same “discard the loser” argument powers <em>Container With Most Water</em>: the shorter line caps the area, and any pair keeping it with a closer partner is narrower and no taller, so drop the shorter side. <em>Valid Palindrome</em> converges on mirror positions. A cousin keeps one pointer per array: to merge sorted arrays of lengths n and m, advance whichever holds the smaller head, O(n + m) (<a href="https://www.techinterviewhandbook.org/algorithms/array/" target="_blank">TIH, Array</a>), the heart of <a href="0010-sorting-algorithms.html#merge-sort">merge sort</a>.</p>
+
+  <div class="callout warn">
+    <strong>Common interview trap</strong>
+    Converging pointers need a reason to discard a side, such as sorted order, a dominance argument or mirror symmetry. Unsorted Two Sum gives you none of these. Use the <a href="0002-arrays-and-hashmaps.html#complement-lookup">lesson 2 hash map</a>, or <a href="0010-sorting-algorithms.html#sort-as-preprocessing">sort first</a>, which costs O(n log n) and scrambles the original indices.
+  </div>
+
+  <blockquote class="quote">“Since the input is sorted, I’ll walk two pointers in from both ends. If the sum is too small, the left value can’t pair with anything that’s left, so I move it. That’s O(n) time and O(1) space. A hash map would be O(n) expected time, but O(n) space.”</blockquote>
+
+  <h2 id="read-write-pointers">Read/write pointers</h2>
+  <p>Both pointers move left to right. <code>r</code> reads every element, and <code>w</code> marks the end of what you keep. The invariant is that <code>v[..w]</code> is the answer for <code>v[..r]</code>.</p>
+  <pre><code><span class="kw">fn</span> <span class="fn">dedup_sorted</span>(v: &amp;<span class="kw">mut</span> <span class="ty">Vec</span>&lt;<span class="ty">i32</span>&gt;) {
+    <span class="kw">if</span> v.<span class="fn">is_empty</span>() { <span class="kw">return</span>; }
+    <span class="kw">let mut</span> w = <span class="nm">1</span>;                  <span class="cm">// v[..w] = distinct values of v[..r]</span>
+    <span class="kw">for</span> r <span class="kw">in</span> <span class="nm">1</span>..v.<span class="fn">len</span>() {
+        <span class="kw">if</span> v[r] != v[w - <span class="nm">1</span>] {
+            v[w] = v[r];
+            w += <span class="nm">1</span>;
+        }
+    }
+    v.<span class="fn">truncate</span>(w);
+}
+<span class="cm">// O(n) time, O(1) extra space. Move Zeroes: same shape from w = r = 0, copy each v[r] != 0 to v[w], then zero-fill v[w..].</span></code></pre>
+  <p>std already has this as <a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#method.dedup" target="_blank"><code>Vec::dedup</code></a> (“if the vector is sorted, this removes all duplicates”), and the general filter is <a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#method.retain" target="_blank"><code>Vec::retain</code></a>, which works in place and preserves order. Mention both, then write the loop anyway, because the interviewer is grading the mechanism.</p>
+
+  <h2 id="sliding-window">Sliding window</h2>
+  <p>A window is a contiguous range <code>s[l..r]</code>, half-open like a Rust range, and both ends only move right. With a <strong>fixed size</strong> k there is no decision to make: each step adds <code>v[r]</code> and subtracts <code>v[r - k]</code>. The maximum sum of k consecutive elements then costs O(n) time and O(1) space, against O(n·k) for re-summing every window. Negative values do no harm, because nothing has to decide when to shrink.</p>
+
+  <h3 id="variable-window">Variable size: expand right, shrink left</h3>
+  <div class="callout">
+    <strong id="window-invariant">The window invariant</strong>
+    A variable window is driven by one property that every measured window must satisfy, such as “no repeated character”, “sum ≥ target” or “at most k distinct”. On each step, <code>r</code> takes one element, then <code>l</code> moves: until the invariant holds again, or for as long as it still holds. Record the answer only at a moment when the invariant holds. Get that moment wrong and the loop is wrong.
+  </div>
+  <p>Two shapes cover most problems, and the shrink condition is what tells them apart:</p>
+  <ul>
+    <li><strong>Longest valid window.</strong> Shrink <em>while invalid</em>, then record. Example: Longest Substring Without Repeating Characters.</li>
+    <li><strong>Shortest valid window.</strong> Shrink <em>while valid</em>, recording inside the loop. Example: Minimum Size Subarray Sum.</li>
+  </ul>
+  <p>For the first, keep a last-seen index per byte, a sibling of the <a href="0002-arrays-and-hashmaps.html#frequency-count">lesson 2 frequency count</a>. Rust won’t let you <a href="https://doc.rust-lang.org/book/ch08-02-strings.html#indexing-into-strings" target="_blank">index a <code>String</code></a>, so work on <code>as_bytes()</code> after confirming with the interviewer that the input is ASCII.</p>
+  <pre><code><span class="kw">fn</span> <span class="fn">longest_unique</span>(s: &amp;<span class="ty">str</span>) -&gt; <span class="ty">usize</span> {
+    <span class="kw">let</span> b = s.<span class="fn">as_bytes</span>();                       <span class="cm">// ASCII assumed: ask first</span>
+    <span class="kw">let mut</span> last: [<span class="ty">Option</span>&lt;<span class="ty">usize</span>&gt;; <span class="nm">128</span>] = [<span class="ty">None</span>; <span class="nm">128</span>];
+    <span class="kw">let</span> (<span class="kw">mut</span> l, <span class="kw">mut</span> best) = (<span class="nm">0</span>, <span class="nm">0</span>);
+    <span class="kw">for</span> (r, &amp;c) <span class="kw">in</span> b.<span class="fn">iter</span>().<span class="fn">enumerate</span>() {
+        <span class="kw">if let</span> <span class="ty">Some</span>(j) = last[c <span class="kw">as</span> <span class="ty">usize</span>] {
+            <span class="kw">if</span> j &gt;= l { l = j + <span class="nm">1</span>; }            <span class="cm">// shrink past the repeat</span>
+        }
+        last[c <span class="kw">as</span> <span class="ty">usize</span>] = <span class="ty">Some</span>(r);
+        best = best.<span class="fn">max</span>(r + <span class="nm">1</span> - l);             <span class="cm">// b[l..=r] has no repeat</span>
+    }
+    best
+}
+<span class="cm">// O(n) time, O(1) space (a 128-entry table; O(σ) for an alphabet of size σ).
+// Can you do better? Not on time: any unread byte could be the repeat that matters.</span></code></pre>
+  <p>The <code>j &gt;= l</code> guard matters, because the table keeps stale entries from before the window. Test on <code>"abba"</code>: without the guard, the final <code>a</code> drags <code>l</code> <em>backwards</em> to 1 and you return 3 instead of 2. The second shape stores the precondition in the type, since <code>u32</code> means no negatives:</p>
+  <pre><code><span class="kw">fn</span> <span class="fn">min_len_at_least</span>(v: &amp;[<span class="ty">u32</span>], target: <span class="ty">u64</span>) -&gt; <span class="ty">usize</span> { <span class="cm">// target &gt; 0</span>
+    <span class="kw">let</span> (<span class="kw">mut</span> l, <span class="kw">mut</span> sum, <span class="kw">mut</span> best) = (<span class="nm">0</span>, <span class="nm">0u64</span>, <span class="ty">usize</span>::MAX);
+    <span class="kw">for</span> r <span class="kw">in</span> <span class="nm">0</span>..v.<span class="fn">len</span>() {
+        sum += v[r] <span class="kw">as</span> <span class="ty">u64</span>;                     <span class="cm">// expand right</span>
+        <span class="kw">while</span> sum &gt;= target {                   <span class="cm">// valid: measure, then try shorter</span>
+            best = best.<span class="fn">min</span>(r + <span class="nm">1</span> - l);
+            sum -= v[l] <span class="kw">as</span> <span class="ty">u64</span>;
+            l += <span class="nm">1</span>;                             <span class="cm">// shrink left</span>
+        }
+    }
+    <span class="kw">if</span> best == <span class="ty">usize</span>::MAX { <span class="nm">0</span> } <span class="kw">else</span> { best }
+}
+<span class="cm">// O(n) time, O(1) space. [2, 3, 1, 2, 4, 3], target 7 → 2 (the window [4, 3]).</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(n)</span><span class="label">Space</span><span class="val">O(1)</span></div>
+  <p><strong>Why the nested <code>while</code> is still O(n).</strong> Count pointer moves instead of loop nesting. <code>r</code> moves n times, and <code>l</code> only moves forward, so it moves at most n times <em>in total</em> across all the inner loops. That gives at most 2n steps, or O(1) <a href="0002-arrays-and-hashmaps.html#amortized-cost">amortized</a> per element. The Tech Interview Handbook puts it as “each value is only visited at most twice” (<a href="https://www.techinterviewhandbook.org/algorithms/array/" target="_blank">TIH, Array</a>), and CPH §8.1 makes the same argument. This is the <a href="0001-big-o-and-complexity.html">lesson 1</a> skill of reading complexity off the code, applied with a little more care.</p>
+
+  <h3>Drive the window</h3>
+  <p>You are the loop for Longest Substring Without Repeating Characters: expand when you can, shrink only when the next character would break the invariant. Illegal moves are rejected with the reason. <em>Last seen</em> is the table from the code; struck-through entries are stale (index &lt; <code>l</code>), exactly what <code>j &gt;= l</code> skips.</p>
+  <div class="drive" id="drive">
+    <div class="drive-row">
+      <span class="drive-lbl">String</span>
+      <button type="button" class="drive-pick on" data-s="abcabcbb">abcabcbb</button>
+      <button type="button" class="drive-pick" data-s="pwwkew">pwwkew</button>
+    </div>
+    <div class="drive-cells" id="drive-cells"></div>
+    <dl class="drive-state">
+      <dt>window</dt><dd id="drive-win"></dd>
+      <dt>last seen</dt><dd id="drive-last"></dd>
+      <dt>best</dt><dd id="drive-best"></dd>
+      <dt>moves</dt><dd id="drive-moves"></dd>
+    </dl>
+    <div class="drive-row">
+      <button type="button" id="drive-expand">Expand right</button>
+      <button type="button" id="drive-shrink">Shrink left</button>
+      <button type="button" id="drive-reset">Reset</button>
+    </div>
+    <p class="drive-fb" id="drive-fb" aria-live="polite"></p>
+    <div class="complexity" id="drive-done" hidden><span class="label">Time</span><span class="val">O(n)</span><span class="label">Space</span><span class="val">O(1)</span><span class="label">Moves</span><span class="val">≤ 2n</span></div>
+  </div>
+  <p>The code above jumps <code>l</code> straight to <code>j + 1</code>, which does a whole run of your Shrink presses in one step. The bound is the same.</p>
+
+  <h2 id="prefix-sum">When windows break: prefix sums</h2>
+  <p>Both shrink rules rest on monotonicity: each pointer move pushes validity in one known direction. With non-negative values, adding <code>v[r]</code> never lowers the sum and dropping <code>v[l]</code> never raises it. One negative value breaks this, because dropping <code>v[l]</code> can <em>raise</em> the sum. Take <code>[1, 2, −3, 3]</code> with k = 3. A window that shrinks only when the sum exceeds 3 never shrinks at all (its running sums are 1, 3, 0, 3), so it counts 2 subarrays and misses <code>[3]</code>, giving the wrong answer of 2 instead of 3. CSES splits exactly this pair of problems: <a href="https://cses.fi/problemset/task/1660" target="_blank">Subarray Sums I</a> has positive values and <a href="https://cses.fi/problemset/task/1661" target="_blank">Subarray Sums II</a> allows negatives.</p>
+  <p>The fix is a <strong>prefix-sum array</strong> of length <strong>n + 1</strong> with <code>p[0] = 0</code>. Fill it with <code>p[i + 1] = p[i] + v[i]</code>. Then <code>sum(v[i..j]) = p[j] − p[i]</code> for every 0 ≤ i ≤ j ≤ n, with no special case at index 0 (<a href="https://usaco.guide/silver/prefix-sums" target="_blank">USACO Guide</a>; CPH §9.1 keeps length n and has to define sum(0, −1) = 0 by hand). For <code>[1, 2, −3, 3]</code>, p = <code>[0, 1, 3, 0, 3]</code>.</p>
+  <p><strong id="prefix-sum-complement">Prefix sum + hash map.</strong> To <em>count</em> subarrays with sum k, ask at each j how many earlier prefixes equal <code>p[j] − k</code>. That is the <a href="0002-arrays-and-hashmaps.html#complement-lookup">lesson 2 complement lookup</a> (“have I seen <code>target − x</code>?”) running over prefix sums instead of values.</p>
+  <pre><code><span class="kw">use</span> std::collections::<span class="ty">HashMap</span>;
+
+<span class="kw">fn</span> <span class="fn">count_sum_k</span>(v: &amp;[<span class="ty">i64</span>], k: <span class="ty">i64</span>) -&gt; <span class="ty">usize</span> {
+    <span class="kw">let mut</span> seen: <span class="ty">HashMap</span>&lt;<span class="ty">i64</span>, <span class="ty">usize</span>&gt; = <span class="ty">HashMap</span>::<span class="fn">from</span>([(<span class="nm">0</span>, <span class="nm">1</span>)]); <span class="cm">// p[0]: the empty prefix</span>
+    <span class="kw">let</span> (<span class="kw">mut</span> p, <span class="kw">mut</span> count) = (<span class="nm">0i64</span>, <span class="nm">0</span>);
+    <span class="kw">for</span> &amp;x <span class="kw">in</span> v {
+        p += x;                                             <span class="cm">// p is now p[j]</span>
+        count += seen.<span class="fn">get</span>(&amp;(p - k)).<span class="fn">copied</span>().<span class="fn">unwrap_or</span>(<span class="nm">0</span>); <span class="cm">// earlier i with p[i] = p[j] - k</span>
+        *seen.<span class="fn">entry</span>(p).<span class="fn">or_insert</span>(<span class="nm">0</span>) += <span class="nm">1</span>;                   <span class="cm">// insert after the lookup</span>
+    }
+    count
+}
+<span class="cm">// O(n) expected time (hash lookups), O(n) space. [1, 2, -3, 3], k = 3 → 3.
+// Can you do better? Only with a promise: if all values are positive, a window does it in O(1) space.</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(n) expected</span><span class="label">Space</span><span class="val">O(n)</span></div>
+  <p>The time bound is <em>expected</em> because hash lookups are only <a href="0002-arrays-and-hashmaps.html#hash-table">expected O(1)</a>.</p>
+
+  <div class="callout warn">
+    <strong>Common interview trap</strong>
+    If you drop the <code>{0: 1}</code> seed, every subarray that starts at index 0 goes uncounted (on the example above the answer falls from 3 to 1). If you insert before the lookup, k = 0 starts counting empty subarrays. If you size <code>p</code> as n instead of n + 1, every range that starts at 0 needs a special case.
+  </div>
+
+  <h2>Which tool? The one-minute checklist</h2>
+  <ul>
+    <li><strong>Sorted + a pair</strong> → converging pointers. O(n) time, O(1) space; a triple runs one pass per fixed element, O(n²).</li>
+    <li><strong>Filter or compact in place, keeping order</strong> → read/write pointers.</li>
+    <li><strong>Contiguous + a fixed length, or a constraint that moves one way as the window grows</strong> (“no repeats”, “at most k distinct”, a sum bound over non-negative values) → sliding window.</li>
+    <li><strong>Contiguous + a sum target, with values that can be negative</strong> (or zero, when you count exact-sum subarrays) → prefix sums + hash map. A fixed length still means a window, negatives or not.</li>
+  </ul>
+  <div class="callout">
+    <strong>Why interviewers care</strong>
+    These patterns turn O(n²) into O(n) with almost no extra memory. Follow-ups such as 3Sum and Minimum Window Substring test whether you can re-derive the invariant on the spot, not recall code.
+  </div>
+  <p>Classify each problem. Every option, right or wrong, explains itself, so read the feedback.</p>
+  <div id="tool-exercise" class="mc-exercise"></div>
+
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Minimum Size Subarray Sum (positive values, shortest subarray with sum ≥ target). After adding v[r], which loop body is correct?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','One shrink per step is not enough. On [1, 1, 1, 10] with target 10 it records 4, drops one 1, and never measures [10] alone, whose length is 1.')">if sum ≥ target: record, shrink once</button>
+        <button onclick="quizAnswer(this,false,'q1','Backwards. Dropping a positive value makes a too-small sum smaller still. You shrink while the window is valid, not while it is invalid.')">while sum below target: shrink, then record</button>
+        <button onclick="quizAnswer(this,true,'q1','Right. This is the shortest-valid shape: while the window satisfies the constraint, measure it, then drop v[l] to try a shorter one.')">while sum ≥ target: record, then shrink</button>
+        <button onclick="quizAnswer(this,false,'q1','This records windows before checking them, so it measures windows whose sum is below target and can report a length that is too short. Record only inside the valid branch.')">record now, then shrink while sum is too big</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. A window loop has a <code>for</code> over r and an inner <code>while</code> whose O(1) body advances l by one; l never moves left. On n elements, what is its tight worst-case running time?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','That is an upper bound, but not a tight one. l never moves backwards, so all the inner loops together advance it at most n times in total, not n times per r.')">O(n²): the while can run n times per r</button>
+        <button onclick="quizAnswer(this,true,'q2','Right. Count pointer moves, not loop nesting. r moves n times and l at most n times in total, so there are at most 2n steps, which is O(1) amortized per element.')">O(n): l and r each move at most n times</button>
+        <button onclick="quizAnswer(this,false,'q2','Shrinking moves l one position at a time, and nothing is halved. A log factor comes from halving the remaining problem on every step, as binary search does.')">O(n log n): each shrink halves the window</button>
+        <button onclick="quizAnswer(this,false,'q2','There is no randomness here to average over. The 2n bound on pointer moves holds for every input, so O(n) is the worst case, not an average case.')">O(n) on average, O(n²) in the worst case</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. You seed the prefix-count map empty instead of {0: 1}. On [3, −1, 1, 3] with k = 3 it returns 2 instead of 4. Which subarrays did it miss?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','Only one of the two length-one answers was missed. The [3] at index 3 was counted, because p[4] − p[3] = 6 − 3 and p[3] was already in the map. Look at where the misses start.')">The ones that have length one</button>
+        <button onclick="quizAnswer(this,false,'q3','[−1, 1, 3] contains the negative and was counted, while the first [3] contains none and was missed. Values do not decide it; the start index does.')">The ones that contain the negative value</button>
+        <button onclick="quizAnswer(this,false,'q3','[−1, 1, 3] and the last [3] both end at the final index, and both were counted. The two misses end at indices 0 and 2.')">The ones that end at the final index</button>
+        <button onclick="quizAnswer(this,true,'q3','Right. A subarray starting at 0 has sum p[j] − p[0], and p[0] = 0 is the empty prefix that only the seed puts in the map. Both misses, [3] and [3, −1, 1], start there.')">The ones starting at index 0</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. The array is <em>unsorted</em>. Return the original indices of two values that sum to target. What should you reach for?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q4','Right. Unsorted input gives the converging argument nothing to stand on. The complement lookup does one pass: O(n) expected time, because each lookup is expected O(1), plus O(n) space for the map.')">A HashMap of complements: O(n) time and space</button>
+        <button onclick="quizAnswer(this,false,'q4','Sorting alone is O(n log n), so the total is not O(n). It also scrambles the original indices unless you sort (value, index) pairs, which costs O(n) space anyway.')">Sort, then converging pointers: O(n) total time</button>
+        <button onclick="quizAnswer(this,false,'q4','A pair does not have to be contiguous, so there is no window to grow or shrink. The two values can sit anywhere in the array.')">A sliding window: O(n) time, O(1) extra space</button>
+        <button onclick="quizAnswer(this,false,'q4','Prefix differences give the sums of contiguous ranges. Two arbitrary positions do not form a range, so prefix sums never see the pair.')">A prefix-sum map: O(n) time and O(n) space</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <ol>
+    <li><strong>Two Sum II</strong> and <strong>Container With Most Water</strong>. Before you write any code, say aloud why discarding the losing side is safe.</li>
+    <li><strong>Remove Duplicates from Sorted Array</strong> and <strong>Move Zeroes</strong>, with no <code>dedup</code> or <code>retain</code>.</li>
+    <li><strong>Longest Substring Without Repeating Characters</strong> and <strong>Minimum Size Subarray Sum</strong> (both listed on the <a href="https://www.techinterviewhandbook.org/algorithms/array/" target="_blank">TIH array page</a>). Name the shrink condition before you type.</li>
+    <li><a href="https://cses.fi/problemset/task/1660" target="_blank">CSES Subarray Sums I</a>, then <a href="https://cses.fi/problemset/task/1661" target="_blank">II</a>. It is the same question twice: solve the first with a window and the second with prefix sums + map.</li>
+    <li>Stretch: <strong>3Sum</strong> and <strong>Minimum Window Substring</strong>. Time yourself and aim to name the pattern within a minute.</li>
+  </ol>
+
+  <h2>Primary resource</h2>
+  <p>Read <a href="https://usaco.guide/silver/two-pointers" target="_blank">USACO Guide — Two Pointers (Silver)</a>. It is a free, carefully edited module that covers both variants this lesson uses, pointers from opposite ends and same-direction pointers (the sliding window). It includes worked solutions and a graded problem list. Its code is C++/Java/Python, so port the solutions to Rust as practice.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> A good drill: “Give me three array problems I haven’t seen, one at a time. I’ll name the pattern and the shrink condition in under a minute, and you tell me where my reasoning slipped.” Or ask why the sliding-window maximum needs a <a href="0004-stacks-and-queues.html#monotonic-stack">monotonic</a> deque. Type a question in Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0002-arrays-and-hashmaps.html">← Lesson 2: Arrays & Hash Maps</a>
+    <span class="spacer"></span>
+    <a href="0004-stacks-and-queues.html">Lesson 4: Stacks & Queues →</a>
+  </div>
+
+</div>
+
+<style>
+blockquote.quote { border-left: 3px solid var(--accent); padding: .6rem 1rem; margin: 1rem 0; color: var(--ink-dim); font-style: italic; font-size: .95rem; }
+.drive { background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.1rem; margin: 1.25rem 0; font-family: var(--font-ui); font-size: .88rem; }
+.drive button { font: inherit; background: var(--bg-sunken); color: var(--ink); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .4rem .75rem; cursor: pointer; }
+.drive button:hover { border-color: var(--accent-border); background: var(--accent-soft); }
+.drive button.on { border-color: var(--accent); color: var(--accent-strong); }
+.drive-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-bottom: .75rem; }
+.drive-lbl, .drive-state dt { color: var(--muted); }
+.drive-cells { display: flex; flex-wrap: wrap; gap: .3rem; margin-bottom: .9rem; }
+.drive-cell { width: 2.1rem; text-align: center; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-sunken); padding: .2rem 0; color: var(--muted); font-size: .68rem; }
+.drive-cell b { display: block; font-family: var(--font-mono); font-size: 1.05rem; color: var(--ink-dim); }
+.drive-cell.in { background: var(--accent-soft); border-color: var(--accent); }
+.drive-cell.in b { color: var(--accent-strong); }
+.drive-cell.next { background: var(--amber-soft); border-color: var(--amber); }
+.drive-state { display: grid; grid-template-columns: auto 1fr; gap: .2rem .8rem; margin: 0 0 .8rem; }
+.drive-state dd { margin: 0; font-family: var(--font-mono); color: var(--ink); overflow-wrap: anywhere; }
+.drive-chip { display: inline-block; margin: 0 .3rem .2rem 0; padding: 0 .35rem; border: 1px solid var(--border); border-radius: 4px; }
+.drive-chip.stale { color: var(--muted); text-decoration: line-through; }
+#drive-done[hidden] { display: none; }
+.drive-fb { min-height: 2.6em; margin: .4rem 0 0; font-size: .85rem; }
+.drive-fb.good { color: var(--accent-strong); }
+.drive-fb.bad { color: var(--err); }
+</style>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+// Drive-the-window widget: the learner is the loop for Longest Substring Without Repeating Characters.
+(function () {
+  const $ = id => document.getElementById(id);
+  const fb = $('drive-fb');
+  let s, l, r, best, ex, sh, last;
+  const inWin = c => last[c] !== undefined && last[c] >= l;
+  const win = (a, b) => '“' + s.slice(a, b) + '”';
+  function say(msg, kind) { fb.textContent = msg; fb.className = 'drive-fb ' + kind; }
+  function draw() {
+    const cells = $('drive-cells');
+    cells.innerHTML = '';
+    for (let i = 0; i < s.length; i++) {
+      const d = document.createElement('span');
+      d.className = 'drive-cell' + (i >= l && i < r ? ' in' : '') + (i === r ? ' next' : '');
+      d.innerHTML = '<b></b>' + i;
+      d.firstChild.textContent = s[i];
+      cells.appendChild(d);
+    }
+    $('drive-win').textContent = 's[' + l + '..' + r + '] = ' + win(l, r) + (r === l ? ' (empty)' : '');
+    const lastEl = $('drive-last');
+    lastEl.innerHTML = '';
+    Object.keys(last).forEach(c => {
+      const chip = document.createElement('span');
+      chip.className = 'drive-chip' + (last[c] < l ? ' stale' : '');
+      chip.textContent = c + ' → ' + last[c];
+      lastEl.appendChild(chip);
+    });
+    if (!lastEl.childNodes.length) lastEl.textContent = '(empty)';
+    $('drive-best').textContent = String(best);
+    $('drive-moves').textContent = ex + ' expand, ' + sh + ' shrink';
+    $('drive-done').hidden = r < s.length;
+  }
+  function reset(str) {
+    s = str; l = 0; r = 0; best = 0; ex = 0; sh = 0; last = {};
+    document.querySelectorAll('.drive-pick').forEach(b => b.classList.toggle('on', b.dataset.s === str));
+    say('Empty window, l = r = 0. Invariant: no character appears twice in s[l..r]. Your move.', '');
+    draw();
+  }
+  function ended() {
+    if (r < s.length) return false;
+    say('The window already reaches the end of “' + s + '”. Press Reset or pick the other string.', 'bad');
+    return true;
+  }
+  $('drive-expand').addEventListener('click', () => {
+    if (ended()) return;
+    const c = s[r];
+    if (inWin(c)) {
+      say('Rejected: ‘' + c + '’ is already in the window (last seen at ' + last[c] + ', and ' + last[c] + ' ≥ l = ' + l + '). Taking it makes ' + win(l, r + 1) + ' with two ‘' + c + '’s, which breaks the invariant. Shrink from the left first.', 'bad');
+      return;
+    }
+    last[c] = r; r++; ex++;
+    let msg;
+    if (r - l > best) { best = r - l; msg = 'Took ‘' + c + '’. ' + win(l, r) + ' has no repeat: new best ' + best + '.'; }
+    else msg = 'Took ‘' + c + '’. ' + win(l, r) + ' is valid but not longer than ' + best + '.';
+    if (r === s.length) {
+      msg = 'Done: the longest window without a repeat has length ' + best + '. You made ' + ex + ' expansions and ' + sh + ' shrinks, ' + (ex + sh) + ' pointer moves for n = ' + s.length + ', never more than 2n = ' + 2 * s.length + '. That is the O(n) argument.' + (s === 'abcabcbb' ? ' Now try pwwkew.' : '');
+    }
+    say(msg, 'good');
+    draw();
+  });
+  $('drive-shrink').addEventListener('click', () => {
+    if (ended()) return;
+    const c = s[r];
+    if (r === l) { say('Rejected: the window is empty, so there is nothing to drop. Expand right.', 'bad'); return; }
+    if (!inWin(c)) {
+      say('Rejected: ‘' + c + '’ is not in ' + win(l, r) + ', so the window can still grow. Shrinking now throws away ' + win(l, r + 1) + ' before you measure it. Shrink only when the next character is a repeat.', 'bad');
+      return;
+    }
+    const d = s[l]; l++; sh++;
+    say(inWin(c) ? 'Dropped ‘' + d + '’. ‘' + c + '’ is still inside ' + win(l, r) + ', so keep shrinking.' : 'Dropped ‘' + d + '’. The old ‘' + c + '’ is gone, so ‘' + c + '’ can be taken now.', 'good');
+    draw();
+  });
+  $('drive-reset').addEventListener('click', () => reset(s));
+  document.querySelectorAll('.drive-pick').forEach(b => b.addEventListener('click', () => reset(b.dataset.s)));
+  reset('abcabcbb');
+})();
+
+const TOOLS = ['Converging pointers', 'Sliding window', 'Prefix-sum map', 'Read/write pointers'];
+function tool(right, explains) {
+  return TOOLS.map((t, i) => ({ text: t, correct: i === right, explain: explains[i] }));
+}
+renderMC('tool-exercise', [
+  { prompt: 'A sorted Vec<i32>: return the indices of two values that sum to target, using O(1) extra space.', options: tool(0, [
+    'Sorted plus a pair is the cue. If the sum is too small, v[lo] cannot pair with anything left, so lo moves: O(n) time, O(1) space.',
+    'A window is a contiguous run, but a pair can sit anywhere in the array, so there is nothing to grow or shrink.',
+    'Prefix sums describe contiguous ranges, not arbitrary pairs, and the map costs O(n) space, which the prompt rules out.',
+    'Read/write pointers compact an array in place. Nothing is removed here; you are searching for a pair.'
+  ]) },
+  { prompt: 'Find the longest substring with at most k distinct characters.', options: tool(1, [
+    'Pointers from both ends need an order that tells you which side to drop. The characters of a string have no such order to exploit.',
+    'Contiguous, and adding a character never lowers the distinct count, so the constraint only gets more broken as the window grows. Expand right; shrink while distinct > k, using a frequency count.',
+    'There is no sum here. A distinct count is not the difference of two prefixes, so prefix sums cannot compute it.',
+    'Nothing is compacted. You are measuring the best contiguous range, which is window territory.'
+  ]) },
+  { prompt: 'Count the subarrays whose sum is exactly k. Values may be negative.', options: tool(2, [
+    'Converging needs sorted input, and sorting destroys contiguity, which a subarray depends on.',
+    'Negatives break the window. Dropping a negative from the left raises the sum, so “too big, so shrink” is no longer safe and the window misses answers.',
+    'sum(i..j) = p[j] − p[i], so count the earlier prefixes equal to p[j] − k in a map seeded {0: 1}. That is O(n) expected time and O(n) space.',
+    'Read/write pointers rewrite the array in place, and counting subarrays rewrites nothing.'
+  ]) },
+  { prompt: 'Remove the duplicates from a sorted Vec in place, keeping the order.', options: tool(3, [
+    'Pointers from both ends search for pairs. Compaction needs both pointers moving left to right, one reading and one writing.',
+    'A window measures a contiguous range. Here you rewrite the array, keeping each value the first time the reader sees it.',
+    'No sums are involved, and a map would spend O(n) space on a job that needs only O(1).',
+    'r scans every element and w marks the end of the kept prefix. Copy v[r] to v[w] when it differs from v[w − 1]. O(n) time, O(1) space.'
+  ]) },
+  { prompt: 'Find the maximum sum of any 3 consecutive elements. Values may be negative.', options: tool(1, [
+    'There is no pair and no sorted order, and the elements must be consecutive, which pointers from both ends cannot guarantee.',
+    'A fixed-size window never decides when to shrink, so negatives do no harm: add v[r] and subtract v[r − 3]. O(n) time, O(1) space.',
+    'A prefix array would work at O(n) space, but there is no target to look up, so the map does nothing. A fixed window needs O(1) space.',
+    'Nothing is filtered or compacted. You are scoring every run of 3.'
+  ]) },
+  { prompt: 'Is the string a palindrome once non-letters are skipped?', options: tool(0, [
+    'Compare s[lo] with s[hi], skip non-letters on either side, move both inward: O(n) time, O(1) space, no reversed copy. Mirror symmetry is the reason to converge.',
+    'A palindrome check compares mirrored positions at the two ends, not a contiguous window that slides from left to right.',
+    'There are no sums involved. A palindrome is about matching the characters at mirrored positions.',
+    'You could compact the letters first, but that rewrites or copies the input. Comparing from both ends needs no writes.'
+  ]) }
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

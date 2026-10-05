@@ -113,7 +113,7 @@ Distance the muon can cover in its own (proper) lifetime, own frame:
         <button onclick="quizAnswer(this,false,'q1','That would be the ship expanding, but length contraction always shrinks a moving object along its direction of motion (L = L₀/γ, and γ ≥ 1) — it never stretches it.')">200 m — moving objects appear longer</button>
         <button onclick="quizAnswer(this,true,'q1','Right — L = L₀/γ = 100/2 = 50 m. The ship\'s length, along its direction of motion, contracts by exactly the Lorentz factor.')">50 m — the ship's length contracts by the Lorentz factor</button>
         <button onclick="quizAnswer(this,false,'q1','100 m is the proper length L₀, measured in the ship\'s own rest frame — an observer watching it move measures a shorter length, not the same one.')">100 m — length is unaffected by motion, only time is</button>
-        <button onclick="quizAnswer(this,false,'q1','Length contraction only affects the dimension along the direction of motion — it isn\'t a uniform shrink in every direction, so there\'s no meaningful "volume divided by γ²" here.')">It depends on the ship's width and height too, not just its length</button>
+        <button onclick="quizAnswer(this,false,'q1','Length contraction only affects the dimension along the direction of motion — it isn\'t a uniform shrink in every direction, so there\'s no meaningful &quot;volume divided by γ²&quot; here.')">It depends on the ship's width and height too, not just its length</button>
       </div>
       <div class="feedback" id="q1-fb"></div>
     </div>
@@ -227,7 +227,7 @@ INTERVAL_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

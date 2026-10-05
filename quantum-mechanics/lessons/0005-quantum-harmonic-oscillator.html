@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 5 — The Quantum Harmonic Oscillator</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Quantum Mechanics</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 5 of many &nbsp;·&nbsp; Quantum Mechanics &nbsp;·&nbsp; ~40 min</p>
+  <h1>The Quantum Harmonic Oscillator</h1>
+  <p><a href="0004-schrodinger-equation.html#schrodinger-equation">Lesson 4</a> called H “the operator corresponding to total energy” but never said which energies are possible, and its only example was a 2×2 matrix. This lesson solves a real, infinite-dimensional system with nothing but operator algebra, and “energy is quantized” stops being a slogan about lumps: it becomes a four-line theorem about one operator’s eigenvalues.</p>
+
+  <h2 id="stationary-states">Solving the equation means diagonalizing H</h2>
+  <div class="callout warn">
+    <strong>Stationary states (time-independent Schrödinger equation)</strong>
+    An eigenvector of the Hamiltonian, <code>H|E⟩ = E|E⟩</code>, is a <strong>stationary state</strong>: under <a href="0004-schrodinger-equation.html#unitary-time-evolution">U(t) = e^(−iHt/ℏ)</a> it only picks up a global phase, <code>U(t)|E⟩ = e^(−iEt/ℏ)|E⟩</code>, so no probability ever changes.
+  </div>
+  <p>Expand any state in H’s eigenbasis, <code>|ψ⟩ = Σ cₙ|Eₙ⟩</code>, and its evolution is just <code>Σ cₙ e^(−iEₙt/ℏ)|Eₙ⟩</code>. Solving the equation <em>is</em> finding H’s eigenvectors. Measuring energy is the <a href="0001-state-vectors-superposition-born-rule.html#born-rule">Born rule</a> in that basis: outcome Eₙ with probability <code>|cₙ|²</code>, then collapse to <code>|Eₙ⟩</code>, with the same <a href="0004-schrodinger-equation.html#measurement-vs-evolution">open tension</a> as before (<a href="https://ocw.mit.edu/courses/8-04-quantum-physics-i-spring-2016/be7c26e13550f3b3cc7f3f7a87f00d44_MIT8_04S16_LecNotes9.pdf">Zwiebach, MIT 8.04 notes 9</a>). So <strong>the possible energies are the eigenvalues of H</strong>, and “quantized” means “H’s spectrum is discrete”, a property of a particular H, not a law: “a continuous set of possible energies is also allowed” (<a href="https://ocw.mit.edu/courses/8-04-quantum-physics-i-spring-2016/01b09433137651bedbbfe4f039b0c5be_MIT8_04S16_LecNotes10.pdf">notes 10</a>), and a free particle on an infinite line can have any energy E ≥ 0.</p>
+  <p>You have met one already. <a href="0004-schrodinger-equation.html#worked-example-qubit-precession">Lesson 4’s precession example</a> had <code>H = (ℏω/2)Z</code> (<a href="../../quantum-computing/lessons/0001-qubits-bloch-sphere-single-qubit-gates.html#pauli-gates">Pauli Z</a>), so <code>|0⟩</code> and <code>|1⟩</code> were its stationary states, at energies <code>±ℏω/2</code>, a gap of ℏω. <code>(|0⟩+|1⟩)/√2</code> mixes the two energies, so the relative phase <code>e^(iωt)</code> turns: that was the precession. The oscillator has the same ℏω gap, repeated forever.</p>
+
+  <h2>A particle on a line: the minimal toolkit</h2>
+  <div class="callout" id="wavefunction">
+    <strong>Wavefunction ψ(x) = ⟨x|ψ⟩</strong>
+    A qubit has two components, α and β (<a href="0001-state-vectors-superposition-born-rule.html#state-vectors">lesson 1</a>). A particle on a line has one complex component per position x, so the state space is infinite-dimensional and sums become integrals. ψ(x) is the state written in the position basis, not a physical wave and not a smeared-out particle. <code>|ψ(x)|²</code> is a <a href="../../probability/lessons/0003-common-distributions.html#normal-distribution">probability density</a>: <code>P(a ≤ x ≤ b) = ∫ₐᵇ |ψ(x)|² dx</code>, and any single exact x has probability 0.
+  </div>
+  <div class="callout" id="canonical-commutator">
+    <strong>Hermitian operators, x̂ and p̂, and [x̂, p̂] = iℏ</strong>
+    Q is <strong>Hermitian</strong> if <code>Q† = Q</code>. Its eigenvalues are real and eigenvectors with distinct eigenvalues are orthogonal; observables are represented by such operators, and measuring Q yields one of its eigenvalues (<a href="https://ocw.mit.edu/courses/8-04-quantum-physics-i-spring-2016/be7c26e13550f3b3cc7f3f7a87f00d44_MIT8_04S16_LecNotes9.pdf">notes 9</a>). H being Hermitian is what makes <a href="0004-schrodinger-equation.html#unitary-time-evolution">U(t) unitary</a>, a fact used there without a name. Position <code>x̂</code> (multiply by x) and momentum <code>p̂ = −iℏ d/dx</code> are Hermitian and do not commute:
+    <pre><code>[x̂, p̂] f = x(−iℏf′) + iℏ(xf)′ = iℏ f</code></pre>
+    Take <code>[x̂, p̂] = iℏ</code> as the postulate. It is the <em>only</em> quantum input used below.
+  </div>
+
+  <h2 id="oscillator-hamiltonian">The oscillator Hamiltonian, and why it is everywhere</h2>
+  <pre><code>H = p̂²/2m + ½ m ω² x̂²</code></pre>
+  <p>Not a toy: at a minimum x₀ of any smooth potential, <code>V′(x₀) = 0</code>, so Taylor gives <code>V(x) ≈ V(x₀) + ½V″(x₀)(x − x₀)²</code>, an oscillator with <code>mω² = V″(x₀)</code> (<a href="https://ocw.mit.edu/courses/8-04-quantum-physics-i-spring-2016/ff9fdba4da09b783255583e2a61d1279_MIT8_04S16_LecNotes13.pdf">Zwiebach, notes 13</a>). Hence diatomic bonds like HCl, atoms in a crystal, LC circuits and modes of the electromagnetic field (<a href="https://ocw.mit.edu/courses/5-61-physical-chemistry-fall-2007/cc186784ceeb24179abba747588570fc_lecture12to15.pdf">MIT 5.61</a>, <a href="https://en.wikipedia.org/wiki/Quantum_harmonic_oscillator">overview</a>). It is the leading approximation near the bottom of a well; the reality check shows where it breaks.</p>
+
+  <h2 id="ladder-operators">Factoring H: ladder operators</h2>
+  <p>For numbers, <code>u² + v² = (u − iv)(u + iv)</code>. Try it with operators, minding the order:</p>
+  <pre><code>a  = √(mω/2ℏ) (x̂ + ip̂/mω)        a† = √(mω/2ℏ) (x̂ − ip̂/mω)
+
+a†a = (mω/2ℏ)(x̂² + p̂²/m²ω²) + (i/2ℏ)[x̂, p̂]
+    = (mω/2ℏ)(x̂² + p̂²/m²ω²) − ½
+
+⇒  H = ℏω(a†a + ½) = ℏω(N + ½)      N = a†a      [a, a†] = 1</code></pre>
+  <p>The commutator leaves over the <code>−½</code>, which becomes the <code>+½ℏω</code> in every energy below. Order matters: <code>a a† = a†a + 1</code>. a† is the adjoint of a, and <code>a ≠ a†</code>, so <strong>neither a nor a† is Hermitian</strong>; <code>N = a†a</code> is (<a href="https://ocw.mit.edu/courses/8-04-quantum-physics-i-spring-2016/3b4ee73bda5abd93cbb2a89ae9b6765b_MIT8_04S16_LecNotes14_15.pdf">Zwiebach, notes 14–15</a>). Two commutators do the rest:</p>
+  <pre><code>[N, a†] = a†[a, a†] = a†          [N, a] = [a†, a] a = −a
+
+if N|ν⟩ = ν|ν⟩:  N(a†|ν⟩) = (ν + 1) a†|ν⟩       N(a|ν⟩) = (ν − 1) a|ν⟩
+lengths:         ‖a†|ν⟩‖² = ⟨ν|a a†|ν⟩ = ν + 1    ‖a|ν⟩‖² = ⟨ν|a†a|ν⟩ = ν</code></pre>
+  <div class="callout warn">
+    <strong>The ladder rules</strong>
+    <code>a|n⟩ = √n |n−1⟩</code> · <code>a†|n⟩ = √(n+1) |n+1⟩</code> · <code>a|0⟩ = 0</code> · <code>N|n⟩ = n|n⟩</code> · <code>H|n⟩ = ℏω(n + ½)|n⟩</code>.<br>
+    a† (creation) climbs one rung, a (annihilation) descends one; the square roots are the lengths above. n counts quanta of ℏω. It is <em>not</em> a position: every <code>|n⟩</code> has a spread-out wavefunction.
+  </div>
+
+  <h2 id="energy-quantization">Quantization, derived rather than assumed</h2>
+  <div class="callout warn">
+    <strong>Theorem: N has eigenvalues exactly 0, 1, 2, …, so Eₙ = ℏω(n + ½)</strong>
+    <ol style="margin:.5rem 0 0 1.2rem;">
+      <li><strong>No negatives.</strong> For a normalized eigenvector, <code>ν = ⟨ν|N|ν⟩ = ‖a|ν⟩‖² ≥ 0</code>.</li>
+      <li><strong>Descent.</strong> If ν &gt; 0, <code>a|ν⟩</code> has squared length ν &gt; 0, so it is a genuine eigenvector with eigenvalue ν − 1. Repeat.</li>
+      <li><strong>Non-integers fail.</strong> From ν = 2.5 every step is legal: 2.5 → 1.5 → 0.5 → −0.5, a negative eigenvalue, contradicting step 1.</li>
+      <li><strong>The only exit.</strong> Descent stops only where <code>a|ν₀⟩ = 0</code>, the zero vector; then <code>ν₀ = ‖a|ν₀⟩‖² = 0</code>, so ν was a whole number. Upward never stops: <code>‖a†|n⟩‖² = n + 1 &gt; 0</code>.</li>
+    </ol>
+  </div>
+  <p>Equal spacing ℏω, starting at ℏω/2, from two inputs: <code>[x̂, p̂] = iℏ</code> and “a squared length is never negative” (<a href="https://ocw.mit.edu/courses/5-73-introductory-quantum-mechanics-i-fall-2005/05001627bb9231085b6a4e0b477b0330_sec3.pdf">MIT 5.73, “killer condition”</a>). No lumps were assumed. The textbook alternative solves a second-order differential equation, where quantization appears because only special E give normalizable solutions (<a href="https://ocw.mit.edu/courses/8-04-quantum-physics-i-spring-2016/ff9fdba4da09b783255583e2a61d1279_MIT8_04S16_LecNotes13.pdf">notes 13</a>, Hermite polynomials). Equal spacing is special to this H: hydrogen’s levels go as <a href="http://hyperphysics.phy-astr.gsu.edu/hbase/hyde.html">−1/n²</a>.</p>
+
+  <h2 id="zero-point-energy">Zero-point energy and the Gaussian ground state</h2>
+  <p>The lowest energy is <code>E₀ = ℏω/2</code>, not the 0 at the bottom of the well, and the ground state is not a particle sitting still. In position form <code>a|0⟩ = 0</code> is a <em>first-order</em> equation:</p>
+  <pre><code>(x + (ℏ/mω) d/dx) ψ₀ = 0    ⇒    ψ₀(x) = (mω/πℏ)^(1/4) e^(−mωx²/2ℏ)
+
+|ψ₀(x)|² = √(mω/πℏ) e^(−mωx²/ℏ)  =  Normal(0, σ²) density, σ² = ℏ/2mω</code></pre>
+  <p>The ground-state energy “implies that molecules are not completely at rest, even at absolute zero temperature” (<a href="http://hyperphysics.phy-astr.gsu.edu/hbase/quantum/hosc.html">HyperPhysics</a>). The ½ℏω is usually explained with the <a href="https://en.wikipedia.org/wiki/Zero-point_energy">uncertainty principle</a> (not derived here); here it fell out of <code>[a, a†] = 1</code>.</p>
+
+  <h2 id="worked-example">Worked example: ladder arithmetic on a superposition</h2>
+  <div class="callout">
+    <strong>|ψ⟩ = (|1⟩ + i|3⟩)/√2</strong>
+    Normalized: <code>½ + ½ = 1</code> ✓.<br>
+    <strong>Lower:</strong> <code>a|ψ⟩ = (√1|0⟩ + i√3|2⟩)/√2</code>, squared length <code>(1 + 3)/2 = 2 = ⟨N⟩</code>, as step 1 says.<br>
+    <strong>Apply H:</strong> <code>H|ψ⟩ = ℏω(3/2·|1⟩ + i·7/2·|3⟩)/√2</code>, not a multiple of |ψ⟩: not stationary.<br>
+    <strong>Measure energy:</strong> <code>3ℏω/2</code> or <code>7ℏω/2</code>, probability ½ each.<br>
+    <strong>Expectation:</strong> <code>⟨H⟩ = ½·3ℏω/2 + ½·7ℏω/2 = 5ℏω/2 = E₂</code>, an outcome this state gives with probability <em>zero</em>. An <a href="../../probability/lessons/0002-expectation-variance.html#expectation">expectation</a> need not be possible.<br>
+    <strong>Evolve:</strong> the parts gain <code>e^(−3iωt/2)</code> and <code>e^(−7iωt/2)</code>; their relative phase <code>e^(−2iωt)</code> turns while the energy odds stay ½.
+  </div>
+
+  <h2 id="reality-check">Reality check: HCl, and why a perfect oscillator is a bad qubit</h2>
+  <p>HCl absorbs infrared light when its bond climbs <code>|0⟩ → |1⟩</code>; the photon supplies the gap ℏω (harmonic dipole transitions obey <code>Δn = ±1</code>, <a href="https://ocw.mit.edu/courses/5-61-physical-chemistry-fall-2007/cc186784ceeb24179abba747588570fc_lecture12to15.pdf">MIT 5.61</a>, not derived here). The H³⁵Cl constants in the <a href="https://webbook.nist.gov/cgi/cbook.cgi?ID=C7647010&amp;Mask=1000">NIST WebBook</a> (ωₑ = 2990.946, ωₑxₑ = 52.8186, ωₑyₑ = 0.2243 cm⁻¹) put that gap at <strong>2886 cm⁻¹ ≈ 0.358 eV ≈ 8.65×10¹³ Hz</strong>. A perfect oscillator would put 0→2 at 2 × 2886 = 5772 cm⁻¹; the same constants give <strong>5668 cm⁻¹</strong>, 1.8% lower. Real bonds are anharmonic, and equal spacing holds only near the bottom of the well (<a href="http://hyperphysics.phy-astr.gsu.edu/hbase/quantum/hosc.html">HyperPhysics</a>): an honest leading approximation.</p>
+  <p>An LC circuit is an oscillator with <code>Eₖ₊₁ − Eₖ = ℏωᵣ</code> for every k, so a pulse that drives 0→1 drives 1→2 just as well and no two levels can be isolated as a qubit. Superconducting qubits add a Josephson junction to make the spacing unequal (<a href="https://arxiv.org/abs/1904.06560">Krantz et al. 2019, §II.A</a>), which is <a href="../../quantum-computing/lessons/0010-physical-qubits-nisq-era.html">Quantum Computing lesson 10</a>’s territory. One level up, each mode of the electromagnetic field is an oscillator, <code>Σₖ ℏωₖ(a†ₖaₖ + ½)</code>, with a† read as creating one photon of energy ℏωₖ (<a href="https://plato.stanford.edu/entries/quantum-field-theory/">SEP, Quantum Field Theory §5</a>, which notes this particle reading is contested). That is <a href="../../frontier-science/lessons/0006-quantum-fields-particles-as-excitations.html">Quantum Fields 101</a>.</p>
+
+  <h2 id="zero-point-misuse">Misuse check: “free energy from the zero point”</h2>
+  <p>Apply <a href="0001-state-vectors-superposition-born-rule.html#misuse-check">lesson 1’s discipline</a> to a device said to draw power from an oscillator’s zero-point energy: what is the Hamiltonian, what is its spectrum, and is there a lower state to drop into? To give away ΔE the system must end ΔE lower, but the spectrum starts at <code>ℏω/2</code> and <code>a|0⟩ = 0</code>: no rung below. Physicists answering <a href="https://www.scientificamerican.com/article/follow-up-what-is-the-zer/">Scientific American</a> say the same: releasing it “is impossible, because then the molecule would be left with less than the minimum amount” (Paul Deck), and for the vacuum, the state of least energy, “there is no way to extract the vacuum energy” (John Baez). The ½ℏω is real; it is also the floor.</p>
+
+  <h2>Try it: ladder arithmetic</h2>
+  <p>Use only the ladder rules and <code>Eₙ = ℏω(n + ½)</code>. The cards mix operations on purpose, so first decide which rule applies.</p>
+  <div id="qho-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. What, precisely, does “the oscillator’s energy is quantized” claim?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','No lumps were postulated. The inputs were [x̂, p̂] = iℏ and non-negative squared lengths; discreteness came out as a theorem.')">Energy is postulated to come in lumps of size ℏω</button>
+        <button onclick="quizAnswer(this,true,'q1','Right: possible energies are eigenvalues of H, and the ladder argument shows they are exactly ℏω(n + ½), n = 0, 1, 2, …')">H has the discrete spectrum ℏω(n + ½), n ≥ 0</button>
+        <button onclick="quizAnswer(this,false,'q1','(|0⟩ + |2⟩)/√2 is a valid state with no definite energy. Quantization restricts measurement outcomes, not which states exist.')">Every state has one definite energy ℏω(n + ½)</button>
+        <button onclick="quizAnswer(this,false,'q1','A free particle has a continuous spectrum. Discreteness belongs to a particular H, not to all systems.')">Every quantum system has discrete energy levels</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Repeatedly lowering an N-eigenstate would eventually reach a negative eigenvalue. What stops that?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','If a|0⟩ = |0⟩, then ⟨0|N|0⟩ = ‖a|0⟩‖² would be 1, not 0. The coefficient at n = 0 is √0 = 0.')">a|0⟩ = |0⟩, so the ladder loops back on itself</button>
+        <button onclick="quizAnswer(this,false,'q2','No such postulate was used. Non-negativity was derived: ⟨ν|N|ν⟩ = ‖a|ν⟩‖² ≥ 0 is a squared length.')">A separate postulate that energy is never negative</button>
+        <button onclick="quizAnswer(this,true,'q2','Right: ‖a|0⟩‖² = ⟨0|N|0⟩ = 0, so a|0⟩ is the zero vector, not a state. Descent can stop only there, which forces whole-number eigenvalues.')">‖a|0⟩‖² = 0, so a|0⟩ is the zero vector</button>
+        <button onclick="quizAnswer(this,false,'q2','a is not Hermitian: its adjoint a† is a different operator. The argument uses the Hermitian N = a†a.')">a is Hermitian, so its eigenvalues are real</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Which pair consists of two Hermitian operators, that is, observables?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','a and a† are adjoints of each other and a ≠ a†, so neither equals its own adjoint.')">a and a†</button>
+        <button onclick="quizAnswer(this,false,'q3','x̂ is Hermitian, but a is not: a† differs from a in the sign of the p̂ term.')">x̂ and a</button>
+        <button onclick="quizAnswer(this,false,'q3','p̂ is Hermitian, but a† is not: its adjoint is a, a different operator.')">p̂ and a†</button>
+        <button onclick="quizAnswer(this,true,'q3','Right: (a†a)† = a†a, so N is Hermitian, and H = ℏω(N + ½) is a real multiple of N plus a real constant.')">N and H</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. The ground state is ψ₀(x) ∝ e^(−mωx²/2ℏ). What does |ψ₀(x)|² describe?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q4','Right: |ψ₀|² is a probability density, exactly the Normal(0, ℏ/2mω) density; integrate it over an interval to get a probability.')">A density: position is Normal(0, ℏ/2mω)</button>
+        <button onclick="quizAnswer(this,false,'q4','The ground state has energy ℏω/2, not 0, and a position spread of width √(ℏ/2mω).')">A particle at rest at x = 0 with zero energy</button>
+        <button onclick="quizAnswer(this,false,'q4','It is a density, not a probability: any single exact x has probability 0.')">The probability of being exactly at point x</button>
+        <button onclick="quizAnswer(this,false,'q4','ψ(x) is the state in the position basis, like α and β for a qubit, not a physical wave.')">A physical wave the particle is smeared into</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>By hand, using only <code>a a† = a†a + 1</code> and <code>a|0⟩ = 0</code>, show <code>‖a†a†|0⟩‖² = ⟨0|a a a†a†|0⟩ = 2</code>. Conclude <code>|2⟩ = (a†)²|0⟩/√2</code>, then check <code>N|2⟩ = 2|2⟩</code>. (Equation 2.17 in the primary resource.)</p>
+
+  <h2>Primary resource</h2>
+  <p>Barton Zwiebach, <a href="https://ocw.mit.edu/courses/8-04-quantum-physics-i-spring-2016/3b4ee73bda5abd93cbb2a89ae9b6765b_MIT8_04S16_LecNotes14_15.pdf" target="_blank">MIT 8.04 Lecture Notes 14–15: Algebraic Approach to the SHO</a> (MIT OpenCourseWare, free). Nine pages doing exactly this lesson at full rigour: the factorization, <code>E ≥ ℏω/2</code> from positive norms, the Gaussian from <code>a φ₀ = 0</code>, and the √n ladder rules.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Try: use <code>x̂ = √(ℏ/2mω)(a + a†)</code> to compute <code>⟨x̂²⟩</code> in <code>|0⟩</code> and <code>|1⟩</code> by ladder algebra alone, check the <code>|0⟩</code> result against the Normal variance ℏ/2mω, and ask why <code>|1⟩</code> has three times the variance (a √3 wider spread). Bring it to Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0004-schrodinger-equation.html">← Lesson 4: The Schrödinger Equation</a>
+    <span class="spacer"></span>
+    <a href="../index.html">Quantum Mechanics: All Lessons →</a>
+  </div>
+
+</div>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+renderMC('qho-exercise', [
+  { prompt: 'Raise: a†|2⟩ = ?', options: [
+    { text: '√2 |3⟩', explain: '√2 = √n is the lowering coefficient (a|2⟩ = √2|1⟩). Raising uses √(n+1) = √3.' },
+    { text: '√3 |3⟩', correct: true, explain: 'Right: a†|n⟩ = √(n+1)|n+1⟩. Check: ‖a†|2⟩‖² = ⟨2|(N + 1)|2⟩ = 3.' },
+    { text: '3 |3⟩', explain: '3 is the squared length ‖a†|2⟩‖² = n + 1; the coefficient is its square root, √3.' },
+    { text: '1 |3⟩', explain: 'a† changes length: ‖a†|2⟩‖² = 3, so the result cannot be the unit vector |3⟩.' },
+  ]},
+  { prompt: 'Lower the ground state: a|0⟩ = ?', options: [
+    { text: 'the state |0⟩', explain: 'Then ⟨0|N|0⟩ = ‖a|0⟩‖² would be 1, not 0. The coefficient is √0 = 0.' },
+    { text: 'the state |1⟩', explain: 'a only lowers. Climbing is the job of a†: a†|0⟩ = |1⟩.' },
+    { text: 'the state |−1⟩', explain: 'No such rung: N would have eigenvalue −1, but every eigenvalue is ‖a|ν⟩‖² ≥ 0.' },
+    { text: 'the zero vector', correct: true, explain: 'Right: ‖a|0⟩‖² = ⟨0|N|0⟩ = 0. The zero vector is not a state, so the ladder ends here.' },
+  ]},
+  { prompt: 'Order matters: a a†|3⟩ = ?', options: [
+    { text: '3 |3⟩', explain: 'That is a†a|3⟩ = N|3⟩. Since a a† = a†a + 1, the answer is 3 + 1 = 4.' },
+    { text: '√12 |3⟩', explain: 'You lowered with √3, but after a† the state is |4⟩, so lowering gives √4: √4·√4 = 4.' },
+    { text: '4 |3⟩', correct: true, explain: 'Right: the rightmost acts first. a†|3⟩ = √4|4⟩, then a gives √4·√4|3⟩ = 4|3⟩ = (N + 1)|3⟩.' },
+    { text: '2 |3⟩', explain: 'You kept only one square-root factor. Raising gives √4 and lowering from |4⟩ another √4.' },
+  ]},
+  { prompt: 'Energy of the state |4⟩?', options: [
+    { text: '4ℏω', explain: 'This drops the zero-point term: Eₙ = ℏω(n + ½), where the ½ comes from [a, a†] = 1.' },
+    { text: '5ℏω', explain: 'The offset is ½ℏω, not a whole ℏω. 5ℏω would be ℏω(n + 1).' },
+    { text: '5ℏω/2', explain: 'That is E₂. |4⟩ sits two rungs higher, 2ℏω more.' },
+    { text: '9ℏω/2', correct: true, explain: 'Right: E₄ = ℏω(4 + ½) = 9ℏω/2.' },
+  ]},
+  { prompt: 'A photon takes the oscillator from |0⟩ to |1⟩. What energy does it carry?', options: [
+    { text: 'ℏω/2', explain: 'That is E₀, the energy the oscillator already had.' },
+    { text: 'ℏω', correct: true, explain: 'Right: E₁ − E₀ = 3ℏω/2 − ℏω/2 = ℏω. The photon supplies the gap, not the level.' },
+    { text: '3ℏω/2', explain: 'That is E₁ itself. The photon only supplies the difference E₁ − E₀.' },
+    { text: '2ℏω', explain: 'That is the 0→2 gap; one dipole photon changes n by ±1 in the harmonic model.' },
+  ]},
+  { prompt: 'You measure the energy of (|0⟩ + |2⟩)/√2. What can you get?', options: [
+    { text: '3ℏω/2, every single time', explain: 'That is the expectation ½·ℏω/2 + ½·5ℏω/2. It equals E₁, and this state has no |1⟩ part, so it never occurs.' },
+    { text: 'ℏω/2 or 3ℏω/2, ½ each', explain: '3ℏω/2 is E₁, but the |1⟩ coefficient is 0. The second part is |2⟩, with E₂ = 5ℏω/2.' },
+    { text: 'ℏω/2 or 5ℏω/2, ½ each', correct: true, explain: 'Right: Born rule in H’s eigenbasis. Each coefficient is 1/√2, so E₀ or E₂ with probability ½, then collapse to |0⟩ or |2⟩.' },
+    { text: 'ℏω/2, 3ℏω/2 or 5ℏω/2', explain: 'Only eigenvalues with a nonzero coefficient appear. |1⟩ has coefficient 0, so P(3ℏω/2) = 0.' },
+  ]},
+  { prompt: 'Is (|0⟩ + |1⟩)/√2 a stationary state of the oscillator?', options: [
+    { text: 'Yes: each part is stationary', explain: 'Each part is, but with different energies they gain phases e^(−iωt/2) and e^(−3iωt/2), so the sum is not an eigenvector of H.' },
+    { text: 'No: it mixes two energies', correct: true, explain: 'Right: H gives ℏω(½|0⟩ + 3/2|1⟩)/√2, not a multiple of the state. The relative phase e^(−iωt) turns, exactly like the qubit precession.' },
+    { text: 'Yes: its energy odds are fixed', explain: 'They stay ½ and ½, but that is the precession trap: the relative phase still evolves and other measurements see it.' },
+    { text: 'No: no superposition can be', explain: 'Wrong reason: a sum of eigenvectors with the same energy is stationary. Here the two energies differ.' },
+  ]},
+  { prompt: 'A spring 4× stiffer doubles ω = √(k/m). What happens to the level spacing and to E₀?', options: [
+    { text: 'Spacing doubles; E₀ is fixed', explain: 'E₀ = ℏω/2 is proportional to ω too; no part of ℏω(n + ½) is independent of ω.' },
+    { text: 'Neither one changes at all', explain: 'ω appears in every Eₙ. The label n picks the rung; ℏω sets the spacing.' },
+    { text: 'Spacing halves; E₀ doubles', explain: 'A larger ω means a larger gap ℏω, not a smaller one.' },
+    { text: 'Both double: 2ℏω and ℏω', correct: true, explain: 'Right: every level scales with ω. The gap becomes 2ℏω and E₀ goes from ℏω/2 to ℏω.' },
+  ]},
+  { prompt: 'Claim: “Our device draws continuous power from an oscillator’s zero-point energy.” Verdict?', options: [
+    { text: 'Fails: no rung below |0⟩', correct: true, explain: 'Right: releasing energy means ending in a lower state, and a|0⟩ = 0 says there is none. The spectrum starts at ℏω/2.' },
+    { text: 'Works: E₀ = ℏω/2 is not 0', explain: 'A positive floor is still a floor. Extracting ΔE needs a final state ΔE lower, and none exists.' },
+    { text: 'Works if cooled to 0 kelvin', explain: 'Cooling puts the oscillator in |0⟩, the state of least energy: the worst start for extracting energy.' },
+    { text: 'Fails: E₀ is a math artifact', explain: 'E₀ is real: it follows from [x̂, p̂] = iℏ, and the ground-state spread is physical. The device fails because E₀ is the minimum.' },
+  ]},
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

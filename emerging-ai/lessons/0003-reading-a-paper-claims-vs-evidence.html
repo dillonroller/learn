@@ -84,10 +84,10 @@
     <div class="q-block" id="q2">
       <p>2. In the worked I-JEPA example, which part of the framing claim is the "checkable" part?</p>
       <div class="options">
-        <button onclick="quizAnswer(this,false,'q2','This is exactly the interpretive language the lesson says to separate out — words like "useful" and "semantic" are the authors\' interpretation, not the checkable measurement itself.')">The words "useful" and "semantic" applied to the learned representations</button>
+        <button onclick="quizAnswer(this,false,'q2','This is exactly the interpretive language the lesson says to separate out — words like &quot;useful&quot; and &quot;semantic&quot; are the authors\' interpretation, not the checkable measurement itself.')">The words "useful" and "semantic" applied to the learned representations</button>
         <button onclick="quizAnswer(this,true,'q2','Right — specific reported numbers (linear-probe accuracy, low-shot performance, training compute) under a stated experimental setup are the checkable evidence; that\'s what a replication attempt would try to reproduce.')">The specific reported numbers — linear-probe accuracy, low-shot results, training compute — under their stated experimental setup</button>
         <button onclick="quizAnswer(this,false,'q2','The lesson doesn\'t treat the paper\'s title as evidence of anything — titles are framing, similar to the abstract, not a reported measurement.')">The paper\'s title</button>
-        <button onclick="quizAnswer(this,false,'q2','This is the interpretive claim about the training process, not a specific checkable number — "simpler" is exactly the kind of interpretive word the lesson flags.')">The claim that the method is "simpler" than prior approaches</button>
+        <button onclick="quizAnswer(this,false,'q2','This is the interpretive claim about the training process, not a specific checkable number — &quot;simpler&quot; is exactly the kind of interpretive word the lesson flags.')">The claim that the method is "simpler" than prior approaches</button>
       </div>
       <div class="feedback" id="q2-fb"></div>
     </div>
@@ -130,7 +130,7 @@
   <div class="nav">
     <a href="0002-jepa-self-supervised-architecture.html">← Lesson 2: JEPA &amp; Self-Supervised Representation Learning</a>
     <span class="spacer"></span>
-    <a href="../index.html#lesson-04">Lesson 4: Mechanistic Interpretability →</a>
+    <a href="0004-mechanistic-interpretability-circuits.html">Lesson 4: Mechanistic Interpretability →</a>
   </div>
 
 </div>
@@ -193,7 +193,7 @@ PAPER_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

@@ -59,8 +59,8 @@
       <p>1. What does |ψ⟩ = α|0⟩ + β|1⟩ actually represent, before any measurement?</p>
       <div class="options">
         <button onclick="quizAnswer(this,false,'q1','This is the classical-hidden-variable reading the lesson specifically distinguishes from the standard formalism — standard QM treats the superposition as genuinely determinate, not as ignorance of a pre-existing fact.')">An unknown classical fact — the qubit is really 0 or really 1, we just don't know which yet</button>
-        <button onclick="quizAnswer(this,true, 'q1','Right — it’s one specific, well-defined vector, exactly as determinate as any other vector, with no classical analogue for what it "really" is until measured.')">A single, well-defined vector — a determinate mathematical object, not an unresolved fact</button>
-        <button onclick="quizAnswer(this,false,'q1','That’s the popular gloss the lesson is specifically correcting — the state isn’t "both 0 and 1 simultaneously" in the everyday sense of two things happening at once.')">Literally two separate physical states occurring simultaneously</button>
+        <button onclick="quizAnswer(this,true, 'q1','Right — it’s one specific, well-defined vector, exactly as determinate as any other vector, with no classical analogue for what it &quot;really&quot; is until measured.')">A single, well-defined vector — a determinate mathematical object, not an unresolved fact</button>
+        <button onclick="quizAnswer(this,false,'q1','That’s the popular gloss the lesson is specifically correcting — the state isn’t &quot;both 0 and 1 simultaneously&quot; in the everyday sense of two things happening at once.')">Literally two separate physical states occurring simultaneously</button>
         <button onclick="quizAnswer(this,false,'q1','A meaningless combination would violate normalization or otherwise not correspond to physical setup — a properly normalized superposition is a perfectly meaningful, standard object in the formalism.')">A mathematical convenience with no physical meaning at all</button>
       </div>
       <div class="feedback" id="q1-fb"></div>
@@ -91,8 +91,8 @@
     <div class="q-block" id="q4">
       <p>4. Someone claims "quantum superposition proves consciousness can hold two contradictory beliefs at once." What's the right response, per this lesson's misuse check?</p>
       <div class="options">
-        <button onclick="quizAnswer(this,false,'q4','This isn’t a faithful application — there’s no defined state vector, basis, or Born-rule prediction for "beliefs," which is exactly what the misuse check demands before accepting a quantum claim.')">Accept it — superposition is a general phenomenon that applies to any system, including minds</button>
-        <button onclick="quizAnswer(this,true, 'q4','Right — ask for the actual state vector, the basis it’s measured in, and what the Born rule predicts. Without those, "superposition" is being borrowed as a metaphor, not applied as physics.')">Ask what the actual state vector, basis, and Born-rule prediction are for this claim — if there are none, it's borrowed vocabulary, not physics</button>
+        <button onclick="quizAnswer(this,false,'q4','This isn’t a faithful application — there’s no defined state vector, basis, or Born-rule prediction for &quot;beliefs,&quot; which is exactly what the misuse check demands before accepting a quantum claim.')">Accept it — superposition is a general phenomenon that applies to any system, including minds</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — ask for the actual state vector, the basis it’s measured in, and what the Born rule predicts. Without those, &quot;superposition&quot; is being borrowed as a metaphor, not applied as physics.')">Ask what the actual state vector, basis, and Born-rule prediction are for this claim — if there are none, it's borrowed vocabulary, not physics</button>
         <button onclick="quizAnswer(this,false,'q4','Superposition is a real, well-established phenomenon for actual physical systems with defined quantum states — the issue is applying the term to consciousness without any of the formal structure it requires, not that the phenomenon itself is fake.')">Reject it outright, since superposition isn't a real phenomenon</button>
         <button onclick="quizAnswer(this,false,'q4','It’s not undecidable in principle — the check is concrete: does a state vector, basis, and Born-rule prediction exist for this claim or not. Here, they clearly don’t.')">There's no way to evaluate the claim either way</button>
       </div>
@@ -115,7 +115,7 @@
   <div class="nav">
     <span></span>
     <span class="spacer"></span>
-    <a href="../index.html#lesson-02">Lesson 2: Entanglement &amp; Bell's Theorem →</a>
+    <a href="0002-entanglement-epr-puzzle.html">Lesson 2: Entanglement &amp; Bell's Theorem →</a>
   </div>
 
 </div>
@@ -175,7 +175,7 @@ QM_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

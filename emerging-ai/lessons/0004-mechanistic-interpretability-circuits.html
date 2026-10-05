@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 4 — Mechanistic Interpretability: Peeking Inside the Black Box</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    .ladder { list-style: none; margin: 1rem 0 1.25rem; padding: 0; display: flex; flex-direction: column; gap: .5rem; }
+    .ladder li { margin: 0; padding: .7rem .9rem; background: var(--bg-raised); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--radius-sm); }
+    .ladder .rung { display: block; font-family: var(--font-ui); font-size: .76rem; letter-spacing: .05em; text-transform: uppercase; color: var(--amber); margin-bottom: .15rem; }
+    .sp-fig { margin: 1.25rem 0; padding: .9rem; background: var(--bg-sunken); border: 1px solid var(--border); border-radius: var(--radius); }
+    .sp-fig svg { display: block; width: 100%; max-width: 240px; height: auto; margin: 0 auto .5rem; }
+    .sp-fig .axis { stroke: var(--faint); stroke-width: 1; }
+    .sp-fig .vec { stroke: var(--accent); stroke-width: 2; }
+    .sp-fig .tip { fill: var(--accent-strong); }
+    .sp-fig text { fill: var(--ink-dim); font-family: var(--font-ui); font-size: 11px; }
+    .sp-fig figcaption { font-size: .88rem; color: var(--ink-dim); line-height: 1.5; }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Emerging AI Research</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 4 of 6 &nbsp;·&nbsp; Emerging AI Research &nbsp;·&nbsp; ~35 min</p>
+  <h1>Mechanistic Interpretability: Peeking Inside the Black Box</h1>
+  <p><a href="0001-beyond-next-token-prediction-world-models.html">Lesson 1</a> left you with a narrow existence proof: <a href="0001-beyond-next-token-prediction-world-models.html#does-an-llm-have-a-world-model">Othello-GPT</a> carried a decodable board state, and editing it changed the moves. The <a href="0001-beyond-next-token-prediction-world-models.html#next-token-prediction">next-token loss</a> fixes what a network must output, never which algorithm produces it; mechanistic interpretability asks about the algorithm. This lesson gives you the field’s vocabulary, four results with the scale each holds at, and an evidence ladder for placing any headline of the form “researchers found the X feature in model Z.” <a href="0003-reading-a-paper-claims-vs-evidence.html#claims-and-evidence-worked-example">Lesson 3’s split between the checkable and the interpretive</a> does most of the work.</p>
+
+  <h2>What the field is trying to do</h2>
+  <div class="callout warn">
+    <strong id="mech-interp-def">Mechanistic interpretability (working definition)</strong>
+    Reverse-engineering a trained network’s computation into human-understandable <em>features</em> (what is represented) and <em>circuits</em> (how representations are combined), then testing that those parts actually carry the computation rather than merely correlate with it.
+  </div>
+  <p>The 29-author review <a href="https://arxiv.org/abs/2501.16496" target="_blank">Open Problems in Mechanistic Interpretability</a> (Sharkey et al., 2025) gives the motive as science plus “greater assurance over AI system behavior.” Chris Olah and colleagues’ <a href="https://distill.pub/2020/circuits/zoom-in/" target="_blank">Zoom In</a> (Distill, 2020) stated the program as three claims they call “deliberately speculative”:</p>
+  <div class="callout warn">
+    <strong id="features-and-circuits">Features, circuits &amp; universality (the three speculative claims)</strong>
+    <ol>
+      <li><em>Features</em> are the fundamental unit of a network, and they correspond to <em>directions</em>: linear combinations of neurons in a layer.</li>
+      <li><em>Circuits</em>: features are connected by weights into subgraphs that can be rigorously studied.</li>
+      <li><em>Universality</em>: analogous features and circuits form across models and tasks.</li>
+    </ol>
+    These are working hypotheses, not results. Note that claim 1 makes the unit a direction, not a neuron.
+  </div>
+  <p>In a transformer, the <strong id="residual-stream">residual stream</strong> after layer <em>n</em> “is the sum of the embedding and the outputs of all layers up to layer <em>n</em>” (<a href="https://www.neelnanda.io/mechanistic-interpretability/glossary" target="_blank">Nanda’s glossary</a>). In Elhage et al.’s <a href="https://transformer-circuits.pub/2021/framework/index.html" target="_blank">Mathematical Framework</a> (2021), heads and MLPs “communicate with each other by reading and writing to different subspaces of the residual stream.” Because writes are additive, you can ask what one component contributed; the methods below exploit that linearity.</p>
+
+  <h2>What it has actually found, and at what scale</h2>
+  <p><strong id="induction-heads">Induction heads</strong> complete [A][B] … [A] → [B]: attend to the token that followed an earlier copy of the current token, then raise its logit. Catherine Olsson, Nelson Elhage, Neel Nanda and colleagues (<a href="https://arxiv.org/abs/2209.11895" target="_blank">2022</a>) found they form in a narrow early-training window, “visible as a bump in the training loss,” exactly when in-context learning jumps. Their self-grading is the model to copy: “strong, causal evidence” for small attention-only models; for large models with MLPs (up to 13B parameters) the claim that induction heads do <em>most</em> in-context learning is rated “Medium, Correlational,” because “we do not have ablations for our full-scale models.” Whether such a jump counts as “emergence” is <a href="0005-scaling-laws-established-vs-debated.html#emergent-abilities-debate">lesson 5’s question</a>.</p>
+  <ul>
+    <li><strong>IOI in GPT-2 small.</strong> Kevin Wang et al. (<a href="https://arxiv.org/abs/2211.00593" target="_blank">2022</a>) explained how “When Mary and John went to the store, John gave a drink to” gets “Mary”: 26 heads in 7 classes, of the model’s 144, found by path patching and knockouts and scored on faithfulness, completeness and minimality. It improves on a naive circuit “but fails to pass the most challenging tests,” and <em>backup</em> heads take over when the main ones are ablated.</li>
+    <li><strong>Modular addition.</strong> Nanda et al. (<a href="https://arxiv.org/abs/2301.05217" target="_blank">2023</a>) fully reverse-engineered a one-layer transformer trained on addition mod 113: “discrete Fourier transforms and trigonometric identities” turn addition into rotation, confirmed by ablations in Fourier space. Complete, but a toy model on one task.</li>
+    <li><strong>Othello-GPT made linear.</strong> Li et al. (<a href="https://arxiv.org/abs/2210.13382" target="_blank">2022</a>) found a <em>nonlinear</em> board representation; Nanda, Andrew Lee and Martin Wattenberg (<a href="https://arxiv.org/abs/2309.00941" target="_blank">2023</a>) showed it is linear in a “my colour” vs “opponent’s colour” basis and steerable “with simple vector arithmetic.” What a probe finds depends on the basis you ask about.</li>
+  </ul>
+
+  <h2 id="superposition-polysemanticity">Polysemanticity and superposition: why neurons are the wrong unit</h2>
+  <p>Zoom In’s InceptionV1 has a neuron that “responds to cat faces, fronts of cars, and cat legs”: it is <em>polysemantic</em>. <a href="https://transformer-circuits.pub/2022/toy_model/index.html" target="_blank">Toy Models of Superposition</a> (Elhage et al., 2022) explains why: models “represent more features than they have dimensions.” A <em>d</em>-dimensional space has <em>d</em> orthogonal directions but exponentially many almost-orthogonal ones. When features are sparse, “superposition allows compression … at the cost of ‘interference’ that requires nonlinear filtering,” and each neuron ends up carrying slices of several features.</p>
+  <figure class="sp-fig">
+    <svg viewBox="0 0 220 200" role="img" aria-label="Five feature directions arranged as a regular pentagon in a two-dimensional plane">
+      <line class="axis" x1="18" y1="105" x2="202" y2="105"/>
+      <line class="axis" x1="110" y1="8" x2="110" y2="195"/>
+      <line class="vec" x1="110" y1="105" x2="110" y2="33"/>
+      <line class="vec" x1="110" y1="105" x2="41.5" y2="82.8"/>
+      <line class="vec" x1="110" y1="105" x2="67.7" y2="163.2"/>
+      <line class="vec" x1="110" y1="105" x2="152.3" y2="163.2"/>
+      <line class="vec" x1="110" y1="105" x2="178.5" y2="82.8"/>
+      <circle class="tip" cx="110" cy="33" r="3"/><circle class="tip" cx="41.5" cy="82.8" r="3"/><circle class="tip" cx="67.7" cy="163.2" r="3"/><circle class="tip" cx="152.3" cy="163.2" r="3"/><circle class="tip" cx="178.5" cy="82.8" r="3"/>
+      <text x="118" y="22">f1</text><text x="16" y="74">f2</text><text x="44" y="182">f3</text><text x="160" y="182">f4</text><text x="188" y="74">f5</text>
+    </svg>
+    <figcaption>Five features in two dimensions as a pentagon, one geometry Toy Models reports. Neighbours have cosine cos 72° ≈ 0.31, the others cos 144° ≈ −0.81. If f1 fires alone, a ReLU zeroes the −0.81 readouts and a negative bias can cut the +0.31 leaks. If several fire at once the leaks add up, so sparsity is the precondition.</figcaption>
+  </figure>
+  <div class="callout">
+    <strong>Name collision: not quantum superposition</strong>
+    This is a linear-algebra packing claim about real-valued activations, unrelated to <a href="../../quantum-mechanics/lessons/0001-state-vectors-superposition-born-rule.html#superposition">quantum superposition</a>. It passes that lesson’s <a href="../../quantum-mechanics/lessons/0001-state-vectors-superposition-born-rule.html#misuse-check">misuse check</a> because it has its own precise, checkable definition; it just shares a word. Its authors add that it is “very unclear what to generalize to real networks.”
+  </div>
+  <p><strong id="sparse-autoencoders">Sparse autoencoders (dictionary learning)</strong> try to pull features back out: a much wider autoencoder reconstructs a layer’s activations from a sparse set of learned directions (L2 reconstruction plus an L1 penalty), and each direction is a candidate feature. <a href="https://transformer-circuits.pub/2023/monosemantic-features/index.html" target="_blank">Towards Monosemanticity</a> (Bricken et al., 2023) expanded a one-layer model’s 512-neuron MLP into up to 131,072 features. <a href="https://transformer-circuits.pub/2024/scaling-monosemanticity/index.html" target="_blank">Scaling Monosemanticity</a> (Templeton et al., 2024) trained 1M, 4M and 34M-feature SAEs on the residual stream at Claude 3 Sonnet’s middle layer; clamping its Golden Gate Bridge feature to 10× its maximum made the model “self-identify as the Golden Gate Bridge.” Keep the layers apart: the <em>label</em> is a human reading of top-activating examples (interpretive); the <em>steering result</em> is checkable and causal.</p>
+
+  <h2 id="probing-vs-intervention">Probing vs causal intervention: the evidence ladder</h2>
+  <p>Each method licenses a different strength of claim. Put a headline on the highest rung its method reaches, then add the model scale.</p>
+  <ol class="ladder">
+    <li><span class="rung">Rung 1 · Decodable</span><strong>Probe</strong>: a classifier predicts X from activations. Licenses: the information is present in a form this probe can read. Not: the model uses it. Belinkov’s <a href="https://arxiv.org/abs/2102.12452" target="_blank">review</a>: probing “may indicate correlations … but it does not tell us whether this property is involved in predictions.”</li>
+    <li><span class="rung">Rung 2 · Causally implicated</span><strong>Activation patching</strong> (splice one component’s activation from a clean run into a corrupted run and measure how much of the correct-answer logit difference returns), <strong>ablation</strong> (zero or mean-replace it), <strong>steering</strong> (add or clamp a direction). Licenses: this component affects this behaviour on these inputs. Not: it is the only path or the whole story.</li>
+    <li><span class="rung">Rung 3 · Mechanism explained</span>A circuit that passes faithfulness, completeness and minimality tests, or an algorithm read off the weights and confirmed by targeted ablation. Licenses: how this behaviour is computed in this model. Not: that it transfers to other models or scales. Modular addition reaches this rung; IOI comes close but, by its authors’ own account, fails the hardest completeness tests.</li>
+  </ol>
+  <p>Othello-GPT reached rung 2 because Li et al. edited the representation and the moves changed. Rung 2 is method-sensitive: Zhang and Nanda <a href="https://arxiv.org/abs/2309.16042" target="_blank">showed</a> that patching metrics and corruption choices “could lead to disparate interpretability results” (see Heimersheim and Nanda’s <a href="https://arxiv.org/abs/2404.15255" target="_blank">guide</a>), and IOI’s backup heads mean an ablation can understate a component’s role. And locating is not editing: ROME (<a href="https://arxiv.org/abs/2202.05262" target="_blank">Meng et al.</a>) used causal tracing to choose where to edit facts, but Hase et al. <a href="https://arxiv.org/abs/2301.04213" target="_blank">found</a> localization results “do not provide any insight into which model MLP layer would be best to edit.”</p>
+
+  <h2 id="interp-limits">What interpretability still can’t tell you</h2>
+  <p>A flagship frontier-scale study, Lindsey et al.’s <a href="https://transformer-circuits.pub/2025/attribution-graphs/biology.html" target="_blank">On the Biology of a Large Language Model</a> (2025), traces Claude 3.5 Haiku answering “the capital of the state containing Dallas” through an internal Texas step; swapping in California features makes it answer Sacramento. That is rung 2 on a production model. The limits are just as specific, and most come from the papers’ own <a href="0003-reading-a-paper-claims-vs-evidence.html#ablations-and-limitations">limitations sections</a>:</p>
+  <ul>
+    <li>The graphs give “satisfying insight for about a quarter of the prompts we’ve tried,” “only capture a small fraction of the mechanisms,” and run on a “replacement model” that “incompletely and imperfectly captures the original.”</li>
+    <li>Claude 3 Sonnet can list every London borough, yet the 34M SAE had features for only “about 60% of the boroughs” (Templeton et al.).</li>
+    <li>Across Pythia model sizes, SAEs on <em>randomly initialized</em> transformers often score about as well on auto-interpretability and reconstruction metrics as SAEs on trained ones, so those metrics alone cannot certify that real features were found (<a href="https://arxiv.org/abs/2501.17727" target="_blank">Heap et al., 2025</a>).</li>
+    <li>Google DeepMind’s team found plain linear probes beat SAE probes on out-of-distribution harmful-intent detection and announced they were “deprioritising fundamental SAE research” (<a href="https://www.lesswrong.com/posts/4uXCAJNuPKtKBsi28" target="_blank">March 2025</a>; see also <a href="https://arxiv.org/abs/2502.16681" target="_blank">Kantamneni et al.</a>).</li>
+    <li>The streetlight worry: Nanda calls the charge that IOI is “an incredibly cherry-picked, toy problem” “a fairly legitimate criticism” (<a href="https://www.neelnanda.io/mechanistic-interpretability/glossary" target="_blank">glossary</a>).</li>
+  </ul>
+  <p>As of 2026, public framing runs ahead of these numbers: MIT Technology Review listed mechanistic interpretability among its <a href="https://www.technologyreview.com/2026/01/12/1130003/mechanistic-interpretability-ai-research-models-2026-breakthrough-technologies/" target="_blank">10 Breakthrough Technologies of 2026</a>, while noting “the field is split on how far you can go with these techniques.”</p>
+  <div class="callout">
+    <strong>Hold these together, not apart</strong>
+    IOI, modular addition, Golden Gate steering and the Texas→California swap are real causal results; a quarter of prompts, 60% of boroughs and the random-network baselines are equally real. Together: checkable mechanisms for <em>selected</em> behaviours, even in production models, and no evidence yet that they cover most of what a frontier model does. A growing set of narrow existence proofs, not a readable model.
+  </div>
+  <p><strong>Established:</strong> specific circuits in small models; superposition in toy models; SAE features that steer a production model. <strong>Unproven bet:</strong> that this scales to a usable account of frontier models; universality; that SAEs find the model’s own features, not dictionary artefacts. <strong>Marketing:</strong> below.</p>
+
+  <h2 id="misuse-check">Before repeating an interpretability headline</h2>
+  <p>Same discipline as <a href="0003-reading-a-paper-claims-vs-evidence.html#misuse-check">lesson 3’s four questions</a>. Q3 (checked outside the original team?) and Q4 (does the headline survive next to the limitations?) do most of the work: Heap et al. and DeepMind’s probe comparison are outside checks, and the “quarter of the prompts” line sits in the headline paper itself. Then name the method, the rung and the scale. <a href="0006-evaluating-new-architecture-claims.html#claim-audit">Lesson 6’s claim audit</a> generalizes this.</p>
+  <div class="callout warn">
+    <strong>“Researchers can now read the AI’s mind”</strong> — Overclaim. The authors’ own figures: a quarter of prompts, a small fraction of mechanisms, an imperfect replacement model, about 60% of a list the model knows. A microscope with a narrow field of view, not a transcript.
+  </div>
+  <div class="callout warn">
+    <strong>“They found a deception feature, so the model is deceptive (or understands)”</strong> — Overclaim. The label is the interpretive layer, and Templeton et al. warn “there’s a difference … between knowing about lies, being capable of lying, and actually lying in the real world.” A mechanistic story answers functional <a href="../../philosophy/lessons/0007-philosophy-of-mind.html#easy-problems">“easy problem”</a> questions only.
+  </div>
+  <div class="callout warn">
+    <strong>“Mech interp only works on toy models, so it’s useless”</strong> — Overclaim the other way. IOI is natural text in a real pretrained model; Golden Gate steering and the Texas→California swap are interventions on production models. The fair criticism is coverage and selection, not reality.
+  </div>
+
+  <h2>Try it: what does the evidence license?</h2>
+  <p>Each card pairs a method with a stated claim (paraphrased). Is the claim correctly placed on rung 1, 2 or 3, or does it outrun its method?</p>
+  <div id="interp-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Why do individual neurons often respond to several unrelated things?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Toy Models shows polysemanticity arising as an efficient packing when features are sparse: a solution training finds, not leftover noise.')">Training noise scrambles them, and more data would make each one clean</button>
+        <button onclick="quizAnswer(this,true,'q1','Right. Sparse features rarely co-occur, so storing them as almost-orthogonal directions costs little interference, and each neuron carries parts of several features.')">More sparse features than neurons, packed as near-orthogonal directions</button>
+        <button onclick="quizAnswer(this,false,'q1','That is the name collision. Interpretability superposition is real-valued linear algebra, with no quantum states or measurement involved.')">Each neuron is a quantum superposition of several concept states at once</button>
+        <button onclick="quizAnswer(this,false,'q1','The residual stream is additive, so heads add rather than overwrite, and the cat-faces/car-fronts neuron sits in InceptionV1, which has no attention at all.')">Attention heads overwrite neurons, which then hold whatever came last</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. A linear probe recovers sentiment from layer 10 with 95% accuracy. On its own, what does that establish?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','That is a claim about use, which needs an intervention. Belinkov: probing shows correlation, not whether the property is involved in predictions.')">That the model relies on sentiment when predicting its next token</button>
+        <button onclick="quizAnswer(this,false,'q2','Decodable at layer 10 does not mean computed there: it could be computed earlier and carried along the residual stream.')">That layer 10 is where the model computes the sentiment of the text</button>
+        <button onclick="quizAnswer(this,false,'q2','An SAE is a different method with incomplete coverage (about 60% of boroughs at 34M features), so a probe promises nothing about it.')">That a sparse autoencoder on that layer will contain a sentiment feature</button>
+        <button onclick="quizAnswer(this,true,'q2','Right. Rung 1: a linear classifier can read the information at that layer. Whether the model uses it is a separate, causal question.')">That sentiment is linearly decodable from that layer’s activations</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. What does the induction-heads paper’s own evidence table say about large models with MLPs?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right. The majority claim is rated Strong, Causal only for small attention-only models; for large models it is Medium, Correlational, with no ablations at full scale.')">Medium, correlational evidence that they do most in-context learning</button>
+        <button onclick="quizAnswer(this,false,'q3','The paper says the opposite: “we do not have ablations for our full-scale models.” The ablation evidence comes from small models only.')">Strong, causal evidence, because the heads were ablated at 13B scale</button>
+        <button onclick="quizAnswer(this,false,'q3','Induction heads were observed in the large models too, with examples from a 13B model; the evidence there is weaker and correlational, not absent.')">No evidence, since induction heads were found only in toy models</button>
+        <button onclick="quizAnswer(this,false,'q3','The authors call their case “relatively strong, though not conclusive” and say induction heads “may” be the main mechanism: far from proof for all models.')">Proof that in-context learning in any model is only induction heads</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Why does Hase et al.’s “Does Localization Inform Editing?” matter for reading interpretability claims?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','Hase et al. do not claim edits fail. Edits can work; the finding is that where tracing points does not predict which layer edits best.')">It showed ROME-style edits fail to change any stored facts at all</button>
+        <button onclick="quizAnswer(this,false,'q4','The paper does not dispute that causal tracing localizes something; its point is that the location does not tell you where an edit works best.')">It showed causal tracing cannot find where any fact is stored</button>
+        <button onclick="quizAnswer(this,true,'q4','Right. Localization conclusions “do not provide any insight” into the best layer to edit, so a causal location is not automatically a handle for control.')">Where tracing localizes a fact did not predict the best layer to edit</button>
+        <button onclick="quizAnswer(this,false,'q4','That is the 2025 Google DeepMind result (and Kantamneni et al.), not Hase et al., whose subject is knowledge editing.')">It showed linear probes beat sparse autoencoders at harmful-intent detection</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>In the induction-heads paper below, find the table “Summary of Evidence for Sub-Claims (Strongest Argument for Each)” and skim the six arguments. For each, note its rung and the model class it covers; say why Argument 6 (graded “Analogy”) cannot climb the ladder. Then take one 2026 interpretability headline and write three lines: method, rung plus scale, what it still cannot tell you.</p>
+
+  <h2>Primary resource</h2>
+  <p>Catherine Olsson, Nelson Elhage, Neel Nanda et al., <a href="https://transformer-circuits.pub/2022/in-context-learning-and-induction-heads/index.html" target="_blank">“In-context Learning and Induction Heads”</a> (2022; <a href="https://arxiv.org/abs/2209.11895" target="_blank">arXiv 2209.11895</a>): a landmark finding that grades its own claims by model scale in one table, which is <a href="0003-reading-a-paper-claims-vs-evidence.html#misuse-check">lesson 3’s procedure</a> done by the authors.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Try this: open the Dallas → Texas → Austin graph in the biology paper and ask which links were confirmed by intervention on Claude 3.5 Haiku and which are only read off the replacement model. That is the ladder applied to one diagram. Bring it to Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0003-reading-a-paper-claims-vs-evidence.html">← Lesson 3: Reading a Real Paper</a>
+    <span class="spacer"></span>
+    <a href="0005-scaling-laws-established-vs-debated.html">Lesson 5: Scaling Laws →</a>
+  </div>
+
+</div>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+renderMC('interp-exercise', [
+  {
+    prompt: 'A probe on Othello-GPT’s activations recovers each square (empty, mine, theirs) with high accuracy. Claim: “The board state is decodable from the activations.”',
+    options: [
+      { text: 'Decodable only', correct: true, explain: 'Right. A probe stated as decodability is rung 1. Showing the model uses the board took Li et al.’s interventions.' },
+      { text: 'Causally implicated', explain: 'Nothing intervenes on the model. A probe only reads activations.' },
+      { text: 'Mechanism explained', explain: 'No algorithm is given for how the board is computed or used.' },
+      { text: 'Overclaim', explain: 'The claim says only that the information is present, which is exactly what a probe licenses.' },
+    ],
+  },
+  {
+    prompt: 'On the strength of a probe that decodes sentiment from layer 10, a blog post says: “The model decides its replies by consulting its sentiment representation.”',
+    options: [
+      { text: 'Decodable only', explain: 'The evidence is rung 1, but the claim is about use, so the claim outruns it.' },
+      { text: 'Causally implicated', explain: 'No patching, ablation or steering was run, so there is no causal evidence.' },
+      { text: 'Mechanism explained', explain: 'There is no circuit or algorithm here, just one probe accuracy.' },
+      { text: 'Overclaim', correct: true, explain: 'Right. Decodable is not used (Belinkov): a rung-1 result dressed as a claim about decisions.' },
+    ],
+  },
+  {
+    prompt: 'On IOI prompts in GPT-2 small, patching one head’s clean-run output into a corrupted run restores most of the logit difference. Claim: “This head matters for IOI on these prompts.”',
+    options: [
+      { text: 'Decodable only', explain: 'Patching changes the forward pass and measures the effect, which is stronger than a readout.' },
+      { text: 'Causally implicated', correct: true, explain: 'Right. Rung 2 for this head on this distribution, though results can shift with metric and corruption choices.' },
+      { text: 'Mechanism explained', explain: 'One head is not the circuit; Wang et al. needed 26 heads plus faithfulness tests.' },
+      { text: 'Overclaim', explain: 'The claim is scoped to this head, these prompts and this model, which one patching result supports.' },
+    ],
+  },
+  {
+    prompt: 'In a one-layer transformer trained on addition mod 113, the algorithm (Fourier transforms and trig identities) is read off the weights and confirmed by ablations in Fourier space.',
+    options: [
+      { text: 'Decodable only', explain: 'The weights are analysed and the algorithm is tested by targeted ablation, far beyond a probe.' },
+      { text: 'Causally implicated', explain: 'It is causal and more: the whole input-to-answer computation is specified and checked.' },
+      { text: 'Mechanism explained', correct: true, explain: 'Right. Rung 3, with the scale caveat: one toy model on one task.' },
+      { text: 'Overclaim', explain: 'Within this toy model and task, the evidence supports a full explanation.' },
+    ],
+  },
+  {
+    prompt: 'An SAE on a frontier model has a feature whose top-activating examples are about lying. Headline: “We can now detect when the model is lying.”',
+    options: [
+      { text: 'Decodable only', explain: 'The headline claims lie detection, which is far more than rung 1, and the lying label is only a human reading of top examples.' },
+      { text: 'Causally implicated', explain: 'Nothing was steered or ablated, and detection was never tested against real lying.' },
+      { text: 'Mechanism explained', explain: 'No circuit links this feature to deceptive output. It is one named dictionary entry.' },
+      { text: 'Overclaim', correct: true, explain: 'Right. The label is interpretive, knowing about lies is not lying, and plain probes beat SAE probes out of distribution.' },
+    ],
+  },
+  {
+    prompt: 'After the 2025 attribution-graphs paper, a newsletter writes: “Anthropic has now explained how Claude 3.5 Haiku works.”',
+    options: [
+      { text: 'Decodable only', explain: 'The paper does test hypotheses by intervention, e.g. the Texas-to-California swap.' },
+      { text: 'Causally implicated', explain: 'Some pathways are, but the headline claims the whole model, a far larger claim.' },
+      { text: 'Mechanism explained', explain: 'Only for selected behaviours, via an imperfect replacement model.' },
+      { text: 'Overclaim', correct: true, explain: 'Right. About a quarter of prompts, a small fraction of mechanisms, a replacement model: the headline drops all three.' },
+    ],
+  },
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

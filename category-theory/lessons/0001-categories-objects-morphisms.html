@@ -74,7 +74,7 @@
       <p>2. In a preorder treated as a category, what is a morphism m → n?</p>
       <div class="options">
         <button onclick="quizAnswer(this,false,'q2','A preorder-as-category has no functions running between elements — a morphism here is just the fact that a relation holds, not a computation.')">A function that transforms m into n</button>
-        <button onclick="quizAnswer(this,true, 'q2','Right — the morphism is just the fact "m ≤ n" being true; it witnesses a relationship rather than performing a computation.')">The bare fact that m ≤ n holds — a witness to a relationship, not a computation</button>
+        <button onclick="quizAnswer(this,true, 'q2','Right — the morphism is just the fact &quot;m ≤ n&quot; being true; it witnesses a relationship rather than performing a computation.')">The bare fact that m ≤ n holds — a witness to a relationship, not a computation</button>
         <button onclick="quizAnswer(this,false,'q2','This describes composition (transitivity), not what an individual morphism itself is.')">A proof that m and n are equal</button>
         <button onclick="quizAnswer(this,false,'q2','Random assignment would violate the category structure — a preorder category has at most one morphism between any two objects, tied directly to whether the relation holds.')">A randomly chosen pairing between elements</button>
       </div>
@@ -119,7 +119,7 @@
   <div class="nav">
     <span></span>
     <span class="spacer"></span>
-    <a href="../index.html#lesson-02">Lesson 2: Functors &amp; Natural Transformations →</a>
+    <a href="0002-functors-natural-transformations.html">Lesson 2: Functors &amp; Natural Transformations →</a>
   </div>
 
 </div>
@@ -179,7 +179,7 @@ CAT_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

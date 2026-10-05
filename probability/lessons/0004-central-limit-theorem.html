@@ -56,7 +56,7 @@
     <div class="q-block" id="q1">
       <p>1. What property of the original Xᵢ distribution does the Central Limit Theorem actually require?</p>
       <div class="options">
-        <button onclick="quizAnswer(this,false,'q1','This is exactly what the theorem does NOT require — the whole point is that it works "regardless" of shape, as long as mean and variance are finite.')">That the Xᵢ already be approximately Normal or symmetric</button>
+        <button onclick="quizAnswer(this,false,'q1','This is exactly what the theorem does NOT require — the whole point is that it works &quot;regardless&quot; of shape, as long as mean and variance are finite.')">That the Xᵢ already be approximately Normal or symmetric</button>
         <button onclick="quizAnswer(this,true, 'q1','Right — the theorem only needs the Xᵢ to be independent, identically distributed, with finite mean and variance; the shape of their distribution is otherwise unconstrained.')">That the Xᵢ be independent and identically distributed, with finite mean and variance</button>
         <button onclick="quizAnswer(this,false,'q1','The theorem places no such requirement on discreteness or continuity — it applies to both discrete distributions like Bernoulli and continuous ones alike.')">That the Xᵢ be continuous, not discrete</button>
         <button onclick="quizAnswer(this,false,'q1','n is what\'s taken to infinity in the theorem\'s statement — it\'s not a fixed prerequisite on the original variables themselves.')">That n be fixed and small</button>
@@ -173,7 +173,7 @@ CLT_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

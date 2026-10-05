@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 5 — The Einstein Field Equation &amp; What "Gravity is Geometry" Means</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Frontier Science</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 5 of 8 &nbsp;·&nbsp; Frontier Science &nbsp;·&nbsp; ~40 min</p>
+  <h1>The Einstein Field Equation &amp; What "Gravity is Geometry" Means</h1>
+  <p>You have seen the picture: a bowling ball on a trampoline, marbles rolling in toward it. <a href="0001-postulates-special-relativity-time-dilation.html">Lesson 1</a> called it rough, and <a href="0004-equivalence-principle-curved-spacetime.html#curved-spacetime">lesson 4</a> replaced it with the real idea: free fall is force-free motion along <a href="0004-equivalence-principle-curved-spacetime.html#geodesics">geodesics</a> of curved spacetime. This lesson shows the equation that decides how spacetime curves and reads it symbol by symbol, with no tensor calculus. Then you get two results you already trust back out of it: Newton’s gravity, and lesson 4’s <a href="0004-equivalence-principle-curved-spacetime.html#gravitational-time-dilation">45.7 μs/day GPS offset</a>. By the end you will know exactly what is wrong with the trampoline.</p>
+
+  <h2 id="metric">The metric: the interval, promoted to a field</h2>
+  <p>Flat spacetime gives every pair of nearby events an <a href="0002-length-contraction-simultaneity-spacetime-diagrams.html#invariant-interval">interval</a> that all observers agree on. General relativity keeps that idea and lets the coefficients vary from event to event. The <strong id="metric-tensor">metric tensor</strong> <code>g_μν</code> is a symmetric 4×4 matrix attached to every event, and it turns a small coordinate step <code>dx</code> into an interval:</p>
+  <pre><code>ds² = g_μν dx^μ dx^ν  =  dxᵀ g dx        μ,ν = 0..3,  dx⁰ = c dt
+
+Flat spacetime (lesson 2), the same at every event:
+  η = diag(1, −1, −1, −1)     ds² = c²dt² − dx² − dy² − dz²</code></pre>
+  <p>This uses the <em>summation convention</em>: an index appearing once up and once down is summed over 0 to 3, which makes <code>g_μν dx^μ dx^ν</code> exactly the quadratic form <code>dxᵀ g dx</code>. Symmetry leaves 10 independent entries per event. In CS terms, geometry is a matrix-valued function <code>g : ℝ⁴ → Sym(4)</code>; flat spacetime is the constant <code>η</code>, and gravity is every other case.</p>
+  <p>Two links to lesson 4. The <a href="0004-equivalence-principle-curved-spacetime.html#equivalence-principle-def">equivalence principle</a> becomes a fact about <code>g</code>: at any one event, freely falling coordinates make <code>g = η</code> with zero first derivatives, so spacetime always looks flat locally. Only the second derivatives can’t be removed, and they are the curvature (<a href="https://arxiv.org/abs/gr-qc/9712019" target="_blank">Carroll’s notes</a>, §2, count 20 per event). And <code>ds² = 0</code> picks out the <a href="0002-length-contraction-simultaneity-spacetime-diagrams.html#light-cone">light cone</a> at each event, so where <code>g</code> varies the cones tilt and narrow, as <a href="0004-equivalence-principle-curved-spacetime.html#curved-spacetime">lesson 4 described</a>.</p>
+
+  <h2 id="einstein-field-equation">The equation itself</h2>
+  <pre><code>G_μν + Λ g_μν = (8πG/c⁴) T_μν
+
+G_μν = R_μν − ½R g_μν     Einstein tensor (curvature)
+Λ                         cosmological constant
+κ = 8πG/c⁴ ≈ 2.08×10⁻⁴³ N⁻¹
+T_μν                      stress-energy tensor (matter)
+
+(Signs as in Wikipedia and Carroll; in this course’s
+ signature the Λ term flips: see the box below.)</code></pre>
+  <p>The left side is geometry. <code>R_μν</code> is the Ricci curvature, <code>R</code> is its trace, and the <strong id="einstein-tensor">Einstein tensor</strong> <code>G_μν</code> is built only from the metric and its first and second derivatives (<a href="https://en.wikipedia.org/wiki/Einstein_field_equations" target="_blank">Wikipedia</a>). The right side is matter and energy. Both sides are symmetric 4×4 matrices, so this is really 10 coupled, nonlinear partial differential equations, and the unknown they solve for is the metric. <a href="0004-equivalence-principle-curved-spacetime.html#curved-spacetime">Lesson 4’s Wheeler slogan</a> is now exact. This equation is “matter tells spacetime how to curve,” and geodesic motion in the resulting metric is “spacetime tells matter how to move.”</p>
+  <p>The constant <code>κ</code> measures how stiff spacetime is. Its units, m/J, turn an energy density (J/m³) into a curvature (m⁻²). For water, <code>ρc² = 9×10¹⁹ J/m³</code>, so <code>κρc² ≈ 1.9×10⁻²³ m⁻²</code>. That is a curvature scale of about <code>2×10¹¹ m</code>, longer than the Earth–Sun distance. Everyday matter barely curves spacetime; it takes a planet or a star for the effect to add up.</p>
+  <div class="callout warn">
+    <strong>Sign conventions</strong>
+    Wikipedia, Carroll and Misner–Thorne–Wheeler use the signature (−,+,+,+), where flat spacetime is <code>diag(−1,1,1,1)</code> and <code>g₀₀ ≈ −(1 + 2Φ/c²)</code>. This course keeps lesson 2’s (+,−,−,−), which flips the overall sign of <code>g_μν</code>. As a result the Λ term changes sign, and here the equation reads <code>G_μν − Λg_μν = κT_μν</code> (<a href="https://en.wikipedia.org/wiki/Einstein_field_equations#Sign_convention" target="_blank">Wikipedia, “Sign convention”</a>). No prediction changes. In both conventions, positive Λ means positive vacuum energy and accelerating expansion.
+  </div>
+
+  <h2 id="stress-energy">The right side: what actually gravitates</h2>
+  <p>The <strong id="stress-energy-tensor">stress-energy tensor</strong> <code>T_μν</code> describes the density and flow of <a href="0003-e-equals-mc-squared-four-momentum.html#four-momentum-def">four-momentum</a>. Each entry <code>T_αβ</code> is the amount of α-momentum flowing in the β direction, where the 0-component of momentum is energy (<a href="https://math.ucr.edu/home/baez/einstein/node3.html" target="_blank">Baez &amp; Bunn, §3</a>). Every entry is measured in J/m³:</p>
+  <pre><code>T₀₀        energy density (ρc² for ordinary matter)
+T₀ᵢ = Tᵢ₀  energy flux ÷ c  =  momentum density × c
+Tᵢᵢ        pressure in direction i
+Tᵢⱼ (i≠j)  shear stress
+Fluid at rest:  T = diag(ρc², P, P, P)</code></pre>
+  <p>In a planet, <code>T₀₀ = ρc²</code> is lesson 3’s <a href="0003-e-equals-mc-squared-four-momentum.html#rest-energy">rest energy</a> per unit volume, and it outweighs every other entry. Still, the source of gravity is all ten independent entries, not just “mass.” Sunlight has no rest mass, but it carries energy density, energy flux and pressure, so it gravitates. Pressure gravitates too, and it adds to the pull.</p>
+
+  <h2 id="plain-english">The whole equation in one sentence</h2>
+  <p>Baez and Bunn show that the full field equation can be said in one sentence (<a href="https://math.ucr.edu/home/baez/einstein/node3.html" target="_blank">§3</a>), with one piece of fine print: the sentence must hold for balls starting at rest in <em>every</em> local inertial frame, not just one. Take a small ball of freely falling test particles that start at rest relative to each other, and let <code>V</code> be its volume. At the first instant, ignoring Λ:</p>
+  <pre><code>V̈/V = −4πG ( ρ_m + (Pₓ + Pᵧ + P_z)/c² )</code></pre>
+  <p>Positive density and pressure make the ball shrink, which is to say gravity attracts. For ordinary matter the pressure term is negligible. At the center of Earth’s core, where P ≈ 360 GPa (<a href="https://en.wikipedia.org/wiki/Earth#Internal_heat" target="_blank">Wikipedia, “Earth”</a>) and ρ ≈ 13,000 kg/m³ (<a href="https://en.wikipedia.org/wiki/Earth%27s_inner_core" target="_blank">Wikipedia, “Earth’s inner core”</a>), <code>3P/c² ≈ 1.2×10⁻⁵ kg/m³</code>, which is about 10⁻⁹ of ρ. Inside a neutron star the two terms are comparable. There, the gravity of pressure helps drive heavy stars into collapse (<a href="https://math.ucr.edu/home/baez/einstein/node6.html" target="_blank">§6</a>). To get Newton out of the sentence, you only need one fact from linear algebra:</p>
+  <pre><code>Each particle accelerates at a = −∇Φ. For two particles ξ apart:
+  ξ̈ ≈ −H ξ,   H = Hessian of Φ  (Hᵢⱼ = ∂ᵢ∂ⱼΦ, symmetric 3×3)
+Along H’s eigenvectors: ξₖ(t) ≈ ξₖ(0)(1 − ½hₖt²), so
+  V ∝ ξ₁ξ₂ξ₃ ≈ V₀(1 − ½ tr(H) t²)   ⇒   V̈/V = −tr H = −∇²Φ
+Match Baez–Bunn (no pressure):   ∇²Φ = 4πGρ    (Newton, as Poisson’s equation)
+
+Outside a mass M (radial, sideways, sideways):
+  H = (GM/r³)·diag(−2, +1, +1)     tr H = 0</code></pre>
+  <p>Outside the mass, where <code>ρ = 0</code>, Poisson’s equation is solved by <a href="0004-equivalence-principle-curved-spacetime.html#gravitational-time-dilation">lesson 4’s</a> <code>Φ = −GM/r</code>, the inverse-square law (<a href="https://math.ucr.edu/home/baez/einstein/node6a.html" target="_blank">Baez &amp; Bunn get it straight from the ball</a>). The last line of the block shows <strong id="vacuum-curvature">curvature in empty space</strong>. The trace is zero, so the ball keeps its volume (<code>V̈ = 0</code>, as <code>T_μν = 0</code> requires). But the matrix is not zero, so the ball stretches toward the mass and squeezes sideways: lesson 4’s <a href="0004-equivalence-principle-curved-spacetime.html#tidal-effects">tidal effect</a> as a traceless matrix (<a href="https://math.ucr.edu/home/baez/einstein/node5.html" target="_blank">§5</a>). In GR terms, the trace is a component of the Ricci curvature (<code>R₀₀</code>), which the field equation ties to <code>T_μν</code> point by point. The traceless part is the <a href="https://en.wikipedia.org/wiki/Weyl_tensor" target="_blank">Weyl curvature</a>, the only curvature in vacuum and what gravitational waves are made of. No matter here does not mean flat here.</p>
+
+  <h2 id="newtonian-limit">Getting Newton and lesson 4 back out</h2>
+  <p>The <strong>Newtonian limit</strong> has three conditions: a weak field (<code>|Φ|/c² ≪ 1</code>), slow motion (<code>v ≪ c</code>), and nothing changing in time. There, the 00 component of the field equation reduces to the <code>∇²Φ = 4πGρ</code> you just derived, and the solution around a planet or star is this metric, in this course’s signs (<a href="https://arxiv.org/abs/gr-qc/9712019" target="_blank">Carroll</a> eqs. 4.51, 6.29):</p>
+  <pre><code>c²dτ² ≈ (1 + 2Φ/c²) c²dt² − (1 − 2Φ/c²)(dx² + dy² + dz²)
+
+Clock at rest:  dτ/dt = √(1 + 2Φ/c²) ≈ 1 + Φ/c²      (√(1+ε) ≈ 1 + ε/2)
+Two clocks:     Δτ/τ ≈ (Φ_high − Φ_low)/c² = ΔΦ/c²    (lesson 4)</code></pre>
+  <div class="callout">
+    <strong>Worked example: the GPS number, from g₀₀</strong>
+    <pre><code>Φ = −GM/r,   GM = 3.986×10¹⁴ m³/s²,   c² = 9×10¹⁶
+
+           r (m)        Φ/c²          g₀₀ − 1
+ground     6.371×10⁶   −6.95×10⁻¹⁰   −1.39×10⁻⁹
+GPS        2.657×10⁷   −1.67×10⁻¹⁰   −3.33×10⁻¹⁰
+
+ΔΦ/c² ≈ 5.28×10⁻¹⁰ × 86,400 s ≈ 45.7 μs/day   (orbit clock fast)</code></pre>
+    That is exactly <a href="0004-equivalence-principle-curved-spacetime.html#gravitational-time-dilation">lesson 4’s gravitational term</a>. The elevator argument and the field equation give the same answer, and the whole effect comes from one matrix entry that differs from 1 by about one part in a billion.
+  </div>
+  <p>Notice that only <code>g₀₀</code> appeared in that calculation, and Carroll shows the same holds for every slow object. In <code>ds²</code>, the spatial terms are multiplied by <code>v²/c²</code> compared with the time term. Even for Earth’s 30 km/s orbit around the Sun, <code>v²/c² ≈ 10⁻⁸</code>, so curved space hardly affects it. Apples and planets fall mainly because time runs at different rates in different places. That is precisely what the trampoline gets wrong: it uses gravity to explain gravity (something pulls the ball into the sheet), and it shows only curved space, the part that barely matters for slow objects. Light is the exception, since for light the spatial part counts as much as the time part. So GR predicts 1.75″ of starlight bending at the Sun’s edge, twice what curved time alone gives, with curved space supplying the other half (<a href="https://link.springer.com/article/10.12942/lrr-2014-4" target="_blank">Will 2014</a>, §4.1.1).</p>
+
+  <h2 id="guarantees-and-open-questions">What the equation guarantees, and what it leaves open</h2>
+  <p><strong id="local-conservation">Local energy-momentum conservation</strong> is built in. For any metric, <code>∇_μG^μν = 0</code> (the Bianchi identity; <code>∇_μ</code> is the curved-spacetime divergence), and the metric’s divergence is zero too. So taking the divergence of both sides forces <code>∇_μT^μν = 0</code>: four equations saying energy and momentum never appear or vanish at a point, they only flow. Up to the Λ term, <code>G_μν</code> is the only curvature with this property (<a href="https://en.wikipedia.org/wiki/Lovelock%27s_theorem" target="_blank">Lovelock’s theorem</a>), and Einstein’s earlier guess <code>R_μν = κT_μν</code> failed exactly this test (Carroll ch. 4). The conservation is <em>local</em>. Why an expanding universe has no general global energy law is <a href="0008-noethers-theorem-symmetry-conservation.html#no-symmetry-no-conservation">lesson 8</a>’s topic.</p>
+  <p>The <strong id="cosmological-constant">cosmological constant</strong> Λ is the one extra term conservation allows, since <code>g_μν</code> has zero divergence. In the ball picture it acts like a uniform energy density in empty space whose pressure is minus that density. Pressure counts three times, so <code>ρ + 3P/c² = −2ρ_Λ</code>: balls grow, and cosmic expansion accelerates (<a href="https://math.ucr.edu/home/baez/einstein/node8.html" target="_blank">§8</a>). The measured value is about 10⁻⁵² m⁻², equal to a mass density of about 6×10⁻²⁷ kg/m³, or three or four hydrogen atoms per cubic metre (<a href="https://en.wikipedia.org/wiki/Cosmological_constant" target="_blank">Wikipedia</a>).</p>
+  <div class="callout warn">
+    <strong>Established vs open, as of 2026</strong>
+    <em>Tested:</em> Mercury’s extra 43″/century of perihelion advance; light bending, confirmed to 0.01%; the Shapiro radar delay, confirmed by Cassini to about 1 part in 10⁵; gravitational redshift, from Pound–Rebka (1960) to GPS (<a href="https://link.springer.com/article/10.12942/lrr-2014-4" target="_blank">Will 2014</a>). Gravitational waves: GW150914 (peak strain 1.0×10⁻²¹) matched GR’s waveform for merging black holes (<a href="https://arxiv.org/abs/1602.03837" target="_blank">LIGO/Virgo 2016</a>; <a href="https://www.nobelprize.org/prizes/physics/2017/popular-information/" target="_blank">Nobel 2017</a>).<br>
+    <em>Open:</em> what Λ is. Naive estimates of quantum vacuum energy (<a href="0006-quantum-fields-particles-as-excitations.html#quantum-vacuum">lesson 6</a>) overshoot it by about 120 orders of magnitude (<a href="https://arxiv.org/abs/astro-ph/0004075" target="_blank">Carroll 2001</a>). Whether Λ is even constant is also open: DESI’s second data release (2025) prefers a slowly changing dark energy at 2.8–4.2σ, depending on which supernova sample is combined (<a href="https://arxiv.org/abs/2503.14738" target="_blank">DESI DR2</a>). As of 2026 that is a strong hint, short of the 5σ discovery standard. GR is classical, and no quantum theory of gravity has been confirmed (<a href="0007-standard-model-fermions-bosons-forces.html#beyond-standard-model">lesson 7</a>). This lesson also never <em>solved</em> the equation. Black holes and cosmological models need the tensor machinery this course leaves out.
+  </div>
+
+  <h2>Try it: read the equation</h2>
+  <p>Mixed practice: place sources in <code>T_μν</code>, decide whether the weak-field metric applies, and read off consequences. Data:</p>
+  <pre><code>Earth:    GM = 3.986×10¹⁴ m³/s²
+          R  = 6.371×10⁶ m
+Sun:      GM = 1.327×10²⁰ m³/s²
+          R  = 6.96×10⁸ m
+Neutron star, 1.4 solar masses:
+          GM = 1.86×10²⁰ m³/s²
+          R  = 12 km
+c² = 9×10¹⁶ m²/s²
+Weak field needs 2|Φ|/c² ≪ 1</code></pre>
+  <div id="efe-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. In <code>G_μν + Λg_μν = (8πG/c⁴)T_μν</code>, what does <code>G_μν</code> measure?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','No force appears anywhere in the equation. G_μν is geometry, and free fall is force-free motion along its geodesics.')">The gravitational force per unit mass at each event</button>
+        <button onclick="quizAnswer(this,true,'q1','Right. G_μν = R_μν − ½Rg_μν is built only from g_μν and its first and second derivatives: the left side is pure geometry.')">Curvature computed from the metric and its derivatives</button>
+        <button onclick="quizAnswer(this,false,'q1','That is the right side, T_μν. The equation sets the geometry on the left equal to it, scaled by κ.')">The density and flow of energy and momentum at each event</button>
+        <button onclick="quizAnswer(this,false,'q1','The G in G_μν names the Einstein tensor. Newton’s G appears only inside κ = 8πG/c⁴.')">Newton’s constant G, written once per spacetime direction</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Which list names only things that source curvature through <code>T_μν</code>?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Light has energy density and flux (T₀₀, T₀ᵢ), and pressure sits on the diagonal. Both gravitate.')">Rest mass only; light and pressure do not gravitate</button>
+        <button onclick="quizAnswer(this,false,'q2','Pressure counts: Baez and Bunn’s source is ρ + (Pₓ + Pᵧ + P_z)/c², and in a neutron star the pressure term rivals the density.')">Mass and kinetic energy, but never pressure or stress</button>
+        <button onclick="quizAnswer(this,false,'q2','There is no mass threshold. Every bit of energy, momentum flux, pressure and stress enters T_μν, photons included.')">Only matter whose rest mass exceeds that of a proton</button>
+        <button onclick="quizAnswer(this,true,'q2','Right. T_μν is the density and flow of four-momentum; rest energy is just its largest entry for ordinary matter.')">Energy density, momentum flux, pressure and stress</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. With <code>g₀₀ ≈ 1 + 2Φ/c²</code>, how does a clock at rest tick compared with coordinate time <code>t</code>?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right. At rest, c²dτ² = g₀₀c²dt², so dτ/dt = √(1 + 2Φ/c²) ≈ 1 + Φ/c². Two clocks differ by ΔΦ/c², lesson 4’s result.')">dτ/dt ≈ 1 + Φ/c², so clocks deeper down run slow</button>
+        <button onclick="quizAnswer(this,false,'q3','Sign error. Φ is negative near a mass, so √g₀₀ is below 1 there. It is the higher GPS clock that runs fast.')">dτ/dt ≈ 1 − Φ/c², so clocks deeper down run fast</button>
+        <button onclick="quizAnswer(this,false,'q3','This forgets the square root: √(1 + ε) ≈ 1 + ε/2 halves 2Φ/c² to Φ/c², matching lesson 4.')">dτ/dt ≈ 1 + 2Φ/c², double lesson 4’s effect</button>
+        <button onclick="quizAnswer(this,false,'q3','A clock at rest still has dτ/dt = √g₀₀, which differs from 1 wherever Φ is nonzero: the 45.7 μs/day GPS term.')">dτ/dt = 1 exactly; only moving clocks slow</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. As of 2026, which statement sits on the established side of the line?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','The 10¹²⁰ mismatch between vacuum-energy estimates and the measured Λ is unresolved; nobody knows how to close it.')">Vacuum energy explains Λ once the 10¹²⁰ gap is fixed</button>
+        <button onclick="quizAnswer(this,false,'q4','No quantum theory of gravity has experimental confirmation. String theory is an active research programme, not established physics.')">String theory is the confirmed quantum theory of gravity</button>
+        <button onclick="quizAnswer(this,true,'q4','Right. GW150914 (peak strain 1.0×10⁻²¹) matched GR’s merger waveform and led to the 2017 Nobel Prize.')">GR’s predicted waveform matched LIGO’s 2015 signal</button>
+        <button onclick="quizAnswer(this,false,'q4','Not proven. DESI’s 2025 data lean toward evolving dark energy at 2.8–4.2σ, below the 5σ standard, so it is open both ways.')">Surveys have proven dark energy is exactly constant</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Work through this by hand for the International Space Station, at an altitude of about 400 km (<code>r = 6.771×10⁶ m</code>), using Earth’s numbers above.</p>
+  <ol>
+    <li>Compute <code>g₀₀ − 1</code> on the ground and at the ISS.</li>
+    <li>From <code>dτ/dt ≈ 1 + Φ/c²</code>, find how many μs per day the ISS clock gains from gravity.</li>
+    <li>Find the slowdown from <code>v = √(GM/r)</code> and <code>v²/2c²</code>, as in <a href="0004-equivalence-principle-curved-spacetime.html#gravitational-time-dilation">lesson 4’s GPS example</a>.</li>
+    <li>Net the two results.</li>
+  </ol>
+  <p>You should find that the ISS clock <em>loses</em> about 25 μs/day, which is the opposite sign from GPS. Bonus: show that the two effects cancel for a circular orbit at <code>r = 1.5 R_⊕</code>.</p>
+
+  <h2>Primary resource</h2>
+  <p>Read John Baez &amp; Emory Bunn, <a href="https://math.ucr.edu/home/baez/einstein/" target="_blank">“The Meaning of Einstein’s Equation”</a> (<em>Am. J. Phys.</em> 73, 644, 2005; free, also on <a href="https://arxiv.org/abs/gr-qc/0103044" target="_blank">arXiv</a>). It states the whole equation as the ball-of-particles sentence, then uses that sentence to derive the inverse-square law, the gravity of pressure, tidal distortion and Λ, all without tensors. For the machinery this lesson stepped around, see ch. 4 of <a href="https://arxiv.org/abs/gr-qc/9712019" target="_blank">Carroll’s lecture notes</a> or Susskind’s <a href="https://theoreticalminimum.com/courses/general-relativity/2012/fall" target="_blank">General Relativity</a> course from lesson 4.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Try asking Claude Code: “Why is the ball’s volume change the trace of the tidal matrix?” (Jacobi’s formula for the derivative of a determinant; it makes the Ricci/Weyl split click.) Or ask why Einstein’s first guess, <code>R_μν = κT_μν</code>, breaks local energy conservation.
+  </div>
+
+  <div class="nav">
+    <a href="0004-equivalence-principle-curved-spacetime.html">← Lesson 4: From Special to General: the Equivalence Principle &amp; Curved Spacetime</a>
+    <span class="spacer"></span>
+    <a href="0006-quantum-fields-particles-as-excitations.html">Lesson 6: Quantum Fields 101: Particles as Excitations of Fields →</a>
+  </div>
+
+</div>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+renderMC('efe-exercise', [
+  {
+    prompt: "Sunlight carries energy radially out of the Sun. Which part of T_μν records that outward flow?",
+    options: [
+      { text: "T₀ᵢ, the energy flux", correct: true, explain: "Right. T₀ᵢ is energy flowing in direction i (equivalently momentum density). Sunlight also fills T₀₀ and the diagonal pressure entries, and all of it gravitates." },
+      { text: "Nothing: light is massless", explain: "Rest mass is not the source; T_μν is. Light carries energy and momentum, so massless does not mean sourceless." },
+      { text: "T₀₀, the energy density", explain: "T₀₀ says how much energy is here, not where it is going. Flow needs the off-diagonal T₀ᵢ." }
+    ]
+  },
+  {
+    prompt: "Compute |Φ|/c² = GM/(Rc²) at each surface in the data block. Which one needs full GR rather than the weak-field metric?",
+    options: [
+      { text: "All three bodies", explain: "Earth gives 7×10⁻¹⁰ and the Sun 2.1×10⁻⁶. Both are tiny, so the dropped (Φ/c²)² terms are negligible, and GPS relies on this every day." },
+      { text: "The Sun and the neutron star", explain: "Being a star is not the test. The Sun’s 1.327×10²⁰ / (6.96×10⁸ × 9×10¹⁶) ≈ 2.1×10⁻⁶ is deep in the weak-field regime." },
+      { text: "Only the neutron star", correct: true, explain: "Right. 1.86×10²⁰ / (1.2×10⁴ × 9×10¹⁶) ≈ 0.17, so 2|Φ|/c² ≈ 0.34, which is not small. The linear approximation fails there." }
+    ]
+  },
+  {
+    prompt: "Outside the Sun, T_μν = 0. A small ball of test particles falls freely there, starting at rest. What happens to it?",
+    options: [
+      { text: "Nothing: spacetime is flat there", explain: "T_μν = 0 only zeroes the trace (volume) part. The traceless tidal part remains, and that is how the Sun’s pull crosses empty space." },
+      { text: "Its volume shrinks", explain: "Shrinking needs ρ or P inside the ball, and both are zero here. The particles accelerate by different amounts, which changes shape, not volume." },
+      { text: "Same volume, stretched and squeezed", correct: true, explain: "Right. H = (GM/r³)·diag(−2, 1, 1): its trace is zero, so V̈ = 0, but it is not the zero matrix, so the ball becomes an ellipsoid. That is vacuum (Weyl) curvature." }
+    ]
+  },
+  {
+    prompt: "Pressure inside a neutron star pushes outward against collapse. As a source in the field equation, what does it do?",
+    options: [
+      { text: "Adds to the attraction", correct: true, explain: "Right. Pressure is momentum flux on the diagonal of T_μν, so the source is ρ + 3P/c². In neutron stars this term helps drive collapse." },
+      { text: "Weakens the attraction", explain: "Pressure resists collapse mechanically, but as a source of curvature it adds: positive P makes the test ball shrink faster." },
+      { text: "Nothing; only density counts", explain: "Density is only T₀₀. Baez and Bunn write the source explicitly as ρ + (Pₓ + Pᵧ + P_z)/c²." }
+    ]
+  },
+  {
+    prompt: "An apple falls at a few metres per second. Which part of the metric does almost all the work of steering it?",
+    options: [
+      { text: "The spatial part, gᵢᵢ", explain: "Spatial terms are weighted by v²/c², about 10⁻¹⁶ at 3 m/s, so curved space barely matters. This is the trampoline picture’s mistake." },
+      { text: "g₀₀, the rate of time", correct: true, explain: "Right. In the Newtonian limit only g₀₀ matters. The apple falls because clocks tick at different rates at different heights." },
+      { text: "The off-diagonal g₀ᵢ", explain: "Off-diagonal terms come from rotating masses (frame dragging) and are tiny for Earth. They play no part in the apple’s fall." }
+    ]
+  },
+  {
+    prompt: "κ = 8πG/c⁴ ≈ 2.1×10⁻⁴³ N⁻¹. What does its size tell you?",
+    options: [
+      { text: "GR effects never matter in practice", explain: "Tiny per joule, but it adds up over a planet: Earth’s field gives GPS a 45.7 μs/day correction, more than 10 km of error per day." },
+      { text: "Space nearby is sharply curved", explain: "Backwards. A small κ means a great deal of energy buys very little curvature. Even inside water the curvature scale exceeds the Earth–Sun distance." },
+      { text: "Spacetime is very stiff", correct: true, explain: "Right. For water, κρc² ≈ 1.9×10⁻²³ m⁻², a curvature scale of about 2×10¹¹ m. Visible curvature needs enormous energy density." }
+    ]
+  }
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

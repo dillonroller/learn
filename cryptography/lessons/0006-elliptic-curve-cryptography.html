@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 6 — Elliptic Curve Cryptography: Same Ideas, Smaller Keys</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    .ecc-map { width: 100%; border-collapse: collapse; table-layout: fixed; margin: .75rem 0 1.25rem; font: .84rem var(--font-ui); }
+    .ecc-map th, .ecc-map td { text-align: left; vertical-align: top; padding: .4rem .5rem; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
+    .ecc-map th, .ecc-map td:first-child { color: var(--muted); }
+    .orbit { margin: 1.25rem 0; padding: .9rem 1rem; background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius); font: .85rem var(--font-ui); }
+    .orbit svg { display: block; width: 100%; max-width: 440px; height: auto; margin: 0 auto; }
+    .orbit .frame { fill: none; stroke: var(--border); }
+    .orbit .mirror { stroke: var(--faint); stroke-dasharray: 4 4; }
+    .orbit .axis, .orbit .klabel { fill: var(--muted); font: 10px var(--font-ui); }
+    .orbit .klabel { fill: var(--ink-dim); }
+    .orbit .pt { fill: var(--muted); }
+    .orbit .pt.seen { fill: var(--accent); }
+    .orbit .pt.now { fill: var(--accent-strong); }
+    .orbit .hop { stroke: var(--amber); stroke-width: 1.3; opacity: .3; }
+    .orbit .hop.last { opacity: 1; stroke-width: 2; }
+    .orbit-controls { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: .7rem; }
+    .orbit-controls button { background: var(--bg-sunken); color: var(--ink); border: 1px solid var(--border); border-radius: var(--radius); padding: .4rem .8rem; font: inherit; cursor: pointer; }
+    .orbit-controls button:hover { border-color: var(--accent-border); background: var(--accent-soft); }
+    .orbit-readout { color: var(--accent-strong); font-family: var(--font-mono); }
+    .orbit p { color: var(--muted); font-size: .8rem; margin: .6rem 0 0; }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Cryptography &amp; Number Theory</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 6 of 8 &nbsp;·&nbsp; Cryptography &amp; Number Theory &nbsp;·&nbsp; ~40 min</p>
+  <h1>Elliptic Curve Cryptography: Same Ideas, Smaller Keys</h1>
+  <p><a href="0004-diffie-hellman-discrete-log-problem.html#diffie-hellman-protocol">Diffie-Hellman</a> and <a href="0005-digital-signatures-rsa-dsa.html#dsa">DSA</a> both ran inside one structure: the nonzero numbers mod a prime, multiplied together (DSA in a prime-order subgroup of them). Neither protocol cares what those numbers <em>are</em>, only that the <a href="0004-diffie-hellman-discrete-log-problem.html#discrete-log-problem">discrete log problem</a> in them is hard. This lesson keeps the protocols and swaps in the points of an elliptic curve. Underneath, every step is still <a href="0001-modular-arithmetic-eulers-theorem.html#congruence">mod-p arithmetic</a> and <a href="0001-modular-arithmetic-eulers-theorem.html#modular-inverse">modular inverses</a>; what changes is which attacks exist — and that shrinks a 3072-bit key to 256 bits.</p>
+
+  <h2>What Diffie-Hellman actually needs</h2>
+  <p>A <strong id="group-def">group</strong> is a <a href="../../category-theory/lessons/0004-monads.html#monoid-in-endofunctors">monoid</a> in which every element has an inverse: a set G with an associative operation ∘, an identity e (g ∘ e = e ∘ g = g), and for every g some g⁻¹ with g ∘ g⁻¹ = g⁻¹ ∘ g = e. It is <em>abelian</em> if ∘ commutes, and a finite group is <em>cyclic</em> if repeating ∘ on one element, a <em>generator</em>, reaches everything. You know one already: {1, …, 22} under multiplication mod 23, identity 1, generator 5 — Diffie-Hellman’s <a href="0004-diffie-hellman-discrete-log-problem.html#primitive-root">primitive root</a>.</p>
+  <p>Diffie-Hellman used exactly three facts about that group: g<sup>a</sup> is fast to compute (<a href="0001-modular-arithmetic-eulers-theorem.html#fast-modular-exponentiation">square-and-multiply</a>), (g<sup>a</sup>)<sup>b</sup> = (g<sup>b</sup>)<sup>a</sup>, and recovering a from g<sup>a</sup> is hard. (Strictly, Eve must get g<sup>ab</sup> from g<sup>a</sup> and g<sup>b</sup>; no known method does that without a discrete log.) Any cyclic group with those three properties runs the protocol unchanged. Curve groups are written additively, so g<sup>k</sup> becomes kP:</p>
+  <table class="ecc-map">
+    <thead><tr><th></th><th>Diffie-Hellman (mod 23)</th><th>This lesson (curve mod 17)</th></tr></thead>
+    <tbody>
+      <tr><td>Elements</td><td>1, …, 22</td><td>18 points (x, y), plus O</td></tr>
+      <tr><td>Operation</td><td>a · b mod 23</td><td>P + Q, chord-and-tangent</td></tr>
+      <tr><td>Identity</td><td>1</td><td>O, the point at infinity</td></tr>
+      <tr><td>Inverse</td><td>a⁻¹ mod 23</td><td>−(x, y) = (x, −y)</td></tr>
+      <tr><td>Repeat k times</td><td>g<sup>k</sup>, square-and-multiply</td><td>kP, double-and-add</td></tr>
+      <tr><td>Generator</td><td>5, order 22</td><td>(5, 1), order 19</td></tr>
+      <tr><td>Hard problem</td><td>a from g<sup>a</sup></td><td>k from kP</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="elliptic-curve">Elliptic curves over F<sub>p</sub></h2>
+  <p>For a prime p &gt; 3, an <strong>elliptic curve over F<sub>p</sub></strong> (the integers mod p) in short Weierstrass form is the set of solutions of</p>
+  <pre><code>y² ≡ x³ + ax + b  (mod p),   4a³ + 27b² ≢ 0  (mod p)</code></pre>
+  <p>together with one extra point, O (<a href="https://andrea.corbellini.name/2015/05/23/elliptic-curve-cryptography-finite-fields-and-discrete-logarithms/" target="_blank">Corbellini, part 2</a>). The second condition says x³ + ax + b has no repeated root, so the curve has no cusps or self-crossings and tangents are well defined (<a href="https://toc.cryptobook.us/" target="_blank">Boneh &amp; Shoup</a>, §15.2). These are cubics, not ellipses; the name comes from <a href="https://en.wikipedia.org/wiki/Elliptic_curve" target="_blank">elliptic integrals</a>.</p>
+  <div class="callout">
+    <strong>The running curve: y² = x³ + 2x + 2 over F<sub>17</sub></strong>
+    Condition: 4·2³ + 27·2² = 32 + 108 = 140 = 8·17 + 4 ≡ 4 ≢ 0. ✓ Is P = (5, 1) on it? Left: 1² = 1. Right: 5³ + 2·5 + 2 = 137 = 8·17 + 1 ≡ 1. ✓ Trying all 17 values of x finds every point, in pairs y and 17 − y:
+    <pre><code>(0,6)  (0,11)   (3,1)  (3,16)   (5,1)  (5,16)
+(6,3)  (6,14)   (7,6)  (7,11)   (9,1)  (9,16)
+(10,6) (10,11)  (13,7) (13,10)  (16,4) (16,13)</code></pre>
+    18 points plus O: a group of 19 elements. Hasse’s theorem keeps the count within 2√p of p + 1, and Schoof’s algorithm counts a cryptographic-size curve in polynomial time (Boneh &amp; Shoup, §15.2).
+  </div>
+  <p>The <strong id="point-at-infinity">point at infinity O</strong> has no (x, y) coordinates and is in no list. It is a formal extra element, the identity: P + O = P for every P, and it is where a point and its mirror image add up to.</p>
+
+  <h2 id="point-addition">Adding points: chord, tangent, and a modular inverse</h2>
+  <p>Over the reals the group law is a picture: the line through P and Q meets the curve in one more point; reflect it across the x-axis to get P + Q. Doubling uses the tangent at P; mirror images give a vertical line and sum to O (<a href="https://andrea.corbellini.name/2015/05/17/elliptic-curve-cryptography-a-gentle-introduction/" target="_blank">Corbellini, part 1</a>, draws this and links an interactive tool). Over F<sub>17</sub> there is no curve to draw, only scattered points, so the picture’s algebra becomes the definition, all mod p:</p>
+  <pre><code>chord   (x₁ ≠ x₂):      λ = (y₂ − y₁) · (x₂ − x₁)⁻¹
+tangent (P = Q, y₁ ≠ 0): λ = (3x₁² + a) · (2y₁)⁻¹
+x₃ = λ² − x₁ − x₂
+y₃ = λ(x₁ − x₃) − y₁
+P + (−P) = O,  where −(x, y) = (x, −y)</code></pre>
+  <p>Every “division” in λ is a modular inverse: curves run on the same number theory as RSA.</p>
+  <div class="callout">
+    <strong>Worked example: 2P for P = (5, 1)</strong>
+    <pre><code>numerator    3·5² + 2 = 77 ≡ 9        (77 − 68)
+denominator  2·1 = 2,  2⁻¹ ≡ 9         (2·9 = 18 ≡ 1)
+λ = 9 · 9 = 81 ≡ 13                    (81 − 68)
+x₃ = 13² − 5 − 5 = 159 ≡ 6             (159 − 153)
+y₃ = 13·(5 − 6) − 1 = −14 ≡ 3          (−14 + 17)
+2P = (6, 3)</code></pre>
+    Check: 3² = 9 and 6³ + 12 + 2 = 230 ≡ 9. ✓ And −P = (5, 16), since −1 ≡ 16: the line through (5, 1) and (5, 16) is vertical, so P + (−P) = O, the curve’s a · a⁻¹ = 1.
+  </div>
+  <div class="callout warn">
+    <strong>What point addition is not</strong>
+    Not coordinate-wise: P + P that way gives (10, 2), which is off the curve (2² = 4, but 1022 ≡ 2). Not the unreflected third point: that is (6, 14) = −2P. Associativity holds, but its proof is a long computation taken on trust, as Boneh &amp; Shoup do (“it can be shown”).
+  </div>
+
+  <h2 id="scalar-multiplication">Scalar multiplication: square-and-multiply, written additively</h2>
+  <p>Adding P to itself k times gives kP. <a href="0001-modular-arithmetic-eulers-theorem.html#square-and-multiply-def">Lesson 1’s square-and-multiply</a>, written additively, does it in at most 2 log₂ k point operations instead of k − 1: scan k’s bits left to right, <em>double</em> at every bit, <em>add P</em> on each 1-bit.</p>
+  <pre><code>10 = 1010₂, start R = O
+bit 1: R = 2·O + P = P   = (5, 1)
+bit 0: R = 2·P     = 2P  = (6, 3)    λ = 13
+bit 1: R = 2·2P    = 4P  = (3, 1)    λ = 7
+       R = 4P + P  = 5P  = (9, 16)   λ = 0
+bit 0: R = 2·5P    = 10P = (7, 11)   λ = 5</code></pre>
+  <p>(4P: λ = (3·6² + 2)·6⁻¹ = 110·3 ≡ 8·3 = 24 ≡ 7. 5P: (3, 1) and (5, 1) share a y, so the chord is flat, λ = 0. 10P: λ = (3·9² + 2)·(2·16)⁻¹ = 245·15⁻¹ ≡ 7·8 = 56 ≡ 5.) For a 256-bit k: at most about 512 point operations.</p>
+  <p>Keep adding and you reach 19P = O, so P has <a href="0003-why-factoring-is-hard-shors-algorithm.html#order-finding-def">order</a> 19. It had to: an element’s order divides the group size (Lagrange, Corbellini part 2), 19 is prime, and P ≠ O — so <em>every</em> one of the 18 points is a generator. Real systems want the same shape: a base point G of large prime order n.</p>
+
+  <h2>The elliptic curve discrete logarithm problem</h2>
+  <p>The <strong id="ecdlp">elliptic curve discrete logarithm problem (ECDLP)</strong>: given the curve, P, and Q = kP, find k. Computing kP is fast; undoing it has no known shortcut, on a well-chosen curve, beyond the generic √n algorithms described below. Step through the multiples: they land all over the grid. The one visible pattern is the mirror, since (19 − k)P = −kP; beyond that, where kP sits gives no hint of k.</p>
+  <div class="orbit">
+    <svg id="orbit-svg" viewBox="0 0 352 338" role="img" aria-label="The 18 curve points on a 17 by 17 grid, with the multiples of P highlighted in order"></svg>
+    <div class="orbit-controls">
+      <button type="button" id="orbit-next">Next multiple</button>
+      <button type="button" id="orbit-reset">Reset</button>
+      <span class="orbit-readout" id="orbit-readout" aria-live="polite">1P = (5, 1)</span>
+    </div>
+    <p>Grey: the 18 affine points. Green: multiples visited so far, labelled by k. Dashed: the mirror line y = 8.5 — every (x, y) has a partner (x, 17 − y), and the partner of kP is (19 − k)P.</p>
+  </div>
+
+  <h2 id="ecdh">ECDH: Diffie-Hellman, point by point</h2>
+  <p>Public: the curve and P. Alice picks a = 3 and sends A = 3P = (10, 6). Bob picks b = 10 and sends B = 10P = (7, 11). Both then compute (ab)P, since a(bP) = b(aP): scalars commute as exponents did. With 19P = O, 30P = 11P = (13, 10).</p>
+  <div class="callout">
+    <strong>Worked example: Alice computes 3B = 2B + B, with B = (7, 11)</strong>
+    <pre><code>2B  λ = (3·7² + 2)·(2·11)⁻¹ = 149·22⁻¹
+      ≡ 13·5⁻¹ ≡ 13·7 = 91 ≡ 6
+    x = 6² − 7 − 7 = 22 ≡ 5
+    y = 6·(7 − 5) − 11 = 1
+    2B = (5, 1)     ← P itself: 20P = 19P + P
+3B  λ = (11 − 1)·(7 − 5)⁻¹ = 10·9 = 90 ≡ 5
+    x = 5² − 5 − 7 = 13
+    y = 5·(5 − 13) − 1 = −41 ≡ 10
+    3B = (13, 10)</code></pre>
+    Bob’s 10·A lands there too (your practice task). Eve, seeing P, A and B, needs (ab)P, and the only known route is an ECDLP: trivial with 19 points, hopeless with 2<sup>256</sup>. The man-in-the-middle weakness carries over, as does its fix: <a href="0005-digital-signatures-rsa-dsa.html#authenticated-key-exchange">sign the exchange</a>.
+  </div>
+  <p>Deployed ECDH uses vetted curves over primes of about 256 bits, such as Curve25519 over 2<sup>255</sup> − 19 (<a href="https://www.rfc-editor.org/rfc/rfc7748" target="_blank">RFC 7748</a>, X25519). ECDSA is <a href="0005-digital-signatures-rsa-dsa.html#dsa">lesson 5’s DSA</a> with g<sup>k</sup> mod p replaced by the point kG and r taken from its x-coordinate mod n (<a href="https://andrea.corbellini.name/2015/05/30/elliptic-curve-cryptography-ecdh-and-ecdsa/" target="_blank">Corbellini, part 3</a>) — <a href="0005-digital-signatures-rsa-dsa.html#nonce-reuse">nonce reuse</a> included.</p>
+
+  <h2 id="ecc-key-sizes">Why 256 bits matches 3072 — and why Shor does not care</h2>
+  <p>Key size is set by the best known attack. Factoring and discrete logs mod p face sub-exponential attacks (<a href="0003-why-factoring-is-hard-shors-algorithm.html#gnfs-def">GNFS</a>, index calculus), so moduli run to thousands of bits. No such attack is known on a well-chosen curve (<a href="https://arxiv.org/abs/1706.06752" target="_blank">Roetteler et al.</a>, §1): the ECDLP is not the mod-p problem in disguise. The best known attacks are <em>generic</em> — baby-step giant-step, Pollard’s rho — at about √n steps for prime order n (<a href="https://andrea.corbellini.name/2015/06/08/elliptic-curve-cryptography-breaking-security-and-a-comparison-with-rsa/" target="_blank">Corbellini, part 4</a>; Boneh &amp; Shoup §15.3). Shoup proved that no classical black-box algorithm, one that only calls the group operation, does much better than √n (Boneh &amp; Shoup §16.3). Beating it means exploiting a curve’s internals, which nobody has managed on a well-chosen curve. Believed hard, not proven hard, like <a href="0003-why-factoring-is-hard-shors-algorithm.html#factoring-hardness">factoring</a>.</p>
+  <p>A 256-bit order thus costs √(2<sup>256</sup>) = 2<sup>128</sup> steps. NIST’s <a href="https://csrc.nist.gov/pubs/sp/800/57/pt1/r5/final" target="_blank">SP 800-57 Part 1 Rev. 5</a>, Table 2:</p>
+  <div class="complexity"><span><span class="label">security</span> <span class="val">128 bits</span></span><span><span class="label">RSA modulus</span> <span class="val">3072</span></span><span><span class="label">mod-p DH</span> <span class="val">3072</span></span><span><span class="label">ECC order</span> <span class="val">256–383</span></span></div>
+  <p>As of 2026, Rev. 5 (2020) is still final and the December 2025 <a href="https://csrc.nist.gov/pubs/sp/800/57/pt1/r6/ipd" target="_blank">Rev. 6 draft</a> keeps this row (as its Table 4). It holds only for <em>well-chosen</em> curves: an order with only small prime factors splits into easy small logs, a curve with exactly p points falls in polynomial time, and others reduce to an easier finite-field log — hence a few vetted curves (Boneh &amp; Shoup §15.3).</p>
+  <div class="callout warn">
+    <strong>What smaller keys do not buy you</strong>
+    Shor’s discrete-log algorithm generalises to curves: the same <a href="0003-why-factoring-is-hard-shors-algorithm.html#quantum-order-finding">period-finding</a> via <a href="../../quantum-computing/lessons/0006-quantum-fourier-transform-phase-estimation.html#phase-estimation">phase estimation</a>, with point addition as the group operation (circuits: <a href="../../quantum-computing/lessons/0007-shors-algorithm-breaking-rsa.html">Quantum Computing’s Shor lesson</a>). Roetteler et al. (2017) count at most 9n + 2⌈log₂ n⌉ + 10 logical qubits: 2,330 for P-256, against 6,146 for RSA-3072. The figures keep falling. By 2026 a 256-bit curve was down to about 1,200 logical qubits: 1,193 in <a href="https://eprint.iacr.org/2026/280" target="_blank">Chevignard et al.</a> (Eurocrypt 2026), and under 1,200 with under 90 million Toffoli gates in <a href="https://arxiv.org/abs/2603.28846" target="_blank">Babbush et al.</a> (Google Quantum AI with co-authors, March 2026; backed by a zero-knowledge proof rather than published circuits). Chevignard et al. set theirs against Gidney’s 2025 estimate of 2,043 for RSA-3072. All of these counts are polynomial in n. ECC is a different classical assumption, not a quantum-safe one; as of September 2026 about 70% of browser traffic reaching Cloudflare already pairs X25519 with lattice-based ML-KEM (<a href="https://blog.cloudflare.com/post-quantum-visibility/" target="_blank">Cloudflare</a>). <a href="0007-post-quantum-lattices-lwe.html#what-shor-breaks">Lesson 7</a> sorts out what survives.
+  </div>
+
+  <h2>Try it: point arithmetic on y² = x³ + 2x + 2 over F<sub>17</sub></h2>
+  <p>P = (5, 1) throughout. Work each step on paper first, then click.</p>
+  <div id="ecc-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Diffie-Hellman runs unchanged in any setting that provides what?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','That is one instance, the mod-23 one. The curve group has no primitive root mod p, yet ECDH works because it is a cyclic group with a hard discrete log.')">A prime modulus p together with a primitive root g mod p</button>
+        <button onclick="quizAnswer(this,true,'q1','Right: the protocol uses only a fast repeated operation, commuting scalars a(bP) = b(aP), and the hardness of recovering the scalar.')">A cyclic group with a fast operation and a hard discrete log</button>
+        <button onclick="quizAnswer(this,false,'q1','That is RSA’s setup, resting on factoring. Diffie-Hellman uses no secret factorisation, only a public group and secret scalars.')">Two large secret primes p and q whose product n is made public</button>
+        <button onclick="quizAnswer(this,false,'q1','Over F₁₇ the curve is 18 scattered points plus O. The smooth real picture only motivates the formulas; the protocol needs none of it.')">A curve whose points can be drawn as a smooth picture</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Why does a 256-bit curve give about the same security as 3072-bit RSA?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','A point addition is a few modular multiplications and one inverse. The gap comes from which attacks exist, not from the cost of one operation.')">Point addition is slow, so attackers can try fewer keys</button>
+        <button onclick="quizAnswer(this,false,'q2','Neither is proven. Nothing known beats √n on good curves, but no proof rules out a non-generic attack: ECDLP hardness is a calibrated assumption too.')">Elliptic curve hardness is proven, factoring only believed</button>
+        <button onclick="quizAnswer(this,false,'q2','The curve and base point are public, exactly like p and g in mod-p Diffie-Hellman. Only the scalar k is secret.')">The base point stays secret, so attackers have nowhere to start</button>
+        <button onclick="quizAnswer(this,true,'q2','Right: Pollard rho needs √(2^256) = 2^128 steps on a 256-bit curve, while GNFS is sub-exponential, so RSA needs 3072 bits to demand the same work.')">No sub-exponential attack is known, only generic √n ones</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. What is P + Q for two distinct points P and Q on the curve?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right: the chord through P and Q meets the curve once more, and P + Q is that point mirrored to (x, −y). Mod p, the slope needs a modular inverse.')">The mirror image of the line’s third point on the curve</button>
+        <button onclick="quizAnswer(this,false,'q3','Componentwise sums leave the curve: (5,1) + (6,3) would give (11,4), but 4² = 16 while 11³ + 22 + 2 ≡ 12 mod 17.')">The coordinates added separately: (x₁ + x₂, y₁ + y₂) mod p</button>
+        <button onclick="quizAnswer(this,false,'q3','That point is −(P + Q). For P = (5,1) and Q = 2P = (6,3) it gives (10,11) = −3P instead of 3P = (10,6).')">The third point where line PQ meets the curve, unreflected</button>
+        <button onclick="quizAnswer(this,false,'q3','A midpoint is usually not on the curve, so it would not be a group element at all. The law uses the third intersection, mirrored.')">The midpoint of the chord from P to Q, reduced mod p</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. A large fault-tolerant quantum computer arrives. What happens to ECC?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','Shor’s discrete-log variant needs only a group operation it can run reversibly. Point addition qualifies, so different arithmetic is no protection.')">It survives, since curve arithmetic is not exponentiation</button>
+        <button onclick="quizAnswer(this,false,'q4','Roetteler et al. bound it at 9n + 2⌈log₂ n⌉ + 10 logical qubits, linear in n: 2,330 for P-256. Polynomial, not exponential.')">It survives, as Shor needs exponentially many qubits here</button>
+        <button onclick="quizAnswer(this,true,'q4','Right: the phase-estimation period-finding that breaks factoring and mod-p discrete logs works in the curve group, so ECC falls with RSA and DH.')">It falls: Shor’s period-finding solves ECDLP efficiently</button>
+        <button onclick="quizAnswer(this,false,'q4','A square root is Grover’s speedup on unstructured search, which bigger keys absorb. ECDLP has the period structure Shor exploits: polynomial time.')">It is weakened only by a square root, like Grover search</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>By hand, on y² = x³ + 2x + 2 over F<sub>17</sub>:</p>
+  <ol>
+    <li>Compute 3P = 2P + P with the chord rule, using 2P = (6, 3) and P = (5, 1). You should get λ = (1 − 3)·(5 − 6)⁻¹ = 2 and 3P = (10, 6) — Alice’s public point.</li>
+    <li>Play Bob: compute 10·A for A = (10, 6) by double-and-add (10 = 1010₂). You should pass through 2A = (16, 13) with λ = 11, 4A = (0, 11) with λ = 10, 5A = (3, 16) with λ = 8, and finish at 10A = (13, 10) with λ = 11 — the same shared point Alice found. In the widget: 6P, 12P, 15P, 11P.</li>
+  </ol>
+
+  <h2>Primary resource</h2>
+  <p>See Andrea Corbellini’s four-part series, <a href="https://andrea.corbellini.name/2015/05/17/elliptic-curve-cryptography-a-gentle-introduction/" target="_blank">“Elliptic Curve Cryptography: a gentle introduction”</a> (2015) — the clearest free path from the group law to practice: chord-and-tangent addition with an interactive tool, curves over F<sub>p</sub> with subgroups and cofactors, ECDH and ECDSA, then baby-step giant-step, Pollard’s rho, the NIST key-size table and Shor.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Ask Claude Code to run baby-step giant-step with you on this curve — find k with kP = (16, 4) from a table of just ⌈√19⌉ = 5 baby steps — then size that table for a 256-bit curve, and ask why Pollard’s rho needs almost no memory.
+  </div>
+
+  <div class="nav">
+    <a href="0005-digital-signatures-rsa-dsa.html">← Lesson 5: Digital Signatures</a>
+    <span class="spacer"></span>
+    <a href="0007-post-quantum-lattices-lwe.html">Lesson 7: Post-Quantum Cryptography →</a>
+  </div>
+
+</div>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+renderMC('ecc-exercise', [
+  { prompt: 'Which point lies on y² = x³ + 2x + 2 over F₁₇?', options: [
+    { text: '(6, 4)', explain: 'Left 4² = 16; right 6³ + 12 + 2 = 230 ≡ 9. 16 ≠ 9, so it is off the curve.' },
+    { text: '(6, 3)', correct: true, explain: 'Right: 3² = 9 and 230 = 13·17 + 9 ≡ 9. Both sides agree; this point is 2P.' },
+    { text: '(5, 2)', explain: 'Left 2² = 4; right 125 + 10 + 2 = 137 ≡ 1. At x = 5 only y = 1 or 16 work.' },
+    { text: '(0, 0)', explain: 'The right side is 2 at x = 0, not 0. And O is not the origin: it has no (x, y) coordinates.' },
+  ] },
+  { prompt: 'What is −P, the inverse of P = (5, 1)?', options: [
+    { text: '(12, 1)', explain: 'That negates x (−5 ≡ 12). The mirror flips y, and (12, 1) is off the curve: 12³ + 24 + 2 ≡ 3, not 1.' },
+    { text: '(5, 1)', explain: 'Only a point with y = 0 is its own inverse, and this curve has none. P + P is 2P = (6, 3), not O.' },
+    { text: '(5, 16)', correct: true, explain: 'Right: −(x, y) = (x, −y) and −1 ≡ 16. The line through (5, 1) and (5, 16) is vertical, so they sum to O.' },
+    { text: '(12, 16)', explain: 'That negates both coordinates, as for vectors. Only y flips; (12, 16) is off the curve (16² ≡ 1, but the right side is 3).' },
+  ] },
+  { prompt: 'Doubling P = (5, 1): what is λ = (3x² + a)·(2y)⁻¹ mod 17?', options: [
+    { text: '9', explain: 'That is only the numerator, 77 ≡ 9. You still multiply by 2⁻¹ = 9.' },
+    { text: '12', explain: 'That drops + a: 3·25 = 75 ≡ 7 and 7·9 = 63 ≡ 12. The numerator is 3x² + a = 77.' },
+    { text: '13', correct: true, explain: 'Right: 77 ≡ 9, and 2⁻¹ = 9 because 2·9 = 18 ≡ 1, so λ = 81 ≡ 13.' },
+    { text: '4', explain: 'That is integer division of 9 by 2. Mod 17, dividing by 2 means multiplying by 9: 81 ≡ 13.' },
+  ] },
+  { prompt: 'With λ = 13, what is 2P for P = (5, 1)?', options: [
+    { text: '(6, 3)', correct: true, explain: 'Right: x₃ = 159 ≡ 6 and y₃ = 13·(5 − 6) − 1 = −14 ≡ 3.' },
+    { text: '(10, 2)', explain: 'That doubles each coordinate. It is off the curve: 2² = 4 but 1022 ≡ 2.' },
+    { text: '(6, 14)', explain: 'That is where the tangent meets the curve again, before reflecting: −2P = 17P.' },
+    { text: '(3, 0)', explain: 'That comes from λ = 9, forgetting 2⁻¹. It is off the curve: 3³ + 6 + 2 ≡ 1, not 0.' },
+  ] },
+  { prompt: 'Adding P repeatedly reaches 18P = (5, 16). What is 19P?', options: [
+    { text: '(5, 1)', explain: 'That is 20P, one step past O: 20P = O + P = P.' },
+    { text: 'O', correct: true, explain: 'Right: 18P = (5, 16) = −P, so 19P = −P + P = O. P has order 19.' },
+    { text: '(10, 0)', explain: 'That adds coordinates. (5, 16) and (5, 1) share an x, so the line is vertical and the sum is O.' },
+  ] },
+  { prompt: 'Why must P = (5, 1) have order exactly 19?', options: [
+    { text: 'Every point on every curve has order 19', explain: 'Orders divide the point count, which depends on a, b and p. 19 is special to this curve.' },
+    { text: 'Its order divides 19, a prime, and P ≠ O', correct: true, explain: 'Right: an order divides the group size (Lagrange), 19 is prime, and only O has order 1.' },
+    { text: 'Because the curve has 18 affine points', explain: 'The group also contains O: 19 elements. Indeed 18P = −P, not O.' },
+  ] },
+  { prompt: 'ECDH on base point P: Alice’s secret a = 3, Bob’s secret b = 10. Which shared point do both compute?', options: [
+    { text: '(7, 11)', explain: 'That is Bob’s public point B = 10P, visible to Eve. The shared point is 3·B.' },
+    { text: '(16, 4)', explain: 'That is (3 + 10)P = 13P: secrets added, not multiplied. ECDH gives (ab)P.' },
+    { text: '(10, 6)', explain: 'That is Alice’s public point A = 3P. The shared point is 10·A.' },
+    { text: '(13, 10)', correct: true, explain: 'Right: both reach 30P, and 30 ≡ 11 (mod 19), so the shared point is 11P = (13, 10).' },
+  ] },
+  { prompt: 'Which ECC key size (bits of the base point’s order) matches RSA-3072 at 128-bit security?', options: [
+    { text: '128', explain: 'That is the security level. A 128-bit order falls to Pollard rho in about 2^64 steps.' },
+    { text: '256', correct: true, explain: 'Right: √(2^256) = 2^128. SP 800-57 Table 2 lists ECC 256–383 beside RSA 3072.' },
+    { text: '3072', explain: 'Needless: the best known curve attacks are generic √n ones, not sub-exponential GNFS-style ones.' },
+  ] },
+]);
+
+// Orbit of P: recomputes the group law and steps P, 2P, ... until 19P = O.
+(function () {
+  const p = 17, md = v => ((v % p) + p) % p;
+  const inv = v => { let r = 1, b = md(v); for (let e = p - 2; e; e >>= 1, b = b * b % p) if (e & 1) r = r * b % p; return r; };
+  const add = (P, Q) => {
+    if (P[0] === Q[0] && md(P[1] + Q[1]) === 0) return null;
+    const l = P[0] === Q[0] ? md((3 * P[0] * P[0] + 2) * inv(2 * P[1])) : md((Q[1] - P[1]) * inv(Q[0] - P[0]));
+    const x = md(l * l - P[0] - Q[0]);
+    return [x, md(l * (P[0] - x) - P[1])];
+  };
+  const m = [null, [5, 1]];
+  for (let k = 2; k < 19; k++) m.push(add(m[k - 1], m[1]));
+  m.push(null);
+  const pts = [];
+  for (let x = 0; x < p; x++) for (let y = 0; y < p; y++) if (md(y * y - x * x * x - 2 * x - 2) === 0) pts.push([x, y]);
+  const svg = document.getElementById('orbit-svg'), C = 18, X0 = 26, Y0 = 8, W = 17 * C;
+  const cx = x => X0 + (x + 0.5) * C, cy = y => Y0 + (16.5 - y) * C;
+  const el = (tag, at, par) => { const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const k in at) e.setAttribute(k, at[k]); (par || svg).appendChild(e); return e; };
+  el('rect', { x: X0, y: Y0, width: W, height: W, class: 'frame' });
+  el('line', { x1: X0, y1: cy(8.5), x2: X0 + W, y2: cy(8.5), class: 'mirror' });
+  [0, 4, 8, 12, 16].forEach(v => {
+    el('text', { x: cx(v), y: Y0 + W + 14, 'text-anchor': 'middle', class: 'axis' }).textContent = v;
+    el('text', { x: X0 - 6, y: cy(v) + 3.5, 'text-anchor': 'end', class: 'axis' }).textContent = v;
+  });
+  const hops = el('g', {}), dots = el('g', {}), labels = el('g', {});
+  const circ = pts.map(([x, y]) => el('circle', { cx: cx(x), cy: cy(y), class: 'pt' }, dots));
+  const next = document.getElementById('orbit-next'), out = document.getElementById('orbit-readout');
+  let k = 1;
+  function render() {
+    hops.textContent = labels.textContent = '';
+    for (let j = 2; j <= k && m[j]; j++) el('line', { x1: cx(m[j - 1][0]), y1: cy(m[j - 1][1]), x2: cx(m[j][0]), y2: cy(m[j][1]), class: j === k ? 'hop last' : 'hop' }, hops);
+    pts.forEach(([x, y], i) => {
+      const j = m.findIndex(q => q && q[0] === x && q[1] === y);
+      if (j <= k) el('text', { x: cx(x) + 6, y: cy(y) - 5, class: 'klabel' }, labels).textContent = j;
+      circ[i].setAttribute('class', j === k ? 'pt now' : j < k ? 'pt seen' : 'pt');
+      circ[i].setAttribute('r', j === k ? 7 : 4.5);
+    });
+    out.textContent = m[k] ? k + 'P = (' + m[k].join(', ') + ')' : '19P = O, the point at infinity: not on the grid';
+    next.textContent = k === 19 ? 'Start over' : 'Next multiple';
+  }
+  next.addEventListener('click', () => { k = k === 19 ? 1 : k + 1; render(); });
+  document.getElementById('orbit-reset').addEventListener('click', () => { k = 1; render(); });
+  render();
+})();
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

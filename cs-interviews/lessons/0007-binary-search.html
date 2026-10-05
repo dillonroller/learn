@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 7 — Binary Search</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">CS Interview Prep</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 7 of 11 &nbsp;·&nbsp; CS Interview Prep &nbsp;·&nbsp; ~30 min</p>
+  <h1>Binary Search</h1>
+  <p>An interviewer asking a binary search question isn’t checking whether you know the algorithm. They are checking whether you can write it with no off-by-one, no infinite loop and no overflow, and whether you spot it in a problem with no array in sight. <a href="0001-big-o-and-complexity.html">Lesson 1</a> already gave you the loop, over a half-open <code>[lo, hi)</code>, at about 20 steps for a million elements. This lesson derives that loop from one invariant and points it at things that aren’t arrays.</p>
+
+  <div class="callout">
+    <strong>Why interviewers care</strong>
+    Binary search is easy to state and hard to write. Joshua Bloch recalls Jon Bentley asking incoming CMU PhD students to write one, and most of their versions were broken (<a href="https://research.google/blog/extra-extra-read-all-about-it-nearly-all-binary-searches-and-mergesorts-are-broken/" target="_blank">Bloch, Google Research</a>). Screens ask for the <em>first</em> x or the least capacity that works, and they watch whether your bounds are derived or guessed.
+  </div>
+
+  <h2 id="search-invariant">The invariant: three zones</h2>
+  <p>The <a href="0001-big-o-and-complexity.html">Big-O lesson’s</a> loop keeps one promise at every step. Indices in <code>[0, lo)</code> are ruled out as too small, indices in <code>[hi, n)</code> are ruled out as too big, and <code>[lo, hi)</code> is the only place the answer can still be. Drop its <code>Equal</code> arm and you get the version interviews actually want, the <strong id="lower-bound">lower bound</strong>: the first index with <code>v[i] ≥ t</code>. Now the zones are <em>known false</em>, <em>unknown</em> and <em>known true</em>, and when the unknown zone is empty, <code>lo == hi</code> sits on the boundary.</p>
+  <pre><code><span class="cm">/// First index i with v[i] &gt;= t, or v.len() if there is none.</span>
+<span class="kw">fn</span> <span class="fn">lower_bound</span>(v: &amp;[<span class="ty">i32</span>], t: <span class="ty">i32</span>) -&gt; <span class="ty">usize</span> {
+    <span class="cm">// Invariant: v[..lo] &lt; t (false), v[hi..] &gt;= t (true).</span>
+    <span class="kw">let</span> (<span class="kw">mut</span> lo, <span class="kw">mut</span> hi) = (<span class="nm">0</span>, v.<span class="fn">len</span>());
+    <span class="kw">while</span> lo &lt; hi {                         <span class="cm">// unknown zone non-empty</span>
+        <span class="kw">let</span> mid = lo + (hi - lo) / <span class="nm">2</span>;       <span class="cm">// lo &lt;= mid &lt; hi</span>
+        <span class="kw">if</span> v[mid] &lt; t { lo = mid + <span class="nm">1</span> } <span class="kw">else</span> { hi = mid }
+    }
+    lo                                      <span class="cm">// lo == hi: the boundary</span>
+}
+<span class="cm">// O(log n) time, O(1) space. Can you do better? For membership only, a
+// HashSet gives expected O(1) with O(n) space, but no “first &gt;= t”.</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(log n)</span><span class="label">Space</span><span class="val">O(1)</span></div>
+  <ul>
+    <li><strong>Start.</strong> <code>lo = 0, hi = v.len()</code> leaves both known zones empty, so the invariant holds before the first iteration.</li>
+    <li><strong>Update.</strong> If <code>v[mid] ≥ t</code>, then <code>mid</code> and everything after it are true. <code>hi</code> is exclusive, so that is exactly <code>hi = mid</code>. Writing <code>hi = mid - 1</code> would discard <code>mid</code>, which may be the answer. If <code>v[mid] &lt; t</code>, then <code>mid</code> and everything before it are false: <code>lo = mid + 1</code>.</li>
+    <li><strong>Stop.</strong> <code>lo ≤ mid &lt; hi</code>, so each update at least halves <code>hi − lo</code>. The loop runs at most ⌈log₂(n + 1)⌉ times.</li>
+  </ul>
+
+  <h3 id="midpoint-overflow">Why <code>lo + (hi - lo) / 2</code>, not <code>(lo + hi) / 2</code></h3>
+  <p>The sum <code>lo + hi</code> can overflow even when the midpoint fits. In 2006 Bloch described this bug in the binary search he had written for the JDK’s <code>java.util.Arrays</code>. It sat there for about nine years: with 2³⁰ or more elements, <code>low + high</code> overflows <code>int</code> (<a href="https://research.google/blog/extra-extra-read-all-about-it-nearly-all-binary-searches-and-mergesorts-are-broken/" target="_blank">Bloch</a>). By default, Rust overflow panics in debug builds and wraps in release (<a href="https://doc.rust-lang.org/book/ch03-02-data-types.html#integer-overflow" target="_blank">Rust book</a>). We ran <code>(lo + hi) / 2</code> over <code>i32</code> values in <code>[0, i32::MAX)</code>, looking for the first x ≥ 2,000,000,000. The debug build panicked with <code>attempt to add with overflow</code>. The release build wrapped <code>mid</code> negative and looped forever. This bites hardest in <a href="#search-on-answer">search on the answer</a>, where <code>lo</code> and <code>hi</code> are values. <code>lo + (hi - lo) / 2</code> is safe whenever <code>0 ≤ lo ≤ hi</code>. For unsigned types there is also <a href="https://doc.rust-lang.org/std/primitive.u64.html#method.midpoint" target="_blank"><code>u64::midpoint</code></a> (stable since Rust 1.85).</p>
+
+  <div class="callout warn">
+    <strong>Common interview trap</strong>
+    Mixing conventions. <code>hi = mid - 1</code> belongs to the closed loop (<code>while lo &lt;= hi</code>); in a half-open loop it skips a candidate. <code>lo = mid</code> under <code>while lo &lt; hi</code> spins forever once <code>hi = lo + 1</code>, because <code>mid</code> rounds down to <code>lo</code>. Pick one invariant and derive every line from it, out loud.
+  </div>
+
+  <h3>In std: <code>partition_point</code></h3>
+  <p>The loop above is <a href="https://doc.rust-lang.org/std/primitive.slice.html#method.partition_point" target="_blank"><code>slice::partition_point</code></a>, with one twist. It takes the predicate that is true on the <em>left</em> and returns the first index where it’s false, so lower bound is <code>partition_point(|&amp;x| x &lt; t)</code>. Two calls give the run of equal elements:</p>
+  <pre><code><span class="kw">let</span> first = v.<span class="fn">partition_point</span>(|&amp;x| x &lt; t);  <span class="cm">// first v[i] &gt;= t</span>
+<span class="kw">let</span> end   = v.<span class="fn">partition_point</span>(|&amp;x| x &lt;= t); <span class="cm">// first v[i] &gt; t</span>
+<span class="cm">// t fills v[first..end]; last occurrence = end - 1 if end &gt; first</span></code></pre>
+  <p>Don’t use <a href="https://doc.rust-lang.org/std/primitive.slice.html#method.binary_search" target="_blank"><code>slice::binary_search</code></a> for this. With duplicates, “any one of the matches could be returned”. On <code>[1, 3, 3, 3, 7]</code>, Rust 1.97 (the toolchain this lesson was tested with) returns <code>Ok(3)</code> for <code>binary_search(&amp;3)</code>, which is the <em>last</em> 3. Its <code>Err(i)</code> is the insertion point.</p>
+
+  <h2 id="monotone-predicate">Monotone predicates: sortedness was never the point</h2>
+  <p><code>lower_bound</code> never needed a sorted array. It needs a <strong>monotone predicate</strong>: a yes/no question p(x) over an ordered range that reads <code>false … false true … true</code>. The first true is a boundary, and the same loop finds it in O(log n) evaluations of p (<a href="https://cp-algorithms.com/num_methods/binary_search.html#search-on-arbitrary-predicate" target="_blank">cp-algorithms</a>). Sorted arrays are one source (p(i) = v[i] ≥ t). Here are others:</p>
+  <ul>
+    <li><strong>First Bad Version:</strong> p(v) = is_bad(v). There is no array, only an API.</li>
+    <li><strong>Integer square root:</strong> p(m) = m·m &gt; x, and the answer is the first true minus one. Test it as <code>m &gt; x / m</code> to avoid overflow, which is equivalent for m ≥ 1, so start the range at 1. In production, use <a href="https://doc.rust-lang.org/std/primitive.u64.html#method.isqrt" target="_blank"><code>u64::isqrt</code></a> (stable since 1.84).</li>
+    <li><strong>Least capacity, speed or divisor:</strong> p(c) = “c is enough”, covered in the next section.</li>
+  </ul>
+  <p>Structure is what buys the log. Without it, classical search over N items needs <a href="../../quantum-computing/lessons/0005-grovers-algorithm.html#grover-problem">Θ(N) queries</a>, and a quantum computer only reaches <a href="../../quantum-computing/lessons/0005-grovers-algorithm.html#grover-optimality">Θ(√N), provably optimal</a>. A <a href="0005-binary-trees-and-bsts.html#bst-property">BST</a> is the same halving frozen into pointers.</p>
+
+  <h2 id="search-on-answer">Binary search on the answer</h2>
+  <p>Some problems ask for an optimum that is hard to compute but easy to check. If “c works” implies “c + 1 works”, then works(c) is a monotone predicate over the range of possible answers, and you binary search that range instead of an array.</p>
+  <p><strong>Capacity To Ship Packages Within D Days.</strong> Packages ship in order, and no day’s load may exceed the capacity. A greedy pass checks one capacity in O(n). Below the heaviest package every capacity fails, and the total weight always works, so <code>lo = max, hi = sum</code> satisfies the invariant from the start.</p>
+  <pre><code><span class="cm">/// Smallest x in [lo, hi) with p(x) true, or hi if there is none.
+/// p must be monotone: false ... false true ... true.</span>
+<span class="kw">fn</span> <span class="fn">first_true</span>(<span class="kw">mut</span> lo: <span class="ty">u64</span>, <span class="kw">mut</span> hi: <span class="ty">u64</span>, p: <span class="kw">impl</span> <span class="ty">Fn</span>(<span class="ty">u64</span>) -&gt; <span class="ty">bool</span>) -&gt; <span class="ty">u64</span> {
+    <span class="kw">while</span> lo &lt; hi {
+        <span class="kw">let</span> mid = lo + (hi - lo) / <span class="nm">2</span>;
+        <span class="kw">if</span> <span class="fn">p</span>(mid) { hi = mid } <span class="kw">else</span> { lo = mid + <span class="nm">1</span> }
+    }
+    lo
+}
+
+<span class="kw">fn</span> <span class="fn">ship_within_days</span>(weights: &amp;[<span class="ty">u32</span>], days: <span class="ty">u32</span>) -&gt; <span class="ty">u64</span> {
+    <span class="kw">let</span> fits = |cap: <span class="ty">u64</span>| {                 <span class="cm">// greedy: fill each day in order</span>
+        <span class="kw">let</span> (<span class="kw">mut</span> used, <span class="kw">mut</span> load) = (<span class="nm">1</span>, <span class="nm">0</span>);
+        <span class="kw">for</span> &amp;w <span class="kw">in</span> weights {
+            <span class="kw">let</span> w = w <span class="kw">as</span> <span class="ty">u64</span>;
+            <span class="kw">if</span> load + w &gt; cap { used += <span class="nm">1</span>; load = <span class="nm">0</span>; }
+            load += w;
+        }
+        used &lt;= days
+    };
+    <span class="kw">let</span> max = weights.<span class="fn">iter</span>().<span class="fn">copied</span>().<span class="fn">max</span>().<span class="fn">unwrap</span>() <span class="kw">as</span> <span class="ty">u64</span>;
+    <span class="kw">let</span> sum = weights.<span class="fn">iter</span>().<span class="fn">map</span>(|&amp;w| w <span class="kw">as</span> <span class="ty">u64</span>).<span class="fn">sum</span>();
+    <span class="fn">first_true</span>(max, sum, fits)              <span class="cm">// cap &lt; max: false; cap &gt;= sum: true</span>
+}
+<span class="cm">// O(n log S) time for total weight S, O(1) space. Can you do better?
+// Start lo at max(max, ceil(S / days)): same Big-O, fewer checks.</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(n log S)</span><span class="label">Space</span><span class="val">O(1)</span></div>
+  <p>Say it before you’re asked:</p>
+  <blockquote class="quote">“Feasibility is monotone in capacity: if c ships in D days, so does c + 1. So I binary search capacities from the heaviest package to the total weight, with an O(n) greedy check each time. That’s O(n log S) time and O(1) extra space, against O(n · S) for trying every capacity.”</blockquote>
+  <p>What would a Google interviewer ask next? Scale: 10⁵ weights of up to 10⁹ push S to 10¹⁴, past any <code>u32</code> (hence <code>u64</code>), yet the search needs only ⌈log₂ 10¹⁴⌉ = 47 checks. <strong>Koko Eating Bananas</strong> is the same code with the check Σ ⌈pile / k⌉ ≤ h over k in <code>[1, max pile]</code>. In “maximize the minimum” problems the predicate runs <code>true … true false … false</code>, so find the first false and subtract one. The <a href="https://cses.fi/book/book.pdf" target="_blank">Competitive Programmer’s Handbook</a> (§3.3) states the cost: O(log z) checks, so O(n log z) for an O(n) check.</p>
+
+  <h2 id="rotated-array">Rotated sorted arrays</h2>
+  <p><code>[4, 5, 6, 7, 0, 1, 2]</code> is a sorted array of distinct values, rotated at an unknown pivot. <strong>To find the minimum</strong>, compare with the last element. Everything before the drop is greater than it, and everything from the minimum on is not, so p(i) = v[i] ≤ v[last] is monotone:</p>
+  <pre><code><span class="cm">/// Index of the minimum of a non-empty rotated sorted slice of distinct values.</span>
+<span class="kw">fn</span> <span class="fn">rotation_point</span>(v: &amp;[<span class="ty">i32</span>]) -&gt; <span class="ty">usize</span> {
+    <span class="kw">let</span> last = v[v.<span class="fn">len</span>() - <span class="nm">1</span>];
+    v.<span class="fn">partition_point</span>(|&amp;x| x &gt; last)       <span class="cm">// left run &gt; last, right run &lt;= last</span>
+}
+<span class="cm">// O(log n) time, O(1) space.</span></code></pre>
+  <p><strong>To search in one pass</strong>, cut <code>[lo, hi)</code> at <code>mid</code>. The single drop is on one side, so the other side is sorted: the left if <code>v[lo] ≤ v[mid]</code>, otherwise the right. Range-check the target against the sorted side’s ends. Go there if it fits, and to the other side if not.</p>
+  <pre><code><span class="kw">fn</span> <span class="fn">search_rotated</span>(v: &amp;[<span class="ty">i32</span>], t: <span class="ty">i32</span>) -&gt; <span class="ty">Option</span>&lt;<span class="ty">usize</span>&gt; {
+    <span class="kw">let</span> (<span class="kw">mut</span> lo, <span class="kw">mut</span> hi) = (<span class="nm">0</span>, v.<span class="fn">len</span>());
+    <span class="kw">while</span> lo &lt; hi {
+        <span class="kw">let</span> mid = lo + (hi - lo) / <span class="nm">2</span>;
+        <span class="kw">if</span> v[mid] == t { <span class="kw">return</span> <span class="ty">Some</span>(mid); }
+        <span class="kw">if</span> v[lo] &lt;= v[mid] {                 <span class="cm">// v[lo..=mid] is sorted</span>
+            <span class="kw">if</span> v[lo] &lt;= t &amp;&amp; t &lt; v[mid] { hi = mid } <span class="kw">else</span> { lo = mid + <span class="nm">1</span> }
+        } <span class="kw">else</span> {                             <span class="cm">// v[mid..hi] is sorted</span>
+            <span class="kw">if</span> v[mid] &lt; t &amp;&amp; t &lt;= v[hi - <span class="nm">1</span>] { lo = mid + <span class="nm">1</span> } <span class="kw">else</span> { hi = mid }
+        }
+    }
+    <span class="ty">None</span>
+}
+<span class="cm">// O(log n) time, O(1) space. Can you do better? Simpler, at least:
+// rotation_point, then one partition_point on the run that can hold t.</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(log n)</span><span class="label">Space</span><span class="val">O(1)</span></div>
+  <p>Duplicates break this. <code>[1, 1, 2, 1, 1, 1, 1]</code> and <code>[1, 1, 1, 1, 2, 1, 1]</code> read 1 at <code>lo</code>, <code>mid</code> and <code>hi − 1</code>, yet the 2 is on opposite sides. When the probes tie, you can only drop one end, so the worst case becomes O(n).</p>
+
+  <h2>Recognition cues</h2>
+  <ul>
+    <li><strong>Sorted input</strong>, “first / last position”, “insert position”: <code>partition_point</code>. The <a href="https://www.techinterviewhandbook.org/algorithms/sorting-searching/#sorted-inputs" target="_blank">Tech Interview Handbook</a> says sorted input should bring binary search to mind first.</li>
+    <li><strong>“Minimum x such that…”, “maximize the minimum”</strong>, or a huge answer range with a cheap check: search on the answer. 10⁹ candidates cost about 30 checks.</li>
+    <li><strong>Sorted but rotated</strong>: v[i] ≤ v[last], or the sorted-half rule.</li>
+  </ul>
+  <p>And when not to. One query on unsorted data is an O(n) scan; sorting first only pays across many queries (<a href="0010-sorting-algorithms.html#sort-as-preprocessing">sort as preprocessing</a>). Pure membership is a <a href="0002-arrays-and-hashmaps.html#hash-table">hash table</a>. A pair sum in a sorted array is O(n) with <a href="0003-two-pointers-sliding-window.html#two-pointers">two pointers</a>, not O(n log n) with n searches.</p>
+
+  <h2>Drill: drive the search</h2>
+  <p>You are the loop. Each step shows <code>lo</code>, <code>hi</code> and <code>mid</code>. Work out p(mid) yourself, then pick the update. Grey cells are known false, green cells are known true, and the amber outline is <code>mid</code>. The second mode runs the identical loop over ship capacities instead of indices.</p>
+  <div class="drv" id="drv">
+    <div class="drv-modes" role="group" aria-label="Search mode">
+      <button type="button" id="drv-mode-arr" aria-pressed="true" class="on">Array: first v[i] ≥ t</button>
+      <button type="button" id="drv-mode-ship" aria-pressed="false">Answer range: ship capacity</button>
+    </div>
+    <p class="drv-goal" id="drv-goal"></p>
+    <div id="drv-track"></div>
+    <p class="drv-state" id="drv-state"></p>
+    <div class="drv-actions">
+      <button type="button" id="drv-hi">hi = mid</button>
+      <button type="button" id="drv-lo">lo = mid + 1</button>
+      <button type="button" id="drv-next">Next target →</button>
+    </div>
+    <p class="drv-fb" id="drv-fb" aria-live="polite"></p>
+  </div>
+
+  <h2>Drill: name the predicate</h2>
+  <p>The tangible skill is turning a problem statement into a monotone predicate. For each problem, pick the predicate that reads <code>false … false true … true</code> and gives the answer.</p>
+  <div id="pred-exercise" class="mc-exercise"></div>
+
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. With <code>mid = lo + (hi - lo) / 2</code> and <code>while lo &lt; hi</code>, which update can make the loop spin forever?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Since mid + 1 is always greater than lo, this branch strictly shrinks [lo, hi). It is the correct partner of hi = mid.')">lo = mid + 1 when p(mid) is false</button>
+        <button onclick="quizAnswer(this,false,'q1','mid rounds down, so mid &lt; hi whenever lo &lt; hi: hi always drops and the range shrinks. This is the correct update for a true mid.')">hi = mid when p(mid) is true</button>
+        <button onclick="quizAnswer(this,true,'q1','Right. When hi = lo + 1, mid rounds down to lo, so lo = mid changes nothing and the loop repeats forever. mid is known false, so lo = mid + 1 is both safe and required.')">lo = mid when p(mid) is false</button>
+        <button onclick="quizAnswer(this,false,'q1','This one terminates, because hi drops below mid. But it throws away mid, which may be the first true: a wrong answer, not a hang. With usize, mid = 0 also underflows.')">hi = mid - 1 when p(mid) is true</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. <code>v = [1, 3, 3, 3, 7]</code>. Which call is guaranteed to return 1, the index of the first 3?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Ok(i) may name any matching index. The docs promise no particular one, and Rust 1.97 actually returns Ok(3) here, the last 3.')">v.binary_search(&amp;3)</button>
+        <button onclick="quizAnswer(this,true,'q2','Right. x &lt; 3 is true for the 1 and false from the first 3 on, and partition_point returns the first false: index 1, the lower bound.')">v.partition_point(|&amp;x| x &lt; 3)</button>
+        <button onclick="quizAnswer(this,false,'q2','x &lt;= 3 stays true through every 3, so this returns 4: the upper bound, one past the last 3. Subtract one from it for the last occurrence.')">v.partition_point(|&amp;x| x &lt;= 3)</button>
+        <button onclick="quizAnswer(this,false,'q2','partition_point needs the true elements first. x &gt; 3 is false for every element but 7, the wrong orientation, so the docs call the result unspecified and meaningless.')">v.partition_point(|&amp;x| x &gt; 3)</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Koko Eating Bananas: n = 10⁵ piles of up to 10⁹ bananas each, and checking one speed k is a single O(n) pass. What is the total time?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','Nothing gets sorted. The search runs over speeds 1 to the max pile, and the check reads the piles in any order.')">O(n log n), since the piles must be sorted first</button>
+        <button onclick="quizAnswer(this,false,'q3','That counts the checks but forgets that each one scans all n piles. As with nested loops, multiply the two costs.')">O(log max), since binary search is logarithmic</button>
+        <button onclick="quizAnswer(this,false,'q3','That is the linear scan over speeds: up to 10⁹ × 10⁵ = 10¹⁴ steps. Monotonicity is what lets you skip almost all of them.')">O(n · max), trying every speed in turn</button>
+        <button onclick="quizAnswer(this,true,'q3','Right. log₂(10⁹) ≈ 29.9, so about 30 feasibility checks of O(n) each: roughly 3 × 10⁶ steps in total, with O(1) extra space.')">O(n log max), about 30 checks of 10⁵ piles</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Rotated array <code>v = [8, 9, 1, 2, 3, 5, 6]</code>, target 9. With <code>lo = 0, hi = 7</code>, you get <code>mid = 3</code> and <code>v[mid] = 2</code>. What next?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q4','Right. v[lo] = 8 &gt; v[mid] = 2 puts the drop on the left, so v[mid..hi] = [2, 3, 5, 6] is sorted. 9 lies outside [2, 6], so it can only be on the left: hi = mid.')">Right half is sorted and lacks 9, so hi = mid</button>
+        <button onclick="quizAnswer(this,false,'q4','The sorted right half spans 2 to 6. Range-checking against its two ends shows 9 &gt; 6, so 9 cannot be in it.')">Right half is sorted and holds 9, so lo = mid + 1</button>
+        <button onclick="quizAnswer(this,false,'q4','v[lo] = 8 &gt; v[mid] = 2 means the drop from 9 to 1 sits on the left, so the left half is not the sorted one, and 9 is in fact there.')">Left half is sorted and lacks 9, so lo = mid + 1</button>
+        <button onclick="quizAnswer(this,false,'q4','With distinct values, one side of mid is always sorted. Here v[mid] = 2 ≤ v[hi − 1] = 6 proves it is the right side.')">Neither half is sorted, so fall back to a scan</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <ol>
+    <li>From a blank file, write <code>lower_bound</code> and <code>first_true</code> without looking, then fuzz <code>lower_bound</code> against <code>partition_point</code> on a few thousand random sorted <code>Vec</code>s.</li>
+    <li>Arrays: Search Insert Position; Find First and Last Position of Element in Sorted Array.</li>
+    <li>Predicates: First Bad Version; Sqrt(x); Koko Eating Bananas; Capacity To Ship Packages Within D Days.</li>
+    <li>Rotated: Find Minimum in Rotated Sorted Array; Search in Rotated Sorted Array. Stretch: Median of Two Sorted Arrays.</li>
+  </ol>
+  <p>The <a href="https://www.techinterviewhandbook.org/algorithms/sorting-searching/#essential-questions" target="_blank">Tech Interview Handbook cheatsheet</a> lists Binary Search and Search in Rotated Sorted Array as essential, and Find Minimum in Rotated Sorted Array and Median of Two Sorted Arrays as recommended practice. Before writing any code, say the predicate and its direction out loud.</p>
+
+  <h2>Primary resource</h2>
+  <p>Read <a href="https://cp-algorithms.com/num_methods/binary_search.html" target="_blank">cp-algorithms — Binary search</a>, from “Search in sorted arrays” through “Binary search on the answer”. It argues from a loop invariant, as this lesson does, and covers lower/upper bound and arbitrary predicates with proofs rather than tricks. Its convention differs: sentinels <code>l = −1</code> (last known false) and <code>r = n</code> (first known true), looping while <code>r − l &gt; 1</code>, so translating its code into our half-open form is a good check that you own the invariant. It also writes <code>(l + r) / 2</code>, which with <code>int</code> indices is exactly the <a href="#midpoint-overflow">midpoint overflow</a> above. Skip continuous and parallel binary search for now.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Paste a problem statement and ask “what’s the predicate, and which way does it run?”, or ask to see <code>lower_bound</code> rewritten in the closed <code>[lo, hi]</code> style so you can explain why every line changes. Type a question in Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0006-graph-traversal-bfs-dfs.html">← Lesson 6: Graph Traversal (BFS / DFS)</a>
+    <span class="spacer"></span>
+    <a href="0008-recursion-and-backtracking.html">Lesson 8: Recursion &amp; Backtracking →</a>
+  </div>
+
+</div>
+
+<style>
+blockquote.quote { border-left: 3px solid var(--accent); padding: .6rem 1rem; margin: 1rem 0; color: var(--ink-dim); font-style: italic; font-size: .95rem; }
+.drv { background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin: 1.25rem 0; font-family: var(--font-ui); font-size: .9rem; }
+.drv button { background: var(--bg-sunken); color: var(--ink); border: 1px solid var(--border); border-radius: var(--radius); padding: .4rem .75rem; font: inherit; cursor: pointer; }
+.drv button:hover:not(:disabled) { border-color: var(--accent-border); background: var(--accent-soft); }
+.drv button.on { border-color: var(--accent); color: var(--accent-strong); }
+.drv button:disabled { opacity: .45; cursor: default; }
+.drv-modes, .drv-actions { display: flex; flex-wrap: wrap; gap: .4rem; }
+.drv-modes { margin-bottom: .75rem; }
+.drv-goal { color: var(--ink-dim); margin-bottom: .6rem; }
+.drv-cells { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 3px; }
+.drv-cell { border: 1px solid var(--border); border-radius: 4px; text-align: center; padding: .25rem 0; font-family: var(--font-mono); }
+.drv-cell .ix { display: block; font-size: .68rem; color: var(--muted); }
+.drv-cell.f { background: var(--bg-sunken); color: var(--muted); }
+.drv-cell.t { background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent-strong); }
+.drv-cell.mid { outline: 2px solid var(--amber); outline-offset: -2px; }
+.drv-bar { position: relative; display: flex; height: 24px; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+.drv-seg.f { background: var(--bg-sunken); }
+.drv-seg.u { background: var(--border); }
+.drv-seg.t { background: var(--accent-soft); }
+.drv-mark { position: absolute; top: 0; bottom: 0; width: 3px; margin-left: -1px; background: var(--amber); }
+.drv-legend { display: flex; justify-content: space-between; font-size: .75rem; color: var(--muted); margin-top: .25rem; }
+.drv-state { font-family: var(--font-mono); font-size: .82rem; margin: .7rem 0; overflow-wrap: anywhere; }
+.drv-fb { min-height: 2.6em; margin: .6rem 0 0; font-size: .85rem; }
+.drv-fb.good { color: var(--accent-strong); }
+.drv-fb.bad { color: var(--err); }
+</style>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+// Drive-the-search stepper: the learner plays the half-open first-true loop.
+(function () {
+  const $ = id => document.getElementById(id);
+  const V = [1, 2, 2, 2, 3, 5, 8, 8, 13], TS = [2, 4, 8, 14], DS = [5, 3, 1, 10];
+  const W = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], MAXW = 10, SUMW = 55;
+  let ship = false, round = 0, lo = 0, hi = 0, steps = 0, misses = 0;
+  const split = cap => W.reduce((g, w) => {        // greedy day-filling
+    const day = g[g.length - 1];
+    if (day.reduce((a, b) => a + b, 0) + w > cap) g.push([w]); else day.push(w);
+    return g;
+  }, [[]]);
+  const T = () => TS[round % TS.length], D = () => DS[round % DS.length];
+  const mid = () => lo + Math.floor((hi - lo) / 2);
+  const pred = m => ship ? split(m).length <= D() : V[m] >= T();
+
+  function render(msg, cls) {
+    const m = mid(), done = lo >= hi;
+    let h;
+    if (!ship) {
+      $('drv-goal').textContent = 'v = [' + V.join(', ') + '], t = ' + T() + '. Find the first i with v[i] ≥ t, or v.len() if there is none.';
+      h = '<div class="drv-cells">' + V.map((x, i) => '<div class="drv-cell' + (i < lo ? ' f' : i >= hi ? ' t' : '') +
+        (!done && i === m ? ' mid' : '') + '"><span class="ix">' + i + '</span>' + x + '</div>').join('') + '</div>';
+    } else {
+      $('drv-goal').textContent = 'Weights 1 to 10 ship in order within D = ' + D() + ' days. Find the least capacity. lo = 10 (heaviest package), hi = 55 (total weight).';
+      const seg = (k, n) => '<div class="drv-seg ' + k + '" style="flex:' + n + ' 0 0"></div>';
+      h = '<div class="drv-bar">' + seg('f', lo - MAXW) + seg('u', hi - lo) + seg('t', SUMW + 1 - hi) +
+        (done ? '' : '<div class="drv-mark" style="left:' + ((m - MAXW + 0.5) / (SUMW - MAXW + 1) * 100) + '%"></div>') +
+        '</div><div class="drv-legend"><span>10</span><span>grey false · light unknown · green true</span><span>55</span></div>';
+    }
+    $('drv-track').innerHTML = h;
+    $('drv-state').textContent = done ? 'lo = hi = ' + lo : 'lo = ' + lo + ', hi = ' + hi + ', mid = ' + m + ': ' + (ship
+      ? 'day split ' + split(m).map(d => '[' + d.join(' ') + ']').join(' ') + ' = ' + split(m).length + ' days, D = ' + D()
+      : 'v[mid] = ' + V[m] + ', t = ' + T());
+    $('drv-hi').disabled = $('drv-lo').disabled = done;
+    $('drv-next').textContent = ship ? 'Next D →' : 'Next target →';
+    $('drv-fb').textContent = msg || '';
+    $('drv-fb').className = 'drv-fb ' + (cls || '');
+  }
+
+  function pick(toHi) {
+    if (lo >= hi) return;
+    const m = mid(), p = pred(m);
+    const what = ship ? 'Capacity ' + m + ' needs ' + split(m).length + ' days (D = ' + D() + ')' : 'v[' + m + '] = ' + V[m] + ' against t = ' + T();
+    if (toHi !== p) {
+      misses++;
+      return render(p
+        ? '✗ ' + what + ': p(mid) is true, so mid may be the first true. lo = mid + 1 would discard it; hi = mid keeps it as the boundary.'
+        : '✗ ' + what + ': p(mid) is false, and so is every smaller candidate. hi = mid would make a false value the boundary and throw away the side that holds the answer.', 'bad');
+    }
+    steps++;
+    if (p) hi = m; else lo = m + 1;
+    let msg = p ? '✓ ' + what + ': true, so mid and every larger candidate are true. hi = ' + m + '.'
+                : '✓ ' + what + ': false, so mid and every smaller candidate are false. lo = ' + (m + 1) + '.';
+    if (lo >= hi) {
+      let check = ship ? MAXW : 0;                   // independent linear check
+      if (ship) while (split(check).length > D()) check++;
+      else while (check < V.length && V[check] < T()) check++;
+      msg += ' Done in ' + steps + ' steps (at most ' + (ship ? 6 : 4) + '; wrong picks: ' + misses + '). Answer: ' + lo + '. ' +
+        (ship ? 'Trying every capacity from 10 upward also gives ' + check + '.'
+              : 'v.partition_point(|&x| x < ' + T() + ') returns ' + check + '.') +
+        (!ship && lo === V.length ? ' No element is ≥ t, so the answer is v.len(), the insertion point.' : '') +
+        (ship && lo === SUMW ? ' The answer is hi itself: only the total weight fits in one day.' : '') +
+        (ship && lo === MAXW ? ' The answer is lo itself: the heaviest package sets the floor.' : '');
+    }
+    render(msg, 'good');
+  }
+
+  function reset() {
+    steps = misses = 0;
+    [lo, hi] = ship ? [MAXW, SUMW] : [0, V.length];
+    render();
+  }
+  function setMode(s) {
+    ship = s; round = 0;
+    [['drv-mode-arr', !s], ['drv-mode-ship', s]].forEach(([id, on]) => {
+      $(id).classList.toggle('on', on);
+      $(id).setAttribute('aria-pressed', String(on));
+    });
+    reset();
+  }
+  $('drv-hi').addEventListener('click', () => pick(true));
+  $('drv-lo').addEventListener('click', () => pick(false));
+  $('drv-next').addEventListener('click', () => { round++; reset(); });
+  $('drv-mode-arr').addEventListener('click', () => setMode(false));
+  $('drv-mode-ship').addEventListener('click', () => setMode(true));
+  reset();
+})();
+
+renderMC('pred-exercise', [
+  {
+    prompt: 'First Bad Version: versions 1..=n, and once a version is bad, every later one is bad too. Which predicate do you search, and what do you return?',
+    options: [
+      { text: 'p(v) = is_bad(v), return its first true', correct: true, explain: 'Good versions come first (false) and bad ones after (true): F…F T…T. Its first true is exactly the first bad version, which is where lo lands.' },
+      { text: 'p(v) = is_good(v), return its first true', explain: 'is_good runs T…T F…F, true from version 1 onward, so its first true is version 1. You would need its first false instead.' },
+      { text: 'p(v) = is_bad(v), return its last false', explain: 'The last false is the last good version, one before the answer. The half-open loop already stops on the first true, so return lo.' },
+    ],
+  },
+  {
+    prompt: 'Smallest Divisor Given a Threshold: find the smallest d ≥ 1 with sum(d) = Σ ⌈a[i] / d⌉ ≤ threshold. Which predicate runs F…F T…T in d?',
+    options: [
+      { text: 'sum(d) ≥ threshold', explain: 'sum(d) never grows as d grows, so this is true for small d and false later. That is T…T F…F, the wrong direction for a first-true search.' },
+      { text: 'sum(d) == threshold', explain: 'Equality is not monotone. The sum can jump straight past the threshold, so no d may satisfy it, and you would miss the real answer.' },
+      { text: 'sum(d) ≤ threshold', correct: true, explain: 'A bigger d gives smaller quotients, so once the sum fits under the threshold it keeps fitting: F…F T…T, and the first true is the answer.' },
+    ],
+  },
+  {
+    prompt: 'Sqrt(x): return ⌊√x⌋ for a u64 x without floating point. You binary search over m. Which predicate, and how do you read off the answer?',
+    options: [
+      { text: 'First m with m·m ≤ x, as is', explain: 'm·m ≤ x is true for small m and false later (T…T F…F), so its first true is just the smallest m, which tells you nothing about √x.' },
+      { text: 'First m with m·m > x, minus one', correct: true, explain: 'm·m > x runs F…F T…T, and its first true is ⌊√x⌋ + 1 (for x = 8 that is 3), so subtract one. Test it as m > x / m so m·m never overflows.' },
+      { text: 'First m with m·m > x, as is', explain: 'Off by one: for x = 8 the first m with m·m > 8 is 3, but ⌊√8⌋ = 2. The answer is the last false, which is the first true minus one.' },
+    ],
+  },
+  {
+    prompt: 'Find Minimum in Rotated Sorted Array, for example [4, 5, 6, 7, 0, 1, 2] with distinct values. Which predicate on index i runs F…F T…T with its first true at the minimum?',
+    options: [
+      { text: 'v[i] ≤ v[last]', correct: true, explain: 'Everything before the drop is greater than the last element (false), and everything from the minimum on is at most the last (true): F…F T…T.' },
+      { text: 'v[i] ≤ v[first]', explain: 'On the example this reads T F F F T T T, because index 0 is always true. A true, then falses, then trues is not monotone, so the search can land anywhere.' },
+      { text: 'v[i] ≤ v[i+1]', explain: 'True everywhere except at the single drop from 7 to 0, giving T T T F T T. One false in the middle is not a monotone pattern.' },
+    ],
+  },
+  {
+    prompt: 'Capacity To Ship Packages Within D Days: why is fits(cap), meaning “ships in at most D days”, monotone in cap?',
+    options: [
+      { text: 'The answer always lies between the max and the sum', explain: 'Those are the search bounds (lo and hi), and they are true, but bounds alone never make a predicate F…F T…T.' },
+      { text: 'Any schedule that fits cap also fits cap + 1', correct: true, explain: 'A bigger capacity never breaks a valid day plan, so once some capacity works, every larger one works: F…F T…T, and the first true is the least capacity.' },
+      { text: 'Packages must always ship in their given order, never reordered', explain: 'That constraint is why the greedy day-filling check is correct, but it is not what makes the answer monotone in capacity.' },
+    ],
+  },
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

@@ -140,7 +140,7 @@
   <div class="nav">
     <a href="0005-natural-deduction.html">← Lesson 5: Natural Deduction</a>
     <span class="spacer"></span>
-    <a href="../index.html#lesson-07">Lesson 7: Symbolizing English Arguments in FOL →</a>
+    <a href="0007-symbolizing-fol.html">Lesson 7: Symbolizing English Arguments in FOL →</a>
   </div>
 
 </div>
@@ -229,7 +229,7 @@ PAIRING_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb" id="pair-fb-${i}"></div>
   `;
@@ -265,7 +265,7 @@ NEGATION_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb" id="neg-fb-${i}"></div>
   `;

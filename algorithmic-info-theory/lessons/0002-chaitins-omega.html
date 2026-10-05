@@ -91,8 +91,8 @@
       <p>4. What's surprising about Ω being "algorithmically random"?</p>
       <div class="options">
         <button onclick="quizAnswer(this,false,'q4','This is exactly backwards — algorithmic randomness is specifically about the digits having no compact description, in contrast to Ω\'s own short, clean definition as a constant.')">That Ω has a very short, simple description as a specific number</button>
-        <button onclick="quizAnswer(this,true, 'q4','Right — Ω can be characterized completely in one short, clean sentence ("the halting probability of a universal machine") and yet its actual digit sequence has no shorter description than writing the digits out in full — a striking gap between defining a number and describing its digits.')">That a number with such a short, clean definition can still have digits with no shorter description than the digits themselves</button>
-        <button onclick="quizAnswer(this,false,'q4','This isn\'t what "algorithmically random" means here — the claim is specifically about the incompressibility of Ω\'s digit sequence, not about the value of Ω itself compared to other numbers.')">That Ω is larger than most other real numbers between 0 and 1</button>
+        <button onclick="quizAnswer(this,true, 'q4','Right — Ω can be characterized completely in one short, clean sentence (&quot;the halting probability of a universal machine&quot;) and yet its actual digit sequence has no shorter description than writing the digits out in full — a striking gap between defining a number and describing its digits.')">That a number with such a short, clean definition can still have digits with no shorter description than the digits themselves</button>
+        <button onclick="quizAnswer(this,false,'q4','This isn\'t what &quot;algorithmically random&quot; means here — the claim is specifically about the incompressibility of Ω\'s digit sequence, not about the value of Ω itself compared to other numbers.')">That Ω is larger than most other real numbers between 0 and 1</button>
         <button onclick="quizAnswer(this,false,'q4','Researchers actually have computed a handful of early bits of Ω for specific toy machines — the point isn\'t that literally zero digits are knowable, but that the process can\'t be extended into a general, indefinitely-continuing algorithm.')">That literally no digit of Ω has ever been determined by anyone</button>
       </div>
       <div class="feedback" id="q4-fb"></div>
@@ -174,7 +174,7 @@ OMEGA_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

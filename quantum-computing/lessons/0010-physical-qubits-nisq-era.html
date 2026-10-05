@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 10 — Physical Qubits &amp; the NISQ Era</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+  .nb-widget { background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin: 1.25rem 0; font-family: var(--font-ui); font-size: .88rem; color: var(--ink-dim); }
+  .nb-widget label { display: block; margin-top: .4rem; }
+  .nb-widget output { color: var(--accent-strong); font-weight: 600; }
+  .nb-widget input { width: 100%; accent-color: var(--accent); }
+  .nb-bar { height: .7rem; background: var(--bg-sunken); border: 1px solid var(--border); border-radius: var(--radius-sm); margin: .8rem 0 .5rem; overflow: hidden; }
+  .nb-fill { height: 100%; width: 37%; background: var(--accent); }
+  .nb-read { margin: 0; line-height: 1.5; }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Quantum Computing</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 10 of 10 &nbsp;·&nbsp; Quantum Computing &nbsp;·&nbsp; ~40 min</p>
+  <h1>Physical Qubits &amp; the NISQ Era</h1>
+  <p><a href="0009-decoherence-noise-error-correction.html#decoherence">Lesson 9</a> gave you the theory of fragility: qubits relax and dephase on timescales <a href="0009-decoherence-noise-error-correction.html#t1-t2">T1 and T2</a>, and error correction wins only below a <a href="0009-decoherence-noise-error-correction.html#threshold-theorem">threshold</a>. <a href="0007-shors-algorithm-breaking-rsa.html#shor-resource-estimates">Lesson 7</a> priced Shor against RSA-2048 at under a million physical qubits. This last lesson fills the space between: what a physical qubit is on the two leading platforms, and one rule of thumb (a noisy machine runs about 1/ε gates) that lets you read a real spec sheet and say what the machine can and can’t do.</p>
+
+  <h2 id="divincenzo-criteria">The checklist: DiVincenzo’s criteria</h2>
+  <p>In 2000 David DiVincenzo listed what any physical system must provide to compute (<a href="https://arxiv.org/abs/quant-ph/0002077" target="_blank">DiVincenzo 2000</a>). You already use every item:</p>
+  <ol>
+    <li><strong>Scalable, well-characterized qubits</strong>: the |0⟩ and |1⟩ of <a href="0001-qubits-bloch-sphere-single-qubit-gates.html#bloch-sphere">lesson 1</a>, made physical and copied many times.</li>
+    <li><strong>Initialization</strong> to a state such as |00…0⟩, where every circuit starts. Error correction needs a steady supply of fresh ancillas too.</li>
+    <li><strong>Coherence much longer than a gate.</strong> DiVincenzo asked for 10⁴–10⁵ gate times per coherence time, from the fault-tolerance estimates of his day.</li>
+    <li><strong>A universal gate set</strong>, like <a href="0003-universal-gates-reversibility-no-cloning.html#universal-gate-set">{H, T, CNOT}</a>. Hardware has its own native gates, but all single-qubit rotations plus any one entangling two-qubit gate are universal (<a href="https://arxiv.org/abs/quant-ph/0108062" target="_blank">Brylinski &amp; Brylinski</a>).</li>
+    <li><strong>Qubit-specific measurement</strong>: Born-rule readout of the qubit you choose.</li>
+  </ol>
+  <p>Two more criteria, about converting to photonic “flying” qubits and sending them, matter for networks, not for one computer.</p>
+
+  <h2 id="transmon-qubit">Superconducting qubits: an artificial atom on a chip</h2>
+  <p>An LC circuit made of superconducting metal has no resistance, and quantum mechanically it is a <a href="../../quantum-mechanics/lessons/0005-quantum-harmonic-oscillator.html">harmonic oscillator</a>: frequency ω = 1/√(LC), levels <em>equally spaced</em> ℏω apart (<a href="https://arxiv.org/abs/1904.06560" target="_blank">Krantz et al. §II</a>). That ruins it as a qubit, because a drive tuned to |0⟩→|1⟩ is equally resonant with |1⟩→|2⟩ and the state climbs out of the two-level subspace. A <strong>Josephson junction</strong>, a thin insulating barrier between superconductors, acts as a <em>nonlinear</em> inductor and squeezes the upper levels together. The resulting <strong>transmon</strong> has anharmonicity α = f₁₂ − f₀₁ of about −100 to −300 MHz on a 3–6 GHz qubit, so a pulse at f₀₁ moves only the bottom two levels. The qubit is a macroscopic circuit, not a tiny atom.</p>
+  <p>Gates are the precession of <a href="../../quantum-mechanics/lessons/0004-schrodinger-equation.html#worked-example-qubit-precession">Quantum Mechanics lesson 4</a> put to work: the splitting ω is the qubit frequency, and a resonant microwave pulse rotates the Bloch vector, a <a href="0001-qubits-bloch-sphere-single-qubit-gates.html#unitary-gates">short burst of unitary evolution</a> whose axis is set by the pulse’s phase. Two-qubit gates run through fixed couplers between neighbours: Google’s Willow averages 3.47 neighbours per qubit, IBM’s 127-qubit Eagle at most three. A gate between distant qubits first needs SWAPs, three CNOTs’ worth of extra noise each.</p>
+  <div class="callout">
+    <strong>Worked example: three numbers that shape a transmon</strong>
+    <pre><code>frequency: f = 1/(2π√(LC))
+  10 nH, 100 fF → 5.0 GHz
+
+speed: a τ-long pulse spans
+  ~1/τ in frequency, so with
+  |α| = 250 MHz need τ ≫ 4 ns
+  Willow: 1Q 25 ns, CZ 42 ns
+
+cold: P(|1⟩) = 1/(1+e^(hf/kT))
+  5 GHz, 1 K:   hf/kT = 0.24
+                → P = 0.44
+  5 GHz, 20 mK: hf/kT = 12
+                → P = 6×10⁻⁶</code></pre>
+    Krantz et al. (§IV.D) show 1–5 ns pulses reaching the |1⟩→|2⟩ line; Willow’s timings are from <a href="https://arxiv.org/abs/2408.13687" target="_blank">Google’s 2024 paper</a>. At 1 K the qubit is a thermal coin flip. At about 20 mK in a dilution refrigerator it relaxes to |0⟩ by itself: criterion 2 for free.
+  </div>
+  <div class="callout warn">
+    <strong>The trap: “colder means no decoherence”</strong>
+    Cold removes thermal excitation, not noise. Willow’s mean T1 is still 68 µs (<a href="https://quantumai.google/static/site-assets/downloads/willow-spec-sheet.pdf" target="_blank">spec sheet</a>), limited by defects in the chip’s materials, quasiparticles far above their equilibrium density, and control noise (Krantz et al. §III).
+  </div>
+
+  <h2 id="trapped-ion-qubit">Trapped ions: identical qubits from nature</h2>
+  <p>A trapped-ion qubit is two internal levels of one charged atom: hyperfine levels split by microwave frequencies (about 8 GHz in ¹³⁷Ba⁺), or an optical transition. Radio-frequency fields hold a string of ions in vacuum, and every ion of a species is identical, so there is no fabrication spread. Lasers or microwaves drive the same resonant Bloch rotations. Entangling gates use the string’s shared vibrations: the <strong>Mølmer-Sørensen</strong> gate applies state-dependent forces through a common motional mode, a quantum bus, and entangles the internal states while the motion returns to where it started. Its natural form is an XX-type rotation; Helios wraps it in single-qubit pulses to expose the native gate R<sub>ZZ</sub>(θ) = e<sup>−iθZZ/2</sup>. Any pair can share a mode, so connectivity is all-to-all. Coherence runs from 0.2 s to 600 s depending on qubit type and technique, while two-qubit gates take 1–100 µs (<a href="https://arxiv.org/abs/1904.04178" target="_blank">Bruzewicz et al. 2019</a>). Larger machines shuttle ions between zones, the quantum charge-coupled device (QCCD) design.</p>
+  <div class="callout">
+    <strong>Worked example: two real spec sheets</strong>
+    <pre><code>           Willow    Helios
+           Dec 2024  Nov 2025
+qubits     105       98
+links      ~4 nbrs   all-to-all
+1Q error   3.5×10⁻⁴  2.5×10⁻⁵
+2Q error ε 3.3×10⁻³  7.9×10⁻⁴
+2Q gate    42 ns     ~70 µs
+coherence  68 µs T1  ~1 s+
+coh./gate  ≈ 1,600   ≈ 14,000</code></pre>
+    From the <a href="https://quantumai.google/static/site-assets/downloads/willow-spec-sheet.pdf" target="_blank">Willow spec sheet</a> (error-correction chip) and Quantinuum’s <a href="https://arxiv.org/abs/2511.05465" target="_blank">Helios paper</a>; the ion coherence is a representative value from Bruzewicz’s 0.2–600 s range (Helios measures idling directly: about 5×10⁻⁴ error per layer, below its gate error). Helios’s gate is about 1,700 times slower, and with transport and cooling one layer of gates on all 98 qubits takes about 55 ms, while Willow’s sampling chip runs 63,000 whole circuits per second. Ions win on fidelity and connectivity, transmons on speed.
+  </div>
+  <p>Neutral atoms in laser tweezers trade differently again, scaling to arrays of over 6,100 coherent atomic qubits (<a href="https://arxiv.org/abs/2403.12021" target="_blank">2024</a>); photonic and spin qubits are also in development.</p>
+
+  <h2 id="nisq">NISQ: noisy, intermediate-scale, uncorrected</h2>
+  <p>John Preskill named the current era in 2018: <strong>NISQ</strong>, Noisy Intermediate-Scale Quantum. “Intermediate scale” means 50 to a few hundred qubits, past brute-force simulation (<a href="0002-multi-qubit-entanglement-circuits.html#exponential-state-space">lesson 2</a>: 53 qubits are 2⁵³ amplitudes, 144 petabytes at 16 bytes each). “Noisy” means imperfect control and no error correction, so every physical error lands in the answer (<a href="https://arxiv.org/abs/1801.00862" target="_blank">Preskill 2018</a>). Run without error correction, both machines above are NISQ devices.</p>
+
+  <h3 id="noise-depth-budget">The noise budget: about 1/ε gates</h3>
+  <p>If each two-qubit gate fails independently with probability ε, a circuit of G gates runs fault-free with probability</p>
+  <pre><code>(1 − ε)^G ≈ e^(−εG) = e^(−λ),   λ = εG</code></pre>
+  <p>where λ is the expected number of faults, the “circuit fault rate” of <a href="https://arxiv.org/abs/2210.00921" target="_blank">Cai et al.</a> At G = 1/ε, λ = 1 and success is 1/e ≈ 0.37; beyond that it falls exponentially. Preskill’s version: at about 0.1% error, don’t expect to run “many more than about 1000 gates”.</p>
+  <pre><code>ε = 10⁻³
+G   100    1,000   3,000   10,000
+P   0.90   0.37    0.050   4.5×10⁻⁵</code></pre>
+  <p>Coherence sets a second cap, about coherence/gate sequential gates, but for both spec sheets above the error cap binds first (300 against 1,600; 1,270 against 14,000). It is a rule of thumb, not a theorem: single-qubit, idle and readout errors make it worse, and Preskill (§6.4) notes that some simulations tolerate scattered errors. Drag the sliders:</p>
+  <div class="nb-widget" id="noise-widget">
+    <label for="nb-eps">2Q error ε = <output id="nb-eps-out"></output></label>
+    <input type="range" id="nb-eps" min="-4" max="-2" step="0.05" value="-3">
+    <label for="nb-g">2Q gates G = <output id="nb-g-out"></output></label>
+    <input type="range" id="nb-g" min="1" max="5" step="0.05" value="3">
+    <div class="nb-bar"><div class="nb-fill" id="nb-fill"></div></div>
+    <p class="nb-read" id="nb-read"></p>
+  </div>
+  <div class="callout">
+    <strong>Worked example: can it run Shor on RSA-2048?</strong>
+    Budgets: Willow 1/(3.3×10⁻³) ≈ 300 two-qubit gates; Helios 1/(7.9×10⁻⁴) ≈ 1,270. Gidney’s 2025 design needs about 6.5×10⁹ Toffoli gates on about 1,400 <a href="0009-decoherence-noise-error-correction.html#logical-qubit">logical qubits</a> (<a href="https://arxiv.org/abs/2505.15917" target="_blank">Gidney 2025</a>, Table 5). Run bare, that needs ε ≲ 1/(6.5×10⁹) ≈ 1.5×10⁻¹⁰, about 2×10⁷ times better than Willow. So: no. The missing ingredient is error correction, not qubit count; a thousand more noisy qubits buy no extra depth.
+  </div>
+  <div class="complexity"><span class="label">NISQ budget at ε = 10⁻³:</span><span class="val">~10³ gates</span><span class="label">Shor on RSA-2048:</span><span class="val">~6.5×10⁹ Toffolis</span></div>
+
+  <h2 id="variational-algorithms">What fits in the budget: variational algorithms</h2>
+  <p>A <strong>variational algorithm</strong> is built to fit: a shallow circuit with tunable angles θ prepares |ψ(θ)⟩, repeated sampling estimates an expectation value such as the energy ⟨ψ(θ)|H|ψ(θ)⟩, and a classical optimizer picks the next θ. For molecular ground states this is the <strong>variational quantum eigensolver (VQE)</strong>; for combinatorial optimization, <strong>QAOA</strong> (Preskill §6.1). Will they beat classical methods? Preskill: “Nobody knows.” As of 2026 they remain in <a href="0008-quantum-complexity-bqp.html#sources-of-speedup">lesson 8’s unproven-heuristic bin</a>.</p>
+
+  <h2 id="error-mitigation">Error mitigation is not error correction</h2>
+  <p><strong>Error mitigation</strong> leaves the noise in every run and repairs the <em>average</em> afterwards. Zero-noise extrapolation (ZNE) deliberately amplifies the noise by factors c = 1, 2, 3, measures the expectation value at each, and extrapolates to c = 0; IBM used it in 2023 on 127 qubits and up to 2,880 CNOTs (<a href="https://www.nature.com/articles/s41586-023-06096-3" target="_blank">Kim et al.</a>). <a href="0009-decoherence-noise-error-correction.html#bit-flip-code">Error correction</a> instead encodes redundantly and removes errors during the run.</p>
+  <div class="callout">
+    <strong>Worked example: extrapolating to zero noise</strong>
+    True value 1. Measured: E(1) = 0.60, E(2) = 0.36, E(3) = 0.216.
+    <pre><code>linear, c = 1, 2
+  2E(1) − E(2)           = 0.84
+quadratic, c = 1, 2, 3
+  3E(1) − 3E(2) + E(3)   = 0.936
+exponential
+  E(1)²/E(2)             = 1.00</code></pre>
+    The answer depends on the noise model you assume. Worse, the shot cost grows exponentially in λ. Even a magic filter that kept only the fault-free runs (a fraction e^(−λ)) would need e^λ times a noiseless machine’s shots: about 150 at λ = 5, about 10⁴ at λ = 9. Real estimators, which must resolve a signal shrinking like e^(−λ), pay e^(βλ) for some β &gt; 0 (Cai et al. §II.D). <a href="https://arxiv.org/abs/2210.11505" target="_blank">Quek et al.</a> prove that in the worst case even shallow circuits need superpolynomially many samples. Mitigation stretches the budget; it does not scale.
+  </div>
+
+  <h2 id="quantum-advantage-claims">Reading a “quantum advantage” headline</h2>
+  <p>Ask three questions. <strong>What task?</strong> Useful, or built to be classically hard? <strong>Verified how?</strong> Can anyone check the output? <strong>Against which classical algorithm?</strong> The best known, given time to respond? Preskill’s warning: classical hardware and algorithms keep improving, so the target moves.</p>
+  <ul>
+    <li><strong>Google 2019</strong>: random circuit sampling on 53 qubits, 200 s against a claimed 10,000 years (<a href="https://www.nature.com/articles/s41586-019-1666-5" target="_blank">Arute et al.</a>), a task chosen to be hard rather than useful. In 2021 a tensor-network method produced a million higher-fidelity samples in 15 hours on 512 GPUs (<a href="https://arxiv.org/abs/2111.03011" target="_blank">Pan, Chen &amp; Zhang</a>).</li>
+    <li><strong>IBM 2023</strong>: mitigated expectation values on 127 qubits, “beyond brute-force classical computation”. Within weeks a tensor-network simulation beat the quantum data for accuracy (<a href="https://arxiv.org/abs/2306.14887" target="_blank">Tindall et al.</a>); brute force was the wrong baseline.</li>
+    <li><strong>Google, October 2025</strong>: an expectation value (an out-of-time-order correlator) on 65 of Willow’s qubits in about 2 hours, estimated at 13,000 times longer on the Frontier supercomputer. “Verifiable”: another quantum computer can reproduce it. The authors call their molecular application “not yet beyond classical” (<a href="https://research.google/blog/a-verifiable-quantum-advantage/" target="_blank">Google Research</a>).</li>
+    <li><strong>Factoring “records”</strong>: Gutmann and Neuhaus matched them with a 1981 VIC-20, an abacus and a dog (<a href="https://eprint.iacr.org/2025/1237" target="_blank">2025</a>). Many earlier demonstrations used circuits compiled with knowledge of the answer. Running Shor on cloud hardware without the answer built in (though still with circuits specific to each modulus), <a href="https://arxiv.org/abs/2512.15330" target="_blank">Bagourd et al. (Dec 2025)</a> saw a clear signal for N = 15 and 21 and only marginal evidence for 35.</li>
+  </ul>
+  <div class="callout warn">
+    <strong>Keep this in perspective: where things stand (as of 2026)</strong>
+    The real progress is in error correction: Google’s below-threshold surface-code memory (<a href="0009-decoherence-noise-error-correction.html#threshold-theorem">lesson 9</a>), and a Harvard–QuEra neutral-atom processor of up to 280 physical qubits that ran sampling circuits on 48 logical qubits under an error-detecting code (<a href="https://arxiv.org/abs/2312.03982" target="_blank">Bluvstein et al.</a>). In 2026 Quantinuum ran computations on Helios with 48 to 94 logical qubits in high-rate error-detecting and distance-4 codes that beat their unencoded versions, with some runs discarded by postselection (<a href="https://arxiv.org/abs/2602.22211" target="_blank">arXiv 2602.22211</a>). These are milestones toward the <a href="0007-shors-algorithm-breaking-rsa.html#shor-resource-estimates">million-qubit machines Shor needs</a>, which nobody has built.
+  </div>
+  <p>That closes the course. <a href="0004-interference-deutsch-jozsa.html#interference">Interference</a> is the mechanism; <a href="0005-grovers-algorithm.html">Grover</a>, <a href="0006-quantum-fourier-transform-phase-estimation.html#phase-estimation">phase estimation</a> and <a href="0007-shors-algorithm-breaking-rsa.html#period-finding">Shor</a> choreograph it; <a href="0008-quantum-complexity-bqp.html#bqp">BQP</a> bounds what it can buy; noise erodes it and error correction defends it; and today’s hardware allows about a thousand gates of it.</p>
+
+  <h2>Try it: read the spec sheet</h2>
+  <p>Each card gives hardware numbers or a claim. Estimate, classify, or judge.</p>
+  <div id="hardware-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. A transmon has |α| = 250 MHz. Why not make its single-qubit gates 1 ns long, to fit more of them into T1?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Heating is not the limit here. The limit is spectral: a 1 ns pulse spans about 1 GHz and reaches the |1⟩→|2⟩ line.')">Short, strong pulses would heat the chip above 20 mK</button>
+        <button onclick="quizAnswer(this,false,'q1','T1 is set by the environment (material defects, quasiparticles), not by gate length. Shorter gates would fit more operations into the same T1 if leakage allowed.')">T1 shrinks in proportion, so nothing would be gained</button>
+        <button onclick="quizAnswer(this,true,'q1','Right. A 1 ns pulse spreads over about 1 GHz, far wider than the 250 MHz gap to the |1⟩→|2⟩ line, so it leaks population out of the qubit. Gates need τ ≫ 1/|α| = 4 ns; Willow uses 25 ns.')">A 1 ns pulse also drives |1⟩→|2⟩ and leaks population</button>
+        <button onclick="quizAnswer(this,false,'q1','At 5 GHz one oscillation takes 0.2 ns, so a 1 ns pulse already spans five periods. The obstacle is the nearby |1⟩→|2⟩ transition.')">A 1 ns pulse lasts less than one oscillation of the qubit</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Helios reports an average two-qubit infidelity of 7.9×10⁻⁴. Without error correction, about how many two-qubit gates fit before success falls to roughly 1/e?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q2','Right. 1/ε = 1/(7.9×10⁻⁴) ≈ 1,270, and (1 − 7.9×10⁻⁴)^1270 ≈ 0.37. At 49 gates per full layer on 98 qubits that is only about 26 layers.')">About 1,300</button>
+        <button onclick="quizAnswer(this,false,'q2','98 is the qubit count, not a gate budget. Depth is set by the error rate: λ = εG reaches 1 near G = 1/ε ≈ 1,270.')">About 98</button>
+        <button onclick="quizAnswer(this,false,'q2','At G = 7,900 the expected fault count is λ ≈ 6.2, so success is about e^(−6.2) ≈ 0.002, far below 1/e.')">About 7,900</button>
+        <button onclick="quizAnswer(this,false,'q2','A million gates means λ ≈ 790 expected faults: success e^(−790), effectively zero. That depth needs error correction.')">About 10⁶</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. What separates error mitigation from error correction?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','Both use software: error correction relies on real-time classical decoders. The difference is whether redundancy removes errors during the run.')">Mitigation is software, while correction is hardware</button>
+        <button onclick="quizAnswer(this,false,'q3','It saves qubits but pays in shots: even ideal post-selection of fault-free runs needs e^λ times more samples, and real estimators pay e^(βλ). That is the opposite of scaling well.')">Needing no extra qubits, mitigation scales better</button>
+        <button onclick="quizAnswer(this,false,'q3','ZNE and other mitigation methods are used on many platforms. The difference lies in what they do with errors, not which hardware runs them.')">Mitigation only works on superconducting transmon chips</button>
+        <button onclick="quizAnswer(this,true,'q3','Right. Mitigation post-processes noisy averages, with a shot cost exponential in λ (at least e^λ). Correction encodes logical qubits and removes errors mid-run, so depth can keep growing.')">Mitigation fixes averages at a cost exponential in λ</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. IBM’s 2023 127-qubit experiment was described as beyond brute-force classical computation. What does the follow-up teach?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','The quantum data were not retracted. A better classical method, not a flaw in the qubits, closed the gap.')">The data were retracted after errors were found</button>
+        <button onclick="quizAnswer(this,true,'q4','Right. Tindall et al. used a tensor network shaped like the qubit lattice and got results more accurate than the processor. Always ask: against which classical algorithm?')">Tensor networks beat it; brute force was the wrong bar</button>
+        <button onclick="quizAnswer(this,false,'q4','No theorem rules out classical simulation of these circuits; a tensor-network method matched them within weeks.')">It is now proven that no classical method can match it</button>
+        <button onclick="quizAnswer(this,false,'q4','Simulation cost depends on how entanglement is structured, not on qubit count alone. The state’s tree-like correlations let a lattice-shaped tensor network handle these 127 qubits.')">More qubits would have kept it out of classical reach</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>This is the last lesson, so practise on a real document. Open the <a href="https://quantumai.google/static/site-assets/downloads/willow-spec-sheet.pdf" target="_blank">Willow spec sheet</a> and, by hand: (1) compute 1/ε for both chips’ two-qubit errors (0.33% and 0.14%); (2) divide the error-correction chip’s T1 by its 42 ns CZ time; (3) put its line “5 minutes vs. 10²⁵ years” through the three questions. Then reread <a href="0007-shors-algorithm-breaking-rsa.html#quantum-vulnerable-crypto">what Shor breaks</a> and write one sentence on how far this machine is from it.</p>
+
+  <h2>Primary resource</h2>
+  <p>John Preskill, <a href="https://arxiv.org/abs/1801.00862" target="_blank">“Quantum Computing in the NISQ era and beyond”</a> (Quantum 2, 79, 2018). The paper that named the era: it defines NISQ, explains the roughly 1000-gate ceiling at 0.1% error, gives the honest “Nobody knows” on VQE and QAOA, separates supremacy from usefulness, and names fault tolerance as the real goal. Short, readable, and still the best map of this lesson.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> The densest step here is the jump from “about 1/ε gates” to “error correction removes the cap”. Ask Claude Code to take Willow’s numbers and the <a href="0009-decoherence-noise-error-correction.html#threshold-theorem">Λ = 2.14 scaling</a> and estimate what code distance would push the logical error down to the 10⁻¹⁵ per qubit per round that Gidney’s RSA design assumes.
+  </div>
+
+  <div class="nav">
+    <a href="0009-decoherence-noise-error-correction.html">← Lesson 9: Decoherence, Noise &amp; Quantum Error Correction</a>
+    <span class="spacer"></span>
+    <a href="../index.html">Quantum Computing: All Lessons →</a>
+  </div>
+
+</div>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+(function () {
+  const $ = id => document.getElementById(id), e = $('nb-eps'), g = $('nb-g');
+  const sup = n => String(n).replace(/[-0-9]/g, c => '⁻⁰¹²³⁴⁵⁶⁷⁸⁹'['-0123456789'.indexOf(c)]);
+  const pow10 = l => '10' + sup(Math.round(l));
+  const fmt = x => {
+    if (x >= 1e6 || x < 1e-3) { const [m, k] = x.toExponential(1).split('e'); return m + '×' + pow10(k); }
+    return x >= 100 ? Math.round(x).toLocaleString('en-US') : x.toPrecision(2);
+  };
+  function draw() {
+    const eps = Math.pow(10, +e.value), G = Math.round(Math.pow(10, +g.value)), lam = eps * G;
+    const lnP = G * Math.log1p(-eps), p = Math.exp(lnP);
+    $('nb-eps-out').textContent = fmt(eps);
+    $('nb-g-out').textContent = fmt(G);
+    $('nb-fill').style.width = (100 * p).toFixed(1) + '%';
+    $('nb-fill').style.background = p < 0.05 ? 'var(--err)' : (p < 0.37 ? 'var(--amber)' : 'var(--accent)');
+    $('nb-read').textContent = 'Success ≈ ' + (lnP < -600 ? pow10(lnP / Math.LN10) : fmt(p)) + ' · faults λ = ' + fmt(lam) +
+      ' · budget 1/ε ≈ ' + fmt(1 / eps) + ' gates · mitigation shots ≥ ' + (lam > 600 ? pow10(lam / Math.LN10) : fmt(Math.exp(lam))) + '×';
+  }
+  e.addEventListener('input', draw); g.addEventListener('input', draw); draw();
+})();
+
+renderMC('hardware-exercise', [
+  { prompt: 'Spec: two-qubit error ε = 5×10⁻³. Roughly how many two-qubit gates before success falls to about 1/e?',
+    options: [
+      { text: '~20', explain: '(0.995)^20 ≈ 0.90: still 90% success, since λ = εG is only 0.1.' },
+      { text: '~200', correct: true, explain: 'Right. 1/ε = 200, and (0.995)^200 ≈ 0.37 ≈ 1/e, because λ = εG = 1.' },
+      { text: '~2,000', explain: 'λ = 0.005 × 2,000 = 10 expected faults, so success is about 4×10⁻⁵.' },
+      { text: '~2×10⁶', explain: 'λ = 10⁴ expected faults: success about e^(−10,000), effectively zero.' },
+    ] },
+  { prompt: 'Spec: 1,000 qubits, ε = 10⁻³, no error correction. Can it run Shor on RSA-2048?',
+    options: [
+      { text: 'Yes: 1,000 qubits is plenty', explain: 'Even perfect qubits would need about 1,400 logical qubits, and depth is the real blocker: about 10³ gates fit, against roughly 6.5×10⁹ Toffolis.' },
+      { text: 'Yes, given enough repeated runs', explain: 'Repetition rescues a 10% success rate, not λ ≈ 6.5×10⁶ expected faults: success e^(−6.5 million) means no number of runs finds the answer.' },
+      { text: 'No: ~10³ gates fit; Shor needs ~10⁹', correct: true, explain: 'Right. The budget is about 1/ε = 1,000 gates; Gidney’s design needs about 6.5×10⁹ Toffolis on ~1,400 logical qubits, so it needs error correction and roughly a million physical qubits.' },
+      { text: 'No, only because it lacks 2,048 qubits', explain: 'More qubits add no depth. A 5,000-qubit machine at ε = 10⁻³ still runs only about 1,000 gates before noise wins.' },
+    ] },
+  { prompt: 'Spec: Josephson junctions, operated near 20 mK, two-qubit gate ~40 ns, each qubit coupled to about 4 neighbours on a grid.',
+    options: [
+      { text: 'Superconducting transmon', correct: true, explain: 'Right. Junction nonlinearity, a dilution refrigerator, tens-of-ns gates and nearest-neighbour couplers are the transmon signature (Willow: CZ 42 ns, 3.47 neighbours).' },
+      { text: 'Trapped-ion chain in an RF trap', explain: 'Ions have no junctions, their gates take µs not ns, and the shared motional mode gives all-to-all connectivity, not a grid.' },
+      { text: 'Neutral-atom tweezer array', explain: 'Neutral atoms sit in laser tweezers and interact through Rydberg states; there are no superconducting junctions.' },
+    ] },
+  { prompt: 'Spec: shared motional modes act as a bus, any pair can be entangled, two-qubit gate ~70 µs, coherence of seconds.',
+    options: [
+      { text: 'Superconducting transmon', explain: 'Transmon gates take tens of ns, couple only neighbours, and coherence is about 100 µs, not seconds.' },
+      { text: 'Trapped ion', correct: true, explain: 'Right. The Mølmer-Sørensen gate uses the string’s shared vibration, which reaches every ion; µs gates and second-scale coherence fit (Helios: ~70 µs).' },
+      { text: 'Bare LC oscillator', explain: 'An LC circuit has equally spaced levels and is not a qubit at all, let alone one with a motional bus.' },
+    ] },
+  { prompt: 'Why can’t a bare superconducting LC circuit serve as a qubit?',
+    options: [
+      { text: 'It is too large to behave quantum mechanically', explain: 'Transmons are macroscopic circuits with clean quantum levels. The problem is the level spacing, not size.' },
+      { text: 'It has no ground state to initialize into', explain: 'It has one, and cooling to 20 mK puts it there. Initialization is fine; isolating two levels is not.' },
+      { text: 'Its frequency is far too low to control', explain: 'With L = 10 nH and C = 100 fF it rings at about 5 GHz, ideal for microwave control.' },
+      { text: 'Equal spacing: the drive also climbs to |2⟩', correct: true, explain: 'Right. All levels are ℏω apart, so a pulse resonant with |0⟩→|1⟩ also drives |1⟩→|2⟩. The Josephson junction adds anharmonicity.' },
+    ] },
+  { prompt: 'Spec: T2 = 100 µs, two-qubit gate = 50 ns. About how many sequential gates fit in one coherence time?',
+    options: [
+      { text: '~200', explain: 'Check units: 100 µs is 100,000 ns, and 100,000 / 50 = 2,000.' },
+      { text: '~2,000', correct: true, explain: 'Right. 100 µs / 50 ns = 2,000. An ion with 1 s coherence and 100 µs gates gets about 10⁴, five times more, despite far slower gates.' },
+      { text: '~20,000', explain: 'That would need T2 = 1 ms. 100 µs / 50 ns = 2,000.' },
+      { text: '~2×10⁶', explain: 'That is the trapped-ion record regime (Bruzewicz et al. quote ~10⁶). Here, 100 µs / 50 ns = 2,000.' },
+    ] },
+  { prompt: 'A circuit has 5,000 two-qubit gates at ε = 10⁻³. Even a perfect filter that kept only fault-free runs would need at least how many times the shots of a noiseless machine?',
+    options: [
+      { text: 'None: mitigation is free', explain: 'Mitigation saves qubits, not shots: only a fraction e^(−λ) of runs are fault-free, so it costs at least e^λ more samples.' },
+      { text: '~5', explain: '5 is λ itself, the expected number of faults. The shot overhead grows like e^λ, not like λ.' },
+      { text: '~150', correct: true, explain: 'Right. λ = εG = 5, only a fraction e^(−5) of runs are fault-free, and e^5 ≈ 148, the figure Cai et al. give for λ = 5. Real mitigation pays e^(βλ), often worse. At λ = 9 even the ideal is about 10⁴.' },
+      { text: '~5,000', explain: '5,000 is the gate count. The overhead depends on λ = 5 through e^λ ≈ 150.' },
+    ] },
+  { prompt: 'A press release claims “quantum advantage” on random circuit sampling with 100 qubits. Which follow-up matters most?',
+    options: [
+      { text: 'How many physical qubits were used', explain: 'Qubit count alone says little: IBM’s 127-qubit circuits were simulated classically. Error rates and the classical baseline matter more.' },
+      { text: 'How cold the dilution refrigerator ran', explain: 'Every transmon runs near 20 mK; temperature says nothing about whether the task is useful or classically hard.' },
+      { text: 'Checkable output? Best classical tried?', correct: true, explain: 'Right. Random sampling is chosen to be hard rather than useful, is hard to verify, and Google 2019 was later matched by tensor networks. What task, verified how, against which algorithm?' },
+      { text: 'The size of the research budget behind it', explain: 'Money spent is not evidence. Ask what task, verified how, and against which classical algorithm.' },
+    ] },
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

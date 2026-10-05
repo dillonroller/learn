@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 2 — Arrays &amp; Hash Maps</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    table.cost { width: 100%; border-collapse: collapse; font: .85rem var(--font-ui); margin: 1rem 0 1.25rem; }
+    .cost th, .cost td { text-align: left; padding: .4rem .5rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .cost th { color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; }
+    blockquote.talk { border-left: 3px solid var(--accent); padding: .6rem 1rem; margin: 1rem 0; color: var(--ink-dim); font-style: italic; }
+    .ts { background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin: 1.25rem 0; font: .9rem/1.5 var(--font-ui); }
+    .ts-head { color: var(--muted); font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; }
+    .ts-head b { color: var(--amber); }
+    .ts-arr, .ts-map, .ts-btns { display: flex; flex-wrap: wrap; gap: .4rem; margin: .6rem 0; align-items: center; }
+    .ts-cell, .ts-chip, .ts-step { font-family: var(--font-mono); }
+    .ts-cell { min-width: 2.6rem; text-align: center; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-sunken); padding: .2rem .4rem; }
+    .ts-cell small { display: block; color: var(--muted); font-size: .68rem; }
+    .ts-cell.cur { border-color: var(--amber); color: var(--amber); }
+    .ts-cell.past { opacity: .5; }
+    .ts-step { font-size: .85rem; color: var(--ink-dim); }
+    .ts-map { min-height: 2.2rem; padding: .35rem .5rem; border: 1px dashed var(--border); border-radius: var(--radius-sm); }
+    .ts-map::before { content: "index_of"; color: var(--muted); font-size: .75rem; }
+    .ts-chip { font-size: .82rem; border: 1px solid var(--accent-border); border-radius: 4px; padding: 0 .45rem; }
+    .ts-chip.hit, .ts-btns button:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-strong); }
+    .ts-btns button { background: var(--bg-sunken); color: var(--ink); border: 1px solid var(--border); border-radius: var(--radius); padding: .45rem .85rem; font: inherit; cursor: pointer; }
+    .ts-btns button:disabled { opacity: .45; cursor: default; }
+    .ts-fb { min-height: 3em; }
+    .ts-fb.good { color: var(--accent-strong); }
+    .ts-fb.bad { color: var(--err); }
+  </style>
+</head>
+<body>
+<nav class="topnav"><a class="tn-home" href="../../index.html">Learning Hub</a><span class="tn-sep">›</span><a class="tn-topic-link" href="../index.html">CS Interview Prep</a></nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 2 of 11 &nbsp;·&nbsp; CS Interview Prep &nbsp;·&nbsp; ~30 min</p>
+  <h1>Arrays &amp; Hash Maps</h1>
+  <p>Hand a candidate a “find a pair”, “find a duplicate” or “group these” problem and the interviewer is really asking: <em>do you see that the inner loop is a lookup in disguise?</em> <a href="0001-big-o-and-complexity.html">Lesson 1</a> left <code>has_duplicate</code> with a promise: “Can you do better? (Yes: use a HashSet → O(n) time, O(n) space).” This lesson keeps it. Rust’s docs open their collections guide with “<a href="https://doc.rust-lang.org/std/collections/index.html" target="_blank">you should probably just use Vec or HashMap</a>”. Today’s win: turn an O(n²) pair, duplicate or grouping search into one O(n) pass, and say what it costs in memory.</p>
+
+  <h2 id="dynamic-array">Vec: the cost model</h2>
+  <p>A <code>Vec&lt;T&gt;</code> is a <strong>dynamic array</strong>: one contiguous buffer plus a length and a capacity. Contiguity buys O(1) indexing and makes every gap in the middle expensive (<a href="https://doc.rust-lang.org/std/collections/index.html#cost-of-collection-operations" target="_blank">std cost table</a>, <a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#method.swap_remove" target="_blank">Vec docs</a>):</p>
+  <table class="cost">
+    <tr><th>Operation</th><th>Cost</th><th>Why</th></tr>
+    <tr><td><code>v[i]</code></td><td>O(1)</td><td>address arithmetic</td></tr>
+    <tr><td><code>push(x)</code></td><td>O(1) amortized</td><td>rare reallocation</td></tr>
+    <tr><td><code>pop()</code></td><td>O(1)</td><td>nothing shifts</td></tr>
+    <tr><td><code>insert(i, x)</code>, <code>remove(i)</code></td><td>O(n − i)</td><td>the tail shifts (insert also amortizes growth)</td></tr>
+    <tr><td><code>swap_remove(i)</code></td><td>O(1)</td><td>last element fills the hole; order lost</td></tr>
+    <tr><td><code>contains(&amp;x)</code></td><td>O(n)</td><td>linear scan: what hashing removes</td></tr>
+  </table>
+  <p><strong id="amortized-cost">Amortized cost</strong> is the total cost of a long run of operations divided by its length. A <code>push</code> that finds the buffer full copies everything into a bigger one, so that call is O(n), but growth is geometric, so such calls are rare. Pushing 1,000,000 <code>i32</code>s into <code>Vec::new()</code> on Rust 1.97 (2026) took capacity through 4, 8, 16, …, 1,048,576: 19 allocations (the first, from empty, copies nothing) moving at most 4 + 8 + … + 524,288 = 1,048,572 elements, about 1.05 per push. The docs promise no growth factor, only that “<a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#guarantees" target="_blank">whatever strategy is used will of course guarantee O(1) amortized push</a>”. Know n up front? <code>Vec::with_capacity(n)</code> skips the copies.</p>
+
+  <div class="callout warn">
+    <strong>Common interview trap</strong>
+    Draining a Vec with <code>v.remove(0)</code> in a loop looks linear but shifts every remaining element each time: n(n−1)/2 moves, 499,999,500,000 for a million elements. Amortization won’t rescue you: the <a href="https://doc.rust-lang.org/std/collections/index.html#cost-of-collection-operations" target="_blank">std table</a> prices <code>remove(i)</code> at O(n − i) per call, with no <code>*</code>, so every call pays its own shift. Iterate, use <code>swap_remove</code> if order is irrelevant, or use a real queue (<a href="0004-stacks-and-queues.html#queue-fifo">lesson 4</a>).
+  </div>
+
+  <h2 id="hash-table">Hash maps: how expected O(1) is earned</h2>
+  <p>A <strong>hash table</strong> is an array of m slots plus a hash function mapping each key to a slot. Two keys in one slot is a <em>collision</em>, resolved by chaining (a short list per slot) or open addressing (probing other slots) (<a href="https://algs4.cs.princeton.edu/34hash/" target="_blank">Sedgewick &amp; Wayne §3.4</a>). The table resizes to keep the <em>load factor</em> α = n/m below a constant; each O(n) rehash is amortized like <code>Vec</code> growth. Bounded α means a constant expected number of probes. With chaining and a hash drawn from a universal family, a key’s chain has expected length at most 1 + (n−1)/m (<a href="https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/resources/mit6_006s20_lec4/" target="_blank">MIT 6.006, L4</a>). With linear probing at α = ½, a hit averages about ½(1 + 1/(1 − α)) = 1.5 probes under a uniform-hashing assumption (<a href="https://algs4.cs.princeton.edu/34hash/" target="_blank">Sedgewick &amp; Wayne, Prop. M</a>). “Expected” is literally an <a href="../../probability/lessons/0002-expectation-variance.html#expectation">expectation</a> over the hash’s randomness. If every key collides, each operation is O(n).</p>
+  <p>The std table writes <code>get</code> as <code>O(1)~</code> and <code>insert</code> as <code>O(1)~*</code>: <code>~</code> marks expected, <code>*</code> amortized. From the <a href="https://doc.rust-lang.org/std/collections/struct.HashMap.html" target="_blank">HashMap docs</a>:</p>
+  <ul>
+    <li>It is “implemented with quadratic probing and SIMD lookup”: open addressing.</li>
+    <li>The default hasher is currently SipHash 1-3, randomly seeded and “selected to provide resistance against HashDoS attacks”, where an attacker picks keys that all collide. Faster hashers win on small keys like integers but typically drop that protection: a trade-off, not a free speed-up. Cryptographic hash functions are a different tool again (<a href="../../cryptography/lessons/0008-hash-functions-merkle-trees.html">Hash Functions &amp; Merkle Trees</a>).</li>
+    <li>Keys need <code>Eq + Hash</code> with <code>k1 == k2 → hash(k1) == hash(k2)</code>; <code>#[derive(PartialEq, Eq, Hash)]</code> gives you that. <code>f64</code> is neither, so it can’t be a key.</li>
+    <li>Iteration order is “<a href="https://doc.rust-lang.org/std/collections/struct.HashMap.html#method.iter" target="_blank">arbitrary</a>”, and with a per-map random seed it can differ between runs of the same program. Need order? Sort the output or use <code>BTreeMap</code> (O(log n), sorted keys; trees are <a href="0005-binary-trees-and-bsts.html#bst-property">lesson 5</a>).</li>
+  </ul>
+
+  <div class="callout">
+    <strong>Why interviewers care</strong>
+    Interviews mostly care about the hash table’s average case (<a href="https://www.techinterviewhandbook.org/algorithms/hash-table/" target="_blank">Tech Interview Handbook</a>), but “what’s the worst case?” is a standard follow-up. “Expected O(1), O(n) if keys collide, which Rust’s seeded hasher guards against” takes five seconds and shows you know what the O(1) hides.
+  </div>
+
+  <h2>Four patterns that turn O(n²) into O(n)</h2>
+  <p>Look at the brute force’s inner loop. If it searches for something you could have <em>remembered</em>, remember it in a hash table.</p>
+
+  <h3 id="seen-set">1. The seen-set</h3>
+  <p><strong>Cue:</strong> “have I seen this before?” Use a set when you “<a href="https://doc.rust-lang.org/std/collections/index.html#use-the-set-variant-of-any-of-these-maps-when" target="_blank">just want to remember which keys you’ve seen</a>”; in <a href="0006-graph-traversal-bfs-dfs.html#visited-set">lesson 6</a> it becomes the visited set. <a href="0001-big-o-and-complexity.html">Lesson 1</a>’s function, same signature:</p>
+  <pre><code><span class="kw">use</span> std::collections::<span class="ty">HashSet</span>;
+
+<span class="kw">fn</span> <span class="fn">has_duplicate</span>(v: &amp;[<span class="ty">i32</span>]) -&gt; <span class="ty">bool</span> {
+    <span class="kw">let mut</span> seen = <span class="ty">HashSet</span>::with_capacity(v.len());
+    <span class="kw">for</span> &amp;x <span class="kw">in</span> v {
+        <span class="kw">if</span> !seen.<span class="fn">insert</span>(x) { <span class="kw">return true</span>; }  <span class="cm">// false: x was already there</span>
+    }
+    <span class="kw">false</span>
+}
+<span class="cm">// O(n) expected time, O(n) space. "Can you do better?" Time, no: every element
+// must be read. Space, yes, if you may mutate: sort_unstable, compare neighbours.</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(n) expected</span><span class="label">Space</span><span class="val">O(n)</span></div>
+
+  <h3 id="complement-lookup">2. Complement lookup (Two Sum)</h3>
+  <p><strong>Cue:</strong> “find two elements with property P” where one element pins down its partner; for a sum, <code>x</code> needs <code>target − x</code>. Map value → index and the pair search becomes a lookup. The order inside the loop is the trick: <em>look up first, insert second</em>.</p>
+  <pre><code><span class="kw">use</span> std::collections::<span class="ty">HashMap</span>;
+
+<span class="kw">fn</span> <span class="fn">two_sum</span>(nums: &amp;[<span class="ty">i32</span>], target: <span class="ty">i32</span>) -&gt; <span class="ty">Option</span>&lt;(<span class="ty">usize</span>, <span class="ty">usize</span>)&gt; {
+    <span class="kw">let mut</span> index_of: <span class="ty">HashMap</span>&lt;<span class="ty">i32</span>, <span class="ty">usize</span>&gt; = <span class="ty">HashMap</span>::new();
+    <span class="kw">for</span> (i, &amp;x) <span class="kw">in</span> nums.iter().enumerate() {
+        <span class="kw">if let</span> <span class="ty">Some</span>(&amp;j) = index_of.get(&amp;(target - x)) {  <span class="cm">// 1. look up</span>
+            <span class="kw">return</span> <span class="ty">Some</span>((j, i));
+        }
+        index_of.insert(x, i);                           <span class="cm">// 2. then remember</span>
+    }
+    <span class="ty">None</span>
+}
+<span class="cm">// O(n) expected time, O(n) space. Next question: "What if nums is sorted?"
+// Two pointers: O(n) time, O(1) space.</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(n) expected</span><span class="label">Space</span><span class="val">O(n)</span></div>
+  <p>The sorted case is <a href="0003-two-pointers-sliding-window.html#two-pointers">two pointers</a>, and the complement idea returns as <a href="0003-two-pointers-sliding-window.html#prefix-sum-complement">prefix-sum complements</a>, both in <a href="0003-two-pointers-sliding-window.html">lesson 3</a>. Say aloud that <code>target - x</code> can overflow <code>i32</code> at the extremes (debug builds panic); widen to <code>i64</code> if the constraints allow it.</p>
+
+  <p><strong>Trace it.</strong> At each index, choose the loop body’s next step. Wrong clicks explain themselves and change nothing.</p>
+  <div class="ts" id="ts-widget">
+    <div class="ts-head" id="ts-head"></div>
+    <div class="ts-arr" id="ts-arr"></div>
+    <div class="ts-step" id="ts-step"></div>
+    <div class="ts-map" id="ts-map"></div>
+    <div class="ts-btns">
+      <button type="button" id="ts-look">Look up target − x</button>
+      <button type="button" id="ts-ins">Insert x → i</button>
+      <button type="button" id="ts-next" hidden>Round 2 →</button>
+    </div>
+    <div class="ts-fb" id="ts-fb" aria-live="polite"></div>
+    <div id="ts-badge" hidden><div class="complexity"><span class="label">Time</span><span class="val">O(n) expected</span><span class="label">Space</span><span class="val">O(n)</span></div></div>
+  </div>
+
+  <div class="callout warn">
+    <strong>Common interview trap</strong>
+    “Load the whole map, then look up complements.” With target 6 and a single 3, the 3 finds itself and you return <code>(0, 0)</code>. Check-before-insert means the map holds only <em>earlier</em> elements, and <code>[3, 3]</code> still works because the second 3 finds the first.
+  </div>
+
+  <h3 id="frequency-count">3. Frequency counting</h3>
+  <p><strong>Cue:</strong> anagrams, “can A be built from B”, “appears exactly once”, majority. Only <em>how many</em> matters. The idiom is the entry API, whose <code>or_insert</code> returns <code>&amp;mut V</code> (<a href="https://doc.rust-lang.org/book/ch08-03-hash-maps.html#updating-a-value-based-on-the-old-value" target="_blank">Rust Book §8.3</a>):</p>
+  <pre><code><span class="kw">let mut</span> freq: <span class="ty">HashMap</span>&lt;<span class="ty">char</span>, <span class="ty">usize</span>&gt; = <span class="ty">HashMap</span>::new();
+<span class="kw">for</span> c <span class="kw">in</span> s.chars() { *freq.<span class="fn">entry</span>(c).<span class="fn">or_insert</span>(<span class="nm">0</span>) += <span class="nm">1</span>; }  <span class="cm">// O(n) expected; O(d) space, d distinct chars</span>
+
+<span class="kw">let mut</span> cnt = [<span class="nm">0u32</span>; <span class="nm">26</span>];                                 <span class="cm">// a–z only: perfect hash</span>
+<span class="kw">for</span> b <span class="kw">in</span> s.bytes() { cnt[(b - <span class="st">b'a'</span>) <span class="kw">as</span> <span class="ty">usize</span>] += <span class="nm">1</span>; }    <span class="cm">// O(n), O(1) space</span></code></pre>
+  <p>The array is a collision-free hash for a fixed alphabet, and 26 counters don’t grow with n, so it is <strong>O(1) space</strong>. Calling it O(n) is a <a href="https://www.techinterviewhandbook.org/algorithms/string/#counting-characters" target="_blank">common mistake</a>. Ask about the character set first: a–z, bytes (<code>[u32; 256]</code>) or full Unicode (the map).</p>
+
+  <h3 id="canonical-key">4. Canonical keys (grouping)</h3>
+  <p><strong>Cue:</strong> “group items that are equal up to some transformation”. Map each item to one representative of its class and use it as the key of a <code>HashMap&lt;Key, Vec&lt;Item&gt;&gt;</code>. For anagrams, sorted bytes or letter counts both work, since arrays and <code>Vec</code>s of hashable values are <code>Eq + Hash</code>.</p>
+  <pre><code><span class="kw">fn</span> <span class="fn">group_anagrams</span>&lt;<span class="lf">'a</span>&gt;(words: &amp;[&amp;<span class="lf">'a</span> <span class="ty">str</span>]) -&gt; <span class="ty">Vec</span>&lt;<span class="ty">Vec</span>&lt;&amp;<span class="lf">'a</span> <span class="ty">str</span>&gt;&gt; {
+    <span class="kw">let mut</span> groups: <span class="ty">HashMap</span>&lt;[<span class="ty">u32</span>; <span class="nm">26</span>], <span class="ty">Vec</span>&lt;&amp;<span class="lf">'a</span> <span class="ty">str</span>&gt;&gt; = <span class="ty">HashMap</span>::new();
+    <span class="kw">for</span> &amp;w <span class="kw">in</span> words {
+        <span class="kw">let mut</span> key = [<span class="nm">0u32</span>; <span class="nm">26</span>];                    <span class="cm">// letter counts, a–z only</span>
+        <span class="kw">for</span> b <span class="kw">in</span> w.bytes() { key[(b - <span class="st">b'a'</span>) <span class="kw">as</span> <span class="ty">usize</span>] += <span class="nm">1</span>; }
+        groups.<span class="fn">entry</span>(key).<span class="fn">or_default</span>().push(w);
+    }
+    groups.into_values().collect()                   <span class="cm">// arbitrary order</span>
+}
+<span class="cm">// n words of length ≤ k: O(n·k) expected time. O(n) extra space: each key is
+// 26 counters and the groups hold borrowed &amp;str, not copies of the words.
+// A sorted-bytes key (Vec&lt;u8&gt;) also works: O(n·k log k) time, O(n·k) space.</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(n·k) expected</span><span class="label">Space</span><span class="val">O(n)</span></div>
+
+  <h2 id="space-time-tradeoff">Say the trade-off out loud</h2>
+  <p>All four patterns make one move, a <strong>space-for-time trade-off</strong>: O(n) memory turns each “search the rest” into an expected-O(1) lookup. Hashing is “<a href="https://www.techinterviewhandbook.org/algorithms/hash-table/" target="_blank">the most common example of a space-time tradeoff</a>”. Know the other side of the deal:</p>
+  <table class="cost">
+    <tr><th>Problem</th><th>Hash version</th><th>Low-memory version</th></tr>
+    <tr><td>Any duplicate?</td><td>O(n) time, O(n) space</td><td>sort in place + scan: O(n log n), O(1) extra, mutates input</td></tr>
+    <tr><td>Two Sum</td><td>O(n) time, O(n) space</td><td>sort (value, index) pairs + two pointers: O(n log n), and still O(n) for the pairs</td></tr>
+  </table>
+  <p>The second row is the subtle one: sorting loses the indices, so you carry them and the saving evaporates. <code>sort_unstable</code> is “<a href="https://doc.rust-lang.org/std/primitive.slice.html#method.sort_unstable" target="_blank">in-place (i.e., does not allocate), and O(n * log(n)) worst-case</a>”; more in <a href="0010-sorting-algorithms.html#sort-as-preprocessing">lesson 10</a>. “O(1) extra” is the usual interview shorthand: strictly, its quicksort recursion is <a href="https://raw.githubusercontent.com/rust-lang/rust/main/library/core/src/slice/sort/unstable/mod.rs" target="_blank">capped at 2·log₂ n deep</a>, so O(log n) stack. Say so if pressed. <a href="0001-big-o-and-complexity.html">Lesson 1</a>’s talk-track, extended:</p>
+  <blockquote class="talk">“Brute force is O(n²) time, O(1) space. Trading memory for time, one pass with a HashSet is O(n) expected time, O(n) space. If memory is tight and I may mutate the input, I’d sort in place and compare neighbours: O(n log n) time, O(1) extra.”</blockquote>
+  <p><strong>What would a Google interviewer ask next?</strong> “Worst case of your map?” (O(n) per operation under collisions). “What if values are in 0..n?” (a <code>Vec&lt;bool&gt;</code> indexed by value: a perfect hash, so worst-case O(1) per check instead of expected; still O(n) space). The remember-instead-of-recompute move returns as <a href="0009-dynamic-programming.html#memoization">memoization</a> in <a href="0009-dynamic-programming.html">lesson 9</a>.</p>
+
+  <h2>Drill: name the pattern</h2>
+  <p>Pick what you would say first in an interview. Aim for ten seconds each.</p>
+  <div id="pattern-exercise" class="mc-exercise"></div>
+
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. The std docs list <code>HashMap</code> insert as <code>O(1)~*</code>. Which reading is right?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q1','Right. ~ marks an expected cost (collisions are unlikely under a random hash, not impossible) and * an amortized one (a rare O(n) resize spread over many inserts). Insert has both.')">~ expected over hashing; * amortized over resizes</button>
+        <button onclick="quizAnswer(this,false,'q1','Reversed. In the std notation ~ marks expected and * marks amortized. Insert carries both because it can collide and it can trigger a resize.')">~ amortized over resizes; * expected over hashing</button>
+        <button onclick="quizAnswer(this,false,'q1','The worst case is not O(1): if many keys share a slot, one operation costs O(n). The ~ means expected over the random hash, not roughly.')">~ approximately O(1); * worst case also O(1)</button>
+        <button onclick="quizAnswer(this,false,'q1','Both halves are off. The ~ expectation is over the random hash, not over some distribution of inputs, and no single call is guaranteed O(1): a resize rehashes every entry. The * says the average over a long run of inserts is O(1).')">~ average over inputs; * guaranteed every call</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. A two-pass Two Sum fills <code>index_of</code> from all of <code>nums</code>, then for each i looks up <code>target − nums[i]</code> with no index check. On <code>[4, 2, 5]</code>, target 8, it returns…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','That is the right answer to the problem, not what this code returns: at i = 0 it looks up 8 − 4 = 4 and finds index 0, the same element.')">None: no pair sums to 8</button>
+        <button onclick="quizAnswer(this,false,'q2','4 + 5 is 9, not 8. And the lookup for 8 − 4 = 4 already succeeds at i = 0.')">Some((0, 2)): pairing 4 and 5</button>
+        <button onclick="quizAnswer(this,true,'q2','Right. The map already holds 4 → 0, so looking up 8 − 4 = 4 returns index 0: the element pairs with itself. One-pass check-before-insert returns None.')">Some((0, 0)): the 4 with itself</button>
+        <button onclick="quizAnswer(this,false,'q2','The scan starts at i = 0, where the 4 already finds itself. The 2 would need a 6, which is not in the map.')">Some((1, 1)): the 2 with itself</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. You count an n-character lowercase string into a <code>[u32; 26]</code>. Stated the way <a href="0001-big-o-and-complexity.html">lesson 1</a> taught, the cost is…</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','Drop the constants, as the Big-O rules say: O(26) is O(1), and O(26n) is just O(n), one increment per byte.')">O(26n) time, O(26) extra space</button>
+        <button onclick="quizAnswer(this,true,'q3','Right. One pass over n bytes, and the extra memory is 26 counters however long the string is. Space counts extra memory, and this amount is fixed.')">O(n) time, O(1) extra space</button>
+        <button onclick="quizAnswer(this,false,'q3','The slip the Tech Interview Handbook warns about: the counter is bounded by the alphabet (26), not by n, so the extra space is O(1).')">O(n) time, O(n) extra space</button>
+        <button onclick="quizAnswer(this,false,'q3','Nothing is nested: each byte gets one O(1) array increment, so the time is linear.')">O(n²) time, O(1) extra space</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Your HashSet <code>has_duplicate</code> is O(n) time, O(n) space. The interviewer: “Memory is tight, and you may modify the input.” Best pivot?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','Valid, but it pays quadratic time for O(1) space when sorting gets O(1) extra space in O(n log n).')">Nested loops over all pairs: O(n²) time, O(1) space</button>
+        <button onclick="quizAnswer(this,false,'q4','The label is wrong: a BTreeSet still stores up to n values, so it is O(n) space, the very thing you were asked to cut.')">Use a BTreeSet: O(n log n) time, O(1) space</button>
+        <button onclick="quizAnswer(this,false,'q4','A bitmap over every possible i32 is 2³² bits = 512 MiB. Constant in n, but no interviewer will call that low memory.')">A bitmap of every i32: O(n) time, O(1) space</button>
+        <button onclick="quizAnswer(this,true,'q4','Right. sort_unstable is in place and O(n log n) worst case; duplicates become adjacent, so one windows(2) scan finds them. You traded time back for space.')">Sort in place: O(n log n) time, O(1) space</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Rust, blank file, about 20 minutes each. Before typing, say the brute force and its cost, then the hash version’s time <em>and</em> space. All appear on the Tech Interview Handbook’s <a href="https://www.techinterviewhandbook.org/algorithms/hash-table/" target="_blank">hash table</a>, <a href="https://www.techinterviewhandbook.org/algorithms/array/" target="_blank">array</a> and <a href="https://www.techinterviewhandbook.org/algorithms/string/" target="_blank">string</a> cheatsheets.</p>
+  <ul>
+    <li><strong>Contains Duplicate</strong> and <strong>Two Sum</strong>, without looking at this page.</li>
+    <li><strong>Valid Anagram</strong> and <strong>Ransom Note</strong>, with a <code>[u32; 26]</code>.</li>
+    <li><strong>Group Anagrams</strong> with both keys; say when the sorted key wins.</li>
+    <li>Stretch: <strong>Insert Delete GetRandom O(1)</strong>, which needs both halves of this lesson.</li>
+  </ul>
+
+  <h2>Primary resource</h2>
+  <p>Read the <a href="https://doc.rust-lang.org/std/collections/index.html" target="_blank">Rust std::collections docs</a>, especially “When Should You Use Which Collection?” and the Performance table: this lesson’s cost model in your own language, <code>*</code> and <code>~</code> included.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Try: “Play a Google interviewer, give me a hash-map problem I haven’t seen, and push back with ‘worst case?’ and ‘now in O(1) extra space’.” Type a question in Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0001-big-o-and-complexity.html">← Lesson 1: Big-O &amp; Complexity</a>
+    <span class="spacer"></span>
+    <a href="0003-two-pointers-sliding-window.html">Lesson 3: Two Pointers &amp; Sliding Window →</a>
+  </div>
+
+</div>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+renderMC('pattern-exercise', [
+  { prompt: 'Does any value appear twice in an array of i32?', options: [
+    { text: 'Nested loops, O(n²) time', explain: 'Correct but quadratic: the Big-O baseline you are asked to beat. Say it, then improve on it.' },
+    { text: 'HashSet seen-set, O(n) time', correct: true, explain: 'Right. insert returns false the moment a value repeats. O(n) expected time, O(n) space.' },
+    { text: 'Count array, O(1) space', explain: 'Count arrays need a small fixed key range like 26 letters; i32 would need 2³² counters.' },
+    { text: 'HashMap value→index, O(n) time', explain: 'Works, but the index is dead weight. With no value to store, use the Set variant.' }
+  ]},
+  { prompt: 'Return the indices of two numbers that sum to a target.', options: [
+    { text: 'HashSet seen-set, O(n) time', explain: 'A set says the complement exists, not where. You need its index, so map value → index.' },
+    { text: 'Nested loops, O(n²) time', explain: 'All n(n−1)/2 pairs. Say it first as the brute force, then improve on it.' },
+    { text: 'HashMap value→index, O(n) time', correct: true, explain: 'Right. Look up target − x, then insert x → i. One pass, O(n) expected time, O(n) space.' },
+    { text: 'Count array, O(1) space', explain: 'Values are arbitrary integers, and counts discard the indices the problem asks for.' }
+  ]},
+  { prompt: 'Group a list of lowercase words into anagram families.', options: [
+    { text: 'HashMap keyed by letter counts, O(n·k)', correct: true, explain: 'Right. Each word’s count array (or sorted bytes) is its canonical key; push the word into that key’s Vec.' },
+    { text: 'HashSet of the seen words, O(n·k)', explain: 'A set answers “seen before?”; grouping needs a value per key, the list of words in each family.' },
+    { text: 'Compare every pair of words, O(n²·k)', explain: 'n² anagram checks of O(k) each. Canonical keys avoid comparing pairs at all.' },
+    { text: 'Sort words alphabetically, O(n log n)', explain: 'That puts “eat” and “tea” far apart. Sort the letters inside each word instead: a canonical key.' }
+  ]},
+  { prompt: 'Can the ransom note be built from the magazine’s letters (a–z only)?', options: [
+    { text: 'HashSet seen-set, O(m+n) time', explain: 'A set forgets multiplicity: a note needing two a’s would pass against a magazine with one.' },
+    { text: 'HashMap value→index, O(m+n) time', explain: 'Positions are irrelevant here; only how many of each letter. Store counts, not indices.' },
+    { text: 'Nested loops, O(m·n) time', explain: 'Scanning the magazine for each note letter works, but it is O(m·n).' },
+    { text: 'Letter-count array, O(m+n) time', correct: true, explain: 'Right. Count the magazine, decrement per note letter; a zero means no. 26 counters are O(1) space.' }
+  ]},
+  { prompt: 'Index of the first non-repeating character in a lowercase string.', options: [
+    { text: 'Count, then rescan: O(n) time', correct: true, explain: 'Right. Pass one fills a [u32; 26]; pass two returns the first index with count 1. Still O(n), O(1) space.' },
+    { text: 'One HashSet pass: O(n) time', explain: 'A set knows that a character repeated, not whether an earlier one is still unique. You need counts.' },
+    { text: 'Nested loops: O(n²) total time', explain: 'Recounting each character by rescanning is quadratic. One counting pass makes each check O(1).' },
+    { text: 'Sort bytes: O(n log n)', explain: 'Sorting destroys positions, and “first” is a question about position.' }
+  ]},
+  { prompt: 'Total cost of emptying a 1,000,000-element Vec with v.remove(0) in a loop.', options: [
+    { text: 'O(n): each remove is O(1)', explain: 'remove(0) shifts every remaining element left, so each call is O(n). Only pop, or swap_remove at the cost of order, is O(1).' },
+    { text: 'O(n): amortized, just like push', explain: 'Amortization spreads the cost of growth. The std table prices remove(i) at O(n − i) per call, no *, so every remove(0) pays its own shift.' },
+    { text: 'O(n): the start pointer advances', explain: 'A Vec has no start offset to advance. That is what VecDeque’s ring buffer adds.' },
+    { text: 'O(n²): about 5×10¹¹ moves total', correct: true, explain: 'Right. (n−1) + (n−2) + … + 0 = n(n−1)/2 = 499,999,500,000 element moves.' }
+  ]}
+]);
+
+(function () {
+  const R = [{ nums: [3, 8, 11, 2, 7], t: 9 }, { nums: [3, 1, 5], t: 6 }];
+  const $ = id => document.getElementById(id), f = n => String(n).replace('-', '−');
+  let r, i, phase, map, hit;
+  function say(m, c) { $('ts-fb').textContent = m; $('ts-fb').className = 'ts-fb ' + c; }
+  function draw() {
+    const q = R[r];
+    $('ts-head').innerHTML = 'Round ' + (r + 1) + ' of 2 · target = <b>' + q.t + '</b>';
+    $('ts-arr').innerHTML = q.nums.map((v, k) => '<span class="ts-cell' + (phase !== 'done' && k === i ? ' cur' : k < i ? ' past' : '') + '">' + v + '<small>' + k + '</small></span>').join('');
+    $('ts-step').textContent = phase === 'done' ? '' : 'i = ' + i + ', x = ' + q.nums[i] + ', target − x = ' + f(q.t - q.nums[i]);
+    $('ts-map').innerHTML = map.map(p => '<span class="ts-chip' + (p[0] === hit ? ' hit' : '') + '">' + p[0] + ' → ' + p[1] + '</span>').join('') || '<span class="ts-chip">empty</span>';
+  }
+  function start(n) {
+    r = n; i = 0; phase = 'look'; map = []; hit = null;
+    $('ts-next').hidden = true; $('ts-look').disabled = $('ts-ins').disabled = false;
+    say(n ? 'Round 2: one 3, target 6. Try Insert first at index 0 to see the bug, then do it right.' : 'Index 0: what does the loop body do first?', '');
+    draw();
+  }
+  $('ts-look').addEventListener('click', () => {
+    const q = R[r], x = q.nums[i], need = q.t - x;
+    if (phase === 'ins') return say('You already looked up ' + f(need) + ' and missed; looking again misses again. Store ' + x + ' → ' + i + ' so a later element can find it.', 'bad');
+    const e = map.find(p => p[0] === need);
+    if (!e) { phase = 'ins'; draw(); return say('Miss: ' + f(need) + ' is not stored, so no earlier element pairs with ' + x + '. Next step?', 'good'); }
+    hit = need; phase = 'done'; $('ts-look').disabled = $('ts-ins').disabled = true; draw();
+    if (r === 0) { $('ts-next').hidden = false; return say('Hit: ' + need + ' is at index ' + e[1] + ', so return (' + e[1] + ', ' + i + '). Each element was handled once. Next, see what insert-first breaks.', 'good'); }
+    $('ts-badge').hidden = false;
+    say('Hit: return (' + e[1] + ', ' + i + '). The lone 3 never matched itself because it was looked up before it was stored. One pass over n elements, a map of up to n entries.', 'good');
+  });
+  $('ts-ins').addEventListener('click', () => {
+    const q = R[r], x = q.nums[i];
+    if (phase === 'look') {
+      if (r === 1 && i === 0) return say('Bug: store 3 → 0 first and the lookup for 6 − 3 = 3 finds index 0, returning (0, 0): the single 3 paired with itself. Look up first.', 'bad');
+      return say('Look up first. Here ' + q.t + ' − ' + x + ' ≠ ' + x + ', so insert-first happens to work, but it pairs an element with itself whenever x = target − x. ' + (r ? 'Index 0 of this round is that case.' : 'Round 2 shows it.'), 'bad');
+    }
+    map.push([x, i]); i++; phase = 'look'; draw();
+    say('Stored ' + x + ' → ' + (i - 1) + '. Index ' + i + ': first step?', 'good');
+  });
+  $('ts-next').addEventListener('click', () => start(1));
+  start(0);
+})();
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

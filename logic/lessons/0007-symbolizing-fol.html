@@ -79,7 +79,7 @@
     Conclusion: <code>Mortal(Socrates)</code>
   </div>
 
-  <p>Notice <code>Socrates</code> is an <strong>individual constant</strong>, not a variable — it refers to one specific, fixed thing in the domain directly. Contrast this with <code>x</code> in <code>Human(x)</code>: <code>x</code> is a placeholder that only gets meaning once a quantifier binds it (<code>∀x</code> or <code>∃x</code>); <code>Socrates</code> needs no quantifier because it already picks out exactly one thing on its own. We have everything needed to state this argument with total precision. Proving it formally — showing step by step why <code>Mortal(Socrates)</code> really does follow — is exactly what <a href="../index.html#lesson-08">lesson 8</a> does.</p>
+  <p>Notice <code>Socrates</code> is an <strong>individual constant</strong>, not a variable — it refers to one specific, fixed thing in the domain directly. Contrast this with <code>x</code> in <code>Human(x)</code>: <code>x</code> is a placeholder that only gets meaning once a quantifier binds it (<code>∀x</code> or <code>∃x</code>); <code>Socrates</code> needs no quantifier because it already picks out exactly one thing on its own. We have everything needed to state this argument with total precision. Proving it formally — showing step by step why <code>Mortal(Socrates)</code> really does follow — is exactly what <a href="0008-proofs-in-predicate-logic.html">lesson 8</a> does.</p>
 
   <h2>Try it: symbolize these sentences</h2>
   <div id="symbolize-exercise" class="mc-exercise"></div>
@@ -240,7 +240,7 @@ SYM_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb" id="sym-fb-${i}"></div>
   `;
@@ -273,7 +273,7 @@ ORDER_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb" id="order-fb-${i}"></div>
   `;

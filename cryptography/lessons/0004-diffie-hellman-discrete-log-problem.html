@@ -47,11 +47,11 @@ Bob computes:   A^b mod p = 8^15 mod 23  = 2</code></pre>
   </div>
   <div class="callout warn">
     <strong>What Diffie-Hellman alone doesn't give you</strong>
-    Nothing in the protocol above authenticates who Alice and Bob actually are — an active attacker who can intercept and replace messages (not just read them) can run the whole protocol separately with each party, ending up with two different shared secrets and relaying traffic between them undetected: a <strong>man-in-the-middle attack</strong>. Real deployments (like TLS) combine Diffie-Hellman with digital signatures for authentication — the subject of the still-locked <a href="../index.html#lesson-05">lesson 5</a>.
+    Nothing in the protocol above authenticates who Alice and Bob actually are — an active attacker who can intercept and replace messages (not just read them) can run the whole protocol separately with each party, ending up with two different shared secrets and relaying traffic between them undetected: a <strong>man-in-the-middle attack</strong>. Real deployments (like TLS) combine Diffie-Hellman with digital signatures for authentication — the subject of the still-locked <a href="0005-digital-signatures-rsa-dsa.html">lesson 5</a>.
   </div>
 
   <h2>Diffie-Hellman and quantum computers</h2>
-  <p>The discrete log problem, like factoring, has period-finding structure a quantum computer can exploit: an appropriately generalized version of the <a href="0003-why-factoring-is-hard-shors-algorithm.html#quantum-order-finding">order-finding subroutine</a> from lesson 3 — still built from <a href="../../quantum-computing/lessons/0006-quantum-fourier-transform-phase-estimation.html">phase estimation and the QFT</a> — solves the discrete log problem in polynomial time too. So a quantum computer capable of running Shor's factoring algorithm threatens Diffie-Hellman on the same timeline it threatens RSA, via a related but distinct application of the same underlying technique, not by "breaking encryption in general." <a href="../index.html#lesson-07">Lesson 7</a> covers what's believed to survive that threat.</p>
+  <p>The discrete log problem, like factoring, has period-finding structure a quantum computer can exploit: an appropriately generalized version of the <a href="0003-why-factoring-is-hard-shors-algorithm.html#quantum-order-finding">order-finding subroutine</a> from lesson 3 — still built from <a href="../../quantum-computing/lessons/0006-quantum-fourier-transform-phase-estimation.html">phase estimation and the QFT</a> — solves the discrete log problem in polynomial time too. So a quantum computer capable of running Shor's factoring algorithm threatens Diffie-Hellman on the same timeline it threatens RSA, via a related but distinct application of the same underlying technique, not by "breaking encryption in general." <a href="0007-post-quantum-lattices-lwe.html">Lesson 7</a> covers what's believed to survive that threat.</p>
 
   <h2>Try it: discrete log basics</h2>
   <p>For each question, pick the correct value or answer.</p>
@@ -121,7 +121,7 @@ Bob computes:   A^b mod p = 8^15 mod 23  = 2</code></pre>
   <div class="nav">
     <a href="0003-why-factoring-is-hard-shors-algorithm.html">← Lesson 3: Why Factoring Is Hard, and What Shor's Algorithm Breaks</a>
     <span class="spacer"></span>
-    <a href="../index.html#lesson-05">Lesson 5: Digital Signatures →</a>
+    <a href="0005-digital-signatures-rsa-dsa.html">Lesson 5: Digital Signatures →</a>
   </div>
 
 </div>

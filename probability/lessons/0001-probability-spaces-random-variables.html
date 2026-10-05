@@ -66,7 +66,7 @@
       <p>2. Which of these is NOT a consequence of the three Kolmogorov axioms?</p>
       <div class="options">
         <button onclick="quizAnswer(this,false,'q2','This does follow — it’s derived directly from additivity applied to Ω and ∅, which are disjoint and union to Ω.')">P(∅) = 0</button>
-        <button onclick="quizAnswer(this,false,'q2','This does follow — it’s the complement rule, derived from additivity applied to A and "not A."')">P(not A) = 1 − P(A)</button>
+        <button onclick="quizAnswer(this,false,'q2','This does follow — it’s the complement rule, derived from additivity applied to A and &quot;not A.&quot;')">P(not A) = 1 − P(A)</button>
         <button onclick="quizAnswer(this,true, 'q2','Right — this is false in general. Additivity only applies to disjoint events; for overlapping events you need P(A∪B) = P(A) + P(B) − P(A∩B), which is a different (also derivable, but distinct) theorem.')">P(A ∪ B) = P(A) + P(B) even when A and B overlap</button>
         <button onclick="quizAnswer(this,false,'q2','This does follow directly from the normalization axiom, P(Ω) = 1.')">P(Ω) = 1</button>
       </div>
@@ -76,7 +76,7 @@
     <div class="q-block" id="q3">
       <p>3. Why is calling X a "random variable" somewhat misleading?</p>
       <div class="options">
-        <button onclick="quizAnswer(this,false,'q3','This is backwards — X actually IS a genuine mathematical function; the misleading part is the word "random," since X itself is deterministic once an outcome is fixed.')">Because X isn't actually a function at all, just informal notation</button>
+        <button onclick="quizAnswer(this,false,'q3','This is backwards — X actually IS a genuine mathematical function; the misleading part is the word &quot;random,&quot; since X itself is deterministic once an outcome is fixed.')">Because X isn't actually a function at all, just informal notation</button>
         <button onclick="quizAnswer(this,true, 'q3','Right — X is a deterministic function of the outcome; once ω is fixed, X(ω) is a fixed number. The randomness lives in which ω occurs, not in X itself.')">Because X is a fixed, deterministic function — the randomness comes from which outcome ω occurs, not from X</button>
         <button onclick="quizAnswer(this,false,'q3','X can certainly output the same value for different outcomes (e.g. dice sums), and that’s completely fine — it doesn’t break the definition or make X non-random in any special sense beyond what’s already true.')">Because it must give a different output for every possible outcome</button>
         <button onclick="quizAnswer(this,false,'q3','Random variables aren’t restricted to only two values — the sum of two dice, for instance, takes on eleven different values (2 through 12).')">Because it can only take the values 0 and 1</button>
@@ -87,7 +87,7 @@
     <div class="q-block" id="q4">
       <p>4. Summing two fair dice, why is p(7) larger than p(2)?</p>
       <div class="options">
-        <button onclick="quizAnswer(this,false,'q4','7 isn’t a special or "lucky" number mathematically here — its higher probability comes entirely from counting outcomes, not from any inherent property of the number 7.')">Because 7 is a special number with higher inherent probability</button>
+        <button onclick="quizAnswer(this,false,'q4','7 isn’t a special or &quot;lucky&quot; number mathematically here — its higher probability comes entirely from counting outcomes, not from any inherent property of the number 7.')">Because 7 is a special number with higher inherent probability</button>
         <button onclick="quizAnswer(this,true, 'q4','Right — six of the 36 equally likely (die1, die2) pairs sum to 7, versus only one pair, (1,1), summing to 2. More outcomes map to the value 7, so its probability mass is larger.')">Because more of the 36 equally likely outcome-pairs sum to 7 than sum to 2</button>
         <button onclick="quizAnswer(this,false,'q4','The individual dice are fair and unweighted — the unevenness shows up only in the derived sum, because different sums are reachable by different numbers of underlying outcome pairs.')">Because the dice themselves are unfairly weighted</button>
         <button onclick="quizAnswer(this,false,'q4','p(2) is not undefined — it’s a well-defined, if small, probability: exactly 1/36, corresponding to the single outcome pair (1,1).')">Because p(2) is actually undefined, not just small</button>
@@ -111,7 +111,7 @@
   <div class="nav">
     <span></span>
     <span class="spacer"></span>
-    <a href="../index.html#lesson-02">Lesson 2: Expectation &amp; Variance →</a>
+    <a href="0002-expectation-variance.html">Lesson 2: Expectation &amp; Variance →</a>
   </div>
 
 </div>
@@ -174,7 +174,7 @@ PROB_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

@@ -82,7 +82,7 @@
         <button onclick="quizAnswer(this,false,'q2','This describes the UNIT η_A, not the counit — η_A(a) = λb.(a,b) is the one that pairs a value with a placeholder for later; the counit goes the other direction.')">It wraps a value a into the constant function λb.(a, b)</button>
         <button onclick="quizAnswer(this,true, 'q2','Right — ε_C(f, b) = f(b) is function application/evaluation: hand it a function and an argument, get the result. Every closure call you make is this counit in action.')">It applies a function to an argument: ε_C(f, b) = f(b)</button>
         <button onclick="quizAnswer(this,false,'q2','Ordinary function composition (B→C composed with A→B) isn\'t what the counit does here — the counit\'s job is evaluation/application, not chaining two separate functions together.')">It composes two separate functions into one longer function</button>
-        <button onclick="quizAnswer(this,false,'q2','The counit doesn\'t "convert back" without evaluating — ε_C(f,b)=f(b) genuinely computes the result by applying f to b, it isn\'t a no-op repackaging.')">It converts a curried function back into a pair, without evaluating anything</button>
+        <button onclick="quizAnswer(this,false,'q2','The counit doesn\'t &quot;convert back&quot; without evaluating — ε_C(f,b)=f(b) genuinely computes the result by applying f to b, it isn\'t a no-op repackaging.')">It converts a curried function back into a pair, without evaluating anything</button>
       </div>
       <div class="feedback" id="q2-fb"></div>
     </div>
@@ -185,7 +185,7 @@ ADJUNCTION_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

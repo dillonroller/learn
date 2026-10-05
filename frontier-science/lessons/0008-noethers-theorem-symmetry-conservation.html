@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 8 — Symmetry &amp; Conservation: Noether's Theorem as the Thread Connecting It All</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0 1.5rem; font-size: .9rem; }
+    th, td { text-align: left; padding: .5rem .7rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { font-family: var(--font-ui); font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+    @media (max-width: 640px) { th, td { padding: .45rem .35rem; } }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Frontier Science</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 8 of 8 &nbsp;·&nbsp; Frontier Science &nbsp;·&nbsp; ~45 min</p>
+  <h1>Symmetry &amp; Conservation: Noether's Theorem as the Thread Connecting It All</h1>
+  <p>School physics hands you conservation laws as separate brute rules: energy, momentum and charge can be neither created nor destroyed. The real structure is tighter. Each law follows from a <em>symmetry of the laws of physics</em>, by a theorem Emmy Noether published in 1918, and when the symmetry fails, the law fails with it. You have leaned on this already. <a href="0003-e-equals-mc-squared-four-momentum.html#four-momentum">Lesson 3</a> required energy and momentum conservation to survive a Lorentz boost. <a href="0005-einstein-field-equation-gravity-as-geometry.html#local-conservation">Lesson 5</a> found energy-momentum conservation built into Einstein’s equation. And Quantum Mechanics’ <a href="../../quantum-mechanics/lessons/0004-schrodinger-equation.html#worked-example-qubit-precession">precessing qubit</a> kept its 0/1 odds frozen while its +/− odds swung. The win: given a symmetry or a scenario, name the conserved quantity Noether guarantees (or see that none is guaranteed), and verify a quantum conservation law by multiplying 2×2 matrices.</p>
+
+  <h2 id="continuous-symmetry">What a symmetry is, precisely</h2>
+  <p>A <strong>symmetry</strong> is a transformation that leaves the <em>laws</em> unchanged (the equations of motion, or the Hamiltonian that generates them), not necessarily the <em>state</em>. Gravity looks the same in every direction around the Sun, yet Earth’s orbit is an ellipse. The law is symmetric even though this solution is not, and only the law matters.</p>
+  <p>A <strong>continuous</strong> symmetry comes in a family labelled by a real number, so it can be made arbitrarily small: shift time by Δt, shift space by Δx, rotate by θ, boost by v, multiply a quantum field by a phase e<sup>iθ</sup>. A <strong>discrete</strong> symmetry is all-or-nothing: the mirror flip x → −x (P), swapping particles with antiparticles (C), running time backwards (T). Lesson 1’s <a href="0001-postulates-special-relativity-time-dilation.html#principle-of-relativity">principle of relativity</a> was the course’s first symmetry principle: the laws are unchanged by a <a href="0002-length-contraction-simultaneity-spacetime-diagrams.html#lorentz-boost">Lorentz boost</a>, and lesson 2’s <a href="0002-length-contraction-simultaneity-spacetime-diagrams.html#invariant-interval">invariant interval</a> is what that symmetry preserves. Einstein reversed the old order of explanation. It became natural, in Wigner’s words, “to derive the laws of nature and to test their validity by means of the laws of invariance” (<a href="https://plato.stanford.edu/entries/symmetry-breaking/#Rela" target="_blank">SEP §2.1</a>).</p>
+
+  <h2 id="noethers-theorem">Noether’s theorem</h2>
+  <div class="callout">
+    <strong>Noether’s (first) theorem, 1918</strong>
+    In a theory described by a Lagrangian or Hamiltonian, every <em>continuous</em> symmetry of the laws yields a quantity that stays constant in time.
+  </div>
+  <p>It grew out of general relativity. Hilbert and Klein, debating the status of energy conservation in Einstein’s theory, enlisted Noether. Her <a href="https://arxiv.org/abs/physics/0503066" target="_blank">1918 paper</a> proves two theorems: the first ties global symmetries to conservation laws, the second handles local symmetries (<a href="https://plato.stanford.edu/entries/symmetry-breaking/#GenTheRel" target="_blank">SEP §2.1.2</a>). Both qualifiers matter. “Every symmetry gives a conserved quantity” is, in John Baez’s words, “a half-truth” (<a href="https://math.ucr.edu/home/baez/noether.html" target="_blank">Noether’s Theorem in a Nutshell</a>, with a six-line classical proof).</p>
+
+  <h3 id="noether-pairs">The table: symmetry → conserved quantity</h3>
+  <table>
+    <thead><tr><th>Symmetry of the laws</th><th>Conserved quantity</th></tr></thead>
+    <tbody>
+      <tr><td>Time translation</td><td>Energy</td></tr>
+      <tr><td>Space translation</td><td>Momentum</td></tr>
+      <tr><td>Rotation</td><td>Angular momentum</td></tr>
+      <tr><td>Boost</td><td><code>t·p − x·E/c²</code> (E, p totals; x the centre of energy): the centre of energy drifts at steady velocity <code>pc²/E</code> (<a href="https://math.ucr.edu/home/baez/boosts.html" target="_blank">Baez</a>)</td></tr>
+      <tr><td>Global phase rotation of a charged field, ψ → e<sup>iθ</sup>ψ</td><td>Electric charge</td></tr>
+    </tbody>
+  </table>
+  <p>In relativity the first two rows are one fact. A boost mixes t with x, and E with p, so spacetime-translation symmetry yields <em>one</em> four-component law: conservation of four-momentum <code>(E/c, pₓ, p_y, p_z)</code>. That answers <a href="0003-e-equals-mc-squared-four-momentum.html">lesson 3</a>’s opening move. Energy and momentum conservation survive every boost because both come from a single symmetry of spacetime. Susskind’s <a href="https://theoreticalminimum.com/courses/classical-mechanics/2011/fall" target="_blank">Theoretical Minimum lectures 4–5</a> derive the classical table from a Lagrangian.</p>
+
+  <h2 id="quantum-noether">The quantum version: [Q, H] = 0</h2>
+  <p>In quantum mechanics the theorem takes three lines of <a href="../../quantum-mechanics/lessons/0004-schrodinger-equation.html#schrodinger-equation">the Schrödinger equation</a>. A continuous symmetry is a family of unitaries <code>U(θ) = e^(−iθQ)</code>, generated by a Hermitian Q, that leaves H unchanged:</p>
+  <pre><code>U(θ)† H U(θ) = H   for all θ
+   ⇔   [Q, H] ≡ QH − HQ = 0
+
+d|ψ⟩/dt = −(i/ħ) H|ψ⟩
+d⟨ψ|/dt = +(i/ħ) ⟨ψ|H
+
+d⟨Q⟩/dt = (i/ħ)⟨ψ|HQ|ψ⟩
+        − (i/ħ)⟨ψ|QH|ψ⟩
+        = (i/ħ)⟨[H, Q]⟩
+        = 0  whenever [Q, H] = 0</code></pre>
+  <p>The symmetry’s generator <em>is</em> the conserved observable, and since every function of Q also commutes with H, Q’s whole outcome distribution is frozen. Energy is the case Q = H: by <a href="../../quantum-mechanics/lessons/0004-schrodinger-equation.html#unitary-time-evolution">unitary evolution</a> <code>U(t) = e^(−iHt/ħ)</code>, H generates time translation, and <code>[H, H] = 0</code>. As the <a href="https://plato.stanford.edu/entries/symmetry-breaking/#SymmQuanMech" target="_blank">SEP (§2.2)</a> puts it, symmetry observables, “commuting with the Hamiltonian of the system, play the role of the conserved quantities.”</p>
+
+  <div class="callout">
+    <strong>Worked example: the precessing qubit, explained by one commutator</strong>
+    <a href="../../quantum-mechanics/lessons/0004-schrodinger-equation.html#worked-example-qubit-precession">QM lesson 4</a> used <code>H = (ħω/2)Z</code>, with the <a href="../../quantum-computing/lessons/0001-qubits-bloch-sphere-single-qubit-gates.html#pauli-gates">Pauli matrices</a>:
+    <pre><code>Z = ⎡1  0⎤  X = ⎡0 1⎤  Y = ⎡0 −i⎤
+    ⎣0 −1⎦      ⎣1 0⎦      ⎣i  0⎦
+
+ZH − HZ = (ħω/2)(ZZ − ZZ) = 0
+  ⇒ ⟨Z⟩ conserved
+
+ZX − XZ = ⎡ 0 1⎤ − ⎡0 −1⎤ = ⎡ 0 2⎤
+          ⎣−1 0⎦   ⎣1  0⎦   ⎣−2 0⎦
+        = 2iY ≠ 0
+d⟨X⟩/dt = (i/ħ)⟨[H, X]⟩
+        = (i/ħ)(iħω)⟨Y⟩ = −ω⟨Y⟩
+
+|ψ(t)⟩ = (e^(−iωt/2)|0⟩
+        + e^(iωt/2)|1⟩)/√2
+⟨Z⟩ = 0 always
+  P(0) = (1 + ⟨Z⟩)/2 = ½
+⟨X⟩ = cos ωt
+  P(+) = (1 + ⟨X⟩)/2 = cos²(ωt/2)
+At ωt = π/3:
+  P(0) = 0.5, ⟨X⟩ = 0.5, P(+) = 0.75</code></pre>
+    The symmetry: <code>e^(−iθZ/2)</code> turns the <a href="../../quantum-computing/lessons/0001-qubits-bloch-sphere-single-qubit-gates.html#bloch-sphere">Bloch sphere</a> about z and leaves H ∝ Z unchanged. If the qubit is a spin-½ in a magnetic field along z, this is literally the rotation row: <code>S_z = (ħ/2)Z</code> is its angular momentum about z. A turn about x changes H, so nothing protects ⟨X⟩.
+  </div>
+  <p>The same fact explains why <a href="0006-quantum-fields-particles-as-excitations.html#field-modes">lesson 6’s field modes</a> carry momentum labels ħk. In a translation-invariant theory momentum commutes with H, and commuting Hermitian operators share an eigenbasis, so energy eigenstates can have definite momentum.</p>
+
+  <h2 id="no-symmetry-no-conservation">No symmetry, no guarantee</h2>
+  <p>Remove the symmetry and the guarantee goes with it. A ball rolls over a static hill whose height varies with x. The laws differ from one x to the next, so x-momentum is not conserved, but they are the same at every moment, so energy is.</p>
+  <p>An expanding universe has no time-translation symmetry, because spacetime itself changes. So there is no general global energy law. In Sean Carroll’s <a href="https://www.preposterousuniverse.com/blog/2010/02/22/energy-is-not-conserved/" target="_blank">“Energy Is Not Conserved”</a>, photons “redshift, losing energy as space expands,” while vacuum energy (lesson 5’s <a href="0005-einstein-field-equation-gravity-as-geometry.html#cosmological-constant">Λ</a>) keeps a constant density in a growing volume, so its total rises. Big Bang nucleosynthesis predictions depend on radiation losing energy this way. With <code>1 + z = a_now/a_then</code> (<a href="https://en.wikipedia.org/wiki/Redshift" target="_blank">cosmological redshift</a>), a 2.0 eV photon (λ = hc/E ≈ 620 nm) travelling while the universe doubles in size arrives at about 1240 nm and 1.0 eV.</p>
+  <p>What survives is <a href="0005-einstein-field-equation-gravity-as-geometry.html#local-conservation">lesson 5’s <em>local</em> law</a> <code>∇_μT^μν = 0</code>: at every point, energy only flows. The <a href="https://math.ucr.edu/home/baez/physics/Relativity/GR/energy_gr.html" target="_blank">Weiss–Baez FAQ</a> says it exactly: “The differential form extends with nary a hiccup; not so the integral form.” Static and asymptotically flat spacetimes still have a conserved total energy (same FAQ).</p>
+  <div class="callout warn">
+    <strong>Honestly: the physics is agreed, the words are not</strong>
+    Some experts say total energy <em>is</em> conserved once the gravitational field gets an energy, defined with coordinate-dependent <em>pseudo-tensors</em> (FAQ above). Carroll: “We all agree on the science; there are just divergent views on what words to attach to the science.” The opposite overreaction is also wrong. Local conservation holds everywhere, so “GR allows free energy” fails the <a href="../../quantum-mechanics/lessons/0001-state-vectors-superposition-born-rule.html#misuse-check">misuse check</a>.
+  </div>
+
+  <h2 id="gauge-symmetry">Gauge symmetry: when a symmetry dictates a force</h2>
+  <p>Now make the phase symmetry stricter: demand the electron field’s laws be unchanged even when the phase varies from point to point. That is a <strong>gauge (local) symmetry</strong>.</p>
+  <pre><code>global: ψ(x) → e^(iθ) ψ(x)
+  one θ everywhere ⇒ charge conserved
+local:  ψ(x) → e^(iθ(x)) ψ(x)
+  ∂ψ → e^(iθ)(∂ψ + i(∂θ)ψ)
+  the i(∂θ)ψ term is new</code></pre>
+  <p>Nothing in the free electron’s equation cancels the extra term. Only a new field that shifts along with θ can, and that field is electromagnetism, whose quanta are photons. The <a href="https://plato.stanford.edu/entries/quantum-field-theory/#GaugInva" target="_blank">SEP (“Quantum Field Theory” §2.3)</a> states it directly: “the requirement of local gauge invariance can only be fulfilled by introducing additional terms, namely those for the electromagnetic field”. With SU(2)×U(1) and SU(3) in place of the phase, the same move yields the W, Z and photon and the gluons, lesson 7’s <a href="0007-standard-model-fermions-bosons-forces.html#gauge-bosons">gauge bosons</a> and <a href="0007-standard-model-fermions-bosons-forces.html#four-forces">forces</a>. Symmetry dictates the form of the interactions.</p>
+  <div class="callout warn">
+    <strong>Gauge symmetry is not another row of the table</strong>
+    A local gauge transformation redescribes one physical situation; it never maps it to a different one. Such symmetries are typically regarded as “surplus” or “redundant” structure (<a href="https://plato.stanford.edu/entries/symmetry-breaking/#GaugSymm" target="_blank">SEP §2.5–2.6</a>). They fall under Noether’s <em>second</em> theorem and add no new charge. Charge conservation comes from the global part.
+  </div>
+
+  <h2 id="spontaneous-symmetry-breaking">Spontaneous symmetry breaking</h2>
+  <p><strong>Spontaneous symmetry breaking</strong>: the laws are symmetric, the lowest-energy state is not. The <a href="https://plato.stanford.edu/entries/symmetry-breaking/#SponSymmBrea" target="_blank">SEP (§4.2)</a> example is a vertical stick pressed from above. The setup is symmetric about the stick’s axis, but past a critical force the stick bends in <em>some</em> direction. The Higgs field’s ground state likewise has a nonzero value that picks a direction in the electroweak SU(2)×U(1) space. That hides the symmetry and gives the W and Z their masses, while the photon stays massless (<a href="0007-standard-model-fermions-bosons-forces.html#higgs-boson">lesson 7</a>; <a href="https://www.nobelprize.org/prizes/physics/2013/summary/" target="_blank">Nobel 2013</a>). The laws never stop being symmetric.</p>
+
+  <h2 id="discrete-symmetries">Discrete symmetries, and the broken mirror</h2>
+  <p>P, C and T have no small version, so Noether’s theorem does not apply to them. In quantum mechanics, if the mirror operator P commutes with H, the derivation above conserves its eigenvalue, <em>parity</em> = ±1. That is a multiplicative label, not a Noether charge (<a href="https://en.wikipedia.org/wiki/Parity_(physics)" target="_blank">Wikipedia</a>). Physicists assumed it for thirty years. In 1956 Lee and Yang noted it had never been tested for the weak force. At the end of 1956 Chien-Shiung Wu and a National Bureau of Standards team aligned cobalt-60 nuclei and found that more beta-decay electrons left one end than the other: the experiment’s mirror image does not happen (<a href="https://www.nist.gov/blogs/taking-measure/forever-stamp-and-discovery-changed-physics-forever" target="_blank">NIST</a>; <a href="https://plato.stanford.edu/entries/symmetry-breaking/#CPT" target="_blank">SEP §2.4</a>). Lee and Yang won the <a href="https://www.nobelprize.org/prizes/physics/1957/summary/" target="_blank">1957 Nobel Prize</a>. Symmetries are empirical claims, and they can fail.</p>
+
+  <h2 id="course-thread">The thread through the course</h2>
+  <table>
+    <thead><tr><th>Lesson</th><th>Symmetry fact</th><th>What it bought</th></tr></thead>
+    <tbody>
+      <tr><td><a href="0001-postulates-special-relativity-time-dilation.html#principle-of-relativity">L1</a></td><td>Laws unchanged by boosts</td><td>Time dilation</td></tr>
+      <tr><td><a href="0002-length-contraction-simultaneity-spacetime-diagrams.html#invariant-interval">L2</a></td><td>Boosts preserve Δs²</td><td>Light cones, causal order</td></tr>
+      <tr><td><a href="0003-e-equals-mc-squared-four-momentum.html#four-momentum">L3</a></td><td>Spacetime translations ⇒ four-momentum</td><td>E = γmc², E² = (pc)² + (mc²)²</td></tr>
+      <tr><td><a href="0005-einstein-field-equation-gravity-as-geometry.html#local-conservation">L5</a></td><td>No global time symmetry when space expands</td><td>Only local ∇_μT^μν = 0</td></tr>
+      <tr><td><a href="0006-quantum-fields-particles-as-excitations.html#field-modes">L6</a></td><td>Space translations: momentum commutes with H</td><td>Modes labelled by ħk</td></tr>
+      <tr><td><a href="0007-standard-model-fermions-bosons-forces.html#gauge-bosons">L7</a></td><td>Local SU(3)×SU(2)×U(1), hidden by the Higgs vacuum; its global phase part</td><td>Gluons, photon, massive W and Z; conserved electric charge</td></tr>
+      <tr><td><a href="../../quantum-mechanics/lessons/0004-schrodinger-equation.html#worked-example-qubit-precession">QM 4</a></td><td>Rotation about z: [Z, H] = 0</td><td>Frozen 0/1 odds</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Try it</h2>
+  <h3>A. Which quantity is conserved?</h3>
+  <div id="noether-exercise" class="mc-exercise"></div>
+  <h3>B. Commutator check</h3>
+  <p>With <code>Z = [[1,0],[0,−1]]</code>, <code>X = [[0,1],[1,0]]</code>, <code>H = (ħω/2)Z</code>, work each on paper first.</p>
+  <div id="commutator-exercise" class="mc-exercise"></div>
+
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Energy and momentum each change value under a Lorentz boost. Why do both conservation laws still hold in every inertial frame?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Then nothing would force them to survive a boost together. Both come from spacetime-translation symmetry as one four-momentum law, and a boost only mixes its components.')">They are two separate axioms, checked frame by frame</button>
+        <button onclick="quizAnswer(this,true,'q1','Right. Shifts of t and of x together form one spacetime-translation symmetry, whose Noether quantity is the four-momentum (E/c, p). A boost mixes the components, and a conserved four-vector stays conserved in every frame.')">Both come from one spacetime-translation symmetry</button>
+        <button onclick="quizAnswer(this,false,'q1','Boosts have their own Noether quantity, t·p − x·E/c², which says the centre of energy moves steadily. Energy and momentum come from translations in time and space.')">Boost symmetry itself is what conserves E and p</button>
+        <button onclick="quizAnswer(this,false,'q1','E is not invariant: E = γmc² grows with speed. The invariant is E² − (pc)² = (mc²)². Conservation survives because the whole four-vector is conserved, not because E stays fixed.')">Energy is boost-invariant, so its law transfers</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. A different qubit has <code>H = (ħω/2)X</code>. Which measurement has fixed outcome probabilities for every starting state?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','That held for H ∝ Z. Now ZX − XZ = 2iY ≠ 0, so Z no longer commutes with H and its odds oscillate.')">The Z basis, as in QM lesson 4</button>
+        <button onclick="quizAnswer(this,false,'q2','YX − XY = −2iZ ≠ 0, so Y does not commute with this H, and its expectation value changes in time.')">The Y basis, the leftover axis</button>
+        <button onclick="quizAnswer(this,false,'q2','Diagonal is basis-dependent. X commutes with H ∝ X in any basis, so a conserved quantity exists, as does energy.')">None, since H is not diagonal</button>
+        <button onclick="quizAnswer(this,true,'q2','Right. H is a multiple of X, so [X, H] = 0, and every function of X commutes too: the whole +/− distribution is frozen.')">The X basis, {|+⟩, |−⟩}</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Which statement about energy in an expanding universe matches general relativity?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right. An evolving spacetime has no time-translation symmetry, so no general global law, while ∇_μT^μν = 0 still holds at every point.')">No global law without time symmetry; local law holds</button>
+        <button onclick="quizAnswer(this,false,'q3','Nothing ties the two together. Photons lose energy while vacuum energy’s total grows with volume; Carroll counts both as non-conservation.')">Dark energy gains what photons lose, so it balances</button>
+        <button onclick="quizAnswer(this,false,'q3','Overreaction. Energy is still conserved locally at every point, so no local device can create energy from expansion.')">Energy appears freely, so perpetual motion is allowed</button>
+        <button onclick="quizAnswer(this,false,'q3','The redshift is real: λ grows with the scale factor and E = hc/λ falls. Nucleosynthesis predictions depend on that loss.')">Redshift is an artifact; photons keep their energy</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. In the Higgs mechanism, what is actually “broken” by spontaneous symmetry breaking?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','The electroweak laws stay exactly symmetric. That is the meaning of spontaneous: only the lowest-energy state lacks the symmetry.')">The electroweak laws, which lose their symmetry</button>
+        <button onclick="quizAnswer(this,false,'q4','Parity violation is a separate discrete fact, built into the weak force coupling only to left-handed particles, and seen by Wu in 1957. The Higgs vacuum does not cause it.')">Mirror symmetry, so the weak force tells left from right</button>
+        <button onclick="quizAnswer(this,true,'q4','Right. The Higgs ground state has a nonzero value pointing one way in SU(2)×U(1) space. The laws stay symmetric; the W and Z get mass.')">Only the vacuum, whose Higgs value picks a direction</button>
+        <button onclick="quizAnswer(this,false,'q4','Charge is conserved in every observed process, W decays included: a W⁻ decays to an electron (−1) plus an antineutrino (0).')">Charge conservation, which massive W bosons violate</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice</h2>
+  <p>By hand, for <code>H = (ħω/2)Z</code>: compute <code>YH − HY</code>, decide whether ⟨Y⟩ is conserved, and use <code>d⟨Y⟩/dt = (i/ħ)⟨[H, Y]⟩</code> to check that ⟨Y⟩ = sin ωt fits ⟨X⟩ = cos ωt. Then close this page and rebuild the symmetry → conservation table from memory, with one entry each from lessons 1, 3, 5, 6 and 7. Check it against <a href="#noether-pairs">the table</a> and <a href="#course-thread">the thread</a>.</p>
+
+  <h2>Primary resource</h2>
+  <p>The Stanford Encyclopedia of Philosophy’s <a href="https://plato.stanford.edu/entries/symmetry-breaking/" target="_blank">“Symmetry and Symmetry Breaking”</a> (Brading, Castellani and Teh) follows this lesson section by section: Noether’s history (§2.1.2), quantum symmetries (§2.2), C, P, T (§2.4), gauge symmetry (§2.5) and the Higgs mechanism (§4.2). For more, Baez’s <a href="https://arxiv.org/abs/2006.14741" target="_blank">“Getting to the Bottom of Noether’s Theorem”</a> shows why, in quantum mechanics, the step from observable to symmetry generator is multiplication by i.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Try asking Claude Code to walk Baez’s six-line proof through the free particle, L = ½mv². Watch momentum fall out of translation symmetry, then ask why adding a hill <code>V(x)</code> destroys it but leaves energy alone.
+  </div>
+
+  <div class="nav">
+    <a href="0007-standard-model-fermions-bosons-forces.html">← Lesson 7: The Standard Model Zoo: Fermions, Bosons, and the Four Forces</a>
+    <span class="spacer"></span>
+    <a href="../index.html">Frontier Science: All Lessons →</a>
+  </div>
+
+</div>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+renderMC('noether-exercise', [
+  { prompt: 'A frictionless puck slides on an infinite, perfectly uniform ice sheet. The laws are the same at every point and every moment.',
+    options: [
+      { text: 'Momentum only', explain: 'The laws are also the same at every moment, which adds energy.' },
+      { text: 'Momentum and energy', correct: true, explain: 'Right. Space translation gives momentum and time translation gives energy.' },
+      { text: 'Nothing is guaranteed', explain: 'Both translations are continuous symmetries of the laws, which is all Noether needs.' },
+    ] },
+  { prompt: 'A photon crosses an expanding universe for a billion years.',
+    options: [
+      { text: 'Its energy', explain: 'Expanding spacetime lacks time-translation symmetry. The photon redshifts and E = hc/λ falls.' },
+      { text: 'Its wavelength', explain: 'The wavelength stretches with the scale factor. That stretch is the redshift.' },
+      { text: 'No energy law: it redshifts', correct: true, explain: 'Right. No time symmetry, no global energy law, so nothing protects its energy. Only the local ∇_μT^μν = 0 survives.' },
+    ] },
+  { prompt: 'A planet orbits a star. Gravity looks the same in every direction around the star, but the orbit is an ellipse.',
+    options: [
+      { text: 'Nothing: an ellipse is lopsided', explain: 'Symmetry belongs to the law, not to one orbit.' },
+      { text: 'The planet’s linear momentum', explain: 'The star sits at one point, so there is no translation symmetry for the planet. Its momentum turns as it orbits.' },
+      { text: 'Angular momentum', correct: true, explain: 'Right. Rotation symmetry about the star gives angular momentum (and the unchanging laws also give energy).' },
+    ] },
+  { prompt: 'The electron field’s laws are unchanged when the field is multiplied everywhere by the same phase e^(iθ).',
+    options: [
+      { text: 'Electric charge', correct: true, explain: 'Right. A global phase rotation is continuous, and its Noether charge is electric charge.' },
+      { text: 'Energy', explain: 'Energy comes from shifting time. This symmetry acts on the phase only.' },
+      { text: 'Nothing: a phase is unobservable', explain: 'An undetectable change is exactly what a symmetry is. This one is continuous, so it yields a charge.' },
+    ] },
+  { prompt: 'An experiment run today and repeated next Tuesday obeys identical laws.',
+    options: [
+      { text: 'Momentum', explain: 'Momentum needs the same laws at every place, not every time.' },
+      { text: 'Energy', correct: true, explain: 'Right. Time-translation symmetry gives energy. In quantum terms, [H, H] = 0.' },
+      { text: 'Electric charge', explain: 'Charge comes from a field’s phase symmetry, not from shifting the clock.' },
+    ] },
+  { prompt: 'A ball rolls over a hill whose height varies with x. The hill never changes.',
+    options: [
+      { text: 'Energy and x-momentum', explain: 'The slope pushes the ball, so the laws differ from one x to the next.' },
+      { text: 'Energy, not x-momentum', correct: true, explain: 'Right. Same laws at every moment conserves energy. Different laws at each x leaves x-momentum unprotected.' },
+      { text: 'x-momentum, not energy', explain: 'Backwards. The static hill keeps time symmetry, and the x-dependence is what kills x-momentum.' },
+    ] },
+  { prompt: 'You compare an experiment with its exact mirror image (x → −x).',
+    options: [
+      { text: 'A Noether charge, parity', explain: 'Noether needs a continuous family, and a mirror is all-or-nothing. Quantum mechanics gives at most a ±1 label.' },
+      { text: 'Angular momentum', explain: 'Angular momentum comes from continuous rotations, not from one discrete flip.' },
+      { text: 'No Noether charge; weak force breaks it', correct: true, explain: 'Right. P is discrete, and Wu’s 1957 cobalt-60 experiment showed the weak force is not mirror-symmetric anyway.' },
+    ] },
+]);
+renderMC('commutator-exercise', [
+  { prompt: 'Compute ZH − HZ.',
+    options: [
+      { text: '2iY', explain: 'That is ZX − XZ. Here H is a multiple of Z, and Z commutes with itself.' },
+      { text: 'ħωZ', explain: 'ZH and HZ both equal (ħω/2)Z² = (ħω/2)I, so they cancel.' },
+      { text: 'The zero matrix', correct: true, explain: 'Right. [Z, H] = 0, so ⟨Z⟩ and the whole Z-basis distribution are conserved.' },
+    ] },
+  { prompt: 'Compute ZX − XZ.',
+    options: [
+      { text: '[[0,2],[−2,0]] = 2iY', correct: true, explain: 'Right. ZX = [[0,1],[−1,0]] and XZ = [[0,−1],[1,0]]. Nonzero, so ⟨X⟩ is not conserved.' },
+      { text: 'The zero matrix', explain: 'ZX = [[0,1],[−1,0]] but XZ = [[0,−1],[1,0]]. They differ by a sign.' },
+      { text: '[[0,−2],[2,0]] = −2iY', explain: 'That is XZ − ZX. The commutator flips sign when you swap the order.' },
+    ] },
+  { prompt: 'Which observation from QM lesson 4 do these results explain?',
+    options: [
+      { text: 'Both bases’ odds stayed fixed', explain: 'Only Z commutes with H. Since [H, X] = iħωY, P(+) = cos²(ωt/2) moves.' },
+      { text: '0/1 odds frozen at ½; P(+) oscillates', correct: true, explain: 'Right. [Z, H] = 0 freezes P(0) = ½, while ⟨X⟩ = cos ωt swings P(+) = cos²(ωt/2).' },
+      { text: '0/1 odds oscillated; +/− fixed', explain: 'Backwards. Z is the conserved one.' },
+    ] },
+  { prompt: 'Is energy conserved here, even though the state keeps changing?',
+    options: [
+      { text: 'No: the state changes', explain: 'A state can change while ⟨H⟩ stays put. Here ⟨H⟩ = (ħω/2)⟨Z⟩ = 0 at all t.' },
+      { text: 'Only if ω = 0', explain: 'Any constant ω works: H has no time dependence, so time symmetry holds.' },
+      { text: 'Yes: [H, H] = 0', correct: true, explain: 'Right. H generates time translation, U(t) = e^(−iHt/ħ), and commutes with itself.' },
+    ] },
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

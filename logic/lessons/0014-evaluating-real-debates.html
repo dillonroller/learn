@@ -102,7 +102,7 @@
       <div class="options">
         <button onclick="quizAnswer(this,false,'q2','It matters a lot — knowing the structure is fine tells you exactly where to direct your pushback (the premises), instead of vaguely re-litigating the logic itself.')">It doesn't matter — a failed argument is a failed argument either way</button>
         <button onclick="quizAnswer(this,true, 'q2','Right — this is lesson 1’s two-question test in action: knowing the structure holds means your entire objection can focus precisely on the unsupported premises, not the reasoning.')">It tells you the disagreement is entirely about premise support, not reasoning — sharpening exactly what to challenge</button>
-        <button onclick="quizAnswer(this,false,'q2','Valid structure with unsupported premises is precisely lesson 1’s "valid but unsound" case — not a contradiction, and not something that makes the argument automatically correct.')">It means the conclusion must be accepted regardless of the premises</button>
+        <button onclick="quizAnswer(this,false,'q2','Valid structure with unsupported premises is precisely lesson 1’s &quot;valid but unsound&quot; case — not a contradiction, and not something that makes the argument automatically correct.')">It means the conclusion must be accepted regardless of the premises</button>
         <button onclick="quizAnswer(this,false,'q2','This case is a clean instance of lesson 1’s valid/unsound distinction, not some special exception to it.')">It's a special exception to lesson 1's validity/soundness distinction</button>
       </div>
       <div class="feedback" id="q2-fb"></div>
@@ -238,7 +238,7 @@ DEBATE_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

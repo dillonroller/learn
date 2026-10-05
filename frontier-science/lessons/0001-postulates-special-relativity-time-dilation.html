@@ -16,7 +16,7 @@
 
   <p class="lesson-meta">Lesson 1 of 8 &nbsp;·&nbsp; Frontier Science &nbsp;·&nbsp; ~40 min</p>
   <h1>The Postulates of Special Relativity &amp; Time Dilation</h1>
-  <p>Pop-science treatments of relativity tend to hand you "moving clocks run slow" as a bare assertion, usually with a rubber-sheet metaphor nowhere near it (that metaphor is for <a href="../../frontier-science/index.html#lesson-04">general relativity</a> anyway, and a rough one even there). It isn't an assertion. It's a two-line consequence of two very specific, falsifiable postulates, and you can derive the exact factor by which clocks slow down using nothing more than the Pythagorean theorem. This lesson does that derivation in full, then checks the result against a real particle that only reaches the ground because of it.</p>
+  <p>Pop-science treatments of relativity tend to hand you "moving clocks run slow" as a bare assertion, usually with a rubber-sheet metaphor nowhere near it (that metaphor is for <a href="../../frontier-science/lessons/0004-equivalence-principle-curved-spacetime.html">general relativity</a> anyway, and a rough one even there). It isn't an assertion. It's a two-line consequence of two very specific, falsifiable postulates, and you can derive the exact factor by which clocks slow down using nothing more than the Pythagorean theorem. This lesson does that derivation in full, then checks the result against a real particle that only reaches the ground because of it.</p>
 
   <h2 id="postulates">Two postulates, no more</h2>
   <p>Special relativity (Einstein, 1905) rests on exactly two postulates:</p>
@@ -125,8 +125,8 @@ Relativistic (correct) estimate — dilated lifetime as measured from the ground
     <div class="q-block" id="q4">
       <p>4. The worked example's muon survives roughly 50× longer, as timed from the ground, than its proper lifetime. What's the precise way to describe why?</p>
       <div class="options">
-        <button onclick="quizAnswer(this,true,'q4','Right — from the ground frame, the muon\'s internal "clock" (its decay process) runs slow by exactly the factor γ, so more ground-frame time elapses before it decays. The muon\'s own proper lifetime, 2.2 μs, is an intrinsic, unchanging property measured in its own rest frame.')">From the ground frame, the muon's internal clock runs slow by the Lorentz factor, so more ground-frame time passes before it decays — its own proper lifetime never changes</button>
-        <button onclick="quizAnswer(this,false,'q4','Nothing about the muon\'s internal physics changes when it moves fast — only the time relationship between the muon\'s frame and the ground frame changes. It isn\'t "more stable"; it just experiences less time from the ground\'s point of view.')">The muon becomes physically more stable when moving at high speed</button>
+        <button onclick="quizAnswer(this,true,'q4','Right — from the ground frame, the muon\'s internal &quot;clock&quot; (its decay process) runs slow by exactly the factor γ, so more ground-frame time elapses before it decays. The muon\'s own proper lifetime, 2.2 μs, is an intrinsic, unchanging property measured in its own rest frame.')">From the ground frame, the muon's internal clock runs slow by the Lorentz factor, so more ground-frame time passes before it decays — its own proper lifetime never changes</button>
+        <button onclick="quizAnswer(this,false,'q4','Nothing about the muon\'s internal physics changes when it moves fast — only the time relationship between the muon\'s frame and the ground frame changes. It isn\'t &quot;more stable&quot;; it just experiences less time from the ground\'s point of view.')">The muon becomes physically more stable when moving at high speed</button>
         <button onclick="quizAnswer(this,false,'q4','The 2.2 μs figure is the proper lifetime — measured in the muon\'s own rest frame — and that number is a fixed intrinsic property of the particle, unaffected by how fast it moves relative to anyone else.')">The muon's proper lifetime of 2.2 μs itself increases because it is moving fast</button>
         <button onclick="quizAnswer(this,false,'q4','The muon has a well-defined nonzero rest mass (about 105.7 MeV/c²) — mass plays no role in this calculation at all; time dilation depends only on speed, via γ.')">The calculation only works because the muon is nearly massless</button>
       </div>
@@ -209,7 +209,7 @@ GAMMA_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

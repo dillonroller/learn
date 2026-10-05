@@ -110,7 +110,7 @@ FileNotFoundError: [Errno 2] No such file or directory: 'fpp.txt'
       <p>3. Why should a tool's description state what it does <em>not</em> do, not just what it does — as in "does not search binary files, node_modules, or .git"?</p>
       <div class="options">
         <button onclick="quizAnswer(this,true,'q3','Right — stating limits up front prevents the model from assuming capabilities the tool doesn\'t actually have, which would otherwise only surface later as a confusing, hard-to-diagnose failure.')">It prevents the model from assuming capabilities the tool doesn't have, avoiding a confusing later failure</button>
-        <button onclick="quizAnswer(this,false,'q3','JSON Schema does have a "not" keyword, but that\'s unrelated to writing prose limits into a description — this isn\'t a syntax requirement.')">JSON Schema requires a "not" field in every tool definition</button>
+        <button onclick="quizAnswer(this,false,'q3','JSON Schema does have a &quot;not&quot; keyword, but that\'s unrelated to writing prose limits into a description — this isn\'t a syntax requirement.')">JSON Schema requires a "not" field in every tool definition</button>
         <button onclick="quizAnswer(this,false,'q3','More text isn\'t automatically better — stating limits helps specifically because it heads off wrong assumptions, not simply because the description got longer.')">Longer descriptions always improve model performance</button>
         <button onclick="quizAnswer(this,false,'q3','That\'s a reasonable real-world nicety, but it isn\'t why stating limits changes agent behavior here — the mechanism is preventing wrong assumptions, not satisfying a style guide.')">It's required to satisfy documentation style guides</button>
       </div>
@@ -204,7 +204,7 @@ TOOL_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

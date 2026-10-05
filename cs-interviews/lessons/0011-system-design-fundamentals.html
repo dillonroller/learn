@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 11 — System Design Fundamentals</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">CS Interview Prep</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 11 of 11 &nbsp;·&nbsp; CS Interview Prep &nbsp;·&nbsp; ~35 min</p>
+  <h1>System Design Fundamentals</h1>
+  <p>A system design round has no compiler and no test cases, so the interviewer’s hidden question changes: <em>can you turn a vague product ask into numbers, and justify every box you draw by the bottleneck it removes?</em> There is no single right answer; what gets graded is trade-off reasoning and how you drive the conversation. You already own the parts. <a href="0001-big-o-and-complexity.html">Lesson 1</a>’s orders of magnitude become QPS and latency estimates, the <a href="0002-arrays-and-hashmaps.html#hash-table">hash table</a> becomes a cache and a shard map, and the <a href="0004-stacks-and-queues.html#queue-fifo">FIFO queue</a> becomes a message queue between machines. Today’s win: walk “Design a URL shortener” through requirements, estimates, API, high-level design and deep dives, naming the building block each bottleneck calls for. That is the high-level fluency your mission asks for; the full deep dive is a later topic.</p>
+
+  <h2 id="sd-framework">The framework: requirements before boxes</h2>
+  <p>Hello Interview’s <a href="https://www.hellointerview.com/learn/system-design/in-a-hurry/delivery" target="_blank">delivery framework</a> budgets the round like this. You drive it and state each assumption out loud.</p>
+  <ol>
+    <li><strong>Requirements (~5 min).</strong> <em>Functional</em>: about three “users should be able to…” statements. <em>Non-functional</em>: latency, availability, scale, consistency, with numbers where you can.</li>
+    <li><strong>Core entities (~2 min).</strong> The nouns your API trades in. Start small and add as you go.</li>
+    <li><strong>API (~5 min).</strong> One endpoint per functional requirement. “Default to REST unless you have a specific reason not to.”</li>
+    <li><strong>High-level design (~10–15 min).</strong> The simplest boxes and arrows that serve every endpoint.</li>
+    <li><strong>Deep dives (~10 min).</strong> Return to the non-functional requirements and fix the bottlenecks they expose. The more senior you are, the more you lead.</li>
+  </ol>
+  <p>Estimation is not a ritual step: the guide says to calculate “only if they will directly influence your design”. For a read-heavy service they decide cache and sharding, so you do them. Applied to the URL shortener:</p>
+  <ul>
+    <li><strong>Functional:</strong> create a short code for a long URL; visiting the code redirects to the long URL.</li>
+    <li><strong>Non-functional:</strong> fast redirects (Hello Interview’s <a href="https://www.hellointerview.com/learn/system-design/problem-breakdowns/bitly" target="_blank">Bitly breakdown</a> sets under 100 ms), high availability, globally unique codes, far more reads than writes.</li>
+    <li><strong>Entity:</strong> <code>ShortUrl { code, long_url, created_at }</code>.</li>
+    <li><strong>API:</strong> <code>POST /urls {long_url} → {code}</code> and <code>GET /{code} → 302</code>. The breakdown prefers 302 over 301 so browsers don’t cache the redirect and every click still reaches you.</li>
+  </ul>
+  <div class="callout">
+    <strong>Why interviewers care</strong>
+    With no test suite, your process is the signal. Assumptions said out loud let the interviewer correct you in minute three, not grade a design for a problem they never posed.
+  </div>
+
+  <h2 id="back-of-envelope">Back-of-the-envelope: numbers pick the boxes</h2>
+  <p>Round hard. You want the order of magnitude, the same move as dropping constants in Big-O. Three conversions cover most rounds:</p>
+  <ul>
+    <li><strong>QPS = per-day count ÷ 10⁵.</strong> A day is 86,400 s; the 16% error never changes a design.</li>
+    <li><strong>Peak = average × a factor you say out loud</strong>, such as “assume 3× at peak”.</li>
+    <li><strong>Storage = records per day × bytes per record × 365 × years.</strong></li>
+  </ul>
+  <p>For latency, quote Jeff Dean’s “Numbers Everyone Should Know” (<a href="https://www.cs.cornell.edu/projects/ladis2009/talks/dean-keynote-ladis2009.pdf" target="_blank">LADIS 2009 keynote</a>; SSD row from the <a href="https://gist.github.com/jboner/2841832" target="_blank">widely shared table</a> built on it). They are 2009-era figures: orders of magnitude, not specs.</p>
+  <div class="lat-wrap"><table class="lat">
+    <tr><th>Operation</th><th>Time</th><th>× memory</th></tr>
+    <tr><td>Main memory reference</td><td>100 ns</td><td>1</td></tr>
+    <tr><td>Random 4 KB read from SSD</td><td>150 µs</td><td>1,500</td></tr>
+    <tr><td>Round trip inside one datacenter</td><td>500 µs</td><td>5,000</td></tr>
+    <tr><td>Disk seek</td><td>10 ms</td><td>100,000</td></tr>
+    <tr><td>Packet California → Netherlands → California</td><td>150 ms</td><td>1,500,000</td></tr>
+  </table></div>
+  <p>Read the ratios. A user on another continent pays 150 ms before your code runs, and a networked cache costs about one 0.5 ms round trip. The bigger win is throughput: Hello Interview’s <a href="https://www.hellointerview.com/learn/system-design/in-a-hurry/core-concepts" target="_blank">core concepts</a> puts a single Redis instance at “hundreds of thousands of operations per second” against “tens of thousands of queries per second” for a well-tuned database.</p>
+
+  <h3>Estimate it: the URL shortener</h3>
+  <div class="est" id="est-widget">
+    <p class="est-given"><strong>Given:</strong> 100M daily active users. 1 in 10 creates one link a day. Each link gets 100 redirects (100:1 reads to writes). About 500 bytes per stored link, kept 5 years. Any answer within ±50% counts; <code>10k</code> and <code>1e4</code> both parse.</p>
+    <div class="est-row">
+      <label for="est-w">Average writes per second</label>
+      <input id="est-w" type="text" inputmode="decimal" autocomplete="off">
+      <button type="button" data-k="w">Check</button>
+    </div>
+    <p class="est-fb" id="est-w-fb" aria-live="polite"></p>
+    <div class="est-row">
+      <label for="est-r">Average reads per second</label>
+      <input id="est-r" type="text" inputmode="decimal" autocomplete="off">
+      <button type="button" data-k="r">Check</button>
+    </div>
+    <p class="est-fb" id="est-r-fb" aria-live="polite"></p>
+    <div class="est-row">
+      <label for="est-s">Storage after 5 years, in TB</label>
+      <input id="est-s" type="text" inputmode="decimal" autocomplete="off">
+      <button type="button" data-k="s">Check</button>
+    </div>
+    <p class="est-fb" id="est-s-fb" aria-live="polite"></p>
+  </div>
+
+  <h2 id="horizontal-scaling">Scale out: load balancer + stateless servers</h2>
+  <p>Vertical scaling buys a bigger machine. Horizontal scaling runs N identical app servers behind a <strong>load balancer</strong>, so capacity means adding a box. It only works if the servers are <strong>stateless</strong>: the <a href="https://12factor.net/processes" target="_blank">Twelve-Factor App</a> says processes are “stateless and share-nothing”, persistent data lives in “a stateful backing service”, and sticky sessions “should never be used or relied upon”. Hello Interview distinguishes L7 balancers (route on the HTTP request) from L4 (route TCP connections; typically what long-lived WebSockets need). At Google’s scale DNS balancing comes first and a virtual-IP balancer second (<a href="https://sre.google/sre-book/load-balancing-frontend/" target="_blank">SRE book, ch. 19</a>).</p>
+  <p><strong>Cue:</strong> one app server pegged, or “sessions live in server memory”. Move the state out, then add servers.</p>
+
+  <h2 id="caching-layer">Caching: a hash map in front of the database</h2>
+  <p>A cache is the hash table moved into RAM on its own servers (Redis, Memcached). The default pattern is <strong>cache-aside</strong>: “On a read, check the cache first. If the data is there, return it. If not, query the database, store the result in the cache with a TTL, and return it” (Hello Interview).</p>
+<pre><code><span class="kw">use</span> std::{collections::<span class="ty">HashMap</span>, time::{<span class="ty">Duration</span>, <span class="ty">Instant</span>}};
+
+<span class="kw">const</span> TTL: <span class="ty">Duration</span> = <span class="ty">Duration</span>::<span class="fn">from_secs</span>(<span class="nm">300</span>);
+
+<span class="kw">struct</span> <span class="ty">Redirects</span> {
+    cache: <span class="ty">HashMap</span>&lt;<span class="ty">String</span>, (<span class="ty">String</span>, <span class="ty">Instant</span>)&gt;, <span class="cm">// stands in for Redis</span>
+    db: <span class="ty">HashMap</span>&lt;<span class="ty">String</span>, <span class="ty">String</span>&gt;,               <span class="cm">// stands in for the database</span>
+}
+
+<span class="kw">impl</span> <span class="ty">Redirects</span> {
+    <span class="cm">/// Cache-aside read: try the cache, fall back to the DB, fill the cache.</span>
+    <span class="kw">fn</span> <span class="fn">long_url</span>(&amp;<span class="kw">mut</span> <span class="kw">self</span>, code: &amp;<span class="ty">str</span>) -&gt; <span class="ty">Option</span>&lt;<span class="ty">String</span>&gt; {
+        <span class="kw">if let</span> <span class="ty">Some</span>((url, expires)) = <span class="kw">self</span>.cache.<span class="fn">get</span>(code) {
+            <span class="kw">if</span> <span class="ty">Instant</span>::<span class="fn">now</span>() &lt; *expires { <span class="kw">return</span> <span class="ty">Some</span>(url.<span class="fn">clone</span>()); } <span class="cm">// hit</span>
+        }
+        <span class="kw">let</span> url = <span class="kw">self</span>.db.<span class="fn">get</span>(code)?.<span class="fn">clone</span>();                          <span class="cm">// miss</span>
+        <span class="kw">self</span>.cache.<span class="fn">insert</span>(code.<span class="fn">to_owned</span>(), (url.<span class="fn">clone</span>(), <span class="ty">Instant</span>::<span class="fn">now</span>() + TTL));
+        <span class="ty">Some</span>(url)
+    }
+}
+<span class="cm">// A hit costs one hash lookup and no database work; a miss costs a DB read plus a cache write.
+// Can you do better? Delete the key on every write, so readers never wait out the TTL.</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(1) expected per lookup</span><span class="label">Space</span><span class="val">bounded by eviction</span></div>
+  <p>Two knobs. The <strong>TTL</strong> bounds staleness. <strong>Eviction</strong> bounds memory: a full Redis drops keys by policy, and the <a href="https://redis.io/docs/latest/develop/reference/eviction/" target="_blank">Redis docs</a> call <code>allkeys-lru</code> “a good default” when a subset of keys gets most of the traffic. That eviction rule is the LRU Cache coding question: a hash map plus a doubly linked list.</p>
+  <p>Caching pays only when reads are skewed: with reads spread evenly, a cache holding 5% of rows serves about 5% of reads. Short links suit it: viral links are a tiny hot set, and a mapping never changes, so a long TTL costs nothing.</p>
+  <div class="callout warn">
+    <strong>Common interview trap</strong>
+    “Add a cache and you’re done.” Name what remains. <em>Invalidation</em>: delete on write, or accept staleness up to the TTL. <em>Cold start</em>: an empty cache sends every read to the database. <em>Stampede</em>: a hot key expires and concurrent misses pile onto the database; fix with a refill lock (one request refills, the rest wait or get the old value), and add random jitter to TTLs so many keys don’t expire together.
+  </div>
+
+  <h2 id="replication-sharding">Replication vs sharding</h2>
+  <p><strong>Replication</strong> copies the whole dataset to more machines. Reads scale and a replica can replace a dead primary, but writes still funnel through one primary, and copies lag. <a href="https://www.postgresql.org/docs/current/warm-standby.html#STREAMING-REPLICATION" target="_blank">PostgreSQL streaming replication</a> is asynchronous by default, with “a small delay” before a commit is visible on a standby, “typically under one second”. A user who reads a replica right after writing may not see their own write.</p>
+  <p><strong>Sharding</strong> (partitioning) splits the data by key so each machine holds one slice. It scales writes and storage, at the price of cross-shard queries and rebalancing. Order matters. Hello Interview: “The biggest mistake with sharding is doing it too early.” Do the capacity math first: “If you’re at 10K writes per second and 100GB of data, you don’t need sharding yet,” and a single Postgres instance “handles a few terabytes comfortably”.</p>
+  <p>For the shortener, ~100 writes/s is nowhere near that, and storage reaches ~9 TB only in year 5. So: cache and replicas now; shard by code when storage, not traffic, forces it. Each lookup by code hits a B-tree index (the usual default), a balanced sorted tree, so the <a href="0005-binary-trees-and-bsts.html#tree-height">height argument</a> gives O(log n).</p>
+
+  <h2 id="consistent-hashing">Consistent hashing: add a node, move a sliver</h2>
+  <p>The obvious shard map is <code>hash(key) % N</code>. Change N and almost every key moves: from 10 nodes to 11, a key stays only when <code>h % 10 == h % 11</code>, 1 key in 11, so 10/11 ≈ 91% move. For a cache that is a miss storm; for a database, a near-total migration.</p>
+  <p><strong>Consistent hashing</strong>, as <a href="https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf" target="_blank">Amazon’s Dynamo</a> uses it, hashes nodes and keys onto the same ring and gives each key to the first node clockwise. A new node takes only the arc just before it: “departure or arrival of a node only affects its immediate neighbors”. One random position per node gives uneven arcs, so Dynamo gives each node many positions, <em>virtual nodes</em>. In Rust the ring is a <code>BTreeMap</code>, and “first node clockwise” is a <a href="0007-binary-search.html#lower-bound">lower bound</a>:</p>
+<pre><code><span class="kw">use</span> std::collections::<span class="ty">BTreeMap</span>;
+<span class="kw">use</span> std::hash::{<span class="ty">DefaultHasher</span>, <span class="ty">Hash</span>, <span class="ty">Hasher</span>};
+
+<span class="kw">fn</span> <span class="fn">h</span>&lt;<span class="ty">T</span>: <span class="ty">Hash</span>&gt;(x: <span class="ty">T</span>) -&gt; <span class="ty">u64</span> {
+    <span class="kw">let mut</span> s = <span class="ty">DefaultHasher</span>::<span class="fn">new</span>();
+    x.<span class="fn">hash</span>(&amp;<span class="kw">mut</span> s);
+    s.<span class="fn">finish</span>()
+}
+
+<span class="cm">/// Consistent-hash ring: position on the ring -&gt; node id.</span>
+<span class="kw">struct</span> <span class="ty">Ring</span> { ring: <span class="ty">BTreeMap</span>&lt;<span class="ty">u64</span>, <span class="ty">u32</span>&gt; }
+
+<span class="kw">impl</span> <span class="ty">Ring</span> {
+    <span class="kw">fn</span> <span class="fn">new</span>(nodes: <span class="ty">u32</span>, vnodes: <span class="ty">u32</span>) -&gt; <span class="ty">Self</span> {
+        <span class="kw">let</span> ring = (<span class="nm">0</span>..nodes)
+            .<span class="fn">flat_map</span>(|n| (<span class="nm">0</span>..vnodes).<span class="fn">map</span>(<span class="kw">move</span> |v| (<span class="fn">h</span>((n, v)), n)))
+            .<span class="fn">collect</span>();
+        <span class="ty">Ring</span> { ring }
+    }
+    <span class="cm">/// The first node clockwise from the key, wrapping past the top.</span>
+    <span class="kw">fn</span> <span class="fn">node</span>(&amp;<span class="kw">self</span>, key: <span class="ty">u64</span>) -&gt; <span class="ty">u32</span> {
+        <span class="kw">let</span> p = <span class="fn">h</span>(key);
+        <span class="kw">let</span> (_, &amp;n) = <span class="kw">self</span>.ring.<span class="fn">range</span>(p..).<span class="fn">next</span>()
+            .<span class="fn">or_else</span>(|| <span class="kw">self</span>.ring.<span class="fn">iter</span>().<span class="fn">next</span>())
+            .<span class="fn">expect</span>(<span class="st">"empty ring"</span>);
+        n
+    }
+}
+
+<span class="cm">// Count keys 0..1_000_000 whose owner differs between 10 and 11 nodes (100 vnodes each):
+// hash % N moves 90.9%, the ring moves 9.4% (ideal 1/11 = 9.1%). O(log(N·V)) per lookup, O(N·V) space.
+// Can you do better? Jump consistent hash needs no ring at all, but its buckets
+// must be numbered 0..N, so nodes can only leave from the end.</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(log(N·V)) per lookup</span><span class="label">Space</span><span class="val">O(N·V) ring</span></div>
+  <p><code>BTreeMap::range</code> is O(log n) (<a href="https://doc.rust-lang.org/std/collections/index.html#performance" target="_blank">std cost table</a>); jump hash is <a href="https://arxiv.org/abs/1406.2294" target="_blank">Lamping &amp; Veach (2014)</a>. Why vnodes: on the same million keys (Rust 1.97’s <code>DefaultHasher</code>), one position per node left the busiest of 10 nodes with 24.4% of keys and the idlest with 0.7%; 100 vnodes each narrowed that to 11.9% and 8.5%.</p>
+
+  <h2 id="message-queue">Message queues: decouple now, finish later</h2>
+  <p>A message queue is the FIFO stretched across machines. Producers enqueue and return at once; workers drain at their own pace. Microsoft’s <a href="https://learn.microsoft.com/en-us/azure/architecture/patterns/queue-based-load-leveling" target="_blank">Queue-Based Load Leveling</a> pattern says the queue “acts as a buffer”, so you size workers “for an average load rather than the peak load”. The same page lists the costs: a poor fit when “the caller requires a low-latency, synchronous response”; if producers outpace consumers, “the queue continues to grow and latency increases”; and most queues deliver at least once, so consumers must be <strong>idempotent</strong> (processing twice leaves the same result; <a href="https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/standard-queues-at-least-once-delivery.html" target="_blank">SQS says the same</a>). Skip event ids already in a <a href="0002-arrays-and-hashmaps.html#seen-set">seen-set</a> kept in the database, or make the write an upsert.</p>
+  <p>In the shortener, click analytics go here: the redirect enqueues <code>{code, timestamp, event_id}</code> and returns its 302 at once. A queue doesn’t make work faster; it moves work off the request path and smooths spikes, paid for in latency and duplicates. Brokered queues versus brokerless pub/sub is in the robotics track’s <a href="../../robotics/lessons/0002-dds-pubsub-and-ros2.html#pubsub-pattern">pub/sub section</a>.</p>
+
+  <h2 id="cap-tradeoff">CAP, stated honestly</h2>
+  <p>Networks delay and drop messages. Kleppmann: partition tolerance “basically means that you’re communicating over an asynchronous network that may delay or drop messages… you don’t really have any choice in this matter” (<a href="https://martin.kleppmann.com/2015/05/11/please-stop-calling-databases-cp-or-ap.html" target="_blank">“Please stop calling databases CP or AP”</a>). So the real question is what a replica cut off by a partition does with a request: refuse or wait, keeping <strong>consistency</strong> (CAP’s C is linearizability: every read sees the latest write), or answer with what it has, keeping <strong>availability</strong>, possibly stale.</p>
+  <p>Eric Brewer, who stated the conjecture, wrote that “the ‘2 of 3’ formulation was always misleading”. CAP “prohibits only a tiny part of the design space: perfect availability and consistency in the presence of partitions” (<a href="https://www.infoq.com/articles/cap-twelve-years-later-how-the-rules-have-changed/" target="_blank">CAP Twelve Years Later</a>). With no partition you can have both, and Kleppmann adds that CP/AP labels oversimplify real databases. Dynamo chose availability, “an eventually consistent data store”, because “Add to Cart” must never be “forgotten or rejected”; divergent carts are reconciled later.</p>
+  <p>Choose per operation, not per system. Say it like this:</p>
+  <blockquote class="quote">“Redirects favour availability. A mapping never changes once created, so a lagging replica can at worst miss a link made a second ago. Code allocation favours consistency: if a server can’t reach the ID counter during a partition, it fails the create rather than risk handing out a duplicate. With no partition we get both.”</blockquote>
+
+  <h2>Put it together: the URL shortener</h2>
+<pre class="sd-diagram">client
+  │
+load balancer
+  │
+app servers ×N   (stateless)
+  ├ GET /{code} → cache
+  │                └ miss → replica
+  ├ POST /urls  → ID counter
+  │                └ write → primary
+  └ click event → queue → workers</pre>
+  <ol>
+    <li><strong>Requirements:</strong> shorten and redirect. Fast, highly available redirects, unique codes, 100:1 reads.</li>
+    <li><strong>Estimates:</strong> ~100 writes/s, ~10k reads/s (~35k at a 3× peak), ~9 TB in 5 years: 18.25 billion links, which 62⁶ ≈ 5.7 × 10¹⁰ six-character base62 codes cover three times over.</li>
+    <li><strong>API:</strong> <code>POST /urls</code> and <code>GET /{code}</code> with a 302.</li>
+    <li><strong>High-level design:</strong> the diagram above, with every box answering a number.</li>
+    <li><strong>Deep dives:</strong> a cache for the 10k/s of skewed reads; replicas, not shards, until storage forces it; consistent hashing when it does; a queue for click counts; consistency for allocation, availability for redirects.</li>
+  </ol>
+  <p>Left out on purpose: consensus (Raft, Paxos), distributed transactions, CDNs and database internals, the deep-dive material your mission defers to a later topic. Tail latency under fan-out appears in the AI engineering track’s <a href="../../ai-engineering/lessons/0008-production-latency-cost-observability.html#tail-latency">production lesson</a>.</p>
+
+  <h2>Drill: name the building block</h2>
+  <p>Each scenario has one bottleneck. Pick the block that removes it; a wrong pick tells you why it misses.</p>
+  <div id="block-exercise" class="mc-exercise"></div>
+
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. A photo app expects 50 million uploads a day, spread across the day. Roughly what average write QPS do you say out loud?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','That divides by 10⁶, not by seconds per day. 50M ÷ 10⁵ s ≈ 500 per second.')">About 50 writes per second</button>
+        <button onclick="quizAnswer(this,true,'q1','Right. 50M ÷ 10⁵ s per day = 500/s (exactly 579/s, and that 16% gap never changes a design). Name a peak factor next: at 3×, about 1,500/s.')">About 500 writes per second</button>
+        <button onclick="quizAnswer(this,false,'q1','Ten times too high: that divides by 10⁴ seconds. A day is 86,400 s ≈ 10⁵ s, so 50M per day ≈ 500/s.')">About 5,000 writes per second</button>
+        <button onclick="quizAnswer(this,false,'q1','That is 50M ÷ 1,000, a hundred times too high. Divide a per-day count by 10⁵ to get a per-second rate.')">About 50,000 writes per second</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Your consistent-hash ring is stored as a sorted <code>Vec&lt;(u64, NodeId)&gt;</code> of positions. Which lookup finds a key’s node, and at what cost?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','That indexes a slot by hash % len, which is modulo placement again: adding a node changes len and reshuffles nearly every key.')">Index the sorted Vec at hash(key) % len: O(1)</button>
+        <button onclick="quizAnswer(this,false,'q2','The positions are already sorted, so a scan wastes that order. Ownership also runs clockwise only, so the nearest position in the other direction is the wrong rule.')">Scan for the nearest position on either side: O(n)</button>
+        <button onclick="quizAnswer(this,true,'q2','Right. The owner is the first position ≥ hash(key): the binary-search lower bound (partition_point on position &lt; h), wrapping to index 0 past the end. One binary search, O(log n).')">Lower bound on hash(key), then wrap: O(log n)</button>
+        <button onclick="quizAnswer(this,false,'q2','Sorting per lookup throws away the order you already have. Positions are sorted once, when nodes join; each lookup is then a single binary search.')">Insert key, re-sort, find its neighbour: O(n log n)</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. A network partition cuts replica R off from the rest of the cluster. A client asks R for the latest value of a key. Under CAP, what are R’s honest options?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','Brewer calls the “2 of 3” formulation misleading. Partitions are not optional, and the C-or-A choice only bites while one is happening.')">Pick any two of C, A and P upfront</button>
+        <button onclick="quizAnswer(this,false,'q3','Retrying is waiting, which is the consistency choice in disguise: no answer until the partition heals. TCP cannot make a cut link deliver.')">Keep retrying over TCP until the partition has healed</button>
+        <button onclick="quizAnswer(this,false,'q3','R cannot know the latest value, because writes on the far side of the cut cannot reach it. Answering anyway is the availability choice, with possibly stale data.')">Serve the latest value, since replicas always stay synced</button>
+        <button onclick="quizAnswer(this,true,'q3','Right. Cut off, R can block or return an error (keeping C, linearizability) or reply with what it has (keeping A, maybe stale). With no partition, CAP lets you have both.')">Refuse to answer (C) or answer possibly stale (A)</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Your click-count worker reads from an at-least-once queue and does <code>count += 1</code> per message. After a broker restart the counts drift high. What fixes it?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q4','Right. At-least-once delivery means duplicates, so the consumer must be idempotent. A seen-set of event ids (the seen-set pattern from arrays and hash maps, stored in the database) turns a redelivered message into a no-op.')">Skip event ids already recorded in a seen-set</button>
+        <button onclick="quizAnswer(this,false,'q4','Order is not the problem; duplicates are. A stack would deliver the same duplicates in a different order.')">Use a LIFO stack so newest clicks win</button>
+        <button onclick="quizAnswer(this,false,'q4','A cache speeds up reads of the counts. It does nothing about the same click being counted twice on the write path.')">Put a read cache before the count table</button>
+        <button onclick="quizAnswer(this,false,'q4','Retention controls how long undelivered messages wait. The duplicates come from redelivery, which a longer retention period does not prevent.')">Raise the message retention period on the queue</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>This is the last lesson, so practice bridges to mock interviews. Set a 40-minute timer and redo the URL shortener out loud from a blank page. Then take two prompts from the <a href="https://www.techinterviewhandbook.org/system-design/" target="_blank">handbook’s list</a>, “Design a chatting service” and “Design a web crawler”, with estimates before boxes. Afterwards, read Hello Interview’s <a href="https://www.hellointerview.com/learn/system-design/problem-breakdowns/bitly" target="_blank">Bitly breakdown</a> and note where its 1,000:1 ratio changes your numbers. For code: write <strong>LRU Cache</strong> in Rust (listed on the <a href="https://www.techinterviewhandbook.org/algorithms/hash-table/" target="_blank">hash table cheatsheet</a>; an index-based linked list in a <code>Vec</code> avoids <code>Rc&lt;RefCell&gt;</code>). Then add <code>remove_node</code> to the ring above and check that only the removed node’s keys move.</p>
+
+  <h2>Primary resource</h2>
+  <p>Read <a href="https://www.hellointerview.com/learn/system-design/in-a-hurry/delivery" target="_blank">Hello Interview — System Design in a Hurry: Delivery Framework</a>, then its <a href="https://www.hellointerview.com/learn/system-design/in-a-hurry/core-concepts" target="_blank">Core Concepts</a> page. Free, built (in its own words) by “FAANG managers and staff engineers”, and pitched at the interview room rather than textbook depth: exactly this lesson’s altitude.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Try: “Play interviewer: give me ‘Design a chatting service’ and stop me if I draw a box before I’ve stated requirements and numbers.” Or ask why Dynamo needed vector clocks to reconcile carts. Type a question in Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0010-sorting-algorithms.html">← Lesson 10: Sorting Algorithms</a>
+    <span class="spacer"></span>
+    <a href="../index.html">CS Interview Prep: All Lessons →</a>
+  </div>
+
+</div>
+
+<style>
+blockquote.quote { border-left: 3px solid var(--accent); padding: .6rem 1rem; margin: 1rem 0; color: var(--ink-dim); font-style: italic; font-size: .95rem; }
+.lat-wrap { overflow-x: auto; margin: 1rem 0 1.25rem; }
+.lat { width: 100%; border-collapse: collapse; font-family: var(--font-ui); font-size: .84rem; }
+.lat th, .lat td { border-bottom: 1px solid var(--border); padding: .4rem .5rem; text-align: left; vertical-align: top; }
+.lat th { color: var(--muted); font-weight: normal; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; }
+.lat td:nth-child(n+2), .lat th:nth-child(n+2) { text-align: right; white-space: nowrap; }
+.lat td:nth-child(2) { color: var(--accent-strong); }
+.est { background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.1rem; margin: 1rem 0 1.5rem; font-family: var(--font-ui); font-size: .88rem; }
+.est-given { color: var(--ink-dim); margin-bottom: .75rem; }
+.est-row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: .6rem; }
+.est-row label { flex: 1 1 12rem; color: var(--ink); }
+.est-row input { width: 8.5rem; max-width: 100%; background: var(--bg-sunken); color: var(--ink); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .4rem .6rem; font-family: var(--font-mono); font-size: .9rem; }
+.est-row input:focus { border-color: var(--accent); outline: none; }
+.est-row input.ok { border-color: var(--accent); }
+.est-row input.bad { border-color: var(--err); }
+.est button { background: var(--bg-sunken); color: var(--ink); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .4rem .8rem; font: inherit; cursor: pointer; }
+.est button:hover { border-color: var(--accent-border); background: var(--accent-soft); }
+.est-fb { min-height: 1.2em; margin: .35rem 0 0; font-size: .84rem; color: var(--ink-dim); }
+.est-fb.good { color: var(--accent-strong); }
+.est-fb.bad { color: var(--err); }
+pre.sd-diagram { font-family: var(--font-mono); color: var(--ink-dim); line-height: 1.45; }
+</style>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+// Back-of-the-envelope checker for the URL shortener (±50% of the exact value).
+(function () {
+  const LINKS = 1e8 / 10;                 // links created per day
+  const EST = {
+    w: { exact: LINKS / 86400,
+         ok: 'Yes. 100M ÷ 10 = 10M links a day, and 10M ÷ 10⁵ s = 100/s (exactly 116/s). That is two orders of magnitude below the 10k writes/s that still needs no sharding.',
+         hint: 'Start from links per day: 100M users × 1/10 = 10M. Then divide by seconds per day, about 10⁵.' },
+    r: { exact: 100 * LINKS / 86400,
+         ok: 'Yes. 100 × 100/s = 10⁴/s (exactly 11,574/s). At a 3× peak that is about 35k/s: at the edge of a well-tuned database (tens of thousands of QPS), and easy for one cache node (hundreds of thousands).',
+         hint: 'Reads are 100× writes. Multiply your average write rate by 100, and leave the peak factor out for now.' },
+    s: { exact: LINKS * 500 * 365 * 5 / 1e12,
+         ok: 'Yes. 10M × 500 B = 5 GB a day, about 1.8 TB a year, about 9 TB over 5 years (18.25 billion links). One database handles a few terabytes comfortably, so storage, not traffic, is what might force sharding, and only late.',
+         hint: 'Per day: 10M links × 500 B = 5 GB. Multiply by 365 and by 5, then convert: 1 TB = 1,000 GB.' }
+  };
+  const misses = { w: 0, r: 0, s: 0 };
+  function parse(s) {
+    const m = String(s).trim().toLowerCase().replace(/[,_\s]/g, '').match(/^([0-9]*\.?[0-9]+(?:e[+-]?[0-9]+)?)([kmbgt]?)$/);
+    if (!m) return NaN;
+    const mult = { '': 1, k: 1e3, m: 1e6, b: 1e9, g: 1e9, t: 1e12 }[m[2]];
+    return parseFloat(m[1]) * mult;
+  }
+  function fmt(x) { return x >= 100 ? Math.round(x).toLocaleString('en-US') : x.toPrecision(3); }
+  function check(k) {
+    const input = document.getElementById('est-' + k);
+    const fb = document.getElementById('est-' + k + '-fb');
+    const v = parse(input.value);
+    const e = EST[k];
+    if (!(v > 0)) {
+      fb.textContent = 'Type a positive number, for example 250, 3.5 or 12k.';
+      fb.className = 'est-fb bad';
+      return;
+    }
+    const r = v / e.exact;
+    if (r >= 0.5 && r <= 1.5) {
+      input.className = 'ok';
+      fb.textContent = '✓ ' + e.ok;
+      fb.className = 'est-fb good';
+      return;
+    }
+    misses[k]++;
+    const f = r > 1 ? r : 1 / r;
+    const by = f >= 10 ? 'about ' + Number(f.toPrecision(1)).toLocaleString('en-US') + '×' : 'a factor of ' + f.toFixed(1);
+    let msg = '✗ Too ' + (r > 1 ? 'high' : 'low') + ' by ' + by + '. ' + e.hint;
+    if (misses[k] >= 3) msg += ' (Worked answer: ' + fmt(e.exact) + '.)';
+    input.className = 'bad';
+    fb.textContent = msg;
+    fb.className = 'est-fb bad';
+  }
+  document.querySelectorAll('#est-widget button[data-k]').forEach(b =>
+    b.addEventListener('click', () => check(b.dataset.k)));
+  ['w', 'r', 's'].forEach(k => document.getElementById('est-' + k)
+    .addEventListener('keydown', ev => { if (ev.key === 'Enter') check(k); }));
+})();
+
+renderMC('block-exercise', [
+  { prompt: 'Your database sits at 80% CPU. 95% of queries are reads, spread evenly across 200 GB of rows with no hot subset. Writes run at 300 per second.',
+    options: [
+      { text: 'Cache-aside with a TTL', explain: 'A cache pays off when a hot subset takes most reads. With reads spread evenly, a cache holding 5% of rows serves about 5% of reads, and the database barely notices.' },
+      { text: 'Add database read replicas', correct: true, explain: 'Reads dominate and have no hot set, so copy the whole dataset and let each replica take a share of the reads. 300 writes/s and 200 GB are far from sharding territory.' },
+      { text: 'Shard the database now', explain: 'Sharding splits writes and storage, and neither is the problem: 300 writes/s and 200 GB fit one primary comfortably. Sharding early buys cross-shard queries for nothing.' },
+      { text: 'Load balancer, stateless servers', explain: 'The database is the hot box, not the app tier. More app servers would just send more queries to the same overloaded database.' }
+    ] },
+  { prompt: 'One app server runs at 100% CPU while the database idles at 20%. Each user’s session lives in that server’s memory.',
+    options: [
+      { text: 'Load balancer, stateless servers', correct: true, explain: 'The app tier is the bottleneck. Move sessions to a shared store so any server can take any request, then add servers behind a load balancer.' },
+      { text: 'Add database read replicas', explain: 'Replicas add read capacity to the database, which is idle at 20%. The pegged box is the app server.' },
+      { text: 'Async workers via queue', explain: 'Nothing here is slow background work; the server is busy answering requests. A queue would delay responses, not spread them across machines.' },
+      { text: 'Cache-aside with a TTL', explain: 'A cache relieves the database, which is already idle. The CPU being burned is in the app server itself.' }
+    ] },
+  { prompt: 'Your cache cluster places keys with hash(key) % N. After growing from 8 nodes to 9, the hit rate collapsed and the database was swamped for minutes.',
+    options: [
+      { text: 'Cache-aside with a TTL', explain: 'Cache-aside is already the pattern in use. The misses came from keys changing nodes, which no TTL can prevent.' },
+      { text: 'Shard the database now', explain: 'The database only suffered because the cache missed. Fix the key placement and the database load returns to normal.' },
+      { text: 'Consistent hashing with vnodes', correct: true, explain: 'Going from 8 to 9 nodes remapped 8/9 ≈ 89% of keys, so nearly every lookup missed. On a ring the new node takes only its own arcs, about 1/9 of keys.' },
+      { text: 'Choose consistency or availability', explain: 'No partition happened; a node was added on purpose. CAP is about behaviour during partitions, not about rebalancing.' }
+    ] },
+  { prompt: 'Users upload photos. Resizing each one takes 2 s of CPU, and uploads spike 20× every evening.',
+    options: [
+      { text: 'Load balancer, stateless servers', explain: 'More web servers would absorb the spike only if sized for the 20× peak, and every upload would still wait 2 s. The work belongs off the request path.' },
+      { text: 'Add database read replicas', explain: 'Replicas scale database reads, but the cost here is CPU spent resizing images, not queries.' },
+      { text: 'Cache-aside with a TTL', explain: 'Every upload is a new image, so there is nothing to reuse. A cache helps only when the same reads repeat.' },
+      { text: 'Async workers via queue', correct: true, explain: 'Accept the upload, enqueue a resize job and return. Workers drain the queue at their own pace, sized for the average rather than the evening peak. Delivery is at least once, so make the job idempotent.' }
+    ] },
+  { prompt: 'A network partition cuts your two regions apart. A user in region B edits their shopping cart, and region B can’t reach region A.',
+    options: [
+      { text: 'Consistent hashing with vnodes', explain: 'Consistent hashing decides which node owns a key. It cannot make two cut-off regions agree.' },
+      { text: 'Choose consistency or availability', correct: true, explain: 'This is exactly CAP’s case. Accept the edit and reconcile later (availability, which Dynamo chose for carts), or reject it until the link heals (consistency). Say which, and why it suits carts.' },
+      { text: 'Load balancer, stateless servers', explain: 'Region B’s servers are healthy. The problem is that they can’t reach region A, and more servers cannot fix that.' },
+      { text: 'Async workers via queue', explain: 'A queue can implement a choice, but it is not the choice itself: does the user see the edit now or not? Name the C-or-A decision first.' }
+    ] },
+  { prompt: 'A celebrity shares a short link. 50,000 requests per second hit the same 200 rows, and the database falls over.',
+    options: [
+      { text: 'Cache-aside with a TTL', correct: true, explain: 'A tiny hot set is the ideal cache workload: after the first miss each request is a RAM hit. Links never change, so a long TTL costs nothing; a refill lock stops one expiry from stampeding the database.' },
+      { text: 'Add database read replicas', explain: 'Replicas would work, but you would need several full copies of the database to serve 200 rows. A cache serves a hot set from RAM far more cheaply.' },
+      { text: 'Shard the database now', explain: 'Sharding by key puts the same 200 hot rows on one or two shards, which stay overloaded. A hot set does not spread out by being partitioned.' },
+      { text: 'Consistent hashing with vnodes', explain: 'Consistent hashing decides placement when nodes change. It does nothing about one small set of keys being hot.' }
+    ] }
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

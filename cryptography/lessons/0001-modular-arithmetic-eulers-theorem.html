@@ -16,7 +16,7 @@
 
   <p class="lesson-meta">Lesson 1 of 8 &nbsp;·&nbsp; Cryptography &amp; Number Theory &nbsp;·&nbsp; ~30 min</p>
   <h1>Modular Arithmetic &amp; Euler's Theorem</h1>
-  <p>Every public-key cryptosystem this course covers — <a href="../index.html#lesson-02">RSA</a>, <a href="../index.html#lesson-04">Diffie-Hellman</a>, <a href="../index.html#lesson-06">elliptic curves</a> — is built on the same small pile of number theory: arithmetic that wraps around, and one theorem about what happens when you raise a number to a large power inside that wraparound world. This lesson builds that pile from scratch, with every claim backed by a computation you can check by hand.</p>
+  <p>Every public-key cryptosystem this course covers — <a href="0002-rsa-key-generation-encryption-correctness-proof.html">RSA</a>, <a href="0004-diffie-hellman-discrete-log-problem.html">Diffie-Hellman</a>, <a href="0006-elliptic-curve-cryptography.html">elliptic curves</a> — is built on the same small pile of number theory: arithmetic that wraps around, and one theorem about what happens when you raise a number to a large power inside that wraparound world. This lesson builds that pile from scratch, with every claim backed by a computation you can check by hand.</p>
 
   <h2 id="congruence">Congruence: arithmetic that wraps around</h2>
   <p>Two integers a and b are <strong id="congruence-def">congruent modulo n</strong>, written a ≡ b (mod n), if they leave the same remainder when divided by n — equivalently, if n divides (a − b) exactly. Modular addition, subtraction, and multiplication all work exactly like ordinary arithmetic, then reduce the result mod n:</p>

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 2 — Belief Bias</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    /* Lesson-specific: 2×2 belief-bias grid and live tally (theme tokens only). */
+    .bb-grid { width: 100%; border-collapse: collapse; table-layout: fixed; font-family: var(--font-ui); font-size: .85rem; margin: 1rem 0 1.5rem; }
+    .bb-grid th, .bb-grid td { border: 1px solid var(--border); padding: .55rem .5rem; text-align: center; }
+    .bb-grid th { color: var(--muted); font-weight: 600; }
+    .bb-grid .pct { display: block; font-size: 1.3rem; font-weight: 700; color: var(--ink); }
+    .bb-grid .tag { font-size: .72rem; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+    .bb-grid td.conflict { background: var(--amber-soft); }
+    .bb-grid td.conflict .tag { color: var(--amber); }
+    .bb-tally { font-family: var(--font-ui); font-size: .88rem; color: var(--ink-dim); background: var(--bg-sunken); border: 1px solid var(--border); border-radius: var(--radius); padding: .75rem 1rem; }
+    .bb-tally strong { color: var(--accent-strong); }
+    .bb-tally .ref { display: block; margin-top: .3rem; color: var(--muted); font-size: .82rem; }
+  </style>
+</head>
+<body>
+<nav class="topnav"><a class="tn-home" href="../../index.html">Learning Hub</a><span class="tn-sep">›</span><a class="tn-topic-link" href="../index.html">Psychology</a></nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 2 of 3 &nbsp;·&nbsp; Psychology &nbsp;·&nbsp; ~25 min</p>
+  <h1>Belief Bias — When "Sounds True" Beats "Is Valid"</h1>
+  <p>In <a href="0001-dual-process-theory.html#social-contract-effect">Lesson 1</a>, content <em>helped</em>: dress the Wason task up as a drinking-age rule and success jumps from ~10% to ~75%. This lesson is the mirror image — content that <em>hurts</em>. Logic’s normative rule is that <a href="../../logic/lessons/0001-arguments-validity-soundness.html#validity">validity is about form, not content</a>; the experiments below measure how far real reasoners — including people who just passed a logic exam — drift from it when a conclusion sounds true. Last lesson’s practice had you hunt for the not-Q case that could break a rule. Today’s skill is the same hunt, aimed at arguments.</p>
+
+  <div class="callout" id="belief-bias">
+    <strong>Belief bias — grading the argument by its conclusion</strong>
+    The tendency to judge a deductive argument valid when its conclusion is believable and invalid when it isn’t, whether or not the conclusion actually follows. It collapses two questions — <em>does it follow?</em> and <em>is it true?</em> — that Logic 1’s <a href="../../logic/lessons/0001-arguments-validity-soundness.html#matrix">validity/soundness matrix</a> keeps apart.
+  </div>
+
+  <h2>The experiment: four arguments, one skeleton</h2>
+  <p><a href="https://link.springer.com/article/10.3758/BF03196976" target="_blank">Evans, Barston &amp; Pollard (1983)</a> asked people whether a syllogism’s conclusion could be logically deduced from its premises, crossing validity with believability. The materials, as laid out in <a href="https://symbsys170.stanford.edu/Belief-presentation.pdf" target="_blank">Todd Davies’s Stanford slides</a>:</p>
+  <ul>
+    <li><strong>Valid, believable:</strong> No police dogs are vicious. Some highly trained dogs are vicious. ∴ Some highly trained dogs are not police dogs.</li>
+    <li><strong>Valid, unbelievable:</strong> No nutritional things are inexpensive. Some vitamin tablets are inexpensive. ∴ Some vitamin tablets are not nutritional.</li>
+    <li><strong>Invalid, believable:</strong> No addictive things are inexpensive. Some cigarettes are inexpensive. ∴ Some addictive things are not cigarettes.</li>
+    <li><strong>Invalid, unbelievable:</strong> No millionaires are hard workers. Some rich people are hard workers. ∴ Some millionaires are not rich people.</li>
+  </ul>
+  <p>Ignore the words and look at the shape. All four share the premises <em>No A are B</em> and <em>Some C are B</em>; the conclusion is either <em>Some C are not A</em> (V) or <em>Some A are not C</em> (I). With the <a href="../../logic/lessons/0006-predicate-logic-quantifiers.html#universal-quantifier">universal</a> and <a href="../../logic/lessons/0006-predicate-logic-quantifiers.html#existential-quantifier">existential</a> quantifiers, only the order of terms in the conclusion separates valid from invalid:</p>
+<pre><code>P1  ∀x(A(x) → ¬B(x))
+P2  ∃x(C(x) ∧ B(x))
+V   ∃x(C(x) ∧ ¬A(x))   <span class="cm">valid</span>
+I   ∃x(A(x) ∧ ¬C(x))   <span class="cm">invalid</span></code></pre>
+  <p><strong>V</strong> is forced: the C that is B can’t be an A, since no A is B. <strong>I</strong> isn’t: imagine the only addictive things are pricey cigarettes and the cheap ones aren’t addictive — premises true, conclusion false. Odd but coherent, which is all a counterexample needs. Averaged across the paper’s three experiments, acceptance rates were:</p>
+
+  <table class="bb-grid">
+    <thead><tr><th></th><th>Believable</th><th>Unbelievable</th></tr></thead>
+    <tbody>
+      <tr><th>Valid</th><td><span class="pct">89%</span><span class="tag">no conflict</span></td><td class="conflict"><span class="pct">56%</span><span class="tag">conflict</span></td></tr>
+      <tr><th>Invalid</th><td class="conflict"><span class="pct">71%</span><span class="tag">conflict</span></td><td><span class="pct">10%</span><span class="tag">no conflict</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout" id="belief-logic-conflict">
+    <strong>Belief-logic conflict — when truth and validity point opposite ways</strong>
+    In <em>no-conflict</em> problems belief and logic agree (valid-believable: accept; invalid-unbelievable: reject), and people were right 89% and 90% of the time. In <em>conflict</em> problems they disagree (valid-unbelievable; invalid-believable), and accuracy fell to 56% and 29%. The 2×2 design exists to pull those two situations apart.
+  </div>
+
+  <h2>The asymmetry: belief hits invalid arguments hardest</h2>
+  <div class="callout" id="logic-belief-interaction">
+    <strong>Logic × belief interaction — belief bias is larger on invalid arguments</strong>
+    Believability moved acceptance by <strong>61 points</strong> for invalid arguments (71% vs 10%) but only <strong>33</strong> for valid ones (89% vs 56%). The bias isn’t symmetric: the dangerous case is a bad argument for something you already think is true.
+  </div>
+  <p>Don’t over-correct into “people can’t do logic.” Averaged over belief, valid arguments were accepted 73% of the time and invalid ones 41% — a big effect of form. What fails is the specific case where form and belief collide.</p>
+
+  <div class="callout" id="selective-scrutiny">
+    <strong>Selective scrutiny — believable conclusions get waved through</strong>
+    Evans et al.’s model, as <a href="https://clok.uclan.ac.uk/6125/2/6125_Ball.pdf" target="_blank">Stupple &amp; Ball (2008)</a> summarize it: believable conclusions are “responded to heuristically (and simply accepted),” while unbelievable ones “motivate more rigorous analytic processing.” Checking is reserved for unwelcome conclusions, so an invalid-but-believable argument never meets the counterexample that would sink it.
+  </div>
+  <p>Later work refined this: people spend as long on believable problems as unbelievable ones — what differs is the <em>direction</em> of effort. <a href="https://www.dan.sperber.fr/wp-content/uploads/2011_mercier_why-do-humans-reason.pdf" target="_blank">Mercier &amp; Sperber (2011, §3.3)</a>: if participants agree with a conclusion they try to confirm it, if they disagree they try to prove it wrong — and only the second search finds counterexamples. So “just take more time” is no fix by itself. (Exactly how belief and logic compete — in sequence or in parallel — is still debated.)</p>
+
+  <h2>Why it looks like System 1 vs System 2</h2>
+  <p>The dual-process reading: the belief verdict is the fast <a href="0001-dual-process-theory.html#system-1">System 1</a> answer; checking validity is <a href="0001-dual-process-theory.html#system-2">System 2</a> work that must override it. Three findings fit:</p>
+  <ul>
+    <li><strong>Starve it of time.</strong> When <a href="https://doi.org/10.1080/13546780542000005" target="_blank">Evans &amp; Curtis-Holmes (2005)</a> required answers within 10 seconds, belief bias rose and logically correct decisions fell.</li>
+    <li><strong>Starve it of working memory.</strong> In <a href="https://en.wikipedia.org/wiki/Dual_process_theory#Belief_bias_effect" target="_blank">De Neys (2006)</a>, a secondary task that tied up working memory hurt accuracy on conflict problems but not when belief already cued the right answer.</li>
+    <li><strong>The monitor is lax.</strong> <a href="https://www.nobelprize.org/uploads/2018/06/kahnemann-lecture.pdf" target="_blank">Kahneman’s Nobel lecture</a> calls System 2’s monitoring “normally quite lax”: 47 of 93 Princeton students gave the intuitive wrong answer to the bat-and-ball puzzle.</li>
+  </ul>
+  <p>Notice what is missing: stakes. Nobody cares whether some millionaires are rich, yet the effect is large on neutral items like that — which is what separates belief bias from <a href="../../rationality/lessons/0001-cognitive-biases.html#motivated-reasoning">motivated reasoning</a>.</p>
+
+  <h2>Does logic training protect you?</h2>
+  <p><a href="https://ejop.psychopen.eu/index.php/ejop/article/view/1794" target="_blank">Macchi et al. (2019)</a> tested 130 undergraduates, 80 of whom had passed a 64-hour university logic course (they did the task on exam day). Asked “Does the conclusion follow from the premises?”, 96% of trained and 94% of untrained students correctly accepted a valid-believable syllogism. For <em>All flowers fade. All roses fade. ∴ All roses are flowers.</em>, only <strong>10% of trained vs 4% of untrained</strong> rejected it — no significant difference.</p>
+
+  <div class="callout" id="training-transfer-gap">
+    <strong>Training-transfer gap — the competence is there; the trigger isn’t</strong>
+    Experiment 2 took a fresh sample (162 students, 61 trained) and changed one phrase. “Does the conclusion <em>necessarily</em> follow?” lifted correct rejections to <strong>77% (trained) and 66% (untrained)</strong>; “Can you infer, <em>following the criteria of Logic</em>…?” gave <strong>67% vs 41%</strong> — the one wording where training clearly paid off. The paper reports the same pattern on the <a href="0001-dual-process-theory.html#wason-selection-task">Wason task</a> (Bagassi &amp; Macchi 2016): 13% of logic-trained participants vs 5% of untrained. Training supplies the rules; something has to signal that it is time to use them.
+  </div>
+  <p>Macchi’s team reads this partly as pragmatics: in conversation, “roses are flowers” is a cooperative, obviously true remark, and people need telling that a logic task plays by different rules.</p>
+  <div class="callout warn">
+    <strong>A cue is not an immunity</strong>
+    Macchi’s own review of earlier work is sobering: instructions stressing that only logically necessary conclusions count were mostly unsuccessful, and when very long instructions explaining validity got 83% of people to reject invalid-believable syllogisms (Newstead et al. 1992), a replication managed only 56% (Evans et al. 1994). Wording helps; it doesn’t reliably remove the pull. Hence three steps below, not one.
+  </div>
+
+  <h2>The content-blind check</h2>
+  <div class="callout" id="content-blind-check">
+    <strong>Content-blind check — necessarily? / swap the terms / hunt a counterexample</strong>
+    <strong>1. Ask “necessarily?”</strong> Not “is the conclusion true?” but “could the premises be true and this false?”<br>
+    <strong>2. Strip the content.</strong> Swap the content words for letters or nonsense words, or symbolize in FOL. The believability pull leaves with the content.<br>
+    <strong>3. Hunt a <a href="../../logic/lessons/0003-truth-tables.html#counterexample">counterexample</a></strong> — hardest when you <em>like</em> the conclusion. Build a coherent world, or substitute new terms into the same form, with true premises and a false conclusion. Found one: invalid. Can’t, and can see why: valid. Only then, separately, ask whether the premises are true.
+  </div>
+  <p>Step 3 is <a href="../../philosophy/lessons/0005-philosophical-argumentation.html#counterexample-recipe">Philosophy’s counterexample recipe</a> turned on yourself. On Logic 1’s matrix, the penguin argument (“all birds can fly…”) is <em>valid-unbelievable</em>: a false conclusion from a valid form means a false premise — <a href="../../logic/lessons/0001-arguments-validity-soundness.html#soundness">valid but unsound</a>. The cigarette item is the reverse trap: “some addictive things are not cigarettes” is <em>true</em>, and the argument is still invalid.</p>
+
+  <h2>Where this connects back to Logic and Rationality</h2>
+  <p>The 2×2 design is Logic 1’s validity/soundness matrix turned into an experiment. The template <code>All A are B; All C are B; ∴ All C are A</code> is the quantified cousin of <a href="../../logic/lessons/0002-propositional-logic-syntax.html#affirming-the-consequent">affirming the consequent</a>. On the Rationality side, keep the neighbours distinct: <a href="../../rationality/lessons/0001-cognitive-biases.html#confirmation-bias">confirmation bias</a> skews which evidence you seek; belief bias skews your verdict on premises already in front of you; motivated reasoning needs a stake, belief bias doesn’t. All three share a search that runs in the direction of the initial belief — the free pass for liked conclusions that <a href="0003-why-fallacies-persuade.html#selective-laziness">Lesson 3</a> finds behind persuasive fallacies.</p>
+
+  <h2>Try it: validity, not vibes</h2>
+  <p><strong>Round 1.</strong> Eight everyday arguments on two templates, two per cell, shuffled. Judge form alone. The tally scores your <em>first</em> click per card, split by conflict — if belief leaks in, it shows there.</p>
+  <div id="belief-bias-exercise" class="mc-exercise"></div>
+  <p class="bb-tally" aria-live="polite"><span id="bb-tally">Your first-try score appears here as you answer.</span><span class="ref">Evans et al.’s participants: 89% and 90% correct on no-conflict cells (VB, IU); 56% and 29% on conflict cells (VU, IB).</span></p>
+
+  <p><strong>Round 2: content-blind.</strong> The same four structures in nonsense words and letters — feel how much easier it gets once nothing sounds true. In the last two cards, pick the counterexample yourself.</p>
+  <div id="content-blind-exercise" class="mc-exercise"></div>
+
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. Belief moved acceptance by 61 points on invalid arguments but only 33 on valid ones. Which cell is the real danger, and why?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','A real error, but belief moved valid items only 33 points, and an odd conclusion from a valid form points you to a false premise, as with the penguin.')">Valid-unbelievable: good arguments for odd conclusions get thrown out</button>
+        <button onclick="quizAnswer(this,true,'q1','Right. Belief added 61 points here (71% vs 10%): an invalid argument for something you already hold gets no counterexample search.')">Invalid-believable: weak arguments for things you believe get a pass</button>
+        <button onclick="quizAnswer(this,false,'q1','Only 10% accepted these. It is the cell people handle best, because an unwelcome conclusion triggers the counterexample hunt.')">Invalid-unbelievable: absurd conclusions get accepted if the form is neat</button>
+        <button onclick="quizAnswer(this,false,'q1','Accepting it is correct (89% did). Not checking costs nothing here; it costs you when the habit meets an invalid argument.')">Valid-believable: people accept good arguments without checking them</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Macchi et al. (2019) gave “All flowers fade; all roses fade; so all roses are flowers” to students who had passed a 64-hour logic course. What happened?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Only 10% of trained vs 4% of untrained students rejected it, a non-significant gap. The course did not show up.')">Trained students rejected it far more often than untrained students</button>
+        <button onclick="quizAnswer(this,false,'q2','Trained students did slightly better (10% vs 4% correct), not worse, and the gap was not significant.')">Trained students did worse, because training made them overconfident</button>
+        <button onclick="quizAnswer(this,false,'q2','Rewording rescued both groups: with “necessarily” correct rejections rose to 77% and 66%; with “following the criteria of Logic” to 67% and 41%.')">Neither group improved even when the logical task was spelled out</button>
+        <button onclick="quizAnswer(this,true,'q2','Right. In a fresh sample asked whether it “necessarily” follows, correct rejections rose to 77% and 66%, up from 10% and 4%. The cue switched the competence on.')">Both groups mostly accepted it until asked if it necessarily follows</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Which finding most directly supports the claim that belief bias is a fast default that slower reasoning must override?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right. Evans and Curtis-Holmes (2005): denying the slow process time shifted answers toward belief, as a fast-default account predicts.')">A 10-second deadline raised belief bias and cut correct answers</button>
+        <button onclick="quizAnswer(this,false,'q3','That is the belief bias effect itself, not evidence about its mechanism. A single-process theory could predict it just as well.')">Believable conclusions are accepted more often than unbelievable ones</button>
+        <button onclick="quizAnswer(this,false,'q3','That is about training transfer without a cue, not which process is fast; Macchi’s team reads it as pragmatics.')">Logic-trained students failed the same items as untrained students</button>
+        <button onclick="quizAnswer(this,false,'q3','This misstates De Neys (2006): load hurt only conflict problems. An equal effect would undercut the dual-process story.')">A memory load hurt accuracy equally on conflict and no-conflict items</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. A friend says belief bias is just confirmation bias under a new name. What is the best reply?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','They are related, but the targets differ: confirmation bias skews which evidence you seek; belief bias skews validity verdicts.')">Agreed: both just mean favouring whatever you happen to already believe</button>
+        <button onclick="quizAnswer(this,false,'q4','That describes motivated reasoning. Belief bias shows up on items nobody cares about, such as whether some millionaires are rich.')">No, belief bias only appears when you care about the conclusion</button>
+        <button onclick="quizAnswer(this,true,'q4','Right. Belief bias skews your validity verdict with every premise already on the table, even on emotionally flat items.')">No, it misjudges an argument’s form, even on neutral, low-stakes items</button>
+        <button onclick="quizAnswer(this,false,'q4','Memory plays no part: the premises stay in view throughout. The error is in judging whether the conclusion follows.')">No, belief bias is a memory error about which arguments you once heard</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>This week, catch one argument whose conclusion you <em>agree</em> with — a product pitch (“all good laptops have long battery life; this one does; so it’s a good laptop”), a workplace claim, a friend’s advice. Write it as premises and conclusion, then run the <a href="#content-blind-check">content-blind check</a>: ask “necessarily?”, swap in letters, and try hard to build a world where the premises hold and the conclusion fails. Note how strong the pull to wave it through was — that pull is what you are learning to see.</p>
+
+  <h2>Primary resource</h2>
+  <p><a href="https://ejop.psychopen.eu/index.php/ejop/article/view/1794" target="_blank">Macchi, Poli, Caravona, Vezzoli, Franchella &amp; Bagassi (2019), “How to Get Rid of the Belief Bias: Boosting Analytical Thinking via Pragmatics”</a>, <em>Europe’s Journal of Psychology</em> 15(3) — open access. It reviews the 2×2 paradigm, summarizes the dual-process and selective-scrutiny accounts, and reports the trained-vs-untrained experiments above. For the original study, <a href="https://link.springer.com/article/10.3758/BF03196976" target="_blank">Evans, Barston &amp; Pollard (1983)</a> is free on SpringerLink.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Paste in an argument you agree with and ask Claude Code to play opposing counsel: build the counterexample world, or show why none exists. Or ask why Macchi’s short “necessarily” wording worked when earlier, longer necessity instructions mostly didn’t.
+  </div>
+
+  <div class="nav">
+    <a href="0001-dual-process-theory.html">← Lesson 1: Dual-Process Theory</a>
+    <span class="spacer"></span>
+    <a href="0003-why-fallacies-persuade.html">Lesson 3: Why Fallacies Persuade →</a>
+  </div>
+
+</div>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+// Round 1. cell = V/I (valid/invalid) + B/U (believable/unbelievable); v/i = explanation for clicking Valid/Invalid.
+const BB_ITEMS = [
+  { cell: "IB", valid: false, prompt: "All vegetables are plants. All carrots are plants. Therefore, all carrots are vegetables.",
+    v: "Invalid-believable, the danger cell. Both groups merely sit inside “plants.” Same form: all vegetables are plants; all oak trees are plants; so all oak trees are vegetables. True premises, false conclusion.",
+    i: "Right: invalid-believable. Sharing a property never puts one group inside another. Swap oak trees in for carrots and the same form fails." },
+  { cell: "VU", valid: true, prompt: "No fruits grow underground. Some bananas grow underground. Therefore, some bananas are not fruits.",
+    v: "Right: valid-unbelievable. Underground bananas can’t be fruits if no fruit grows underground. Premise 2 is false, so it is valid but unsound, like the penguin.",
+    i: "That’s belief talking. A counterexample needs the underground bananas to be fruits, which premise 1 forbids. Valid-unbelievable; the false premise makes it unsound." },
+  { cell: "VB", valid: true, prompt: "No refurbished phones are brand new. Some phones on sale are brand new. Therefore, some phones on sale are not refurbished.",
+    v: "Right: valid-believable, no conflict. The brand-new phones on sale can’t be refurbished, by premise 1. This is the police-dog form.",
+    i: "No counterexample exists: premise 1 rules every brand-new phone out of “refurbished.” Valid-believable, so logic and belief agree." },
+  { cell: "IU", valid: false, prompt: "All bicycles have wheels. All cars have wheels. Therefore, all cars are bicycles.",
+    v: "The real world is a counterexample: true premises, false conclusion. Invalid-unbelievable, and the same form as the carrots item.",
+    i: "Right: invalid-unbelievable, no conflict. It is the carrots form again, which shows it is the form, not the content, that fails." },
+  { cell: "VU", valid: true, prompt: "All caffeinated drinks are fizzy. All espressos are caffeinated drinks. Therefore, all espressos are fizzy.",
+    v: "Right: valid-unbelievable. If every caffeinated drink were fizzy, espresso would have to be. Premise 1 is false: valid but unsound.",
+    i: "Espresso is indeed flat, but that judges the conclusion, not the form. A flat espresso would be an unfizzy caffeinated drink, breaking premise 1. Valid-unbelievable." },
+  { cell: "IB", valid: false, prompt: "No luxury watches are cheap. Some smartwatches are cheap. Therefore, some luxury watches are not smartwatches.",
+    v: "Invalid-believable: Evans’s cigarette item in new clothes, the cell where 71% said valid. Counterexample: every luxury watch is a pricey smartwatch and the cheap smartwatches aren’t luxury.",
+    i: "Right: invalid-believable. If every luxury watch were an expensive smartwatch, both premises would hold and the conclusion fail. Flip its terms and it would follow." },
+  { cell: "IU", valid: false, prompt: "No kittens are fully grown. Some cats are fully grown. Therefore, some kittens are not cats.",
+    v: "Invalid-unbelievable. True premises, false conclusion (every kitten is a cat), so it can’t be valid: a valid form never runs from truth to falsehood.",
+    i: "Right: invalid-unbelievable. Same form as the luxury-watch item, so this real-world case is a counterexample to that one too." },
+  { cell: "VB", valid: true, prompt: "All smartphones contain a battery. All folding phones are smartphones. Therefore, all folding phones contain a battery.",
+    v: "Right: valid-believable. Folding phones sit inside smartphones, which sit inside things with a battery.",
+    i: "A counterexample needs a batteryless folding phone, but premise 2 makes it a smartphone and premise 1 gives it a battery. Valid-believable: no conflict here." }
+];
+
+renderMC("belief-bias-exercise", BB_ITEMS.map(it => ({ prompt: it.prompt, options: [
+  { text: "Valid", correct: it.valid, explain: it.v },
+  { text: "Invalid", correct: !it.valid, explain: it.i }
+] })));
+
+// Live tally: first click per card only (mcAnswer has already marked the button).
+(function () {
+  const first = {};
+  document.getElementById("belief-bias-exercise").addEventListener("click", e => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    const idx = Number(btn.closest(".mc-card").id.split("-").pop());
+    if (idx in first) return;
+    first[idx] = btn.classList.contains("correct");
+    let nc = 0, c = 0, n = 0;
+    for (const k in first) {
+      n++;
+      if (first[k]) { if (/VU|IB/.test(BB_ITEMS[k].cell)) c++; else nc++; }
+    }
+    document.getElementById("bb-tally").innerHTML = "No-conflict items: <strong>" + nc + "/4</strong> correct · Conflict items: <strong>" + c + "/4</strong> correct (" + n + "/8 answered)";
+  });
+})();
+
+renderMC("content-blind-exercise", [
+  { prompt: "All feps are glorbs. All toves are glorbs. Therefore, all toves are feps.", options: [
+    { text: "Valid", explain: "Picture feps and toves as two separate boxes inside the glorb box: premises true, conclusion false. The carrots form." },
+    { text: "Invalid", correct: true, explain: "Right. With no content to lean on, the gap is plain: nothing puts toves inside feps." }
+  ] },
+  { prompt: "No blickets are daxes. Some wugs are daxes. Therefore, some wugs are not blickets.", options: [
+    { text: "Valid", correct: true, explain: "Right. The dax-wugs can’t be blickets, since no blicket is a dax. The police-dog form." },
+    { text: "Invalid", explain: "A counterexample needs every wug to be a blicket, but the dax-wugs can’t be. Valid." }
+  ] },
+  { prompt: "No A are B. Some C are B. Therefore, some A are not C. Which substitution makes the premises true and the conclusion false?", options: [
+    { text: "A = luxury watches, B = cheap, C = smartwatches", explain: "All three sentences are true. A true conclusion is no counterexample; it just happens to be true." },
+    { text: "A = kittens, B = fully grown, C = cats", correct: true, explain: "Right. Both premises true, “some kittens are not cats” false: the form is invalid, watches included." },
+    { text: "A = fruits, B = grown underground, C = bananas", explain: "“Some bananas are grown underground” is false. A counterexample needs every premise true." }
+  ] },
+  { prompt: "All A are B. All C are A. Therefore, all C are B. Which substitution makes the premises true and the conclusion false?", options: [
+    { text: "A = caffeinated drinks, B = fizzy, C = espressos", explain: "Premise 1 is false here, so this is valid but unsound, not a counterexample." },
+    { text: "A = dogs, B = mammals, C = puppies", explain: "True premises, true conclusion (all puppies are mammals): this refutes nothing." },
+    { text: "None: no such substitution exists", correct: true, explain: "Right. Every C is an A and every A is a B, so every C is a B. Chained universals: valid." }
+  ] }
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

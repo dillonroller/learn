@@ -54,7 +54,7 @@ gcd(4 + 1, 15) = gcd(5, 15) = 5</code></pre>
   <p>The reason this needs a quantum computer at all is the same reason <a href="../../quantum-computing/lessons/0006-quantum-fourier-transform-phase-estimation.html#qft-definition">lesson 6 of Quantum Computing</a> built the QFT in the first place: the control register phase estimation produces is exactly the periodic, phase-structured state <code>(1/√2^t) Σ_k e^(2πiφk)|k⟩</code> the QFT is built to decode — decoding periodicity out of a superposition is precisely the QFT's specialty, and no known classical algorithm extracts that same periodicity from a<sup>x</sup> mod n without effectively checking exponentially many values of x.</p>
   <div class="callout warn">
     <strong>What this lesson is <em>not</em> claiming</strong>
-    This is a conceptual-level account, not a circuit-level one: it names order-finding as the bottleneck, and phase estimation plus the QFT as the tool that solves it in polynomial time on a fault-tolerant quantum computer — matching what <a href="../../quantum-computing/lessons/0006-quantum-fourier-transform-phase-estimation.html">Quantum Computing lesson 6</a> already built. It does not derive the specific controlled-U<sup>2ʲ</sup> circuit for modular multiplication, nor the continued-fractions step that converts a phase estimate into an exact order r — both are real engineering, covered in the primary resource below, and in <a href="../../quantum-computing/index.html#lesson-07">Quantum Computing's own upcoming Shor's algorithm lesson</a>.
+    This is a conceptual-level account, not a circuit-level one: it names order-finding as the bottleneck, and phase estimation plus the QFT as the tool that solves it in polynomial time on a fault-tolerant quantum computer — matching what <a href="../../quantum-computing/lessons/0006-quantum-fourier-transform-phase-estimation.html">Quantum Computing lesson 6</a> already built. It does not derive the specific controlled-U<sup>2ʲ</sup> circuit for modular multiplication, nor the continued-fractions step that converts a phase estimate into an exact order r — both are real engineering, covered in the primary resource below, and in <a href="../../quantum-computing/lessons/0007-shors-algorithm-breaking-rsa.html">Quantum Computing's own upcoming Shor's algorithm lesson</a>.
   </div>
   <p>Put together: Shor's algorithm is <em>classical reduction</em> (factoring → order-finding, entirely number theory, done above by hand) plus <em>quantum order-finding</em> (phase estimation + QFT, built entirely from machinery <a href="../../quantum-computing/index.html">Quantum Computing</a> lessons 1–6 already cover). Nothing about it "tries every factor at once" — it turns factoring into a period, and reads the period off with interference, the same non-magical mechanism behind every algorithm in that course.</p>
 
@@ -94,7 +94,7 @@ gcd(4 + 1, 15) = gcd(5, 15) = 5</code></pre>
         <button onclick="quizAnswer(this,true,'q3','Right — choosing a, checking gcd(a,n), and the final gcd extraction are all fast classical steps; only finding the order r itself is classically expensive, and that’s exactly what phase estimation accelerates.')">Finding the order r of a mod n — everything else in the reduction is classical and already fast</button>
         <button onclick="quizAnswer(this,false,'q3','The gcd computations use the classical Euclidean algorithm, which is already fast on ordinary hardware — there’s no need or benefit to running them on a quantum computer.')">Computing the two gcds at the end of the reduction</button>
         <button onclick="quizAnswer(this,false,'q3','Picking a random a coprime to n is a cheap classical step (try a value, check the gcd) — it needs no quantum speedup.')">Choosing the random value a at the start</button>
-        <button onclick="quizAnswer(this,false,'q3','n itself is given as public input to the whole problem — there’s no step where n needs to be "computed," quantum or otherwise.')">Computing n from p and q</button>
+        <button onclick="quizAnswer(this,false,'q3','n itself is given as public input to the whole problem — there’s no step where n needs to be &quot;computed,&quot; quantum or otherwise.')">Computing n from p and q</button>
       </div>
       <div class="feedback" id="q3-fb"></div>
     </div>
@@ -186,7 +186,7 @@ ORDER_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

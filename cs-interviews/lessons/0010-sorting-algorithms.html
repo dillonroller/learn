@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 10 — Sorting Algorithms</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">CS Interview Prep</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 10 of 11 &nbsp;·&nbsp; CS Interview Prep &nbsp;·&nbsp; ~30 min</p>
+  <h1>Sorting Algorithms</h1>
+  <p>When a problem needs sorting, or would get easy if the input were sorted, the interviewer’s hidden question is: <em>do you know what <code>.sort()</code> just cost you, and can you name something cheaper when the constraints allow it?</em> You will rarely write a sort from scratch; the <a href="https://www.techinterviewhandbook.org/algorithms/sorting-searching/" target="_blank">Tech Interview Handbook</a> says to use your language’s default and know its cost. What gets tested is the trade-off, plus two building blocks that turn up inside other problems: <strong>merge</strong> and <strong>partition</strong>. <a href="0001-big-o-and-complexity.html">Lesson 1</a> put merge sort on the O(n log n) row without saying why, and <a href="0002-arrays-and-hashmaps.html#space-time-tradeoff">lesson 2’s space-for-time trade-off</a> used <code>sort_unstable</code> as its cheap side. Today’s win: given a constraint, choose between <code>sort</code>, <code>sort_unstable</code>, <code>select_nth_unstable</code>, counting sort and a heap, and write merge or partition from a blank file if asked.</p>
+
+  <h2 id="merge-sort">Merge sort: halve, recurse, merge</h2>
+  <p>Split the slice in half, sort each half recursively, then merge the two sorted halves with one pointer per half: compare the heads and take the smaller. That merge is the one-pointer-per-array cousin of <a href="0003-two-pointers-sliding-window.html#two-pointers">lesson 3’s two pointers</a>. The classic interview twist is counting <em>inversions</em>, the pairs i &lt; j with v[i] &gt; v[j] (an exercise in <a href="https://algs4.cs.princeton.edu/22mergesort/" target="_blank">algs4 §2.2</a>). It costs one extra statement in the merge:</p>
+<pre><code><span class="cm">/// Sorts v and returns its inversion count.</span>
+<span class="kw">fn</span> <span class="fn">merge_sort</span>(v: &amp;<span class="kw">mut</span> [<span class="ty">i32</span>], buf: &amp;<span class="kw">mut</span> <span class="ty">Vec</span>&lt;<span class="ty">i32</span>&gt;) -&gt; <span class="ty">u64</span> {
+    <span class="kw">let</span> n = v.<span class="fn">len</span>();
+    <span class="kw">if</span> n &lt; <span class="nm">2</span> { <span class="kw">return</span> <span class="nm">0</span>; }
+    <span class="kw">let</span> mid = n / <span class="nm">2</span>;
+    <span class="kw">let mut</span> inv = <span class="fn">merge_sort</span>(&amp;<span class="kw">mut</span> v[..mid], buf);
+    inv += <span class="fn">merge_sort</span>(&amp;<span class="kw">mut</span> v[mid..], buf);
+    buf.<span class="fn">clear</span>();
+    <span class="kw">let</span> (<span class="kw">mut</span> i, <span class="kw">mut</span> j) = (<span class="nm">0</span>, mid);        <span class="cm">// one pointer per sorted half</span>
+    <span class="kw">while</span> i &lt; mid &amp;&amp; j &lt; n {
+        <span class="kw">if</span> v[i] &lt;= v[j] {                  <span class="cm">// &lt;= takes the left on ties: stable</span>
+            buf.<span class="fn">push</span>(v[i]); i += <span class="nm">1</span>;
+        } <span class="kw">else</span> {
+            buf.<span class="fn">push</span>(v[j]); j += <span class="nm">1</span>;
+            inv += (mid - i) <span class="kw">as</span> <span class="ty">u64</span>;       <span class="cm">// v[j] jumps all of v[i..mid]</span>
+        }
+    }
+    buf.<span class="fn">extend_from_slice</span>(&amp;v[i..mid]);    <span class="cm">// at most one tail is non-empty</span>
+    buf.<span class="fn">extend_from_slice</span>(&amp;v[j..]);
+    v.<span class="fn">copy_from_slice</span>(buf);
+    inv
+}
+<span class="cm">// [2, 4, 1, 3, 5] → sorted, 3 inversions.
+// O(n log n) time on every input, O(n) extra.
+// Can you do better? Not with comparisons (see the lower bound below).</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(n log n), any input</span><span class="label">Space</span><span class="val">O(n) buffer</span></div>
+  <p><strong>Why n log n.</strong> Draw <a href="0008-recursion-and-backtracking.html#recursion-tree">lesson 8’s recursion tree</a>. The root merges n elements, its two children n/2 each, the grandchildren n/4 each: every level does n work, and halving reaches size 1 after log₂ n levels (<a href="https://jeffe.cs.illinois.edu/teaching/algorithms/book/01-recursion.pdf" target="_blank">Erickson, ch. 1</a>, draws this tree). algs4 gives between ½ n lg n and n lg n compares; for n = 10⁶ the upper end is 19.9 million, <a href="0001-big-o-and-complexity.html">lesson 1</a>’s “~20,000,000”. The splits never look at the data, so every input costs Θ(n log n).</p>
+  <p><strong>Not in place.</strong> The merge needs somewhere to write, so <code>buf</code> grows to n. In-place merges exist, but algs4 calls them “remarkably complicated”. Say O(n) extra (the O(log n) stack is smaller) and move on.</p>
+
+  <h2 id="stable-sort">Stable sorts keep ties in input order</h2>
+  <p>A sort is <strong>stable</strong> if elements with equal keys come out in the order they went in. It says nothing about reliability or worst cases. The <code>&lt;=</code> above is what makes merge sort stable: on a tie it takes from the left half, which came first. Write <code>&lt;</code> and the output is still sorted, but ties can swap, and the inversion count goes wrong too: every equal pair gets counted.</p>
+  <p>Stability matters when you sort by one key after another: records in salary order, stably sorted by department, keep salary order inside each department. The <em>last</em> pass is the primary key. One pass with a tuple key is often cleaner: <code>sort_unstable_by_key(|e| (e.dept, Reverse(e.salary)))</code> needs no stability, because the key breaks every tie you care about.</p>
+
+  <h2 id="quicksort">Quicksort: partition, then recurse on both sides</h2>
+  <p>Pick a pivot and <strong>partition</strong>: move the smaller values left of it and the rest right, so the pivot lands at its final sorted index. Then quicksort each side. Quicksort does its work <em>before</em> recursing; merge sort does it after. Under pressure, write Lomuto’s partition. Erickson says Hoare’s two-pointer original “is one of the places off-by-one errors go to die”.</p>
+<pre><code><span class="kw">use</span> std::hash::{<span class="ty">BuildHasher</span>, <span class="ty">RandomState</span>};
+
+<span class="cm">/// Lomuto partition around a random pivot. Returns the pivot’s final index.</span>
+<span class="kw">fn</span> <span class="fn">partition</span>(v: &amp;<span class="kw">mut</span> [<span class="ty">i32</span>]) -&gt; <span class="ty">usize</span> {
+    <span class="kw">let</span> hi = v.<span class="fn">len</span>() - <span class="nm">1</span>;
+    <span class="cm">// std-only random index: RandomState::new() uses random keys</span>
+    <span class="kw">let</span> r = <span class="ty">RandomState</span>::<span class="fn">new</span>().<span class="fn">hash_one</span>(hi) <span class="kw">as</span> <span class="ty">usize</span> % v.<span class="fn">len</span>();
+    v.<span class="fn">swap</span>(r, hi);                  <span class="cm">// park the pivot at the end</span>
+    <span class="kw">let mut</span> i = <span class="nm">0</span>;                  <span class="cm">// invariant: v[..i] &lt; pivot &lt;= v[i..j]</span>
+    <span class="kw">for</span> j <span class="kw">in</span> <span class="nm">0</span>..hi {
+        <span class="kw">if</span> v[j] &lt; v[hi] { v.<span class="fn">swap</span>(i, j); i += <span class="nm">1</span>; }
+    }
+    v.<span class="fn">swap</span>(i, hi);                  <span class="cm">// pivot drops between the regions</span>
+    i
+}
+
+<span class="kw">fn</span> <span class="fn">quicksort</span>(v: &amp;<span class="kw">mut</span> [<span class="ty">i32</span>]) {
+    <span class="kw">if</span> v.<span class="fn">len</span>() &lt; <span class="nm">2</span> { <span class="kw">return</span>; }
+    <span class="kw">let</span> p = <span class="fn">partition</span>(v);
+    <span class="kw">let</span> (left, right) = v.<span class="fn">split_at_mut</span>(p);
+    <span class="fn">quicksort</span>(left);
+    <span class="fn">quicksort</span>(&amp;<span class="kw">mut</span> right[<span class="nm">1</span>..]);     <span class="cm">// right[0] is the placed pivot</span>
+}
+<span class="cm">// O(n log n) expected, O(n²) worst. In place; stack O(log n) expected,
+// O(n) worst. Can you do better? Recurse on the smaller side and loop on
+// the larger to cap the stack at log₂ n, or call sort_unstable, which
+// falls back to heapsort.</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(n log n) expected, O(n²) worst</span><span class="label">Space</span><span class="val">O(log n) expected stack</span></div>
+  <p><strong>Why the pivot is random.</strong> With a fixed last-element pivot, sorted input makes every pivot the maximum: partitions shrink by one, for n(n − 1)/2 comparisons (1,999,000 at n = 2,000; we counted) and recursion n deep. <a href="https://algs4.cs.princeton.edu/23quicksort/" target="_blank">algs4 §2.3</a>: “~N²/2 compares in the worst case, but random shuffling protects against this case.” With a random pivot, the values ranked i &lt; j are compared only if one of them is the first pivot drawn from ranks i through j: probability 2/(j − i + 1). Summing over all pairs by <a href="../../probability/lessons/0002-expectation-variance.html#linearity-of-expectation">linearity of expectation</a> gives at most 2n ln n ≈ 1.39 n log₂ n expected comparisons (<a href="https://www.cs.cmu.edu/~avrim/451f11/lectures/lect0906.pdf" target="_blank">CMU 15-451, §3.4</a>) for <em>every</em> input, because the coin flips are the algorithm’s own.</p>
+  <p><strong>Not stable, and duplicates hurt.</strong> Swaps jump elements past their equals, so quicksort is not stable. On all-equal input nothing is &lt; the pivot, so Lomuto splits 0 / n − 1 however you pick it: quadratic again (also 1,999,000 comparisons at n = 2,000). The fix is a <strong>three-way partition</strong> into &lt;, = and &gt; regions: Dijkstra’s Dutch National Flag problem. algs4 states as a proposition that quicksort with 3-way partitioning is entropy-optimal: the more duplicates, the faster it gets. LeetCode’s Sort Colors is exactly that partition on the values 0, 1, 2.</p>
+  <div class="callout warn">
+    <strong>Common interview trap</strong>
+    “Quicksort is O(n log n).” That is the <em>expected</em> cost with a random pivot. Say “expected”, then name the worst case before you are asked: O(n²) time and O(n) stack, from sorted input with a fixed pivot or from many duplicates with a two-way partition.
+  </div>
+
+  <h2>Step through a partition</h2>
+  <p>Lomuto on [7, 2, 9, 4, 3, 8, 5] with the last element, 5, as pivot (no random swap). At each <code>j</code>, decide: swap <code>v[j]</code> into the &lt; 5 region at <code>i</code>, or skip it. Green is <code>v[..i]</code>, amber is <code>v[i..j]</code>, the dashed cell is the pivot.</p>
+  <div class="pt" id="pt-widget">
+    <div class="pt-cells" id="pt-cells"></div>
+    <div class="pt-ij" id="pt-ij"></div>
+    <p class="pt-msg" id="pt-msg" aria-live="polite"></p>
+    <div class="pt-row">
+      <button type="button" id="pt-swap">Swap into the &lt; 5 region</button>
+      <button type="button" id="pt-skip">Skip: leave it right of i</button>
+    </div>
+    <div id="pt-qs" hidden>
+      <p class="pt-q">Quickselect wants sorted index 4, the 5th smallest. Where does it go next?</p>
+      <div class="pt-row" id="pt-qopts"></div>
+    </div>
+    <div class="pt-row">
+      <button type="button" id="pt-reset">Restart</button>
+      <span class="pt-score" id="pt-score"></span>
+    </div>
+  </div>
+
+  <h2 id="quickselect">Quickselect: partition, then keep one side</h2>
+  <p>After a partition the pivot sits at its sorted index p. If you want only the element at sorted index k, either k = p and you are done, or the answer is on the one side that contains k. Drop the other side. That is Hoare’s quickselect, “one-armed quicksort” (Erickson, ch. 1), and it needs no recursion:</p>
+<pre><code><span class="kw">use</span> std::cmp::<span class="ty">Ordering</span>;
+
+<span class="cm">/// The k-th smallest value (0-based). Reorders v.</span>
+<span class="kw">fn</span> <span class="fn">quickselect</span>(v: &amp;<span class="kw">mut</span> [<span class="ty">i32</span>], k: <span class="ty">usize</span>) -&gt; <span class="ty">i32</span> {
+    <span class="kw">let</span> (<span class="kw">mut</span> lo, <span class="kw">mut</span> hi) = (<span class="nm">0</span>, v.<span class="fn">len</span>());
+    <span class="kw">loop</span> {
+        <span class="kw">let</span> p = lo + <span class="fn">partition</span>(&amp;<span class="kw">mut</span> v[lo..hi]);    <span class="cm">// random pivot, as above</span>
+        <span class="kw">match</span> k.<span class="fn">cmp</span>(&amp;p) {
+            <span class="ty">Ordering</span>::Equal   =&gt; <span class="kw">return</span> v[p],
+            <span class="ty">Ordering</span>::Less    =&gt; hi = p,
+            <span class="ty">Ordering</span>::Greater =&gt; lo = p + <span class="nm">1</span>,
+        }
+    }
+}
+<span class="cm">// O(n) expected, O(n²) worst; O(1) extra. Can you do better? In Rust,
+// *v.select_nth_unstable(n - k).1 is the k-th largest (1-based k),
+// and O(n) in the worst case.</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(n) expected</span><span class="label">Space</span><span class="val">O(1) extra</span></div>
+  <p>If every pivot halved the range, the work would be n + n/2 + n/4 + … &lt; 2n. With random pivots the larger side averages ¾ of the range, and the expected count stays below 4n comparisons (<a href="https://www.cs.cmu.edu/~avrim/451f11/lectures/lect0908.pdf" target="_blank">CMU 15-451, Lecture 4</a>). In Rust you call <a href="https://doc.rust-lang.org/std/primitive.slice.html#method.select_nth_unstable" target="_blank"><code>select_nth_unstable</code></a>, documented as in place and O(n). In the Rust 1.99 docs (current stable as of October 2026) it is an introselect whose median-of-medians fallback “guarantees linear runtime for all inputs”. On 10⁷ random <code>i32</code>s (rustc 1.97, <code>-O</code>, our test machine) it took about 20 ms; <code>sort_unstable</code> took about 200 ms. Say the comparison with <a href="0004-stacks-and-queues.html#top-k-heap">lesson 4’s size-k heap</a> out loud:</p>
+  <blockquote class="quote">“Sorting would be O(n log n). A size-k min-heap is O(n log k) time and O(k) space, and it works on a stream. Since the whole array is in memory and I may reorder it, I’ll use quickselect: O(n) expected, O(1) extra. In Rust that’s select_nth_unstable, which is linear even in the worst case. If I mustn’t mutate the input, the clone costs O(n) space.”</blockquote>
+
+  <h2 id="comparison-lower-bound">The n log n wall</h2>
+  <p>A sort that learns about its input only by comparing pairs can be drawn as a decision tree. Each node asks “a &lt; b?”, and each leaf is one output order. All n! orders must be leaves, and a binary tree with n! leaves has height at least log₂(n!) ≈ n log₂ n − 1.44n. So some input forces about n log₂ n comparisons (<a href="https://cses.fi/book/book.pdf" target="_blank">CPH</a> §3.1). algs4 states it as “No compare-based sorting algorithm can guarantee to sort N items with fewer than lg(N!) ~ N lg N compares”. For n = 10⁶ the floor is 18.5 million comparisons. Merge sort’s worst case, at most 19.9 million, is within 8% of it, which is why algs4 calls mergesort asymptotically optimal.</p>
+  <p>The wall stands only for <em>comparison</em> sorts, and interviewers love the way round it.</p>
+
+  <h3 id="counting-sort">Counting sort: index by the key instead of comparing</h3>
+  <p>When keys are small integers in a known range of size k, count each value, then write the values back in order. That is O(n + k) time and O(k) extra space, and no two elements are ever compared, so the bound does not apply (CPH §3.1). The handbook’s cue is numbers “where you know the range of values beforehand”.</p>
+<pre><code><span class="kw">fn</span> <span class="fn">sort_ages</span>(ages: &amp;<span class="kw">mut</span> [<span class="ty">u8</span>]) {   <span class="cm">// every age is in 0..=120</span>
+    <span class="kw">let mut</span> count = [<span class="nm">0usize</span>; <span class="nm">121</span>];
+    <span class="kw">for</span> &amp;a <span class="kw">in</span> ages.<span class="fn">iter</span>() { count[a <span class="kw">as</span> <span class="ty">usize</span>] += <span class="nm">1</span>; }
+    <span class="kw">let mut</span> i = <span class="nm">0</span>;
+    <span class="kw">for</span> (age, &amp;c) <span class="kw">in</span> count.<span class="fn">iter</span>().<span class="fn">enumerate</span>() {
+        ages[i..i + c].<span class="fn">fill</span>(age <span class="kw">as</span> <span class="ty">u8</span>);
+        i += c;
+    }
+}
+<span class="cm">// O(n + k) time, O(k) extra, k = 121.
+// Can you do better? Not asymptotically: you must read every age.</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(n + k)</span><span class="label">Space</span><span class="val">O(k)</span></div>
+  <p>On 10⁸ random ages (same machine) this took about 60 ms; <code>sort_unstable</code> took about 1.1 s. To move whole records, turn the counts into start offsets with a <a href="0003-two-pointers-sliding-window.html#prefix-sum">prefix sum</a> and drop each record into its key’s next slot. That version is stable, and radix sort repeats it once per digit. When k is huge (any <code>i32</code>, any timestamp) the count array is the problem: 2³² <code>usize</code> counters are 32 GiB.</p>
+
+  <h2>Rust’s sort APIs</h2>
+  <p>Both std sorts were replaced in <a href="https://blog.rust-lang.org/2024/09/05/Rust-1.81.0/" target="_blank">Rust 1.81</a> (2024). Here is how the <a href="https://doc.rust-lang.org/std/primitive.slice.html#method.sort" target="_blank">slice docs</a> describe them as of 1.99. TIH gives bonus points for naming your language’s sort, and these are the names.</p>
+  <div class="api-wrap"><table class="api">
+    <tr><th>Call</th><th>What you get</th><th>Reach for it when</th></tr>
+    <tr><td><code>sort_<wbr>unstable</code>, <code>_by_key</code></td><td>In place, O(n&nbsp;log&nbsp;n) worst. ipnsort: quicksort average case, heapsort worst case.</td><td>The default. “Typically faster than stable sorting.”</td></tr>
+    <tr><td><code>sort</code>, <code>sort_by_key</code></td><td>Stable, O(n&nbsp;log&nbsp;n) worst. driftsort: quicksort + mergesort with run detection. Allocates up to n.</td><td>Ties must keep input order, or the data already has long sorted runs.</td></tr>
+    <tr><td><code>select_nth_<wbr>unstable</code></td><td>In place, O(n).</td><td>k-th element, median, top k in any order.</td></tr>
+    <tr><td><code>sort_by(|a, b| a.total_cmp(b))</code></td><td>IEEE 754 total order, NaN included.</td><td><code>f32</code>/<code>f64</code>, which are not <code>Ord</code>.</td></tr>
+  </table></div>
+  <p><code>v.sort()</code> on a <code>Vec&lt;f64&gt;</code> fails with “the trait bound <code>f64: Ord</code> is not satisfied”, because NaN ≠ NaN. <code>partial_cmp(b).unwrap()</code> compiles but panics on the first NaN, so use <a href="https://doc.rust-lang.org/std/primitive.f64.html#method.total_cmp" target="_blank"><code>total_cmp</code></a>. Descending: swap the arguments or wrap the key in <code>Reverse</code>. The docs’ one exception to “prefer unstable” is partially sorted data: with 500,000 random values appended to 10 million sorted ones (same machine), <code>sort</code> took about 55 ms and <code>sort_unstable</code> about 250 ms.</p>
+
+  <h2 id="sort-as-preprocessing">Sort as preprocessing: “can I sort this?”</h2>
+  <p>Sorting costs O(n log n) once and buys order. Neighbours become meaningful, pointers can move in one direction, and binary search works. When the brute force is O(n²) and nothing needs the original order, ask out loud whether sorting first helps.</p>
+  <ul>
+    <li><strong>Intervals</strong>: sort by start, which the <a href="https://www.techinterviewhandbook.org/algorithms/interval/" target="_blank">interval cheatsheet</a> calls crucial for Merge Intervals.</li>
+    <li><strong>Pairs or triples hitting a target in O(1) extra space</strong>: sort, then <a href="0003-two-pointers-sliding-window.html#two-pointers">converging pointers</a>. 3Sum drops from O(n³) to O(n²).</li>
+    <li><strong>Many queries against one dataset</strong>: sort once, then a <a href="0007-binary-search.html#lower-bound">lower bound</a> per query, O((n + q) log n). For a single query, a linear scan wins.</li>
+    <li><strong>Duplicates with tight memory</strong>: sort in place and compare neighbours, O(n log n) time and O(1) extra, against the <a href="0002-arrays-and-hashmaps.html#seen-set">seen-set</a>’s O(n) expected time and O(n) space. Sorting scrambles indices; carry them if needed.</li>
+  </ul>
+<pre><code><span class="kw">fn</span> <span class="fn">merge</span>(<span class="kw">mut</span> iv: <span class="ty">Vec</span>&lt;[<span class="ty">i32</span>; <span class="nm">2</span>]&gt;) -&gt; <span class="ty">Vec</span>&lt;[<span class="ty">i32</span>; <span class="nm">2</span>]&gt; {
+    iv.<span class="fn">sort_unstable_by_key</span>(|r| r[<span class="nm">0</span>]);    <span class="cm">// the whole trick</span>
+    <span class="kw">let mut</span> out: <span class="ty">Vec</span>&lt;[<span class="ty">i32</span>; <span class="nm">2</span>]&gt; = <span class="ty">Vec</span>::<span class="fn">with_capacity</span>(iv.<span class="fn">len</span>());
+    <span class="kw">for</span> r <span class="kw">in</span> iv {
+        <span class="kw">match</span> out.<span class="fn">last_mut</span>() {
+            <span class="cm">// overlaps the last block (touching counts): extend it</span>
+            <span class="ty">Some</span>(last) <span class="kw">if</span> r[<span class="nm">0</span>] &lt;= last[<span class="nm">1</span>] =&gt; last[<span class="nm">1</span>] = last[<span class="nm">1</span>].<span class="fn">max</span>(r[<span class="nm">1</span>]),
+            _ =&gt; out.<span class="fn">push</span>(r),
+        }
+    }
+    out
+}
+<span class="cm">// [[1,3],[8,10],[2,6],[15,18]] → [[1,6],[8,10],[15,18]]
+// O(n log n) time, O(n) for the output.</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(n log n)</span><span class="label">Space</span><span class="val">O(n) output; sort in place</span></div>
+  <div class="callout">
+    <strong>Why interviewers care</strong>
+    Merge Intervals, Meeting Rooms II and Kth Largest sit on the handbook’s practice lists, and like 3Sum each is “sort (or partition), then something simple”. The grade is for seeing the sort, stating its cost, and knowing whether you could do without it. Ask whether <code>[1, 2]</code> and <code>[2, 3]</code> overlap before writing <code>&lt;=</code>.
+  </div>
+
+  <h2>Pick the tool</h2>
+  <p>Name the call before you name the complexity. Each scenario has one best fit.</p>
+  <div id="tool-exercise" class="mc-exercise"></div>
+
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. A hand-written quicksort always takes the last element as pivot. You run it on an already-sorted array of n distinct values. What does it cost?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','That needs pivots near the middle. Here every pivot is the maximum, so each partition peels off one element and the sides never balance.')">O(n log n) time, O(log n) stack</button>
+        <button onclick="quizAnswer(this,true,'q1','Right: partitions of n − 1, n − 2, … give n(n − 1)/2 comparisons, 1,999,000 at n = 2,000, and the recursion goes n deep. A random pivot fixes both in expectation.')">O(n²) time, O(n) stack</button>
+        <button onclick="quizAnswer(this,false,'q1','Textbook Lomuto has no run detection; it rescans every element in every call. Linear time on sorted input is a feature of std’s driftsort and ipnsort.')">O(n) time, O(1) stack</button>
+        <button onclick="quizAnswer(this,false,'q1','That is merge sort’s profile on every input. Quicksort partitions in place, and on this input its time degrades instead.')">O(n log n) time, O(n) buffer</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. You need employees in department order, with salaries highest-first inside each department. Which works?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','The last stable pass is the primary key, so this orders everyone by salary and uses department only to break salary ties. Swap the two passes.')">Stable sort by dept, then stable sort by salary descending</button>
+        <button onclick="quizAnswer(this,false,'q2','Tuples compare from the left, so salary becomes the primary key and departments get interleaved. Put dept first.')">One sort with key (Reverse(salary), dept)</button>
+        <button onclick="quizAnswer(this,true,'q2','Right: the tuple orders by dept, then by salary descending, so the only remaining ties are fully equal keys. Stability is not needed, so the faster unstable sort is fine.')">One sort_unstable with key (dept, Reverse(salary))</button>
+        <button onclick="quizAnswer(this,false,'q2','The passes are in the right order, but the second one is unstable: it may shuffle equal departments and destroy the salary order from pass one.')">Stable sort by salary descending, then sort_unstable by dept</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. You must sort 100 million exam scores, integers from 0 to 100. The interviewer says nothing can beat O(n log n). Your reply?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right: the lg(n!) bound counts comparisons, and counting sort never compares two elements. It indexes 101 counters: O(n + 101) time, O(101) space.')">Counting sort: O(n + k) with k = 101</button>
+        <button onclick="quizAnswer(this,false,'q3','The decision-tree argument covers only algorithms that learn about the input by comparing pairs. Using a score as an array index is outside that model.')">Agreed: lg(n!) bounds every algorithm</button>
+        <button onclick="quizAnswer(this,false,'q3','Merge sort makes at least ½ n log₂ n comparisons on every input. It is optimal among comparison sorts, exactly the class the bound covers.')">Merge sort: it beats n log n here</button>
+        <button onclick="quizAnswer(this,false,'q3','Each binary search is O(log n), but each Vec::insert shifts up to n elements, so the total is O(n²).')">Binary-insert each score into a Vec</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. You get 10⁶ unsorted values, then 10⁵ queries of the form “how many values are ≤ x?”. Best plan?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','O(n) per query is 10⁶ × 10⁵ = 10¹¹ steps. Fine for one query, hopeless for a hundred thousand.')">Scan the whole Vec for each query</button>
+        <button onclick="quizAnswer(this,false,'q4','A hash set answers “is x present?” in expected O(1), but it keeps no order, so it cannot count the values below x.')">Put the values in a HashSet first</button>
+        <button onclick="quizAnswer(this,false,'q4','Quickselect finds the value at a given rank; you need the rank of a given value. At O(n) expected per query it also costs as much as a scan.')">Quickselect once for every query</button>
+        <button onclick="quizAnswer(this,true,'q4','Right: O(n log n) once (about 2 × 10⁷ comparisons), then O(log n) per query (about 2 × 10⁶ in total). partition_point(|&amp;y| y &lt;= x) is the count.')">Sort once, then partition_point</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Rust, blank file, 20 minutes each; state time and space before running anything. Write <strong>merge sort</strong> and <strong>quicksort</strong> from memory and fuzz both against <code>sort_unstable</code> on random <code>Vec</code>s, all-equal ones included. Then do <strong>Kth Largest Element in an Array</strong> three ways (sort, heap, quickselect) and time them, <strong>Sort Colors</strong> as a one-pass three-way partition, <strong>Merge Intervals</strong>, <strong>Meeting Rooms II</strong> (sort, then a min-heap of end times), and <strong>H-Index</strong> with counting. Most are listed on the <a href="https://www.techinterviewhandbook.org/algorithms/sorting-searching/" target="_blank">sorting and searching</a> and <a href="https://www.techinterviewhandbook.org/algorithms/interval/" target="_blank">interval</a> cheatsheets. As a stretch, count inversions with the merge above and check it against an O(n²) double loop.</p>
+
+  <h2>Primary resource</h2>
+  <p>Read <a href="https://algs4.cs.princeton.edu/22mergesort/" target="_blank">Sedgewick &amp; Wayne, <em>Algorithms</em> 4e, §2.2 Mergesort</a>, through the lower-bound propositions, then <a href="https://algs4.cs.princeton.edu/23quicksort/" target="_blank">§2.3 Quicksort</a> through “Entropy-optimal sorting”. The canonical free treatment of both, with the compare counts quoted here. The code is Java; read it for the invariants.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Try: “Play interviewer: give me Sort Colors, then ask why my partition isn’t stable.” Or ask how driftsort finds sorted runs, or why the decision-tree argument says nothing about counting sort. Type a question in Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0009-dynamic-programming.html">← Lesson 9: Dynamic Programming</a>
+    <span class="spacer"></span>
+    <a href="0011-system-design-fundamentals.html">Lesson 11: System Design Fundamentals →</a>
+  </div>
+
+</div>
+
+<style>
+blockquote.quote { border-left: 3px solid var(--accent); padding: .6rem 1rem; margin: 1rem 0; color: var(--ink-dim); font-style: italic; font-size: .95rem; }
+.api-wrap { overflow-x: auto; margin: 1rem 0; }
+.api { width: 100%; border-collapse: collapse; font-family: var(--font-ui); font-size: .82rem; }
+.api th, .api td { border-bottom: 1px solid var(--border); padding: .45rem .5rem; text-align: left; vertical-align: top; }
+.api th { color: var(--muted); font-weight: normal; font-size: .72rem; text-transform: uppercase; }
+.api td:first-child { width: 34%; }
+.pt { background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin: 1.25rem 0; font-family: var(--font-ui); font-size: .88rem; }
+.pt-cells { display: flex; gap: .35rem; margin-bottom: .5rem; }
+.pt-cell { flex: 1; max-width: 3.2rem; text-align: center; background: var(--bg-sunken); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .35rem 0 .2rem; font-family: var(--font-mono); }
+.pt-cell b { display: block; font-size: 1.05rem; color: var(--ink); }
+.pt-cell small { color: var(--muted); font-size: .68rem; }
+.pt-cell.lt { background: var(--accent-soft); border-color: var(--accent); }
+.pt-cell.ge { background: var(--amber-soft); border-color: var(--amber); }
+.pt-cell.piv { border-style: dashed; border-color: var(--ink-dim); }
+.pt-cell.cur { box-shadow: 0 0 0 2px var(--accent-strong); }
+.pt-ij { font-family: var(--font-mono); color: var(--ink-dim); font-size: .8rem; }
+.pt-msg { min-height: 2.8em; margin: .6rem 0 .25rem; color: var(--ink-dim); }
+.pt-msg.good { color: var(--accent-strong); }
+.pt-msg.bad { color: var(--err); }
+.pt-q { margin: .75rem 0 0; color: var(--ink); }
+.pt-row { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: .5rem; }
+.pt button { background: var(--bg-sunken); color: var(--ink); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .4rem .75rem; font: inherit; cursor: pointer; }
+.pt button:hover:not(:disabled) { border-color: var(--accent-border); background: var(--accent-soft); }
+.pt button:disabled { opacity: .45; cursor: default; }
+.pt button.wrong { border-color: var(--err); color: var(--err); background: var(--err-lt); opacity: 1; }
+.pt button.right { border-color: var(--accent); color: var(--accent-strong); background: var(--accent-soft); opacity: 1; }
+.pt [hidden] { display: none; }
+.pt-score { color: var(--muted); margin-left: auto; }
+</style>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+// Lomuto partition stepper on [7, 2, 9, 4, 3, 8, 5], pivot = last element.
+(function () {
+  const $ = id => document.getElementById(id), START = [7, 2, 9, 4, 3, 8, 5], HI = 6, P = 5;
+  const QS = [
+    { t: 'Left part v[..3]', why: 'Everything left of the pivot is < 5, so it holds sorted indices 0 to 2 only. Index 4 cannot be there.' },
+    { t: 'Return the pivot', why: 'The pivot owns sorted index 3, and you asked for index 4.' },
+    { t: 'Right part v[4..]', ok: true, why: 'Right: 4 > 3, so the answer is the smallest of [9, 8, 7], which is 7. The left part is never touched again, and that one-sidedness is why selection is O(n) expected.' },
+    { t: 'Both parts', why: 'Recursing into both sides is quicksort. Quickselect is one-armed: only the side that contains index 4 can hold the answer.' }
+  ];
+  let v, i, j, miss, done;
+  const say = (t, c) => { $('pt-msg').textContent = t; $('pt-msg').className = 'pt-msg ' + (c || ''); };
+
+  function draw() {
+    const box = $('pt-cells');
+    box.textContent = '';
+    v.forEach((x, k) => {
+      let cls = k < i ? 'lt' : done ? (k === i ? 'piv' : 'ge') : k === HI ? 'piv' : k < j ? 'ge' : '';
+      if (!done && k === j) cls += ' cur';
+      const c = document.createElement('div'), b = document.createElement('b'), s = document.createElement('small');
+      c.className = 'pt-cell ' + cls; b.textContent = x; s.textContent = k;
+      c.append(b, s); box.appendChild(c);
+    });
+    $('pt-ij').textContent = done ? 'pivot 5 placed at index ' + i : 'i = ' + i + ', j = ' + j + ', v[j] = ' + v[j];
+    $('pt-swap').disabled = $('pt-skip').disabled = done;
+    $('pt-score').textContent = 'Wrong clicks: ' + miss;
+  }
+
+  function advance(msg) {
+    j++;
+    if (j === HI) {
+      [v[i], v[HI]] = [v[HI], v[i]];
+      done = true;
+      msg += ' Scan done. The final swap v[' + i + '] ↔ v[6] drops 5 between the regions: [' + v.join(', ') +
+        ']. 5 sits at its sorted index and never moves again.';
+      $('pt-qs').hidden = false;
+    }
+    say('✓ ' + msg, 'good');
+    draw();
+  }
+
+  function choose(wantSwap) {
+    const x = v[j], less = x < P;
+    if (wantSwap !== less) {
+      miss++;
+      say(less ? '✗ ' + x + ' < 5. Skipping it leaves a smaller value right of i, which breaks v[..i] < 5. It must join the green region.'
+               : '✗ ' + x + ' is not < 5, so it belongs in the amber ≥ 5 region, which grows just by advancing j. No swap needed.', 'bad');
+      draw();
+      return;
+    }
+    if (less) {
+      const msg = x + ' < 5: swap v[' + i + '] = ' + v[i] + ' with v[' + j + '] = ' + x + ', and i becomes ' + (i + 1) + '.';
+      [v[i], v[j]] = [v[j], v[i]];
+      i++;
+      advance(msg);
+    } else {
+      advance(x + ' ≥ 5 stays put; the amber region now reaches index ' + j + '.');
+    }
+  }
+
+  function reset() {
+    v = START.slice(); i = 0; j = 0; miss = 0; done = false;
+    $('pt-qs').hidden = true;
+    const box = $('pt-qopts');
+    box.textContent = '';
+    QS.forEach(o => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = o.t;
+      b.addEventListener('click', () => {
+        if (!o.ok) { b.disabled = true; b.classList.add('wrong'); say('✗ ' + o.why, 'bad'); return; }
+        box.querySelectorAll('button').forEach(x => x.disabled = true);
+        b.classList.add('right');
+        say('✓ ' + o.why, 'good');
+      });
+      box.appendChild(b);
+    });
+    say('j = 0 and i = 0: nothing is in either region yet. Is v[0] = 7 smaller than the pivot 5?');
+    draw();
+  }
+
+  $('pt-swap').addEventListener('click', () => choose(true));
+  $('pt-skip').addEventListener('click', () => choose(false));
+  $('pt-reset').addEventListener('click', reset);
+  reset();
+})();
+
+renderMC('tool-exercise', [
+  { prompt: 'You need the 100th-largest of 10 million i32 values, held in a Vec you are allowed to reorder.', options: [
+    { text: 'sort_unstable, then index it', explain: 'Correct, but O(n log n) to read one value. Selection skips ordering the rest and was about 10× faster when we measured it.' },
+    { text: 'size-100 min-heap, then peek', explain: 'O(n log k) time and O(k) space is the right call for a stream or a read-only input. Here you may reorder, so O(n) selection beats it.' },
+    { text: 'select_nth_unstable, then read it', correct: true, explain: 'Right: O(n), in place, linear even in the worst case in Rust. Index n − 100 holds the answer. About 20 ms here, against 200 ms for sort_unstable.' },
+    { text: 'counting sort, then walk', explain: 'Counting needs a small key range. i32 spans 2³² values, so the count array alone would be 32 GiB of usize.' } ] },
+  { prompt: 'Employees are already sorted by salary. Group them by department, keeping the salary order inside each department.', options: [
+    { text: 'sort_by_key on department alone', correct: true, explain: 'Right: sort_by_key is stable, so employees with equal departments keep the salary order they arrived in. The last pass becomes the primary key.' },
+    { text: 'sort_unstable_by_key on department alone', explain: 'Equal departments may come out in any order, so the salary order inside each group is lost. Use the stable call, or add salary to the key.' },
+    { text: 'select_nth_unstable_by_key at each boundary', explain: 'Selection places single elements at their sorted index, and it is unstable too. It never preserves order within a group.' },
+    { text: 'BinaryHeap keyed by department', explain: 'Popping a heap is heapsort: O(n log n) and not stable, because sift-down reorders equal keys freely. The salary order is lost.' } ] },
+  { prompt: 'Sort 100 million ages, each an integer from 0 to 120.', options: [
+    { text: 'sort_unstable on the Vec', explain: 'Correct, and ipnsort even expects only O(n log k) for k = 121 distinct values, but it still compares. About 1.1 s here, against about 60 ms for counting.' },
+    { text: 'sort, which is stable', explain: 'Stability is meaningless for bare numbers, since equal ages are indistinguishable. You pay O(n log n) plus an extra buffer for nothing.' },
+    { text: 'quickselect for every age', explain: 'Each select is a pass of O(n) expected, and 121 of them is far more work than counting’s two passes.' },
+    { text: 'counting sort, 121 buckets', correct: true, explain: 'Right: one pass to count, one to write back. O(n + 121) time and O(121) space, with no comparisons, so the n log n bound does not apply.' } ] },
+  { prompt: 'A Vec of 10 million timestamps is sorted; then 500,000 unsorted new ones are appended. Re-sort it.', options: [
+    { text: 'call sort_unstable, which is ipnsort', explain: 'Its docs name partially sorted input as the case where it loses. Measured here: about 250 ms against about 55 ms for sort.' },
+    { text: 'counting sort over the timestamps', explain: 'Timestamps span a huge range, so the count array would be far larger than the data itself.' },
+    { text: 'call sort, which is driftsort', correct: true, explain: 'Right: driftsort’s run detection finds the 10-million-long sorted prefix, so essentially only the tail gets sorted before a merge. About 55 ms here. Can you do better? Sort only the batch, then merge: O(n + b log b).' },
+    { text: 'select_nth_unstable at the midpoint index', explain: 'That places one element, the median, and leaves both sides unsorted. You need a full sort.' } ] },
+  { prompt: 'Sort a Vec<f64> of scores from highest to lowest.', options: [
+    { text: 'sort(), then reverse() it', explain: 'f64 is not Ord because NaN ≠ NaN, so v.sort() does not compile: “the trait bound f64: Ord is not satisfied”.' },
+    { text: 'sort_by with partial_cmp().unwrap() closure', explain: 'It compiles, but partial_cmp returns None when a NaN is compared, and unwrap then panics. Fine only if NaN is impossible, and you should say so.' },
+    { text: 'counting sort over scores', explain: 'Scores are floats, not small integers, so there is no bucket index. Rounding them would change the answer.' },
+    { text: 'sort_by with b.total_cmp(a) closure', correct: true, explain: 'Right: total_cmp gives f64 a total order (IEEE 754 totalOrder), so the comparator is lawful even with NaN. Passing b first makes it descending.' } ] },
+  { prompt: 'Merge overlapping meeting intervals [start, end] into the fewest blocks.', options: [
+    { text: 'sort by end, then sweep', explain: 'Sorted by end, [2, 3], [4, 5], [1, 10] sweeps into [2, 3] and [4, 10], but the answer is [1, 10]. An early start can hide behind a late end.' },
+    { text: 'sort by start, then sweep', correct: true, explain: 'Right: after sorting by start, an interval can only overlap the last merged block, so one O(n) sweep finishes. O(n log n) in total.' },
+    { text: 'HashSet of every covered minute', explain: 'Cost grows with the total length, not n, and it fails for real-valued or huge times. Sorting is O(n log n) whatever the values.' },
+    { text: 'quickselect the median start first', explain: 'Overlaps can cross the median split, so you would still have to merge across it. Order, not one rank, is what helps.' } ] }
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

@@ -52,7 +52,7 @@
     (|00⟩+|11⟩)/√2 ≠ (|00⟩+|01⟩+|10⟩+|11⟩)/2 — linearity forces the entangled state, not the product-state "two copies" a real cloner would need to produce. No unitary can satisfy the cloning equation for every input state. This is the <strong>no-cloning theorem</strong>.
   </div>
   <p>Notice the proof never used anything specific to qubits — only that U is linear (because it's unitary) and is assumed to work on <em>every</em> input state, including superpositions of states it already handles correctly individually. That's why no-cloning is a theorem, not an engineering limitation waiting on better hardware.</p>
-  <p>This is also why quantum error correction (<a href="../index.html#lesson-09">lesson 9</a>) can't use the classical trick of "make three copies and take a majority vote" — and why quantum key distribution protocols like BB84 can detect eavesdropping: an eavesdropper physically cannot make an undetectable copy of a qubit in transit to inspect later.</p>
+  <p>This is also why quantum error correction (<a href="0009-decoherence-noise-error-correction.html">lesson 9</a>) can't use the classical trick of "make three copies and take a majority vote" — and why quantum key distribution protocols like BB84 can detect eavesdropping: an eavesdropper physically cannot make an undetectable copy of a qubit in transit to inspect later.</p>
 
   <h2>Try it: is this operation reversible?</h2>
   <p>For each operation, decide whether the output alone always determines the input.</p>
@@ -99,7 +99,7 @@
       <p>4. Why does the no-cloning theorem matter for practical quantum computing?</p>
       <div class="options">
         <button onclick="quizAnswer(this,true,'q4','Right — classical error correction leans on copying and majority-voting, which no-cloning rules out, so quantum error correction needs a fundamentally different strategy.')">Quantum error correction can't copy qubits and majority-vote like classical error correction does</button>
-        <button onclick="quizAnswer(this,false,'q4','No-cloning forbids duplicating one qubit's exact state onto another — it says nothing about how many total qubits a device can hold.')">It means a quantum computer can never store more than one qubit</button>
+        <button onclick="quizAnswer(this,false,'q4','No-cloning forbids duplicating one qubit’s exact state onto another — it says nothing about how many total qubits a device can hold.')">It means a quantum computer can never store more than one qubit</button>
         <button onclick="quizAnswer(this,false,'q4','Measurement is a separate postulate entirely — no-cloning is about copying pre-measurement states, not about whether measurement is needed.')">It means measurement is unnecessary</button>
         <button onclick="quizAnswer(this,false,'q4','The proof’s contradiction specifically relies on entanglement being exactly what linearity produces — no-cloning depends on entanglement being real, not on ruling it out.')">It proves entanglement is impossible</button>
       </div>
@@ -122,7 +122,7 @@
   <div class="nav">
     <a href="0002-multi-qubit-entanglement-circuits.html">← Lesson 2: Multi-Qubit Systems &amp; Circuits</a>
     <span class="spacer"></span>
-    <a href="../index.html#lesson-04">Lesson 4: Interference &amp; the Deutsch-Jozsa Algorithm →</a>
+    <a href="0004-interference-deutsch-jozsa.html">Lesson 4: Interference &amp; the Deutsch-Jozsa Algorithm →</a>
   </div>
 
 </div>
@@ -182,7 +182,7 @@ REV_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

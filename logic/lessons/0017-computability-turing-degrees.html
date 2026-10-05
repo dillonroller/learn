@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 17 — Computability Theory &amp; Turing Degrees: How Undecidable Is It?</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Logic</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 17 of 14+ &nbsp;·&nbsp; Logic &nbsp;·&nbsp; Mastery phase &nbsp;·&nbsp; ~45 min</p>
+  <h1>Computability Theory &amp; Turing Degrees: How Undecidable Is It?</h1>
+  <p>Three earlier lessons made promises that this one keeps. <a href="0009-soundness-completeness.html#decidability">Lesson 9</a> said first-order logic is "complete but not decidable" and left the asymmetry unexplained: proof search finds every valid sentence but may run forever on the rest. <a href="0011-godels-incompleteness-theorems.html#first-incompleteness-theorem">Lesson 11</a> called the halting problem a "familiar cousin" of Gödel's proof and never proved it. <a href="0015-godel-proof-diagonalization.html#representability">Lesson 15</a> leaned on "Church–Turing material" to claim that proof-checking is arithmetic. This lesson proves the halting theorem, then turns "undecidable" from a label into a measurement. The tangible win: given a yes/no question about programs or arithmetic, you write it as quantifiers over a decidable core, count the alternations, and read off how undecidable it is.</p>
+
+  <h2>Quick recall</h2>
+  <p>Answer both before you scroll. (1) In <a href="0009-soundness-completeness.html#decidability">lesson 9</a>, what did the truth-table method guarantee that made propositional logic <em>decidable</em>? (2) In <a href="0015-godel-proof-diagonalization.html#diagonal-lemma">lesson 15</a>, what did <code>diag(n)</code> do to the formula numbered <code>n</code>? The first names the property halting lacks; the second, the move that proves it.</p>
+
+  <h2 id="halting-problem">The halting problem, actually proved</h2>
+  <p>(Answers: a procedure that <em>always terminates with the right yes/no</em>; it fed a formula its <em>own</em> code.) Any programming language serves as the model of computation; the <a href="https://plato.stanford.edu/entries/recursive-functions/#ChurThes" target="_blank">Church–Turing thesis</a> says nothing is lost by that choice. It is a thesis about the informal word "computable", not a theorem. Programs are strings and strings are numbers (<a href="0015-godel-proof-diagonalization.html#godel-numbering">Gödel numbering</a> again), so a program can take a program, even itself, as input.</p>
+  <div class="callout warn">
+    <strong>Theorem (Turing, 1936, in modern form): halting is undecidable</strong>
+    No program <code>halts(src, input)</code> always terminates and returns <code>true</code> exactly when the program <code>src</code>, run on <code>input</code>, eventually halts.
+  </div>
+  <p>Proof. Suppose someone hands you one. Add a few lines:</p>
+  <pre><code><span class="kw">fn</span> <span class="fn">halts</span>(src: &amp;<span class="ty">str</span>, input: &amp;<span class="ty">str</span>) -&gt; <span class="ty">bool</span> { <span class="cm">/* assumed: always returns, always right */</span> }
+
+<span class="kw">fn</span> <span class="fn">contrary</span>(src: &amp;<span class="ty">str</span>) {
+    <span class="kw">if</span> <span class="fn">halts</span>(src, src) {
+        <span class="kw">loop</span> {}   <span class="cm">// predicted to halt? then run forever</span>
+    }             <span class="cm">// predicted to loop? then return at once</span>
+}</code></pre>
+  <p>Let <code>C</code> be the complete source of <code>contrary</code> (with <code>halts</code> pasted in) and ask what <code>contrary(C)</code> does. If <code>halts(C, C)</code> says <code>true</code>, <code>contrary(C)</code> loops forever, so <code>halts</code> was wrong. If it says <code>false</code>, <code>contrary(C)</code> returns at once: wrong again. Every candidate decider fails on the input built from it. ∎ Since <code>contrary</code> only asks <code>halts(src, src)</code>, even the <em>self-halting</em> question ("does e halt on its own code?") is undecidable.</p>
+  <div class="callout">
+    <strong>The promise, kept literally</strong>
+    This is <a href="0011-godels-incompleteness-theorems.html#first-incompleteness-theorem">lesson 11</a>'s "familiar cousin" in the promised shape: an object engineered to contradict whatever the solver says about it. The self-application <code>halts(src, src)</code> is <a href="0015-godel-proof-diagonalization.html#diagonal-lemma">lesson 15's <code>diag</code></a>, code fed its own code, as in a quine. <code>G</code> says "I am unprovable"; <code>contrary(C)</code> does the opposite of whatever you predict; the <a href="../../algorithmic-info-theory/lessons/0001-kolmogorov-complexity.html#uncomputability-of-k">uncomputability of K(x)</a> is a third family member. Nothing is contradictory except the assumed decider.
+  </div>
+  <div class="callout warn">
+    <strong>What the theorem does not say</strong>
+    <em>Not</em> that a particular program's behaviour is unknowable: every instance has a definite answer, and many are settled one by one. BB(5) = 47,176,870 was pinned down in 2024 by settling every five-state, two-symbol Turing machine, stubborn holdouts included, checked in the Coq proof assistant (<a href="https://www.quantamagazine.org/amateur-mathematicians-find-fifth-busy-beaver-turing-machine-20240702/" target="_blank">Quanta</a>). <em>Not</em> about patience: "halts within 10⁶ steps" is decidable; run it and look. <em>Not</em> about hardware: a Turing machine can simulate a quantum computer, so quantum hardware changes cost, never possibility (<a href="https://en.wikipedia.org/wiki/Quantum_computing#Computability" target="_blank">Wikipedia</a>; <a href="https://plato.stanford.edu/entries/qt-quantcomp/#PhysCompComp" target="_blank">SEP</a>). Cost is <a href="../../cs-interviews/lessons/0001-big-o-and-complexity.html">complexity theory</a>'s question, where <a href="../../quantum-computing/lessons/0008-quantum-complexity-bqp.html#bqp">BQP</a> lives. What the theorem rules out is one <em>uniform</em> program that is right on every input.
+  </div>
+
+  <h2 id="computably-enumerable">Half a decider: computably enumerable sets</h2>
+  <p>Halt is half-decidable: if <code>e</code> halts on <code>n</code>, running it <em>confirms</em> so in finite time. A set is <strong>computably enumerable (c.e.)</strong> when some program halts on exactly its members: "yes" is always eventually confirmed, "no" may never be. Equivalently, membership is "a finite witness exists" for a decidable check. For Halt the witness is a step count <code>s</code> and the check is <code>Step(e, n, s)</code>: "run <code>e</code> on <code>n</code> for <code>s</code> steps; has it stopped?" Listing every yes-instance takes dovetailing, which <a href="../../algorithmic-info-theory/lessons/0002-chaitins-omega.html#omega-encodes-halting">the Ω lesson</a> already walked through.</p>
+  <div class="callout">
+    <strong>Decidable ⟺ c.e. and co-c.e. (Post, 1944)</strong>
+    If A and its complement are both c.e., run their confirmers side by side: every n is on one side, so one search stops and says which. A decider confirms both sides, so the converse is free. Corollary: <code>¬Halt</code> is <em>not</em> c.e., or Halt would be decidable (<a href="https://plato.stanford.edu/entries/recursive-functions/#CompCompEnumSets" target="_blank">SEP §3.3</a>).
+  </div>
+  <p>That is <a href="0009-soundness-completeness.html#decidability">lesson 9</a>'s asymmetry, named. By <a href="0009-soundness-completeness.html#completeness">completeness</a> every valid sentence has a proof, and proof-checking is mechanical, so FOL validity is c.e. If invalidity were c.e. too, validity would be decidable. The next section shows it is not, so no procedure, however clever its search, can always know when to give up.</p>
+
+  <h2 id="entscheidungsproblem">Hilbert's third goal fails: the Entscheidungsproblem</h2>
+  <p><a href="0011-godels-incompleteness-theorems.html#hilberts-program">Hilbert's program</a> wanted a mechanical procedure to settle any statement; the core case, posed by Hilbert and Ackermann (1928), is the <em>Entscheidungsproblem</em>: decide whether a first-order sentence is valid. Church and <a href="https://www.cs.virginia.edu/~robins/Turing_Paper_1936.pdf" target="_blank">Turing (1936)</a> showed there is no such procedure. From a program <code>e</code> and input <code>n</code> you can mechanically write a sentence <code>φ<sub>e,n</sub></code> describing the computation, valid iff <code>e</code> halts on <code>n</code> (<a href="https://plato.stanford.edu/entries/recursive-functions/#EntsUnde" target="_blank">SEP §1.7</a>). A validity decider would be a halting decider. So validity is c.e. but undecidable, in pure logic, before any arithmetic enters.</p>
+  <div class="callout">
+    <strong>Incompleteness, re-derived from halting</strong>
+    Let T be a sound theory whose theorems a program can list (PA qualifies), and suppose T proved every true "program e never halts on input e", that is, every true <code>∀s ¬Step(e, e, s)</code>. Then decide self-halting: run <code>e</code> on <code>e</code> while listing T's theorems for "e never halts". Soundness makes exactly one search stop. That is impossible, so T misses some true "e never halts": Gödel I for sound theories, with the diagonal argument spent once, inside the halting proof (<a href="https://www.logicmatters.net/igt/pdfs/GodelBookLM.pdf" target="_blank">Smith §43.4</a>; <a href="https://ic.openlogicproject.org/ic-screen.pdf" target="_blank">Open Logic §6.14</a> weakens soundness to ω-consistency). <a href="0015-godel-proof-diagonalization.html#constructing-g">Lesson 15</a>'s route needs only consistency to make G unprovable, and names the sentence; the halting route can be tightened to do the same, naming a Π₁ sentence of its own (Smith §43.5).
+  </div>
+  <div class="callout">
+    <strong>The bridge to intuitionism: what LEM costs</strong>
+    PA proves <code>∀e (Halt(e) ∨ ¬Halt(e))</code> in one line, as an instance of <a href="0016-intuitionistic-logic.html#law-of-excluded-middle">LEM</a>. Under <a href="0016-intuitionistic-logic.html#bhk-interpretation">BHK</a>, a proof must say, uniformly in e, <em>which</em> disjunct holds. Heyting Arithmetic makes that exact via the Church–Kleene rule: if HA proves <code>∀x ∃y A(x, y)</code>, a computable function produces the y (<a href="https://plato.stanford.edu/entries/logic-intuitionistic/#AdmiRuleIntuLogiArit" target="_blank">SEP §4.2</a>), and a disjunction is an ∃ over a 0/1 tag. An HA proof would be a halting decider, so HA cannot prove what PA proves trivially.
+  </div>
+
+  <h2 id="turing-reducibility">Measuring hardness: oracles and reductions</h2>
+  <p>To compare undecidable problems, pretend one is handed to you as a black box. An <strong>oracle machine</strong> (Turing, 1939) is an ordinary program that may also call <code>oracle_b(n) -&gt; bool</code>, which answers "is n in B?" in one step. <strong>A ≤<sub>T</sub> B</strong> (<em>Turing reducible</em>) means some oracle program decides A given B's oracle. <strong>A ≤<sub>m</sub> B</strong> (<em>many-one</em>) is the special case of one query with the answer passed through unchanged: a computable <code>f</code> with <code>n ∈ A ⟺ f(n) ∈ B</code> (<a href="https://plato.stanford.edu/entries/recursive-functions/#ReduDegr" target="_blank">SEP §3.5</a>).</p>
+  <pre><code><span class="cm">// ¬Halt ≤_T Halt: one query, answer flipped</span>
+<span class="kw">fn</span> <span class="fn">never_halts</span>(e: <span class="ty">u64</span>, oracle_halt: <span class="kw">impl</span> <span class="ty">Fn</span>(<span class="ty">u64</span>) -&gt; <span class="ty">bool</span>) -&gt; <span class="ty">bool</span> {
+    !<span class="fn">oracle_halt</span>(e)
+}</code></pre>
+  <p><code>(e, n) ↦ φ<sub>e,n</sub></code> gives Halt ≤<sub>m</sub> Validity; "search for a proof of φ, halt if found" gives Validity ≤<sub>m</sub> Halt. Equally hard. But <code>never_halts</code> flips the answer, which ≤<sub>m</sub> forbids, and rightly: ≤<sub>m</sub> preserves being c.e., so ¬Halt ≰<sub>m</sub> Halt. Keep that asymmetry; it returns as Σ versus Π.</p>
+  <div class="callout warn">
+    <strong>Direction is everything</strong>
+    To prove a new problem B undecidable, reduce a known-hard problem <em>to</em> B: Halt ≤ B, "if I could solve B, I could solve halting." Showing B ≤ Halt proves only that B is <em>no harder</em> than halting.
+  </div>
+
+  <h2 id="turing-degree">Turing degrees: 0 and 0′</h2>
+  <p>A ≡<sub>T</sub> B (Turing equivalent) when each reduces to the other. A <strong>Turing degree</strong> is an equivalence class under ≡<sub>T</sub>: a bucket of problems carrying exactly the same information. <strong>0</strong> is the bucket of decidable sets. <strong>0′</strong> is the degree of Halt, which also holds ¬Halt (flip the oracle), FOL validity (the two reductions above), and Chaitin's Ω, whose bits <a href="../../algorithmic-info-theory/lessons/0002-chaitins-omega.html#omega-encodes-halting">encode halting</a> and which is <a href="https://en.wikipedia.org/wiki/Chaitin%27s_constant" target="_blank">Turing equivalent to it</a>. Halt is the hardest c.e. set: every c.e. set is ≤<sub>m</sub> Halt (<a href="https://plato.stanford.edu/entries/recursive-functions/#ManyOneDegr" target="_blank">SEP §3.5.1</a>).</p>
+
+  <h2 id="turing-jump">The jump: no hardest problem</h2>
+  <p>Give every program a Halt oracle. These oracle programs have a halting problem of their own. In general the <strong>jump</strong> A′ is the halting problem for programs with an A-oracle; so 0′ is the jump of the decidable sets, and 0″ is the jump of Halt.</p>
+  <div class="callout warn">
+    <strong>Theorem: A &lt;<sub>T</sub> A′ for every A</strong>
+    <em>A′ is not computable from A:</em> rerun the halting proof with every program allowed to call <code>oracle_a</code>. If an A-oracle program <code>halts_with(src, input, oracle_a)</code> decided A′, then <code>contrary_with</code> ("if <code>halts_with(src, src, oracle_a)</code>, loop forever") is a legal A-oracle program, and its own source gives the same contradiction line for line; the proof never cared what programs may call. <em>A ≤<sub>T</sub> A′:</em> "ask the oracle whether n ∈ A; halt if yes, loop if no" halts exactly when n ∈ A, so one A′ query answers it.
+  </div>
+  <p>So <code>0 &lt; 0′ &lt; 0″ &lt; 0‴ &lt; …</code> with no top (<a href="https://plato.stanford.edu/entries/recursive-functions/#TuriDegr" target="_blank">SEP §3.5.2</a>). A halting oracle does not decide everything: its own halting problem is out of reach, as in Aaronson's tower of <a href="https://www.scottaaronson.com/writings/bignumbers.html" target="_blank">"super" and "super duper" machines</a>. You have seen the shape: <a href="0015-godel-proof-diagonalization.html#why-arithmetization-matters">add G as an axiom, get G′ one level up</a>. Patch in the answer and the diagonal construction runs again on the patched system.</p>
+  <p>The degrees are not a single ladder, though: Kleene and Post (1954) built <em>incomparable</em> degrees, and Friedberg (1957) and Muchnik (1956) built c.e. sets whose degrees lie strictly between 0 and 0′, solving "Post's problem" with the priority method (same SEP section). The jump sequence is a spine through a messier structure; we only need the spine.</p>
+
+  <h2 id="arithmetical-hierarchy">The practical tool: count the quantifiers</h2>
+  <p>The <strong>arithmetical hierarchy</strong> reads hardness off a definition. Start from a decidable core: <code>Step(e, n, s)</code>, <code>Prime(p)</code>, or <a href="0015-godel-proof-diagonalization.html#representability">lesson 15</a>'s <code>Proof(x, y)</code>, the "finite, mechanical, terminating" check. A bounded quantifier (<code>∃x&lt;t</code>, <code>∀x&lt;t</code>) is a for-loop, so it stays inside the core. Then stack <em>unbounded</em> <a href="0006-predicate-logic-quantifiers.html#existential-quantifier">quantifiers</a> in front. <strong>Σₙ</strong>: n alternating blocks starting with ∃. <strong>Πₙ</strong>: the same starting with ∀. <strong>Δₙ</strong>: expressible both ways; Δ₁ turns out to be exactly the decidable sets. (Officially the core may use only bounded quantifiers. A decidable relation can always be rewritten with one extra unbounded quantifier of either type, so pick the type of the innermost block and merge: levels ≥ 1 come out the same.) The procedure:</p>
+  <ol>
+    <li>Write the claim as quantifiers over a decidable core, pushing ¬ inward first (it swaps ∃ and ∀).</li>
+    <li>Drop bounded quantifiers: they are loops inside the core.</li>
+    <li>Merge adjacent same-type quantifiers: <code>∃n ∃s</code> is one <code>∃k</code>, with <code>k</code> coding the pair <code>⟨n, s⟩</code>.</li>
+    <li>Count the blocks. First block ∃ gives Σ; ∀ gives Π.</li>
+  </ol>
+  <pre><code>Halt(e)    ∃s Step(e,0,s)        Σ₁   <span class="cm">// e halts on input 0</span>
+¬Halt(e)   ∀s ¬Step(e,0,s)       Π₁
+Prov(y)    ∃x Proof(x,y)         Σ₁
+Con(PA)    ∀x ¬Proof(x,⌜⊥⌝)      Π₁
+G          ∀x ¬Proof(x,⌜G⌝)      Π₁
+TOT(e)     ∀n ∃s Step(e,n,s)     Π₂   <span class="cm">// halts on every input</span></code></pre>
+  <p>Because <a href="0015-godel-proof-diagonalization.html#constructing-g"><code>G ↔ ¬Prov(⌜G⌝)</code></a>, Gödel's unprovable truth is Π₁, as is <a href="0011-godels-incompleteness-theorems.html#second-incompleteness-theorem">Con(PA)</a>: the same shape as the "e never halts" sentences above. A count is an upper bound, since a cleverer formula might sit lower. It is exact when the problem is <em>complete</em> for its level (every problem there reduces to it): Halt is Σ₁-complete, ¬Halt Π₁-complete, TOT Π₂-complete (<a href="https://plato.stanford.edu/entries/recursive-functions/#AritHier" target="_blank">SEP §3.6.1</a>). Swap TOT's quantifiers and you get <a href="0007-symbolizing-fol.html#quantifier-order">lesson 7's quantifier-order trap</a>: <code>∃s ∀n Step(e,n,s)</code> claims one step bound for every input, a different claim entirely.</p>
+  <div class="callout warn">
+    <strong>Classify problems and formulas, not lone facts</strong>
+    A problem with an input (e, φ) is a set, and its level is a real invariant. A single sentence such as Goldbach's conjecture has no input: as a set it is trivially decidable, since one of the two constant programs is right, though nobody knows which. For a lone sentence, classify the formula that states it: its level says what kind of evidence could settle it.
+  </div>
+
+  <h2 id="posts-theorem">Post's theorem: quantifiers count jumps</h2>
+  <div class="callout warn">
+    <strong>Post's theorem</strong>
+    For every n ≥ 0, a set is Σₙ₊₁ exactly when it is c.e. relative to an oracle for 0⁽ⁿ⁾, and Δₙ₊₁ exactly when it is computable from 0⁽ⁿ⁾. For n ≥ 1, the n-fold jump of ∅ (Halt, when n = 1) is Σₙ-complete, and the levels never collapse (<a href="https://plato.stanford.edu/entries/recursive-functions/#AritHier" target="_blank">SEP §3.6.1</a>, Thms 3.10–3.11).
+  </div>
+  <p>We prove only n = 0. If A is defined by <code>∃s R(n, s)</code> with R decidable, "try s = 0, 1, 2, … until R holds" halts exactly on A, so A is c.e. Conversely, if program e halts exactly on A, then <code>n ∈ A ⟺ ∃s Step(e, n, s)</code>, a Σ₁ definition. With Post's 1944 result, Δ₁ = decidable follows. The next level shows the pattern: in TOT's <code>∀n ∃s Step(e, n, s)</code>, a Halt oracle answers the whole inner <code>∃s</code> in one query, leaving a single ∀, a Π₁ question relative to 0′. Each quantifier block costs one jump.</p>
+  <p>The complete problems at Σₙ and Πₙ are complements, so they share the degree 0⁽ⁿ⁾. What separates them is which answer a finite witness settles. A halting run <em>confirms</em> a Σ₁ claim ("e halts"); one counterexample <em>refutes</em> a Π₁ claim ("e never halts", "PA is consistent"); a ∀∃ claim like "this service always eventually replies" is in general neither confirmed nor refuted by any finite log. That is the payoff for evaluating arguments: before debating whether a claim is true, ask what shape of evidence could ever settle it.</p>
+
+  <h2>Try it: place the problem on the ladder</h2>
+  <p>Write the quantifier prefix in your head, drop bounded quantifiers, merge same-type neighbours, then pick the lowest level that fits; for a lone sentence, classify its formula, as the callout above says. Feedback reveals the formula. <code>Step(e, n, s)</code> is "has e, on input n, halted by step s?"</p>
+  <div id="hierarchy-exercise" class="mc-exercise"></div>
+  <p>Now read the answers through Post's theorem: the complete problems at Σ₁ and Π₁ (halting, validity, never-halting) sit at degree 0′; those at Σ₂ and Π₂ (finitely many, infinitely many, TOT) sit at 0″, strictly harder by the jump theorem.</p>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. What exactly does the halting theorem rule out?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Individual cases are settled all the time; the BB(5) project settled every five-state machine. The theorem forbids only one program right on all inputs.')">Knowing, for some particular program, whether it halts</button>
+        <button onclick="quizAnswer(this,true,'q1','Right. contrary defeats any single candidate decider on the input built from it, so no uniform decider exists.')">One program correct on every program–input pair</button>
+        <button onclick="quizAnswer(this,false,'q1','Proofs that particular programs never halt are plentiful; the BB(5) holdout machines needed exactly such proofs.')">Any proof that a specific program never halts</button>
+        <button onclick="quizAnswer(this,false,'q1','Speed is irrelevant: “halts within N steps” is decidable, and no amount of speed rescues the unbounded question.')">A halting checker fast enough to use in practice</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. You want to prove a new problem B undecidable. Which reduction do you need?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','That is B ≤ Halt: B is no harder than halting. A decidable B satisfies this too, so it proves nothing about hardness.')">Turn each B instance into a halting instance</button>
+        <button onclick="quizAnswer(this,false,'q2','Many c.e. sets are decidable, every finite set for a start; sharing a class with Halt does not make B as hard.')">Show B and Halt are both computably enumerable</button>
+        <button onclick="quizAnswer(this,false,'q2','That reduces B to Halt, the wrong direction. A Halt oracle decides easy problems too, so this is only an upper bound.')">Decide B using a halting oracle as a subroutine</button>
+        <button onclick="quizAnswer(this,true,'q2','Right. Halt ≤ B: a decider for B would then decide halting, which the diagonal proof forbids.')">Turn each halting instance into a B instance</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. A program may call an oracle for Halt. What can it do?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q3','Its own halting problem, the jump 0″, defeats it by the same diagonal proof with the oracle allowed everywhere.')">Decide every arithmetic question whatsoever</button>
+        <button onclick="quizAnswer(this,false,'q3','It decides Halt with one query, which no ordinary program can, so it is strictly more powerful.')">Decide nothing beyond what ordinary programs can</button>
+        <button onclick="quizAnswer(this,true,'q3','Right. With a Halt oracle you sit at 0′; the halting problem for oracle programs is 0″, out of reach by the relativized proof.')">Decide Halt, but not its own halting problem</button>
+        <button onclick="quizAnswer(this,false,'q3','TOT is Π₂-complete, degree 0″. The oracle settles each inner ∃s, but an unbounded ∀n remains.')">Decide TOT, since TOT reduces to Halt</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. How do Halt and ¬Halt compare?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q4','Right. Flipping the oracle’s answer makes them Turing equivalent (0′), yet Halt is Σ₁ and ¬Halt is Π₁: only halting is confirmed by a finite run.')">Same Turing degree, different arithmetical levels</button>
+        <button onclick="quizAnswer(this,false,'q4','A set and its complement are always Turing equivalent: one query, answer negated. Negation costs no jump.')">¬Halt is one Turing degree higher than Halt</button>
+        <button onclick="quizAnswer(this,false,'q4','Negation swaps ∃ and ∀, turning Σ₁ into Π₁. Halt is c.e. and its complement is not, so the levels really differ.')">Same arithmetical level, since one negates the other</button>
+        <button onclick="quizAnswer(this,false,'q4','If both were c.e., Post’s 1944 observation would make Halt decidable. Only the ∃ side is c.e.')">Both are c.e., because each is a single quantifier</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>On paper: write the prefix of the twin prime conjecture, <code>∀n ∃p (p &gt; n ∧ Prime(p) ∧ Prime(p+2))</code>, and compare it with Goldbach's. Explain why one finite counterexample could refute Goldbach while no finite search could refute twin primes (hint: classify each negation), and what would change if someone proved a bound on how far past n the next twin pair must lie. Then classify "program e halts on all but finitely many inputs". Run the four steps carefully: you should land one rung higher than anything in the exercise.</p>
+
+  <h2>Primary resource</h2>
+  <p><a href="https://plato.stanford.edu/entries/recursive-functions/#CompTheo" target="_blank">Stanford Encyclopedia of Philosophy — Recursive Functions, §3 Computability Theory</a> (Dean &amp; Naibo) covers this whole arc in one place, §3.2 through §3.6.1, with the Entscheidungsproblem story in §1.7. For a slower, proof-complete companion, read chapter 43 of Peter Smith's free <a href="https://www.logicmatters.net/igt/pdfs/GodelBookLM.pdf" target="_blank"><em>An Introduction to Gödel's Theorems</em></a>.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> A good one: "In the jump proof, why must <code>contrary_with</code> be allowed to call the oracle too?" Or bring a claim you care about (a termination guarantee for a Rust function, a conjecture cited in a debate) and we will write its quantifier prefix and place it on the ladder together.
+  </div>
+
+  <div class="nav">
+    <a href="0016-intuitionistic-logic.html">← Lesson 16: Intuitionistic Logic</a>
+    <span class="spacer"></span>
+    <a href="../index.html">Logic: All Lessons →</a>
+  </div>
+
+</div>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+// Every card offers the same five levels; why[i] explains LEVELS[i], and ans is the correct index.
+const LEVELS = ['Decidable', 'Σ₁', 'Π₁', 'Σ₂', 'Π₂'];
+const LADDER = [
+  { q: 'Program e, run on input 0, halts within 1,000,000 steps.', ans: 0, why: [
+    'Right. ∃s≤10⁶ Step(e,0,s): the only quantifier is bounded, so simulate a million steps and look.',
+    'It looks like halting, but ∃s is bounded by 10⁶, a finite loop. Decidable sets do lie in Σ₁, but Decidable is the lower rung.',
+    'Nothing universal here, and the one quantifier is bounded: run it a million steps and you know.',
+    'One quantifier, and it is bounded: there are no alternations to count.',
+    'No ∀∃ pattern, just one bounded search, so it sits below every rung.' ] },
+  { q: 'The first-order sentence φ is valid.', ans: 1, why: [
+    'That was Hilbert’s hope; Church and Turing reduced Halt to validity, so it is undecidable.',
+    'Right. By completeness, valid means ∃p Proof(p,⌜φ⌝), with a decidable proof check. Search confirms every yes.',
+    '“True in every model” sounds universal, but models are not numbers; completeness turns it into ∃p Proof(p,⌜φ⌝).',
+    'One ∃ over proof codes in front of a decidable check: nothing alternates.',
+    'No ∀∃ pattern: by completeness, validity is a single ∃ over proofs.' ] },
+  { q: 'The formula stating Goldbach’s conjecture: every even number greater than 2 is a sum of two primes.', ans: 2, why: [
+    'Each n is a finite check, but no loop finishes the unbounded ∀n. (The lone sentence is trivially decidable as a set; the card asks about its formula.)',
+    'Σ₁ is the form of the negation: ∃n, an even counterexample. Goldbach is the universal claim.',
+    'Right. ∀n (Even(n) ∧ n>2 → ∃p<n ∃q<n (Prime(p) ∧ Prime(q) ∧ p+q=n)). The inner ∃p ∃q are bounded by n.',
+    'The ∃p ∃q are bounded by n, so they are loops, not a second rung. Only ∀n counts.',
+    'It looks like ∀n ∃p ∃q, but p and q are bounded by n, so it is Π₁.' ] },
+  { q: 'Program e halts on at least one input.', ans: 1, why: [
+    'A yes is confirmed by finding the input and step count; a no never is. Halt reduces to it.',
+    'Right. ∃n ∃s Step(e,n,s), and the two adjacent ∃ merge by pairing ⟨n,s⟩. Dovetailing finds the witness.',
+    'There is no ∀ anywhere: “some input” is a pure existential search.',
+    'Two quantifiers of the same type: ∃n ∃s collapses to one ∃ over pairs. Only alternations count.',
+    'No ∀ at all, and ∃n ∃s merges into a single ∃.' ] },
+  { q: 'Program e halts on infinitely many inputs.', ans: 4, why: [
+    'Two alternating unbounded blocks put this two rungs up; no finite check can finish it.',
+    'Finding many halting inputs never confirms “infinitely many”. The claim starts with ∀u: beyond every bound.',
+    'There is an unbounded ∃ inside: ∀u ∃n ∃s (n>u ∧ Step(e,n,s)).',
+    'That is its complement, “only finitely many” (∃u ∀n ∀s). This claim starts with ∀u.',
+    'Right. ∀u ∃n ∃s (n>u ∧ Step(e,n,s)): beyond every bound, a halting input. ∃n ∃s merges, leaving ∀∃.' ] },
+  { q: 'Program e halts on only finitely many inputs.', ans: 3, why: [
+    'Two alternating unbounded blocks stand in front: computable from 0″, not from 0′.',
+    'Watching e halt on some inputs says nothing about the rest. The form ∃u ∀n ∀s alternates.',
+    'It starts with ∃u (some bound), then ∀: level 2, existential first.',
+    'Right. ∃u ∀n ∀s (n>u → ¬Step(e,n,s)). ∀n ∀s merges, leaving ∃∀. Compare the previous card: order flips the level.',
+    'Π₂ is its complement, “infinitely many” (∀u ∃n ∃s). Here the bound comes first: ∃u ∀n ∀s.' ] },
+];
+renderMC('hierarchy-exercise', LADDER.map(c => ({
+  prompt: c.q,
+  options: LEVELS.map((text, i) => ({ text, correct: i === c.ans, explain: c.why[i] })),
+})));
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

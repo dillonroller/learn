@@ -67,7 +67,7 @@
   </div>
 
   <h2>The system from lessons 5 and 8 has both</h2>
-  <p>The natural deduction system you've been using — Modus Ponens, Modus Tollens, Universal Instantiation, Existential Generalization, and the rest — is not just a convenient toolkit. It was proven, rigorously, to be both sound and complete for first-order logic. That proof is Kurt Gödel's <strong>completeness theorem</strong>, from 1929 — two years before the far more famous result that gets his name attached to a very different kind of theorem, which is exactly where <a href="../index.html#lesson-11">lesson 11</a> is headed. Don't let the shared name merge them in your head; they answer different questions, and this lesson's result is the reassuring one.</p>
+  <p>The natural deduction system you've been using — Modus Ponens, Modus Tollens, Universal Instantiation, Existential Generalization, and the rest — is not just a convenient toolkit. It was proven, rigorously, to be both sound and complete for first-order logic. That proof is Kurt Gödel's <strong>completeness theorem</strong>, from 1929 — two years before the far more famous result that gets his name attached to a very different kind of theorem, which is exactly where <a href="0011-godels-incompleteness-theorems.html">lesson 11</a> is headed. Don't let the shared name merge them in your head; they answer different questions, and this lesson's result is the reassuring one.</p>
 
   <div class="callout">
     <strong>What this buys you, practically</strong>
@@ -116,7 +116,7 @@
       <p>3. When a logician says "this proof system is sound," in context they almost certainly mean…</p>
       <div class="options">
         <button onclick="quizAnswer(this,false,'q3','That’s the argument-level sense from lesson 1 — about one specific argument’s premises, not about a rulebook.')">This particular argument has true premises</button>
-        <button onclick="quizAnswer(this,true, 'q3','Right — in the context of discussing a proof system (a rulebook), "sound" means the rules never derive a semantically invalid argument.')">The system's rules never derive an invalid argument</button>
+        <button onclick="quizAnswer(this,true, 'q3','Right — in the context of discussing a proof system (a rulebook), &quot;sound&quot; means the rules never derive a semantically invalid argument.')">The system's rules never derive an invalid argument</button>
         <button onclick="quizAnswer(this,false,'q3','That’s decidability — a claim about a terminating procedure, not about whether the rules preserve validity.')">Every question about validity can be answered mechanically</button>
         <button onclick="quizAnswer(this,false,'q3','That’s completeness — the reverse guarantee, that every valid argument is provable, not that the rules avoid proving invalid ones.')">Every valid argument is provable in the system</button>
       </div>
@@ -237,7 +237,7 @@ SC_ITEMS.forEach((item, i) => {
   card.innerHTML = `
     <div class="mc-formula"><span class="en">${item.english}</span></div>
     <div class="mc-options">
-      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'")}')">${o.text}</button>`).join('')}
+      ${item.options.map(o => `<button onclick="mcAnswer(this,${!!o.correct},'${cardId}','${o.explain.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">${o.text}</button>`).join('')}
     </div>
     <div class="mc-fb"></div>
   `;

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 5 — Digital Signatures: Authentication From the Same Number Theory</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Cryptography &amp; Number Theory</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 5 of 8 &nbsp;·&nbsp; Cryptography &amp; Number Theory &nbsp;·&nbsp; ~40 min</p>
+  <h1>Digital Signatures: Authentication From the Same Number Theory</h1>
+  <p><a href="0004-diffie-hellman-discrete-log-problem.html#diffie-hellman-protocol">Lesson 4</a> ended on a gap: nothing tells Alice that the B = 19 she received came from Bob, so a man-in-the-middle can run Diffie-Hellman separately with each of them. <a href="0002-rsa-key-generation-encryption-correctness-proof.html#rsa-key-generation">Lesson 2's RSA key</a> hid a message from everyone but its owner; run the same key the other way and it does the opposite job — everyone can read the message, but only the owner could have produced the number attached to it. You'll sign and verify with that (3233, 17, 2753) key, forge textbook RSA signatures without it, build DSA on the Diffie-Hellman group mod 23, recover a DSA private key from two signatures that reused a random number, and then close that gap.</p>
+
+  <h2 id="digital-signature">What a signature is — and what it isn't</h2>
+  <p>A <strong>digital signature scheme</strong> is three algorithms:</p>
+  <ul>
+    <li><strong>KeyGen()</strong> → (sk, pk): a private signing key and a public verification key.</li>
+    <li><strong>Sign(sk, m)</strong> → σ: only the holder of sk can run it.</li>
+    <li><strong>Verify(pk, m, σ)</strong> → accept or reject: anyone can run it.</li>
+  </ul>
+  <p>Correctness means Verify always accepts an honest signature. Security means that without sk no efficient attacker can produce a pair (m, σ) that Verify accepts and the signer never signed — even after collecting signatures on messages of their own choosing (formally, <em>existential unforgeability under chosen-message attack</em>). The key roles flip relative to encryption: in RSA encryption the <a href="0002-rsa-key-generation-encryption-correctness-proof.html#public-key-def">public key</a> produces and the <a href="0002-rsa-key-generation-encryption-correctness-proof.html#private-key-def">private key</a> consumes; in signing, the private key produces and the public key checks.</p>
+  <p>What you get, as NIST's <a href="https://csrc.nist.gov/pubs/fips/186-5/final" target="_blank">Digital Signature Standard (FIPS 186-5)</a> puts it: <em>integrity</em> (alter m and verification fails), <em>authentication</em> of the signer, and <em>non-repudiation</em> — because only the private key could have produced σ, a third party such as a judge can verify it too, and the signer cannot credibly deny it later. Rivest, Shamir and Adleman made the same point in the <a href="https://people.csail.mit.edu/rivest/Rsapaper.pdf" target="_blank">1978 RSA paper</a>: a signature must be message-dependent <em>and</em> signer-dependent. What you do <em>not</em> get is secrecy: m travels in the clear next to σ. Signatures prove; they don't hide.</p>
+
+  <h2 id="rsa-signature">RSA signatures: the same key, run backwards</h2>
+  <p>With Bob's RSA key — public (n = 3233, e = 17), private d = 2753 — textbook RSA signing is:</p>
+  <pre><code>Sign:    σ = m^d mod n
+Verify:  accept iff σ^e mod n = m</code></pre>
+  <div class="callout">
+    <strong>Worked example: Bob signs m = 65</strong>
+    σ = 65<sup>2753</sup> mod 3233 = <strong>588</strong> (12 bits of 2753 through <a href="0001-modular-arithmetic-eulers-theorem.html#fast-modular-exponentiation">square-and-multiply</a>). Anyone holding the public key checks it with 17 = 10001<sub>2</sub>:
+    <pre><code>bit 1: r = 1² · 588 mod 3233         = 588
+bit 0: r = 588² mod 3233             = 3046
+bit 0: r = 3046² mod 3233            = 2639
+bit 0: r = 2639² mod 3233            = 439
+bit 1: r = 439² mod 3233 · 588
+         = 1974 · 588 mod 3233       = 65  ✓</code></pre>
+    The result equals m, so Verify accepts (65, 588). Compare <a href="0002-rsa-key-generation-encryption-correctness-proof.html#rsa-encryption">RSA encryption</a>: <em>encrypting</em> 65 gave 2790. Same key, same message, different number, opposite job — 2790 hides 65 from everyone but Bob; 588 sits next to a public 65 and proves Bob approved it.
+  </div>
+  <p>Why it works is the <a href="0002-rsa-key-generation-encryption-correctness-proof.html#rsa-correctness-proof">lesson 2 correctness proof</a> with the exponents in the other order: σ<sup>e</sup> = m<sup>d·e</sup>, and d·e = 17 · 2753 = 46801 = 1 + 15 · 3120, so σ<sup>e</sup> = m · (m<sup>3120</sup>)<sup>15</sup> ≡ m (mod 3233) by <a href="0001-modular-arithmetic-eulers-theorem.html#eulers-theorem">Euler's theorem</a> (for m coprime to n, as 65 is; the linked proof covers the rest). Forging a signature on a <em>given</em> m from the public key alone means computing an e-th root of m mod n — exactly the <a href="0003-why-factoring-is-hard-shors-algorithm.html#rsa-problem-def">RSA problem</a>.</p>
+  <div class="callout warn">
+    <strong>Signing is not "encrypting with the private key"</strong>
+    That slogan is a coincidence of textbook RSA, where the map x ↦ x<sup>d</sup> that signs happens to be the same map that decrypts. DSA below has no encryption counterpart at all, and even real RSA uses different, incompatible encodings for the two jobs — RSASSA-PSS for signatures, RSAES-OAEP for encryption (<a href="https://www.rfc-editor.org/rfc/rfc8017" target="_blank">RFC 8017</a>). Treat Sign and Verify as algorithms in their own right.
+  </div>
+
+  <h2>Forging textbook RSA without the key</h2>
+  <p>Textbook RSA signatures fail the security definition in two ways, neither of which needs d. The first is an <strong id="existential-forgery">existential forgery</strong>: any valid (m, σ) the signer never signed, even if m is a meaningless number. Choose σ first, then let the public key tell you which m it signs. With σ = 2: 2<sup>17</sup> = 131072 = 40 · 3233 + 1752, so <strong>(1752, 2)</strong> verifies under Bob's key. Bob never saw 1752.</p>
+  <p>The second is malleability: (a<sup>d</sup>)(b<sup>d</sup>) = (ab)<sup>d</sup>, so signatures multiply. Get Bob to sign the harmless-looking 2 and 3 — σ(2) = 1027, σ(3) = 1857 — and then 1027 · 1857 = 1907139 = 589 · 3233 + <strong>2902</strong>, and 2902<sup>17</sup> mod 3233 = 6. That's a valid signature on 6, made with no key. Pushed further, the same algebra signs <em>any</em> m the attacker wants: get Bob to sign the random-looking m · r<sup>e</sup> mod n, then divide the answer, m<sup>d</sup> · r, by r (<a href="https://toc.cryptobook.us/" target="_blank">Boneh &amp; Shoup</a> §13.3.1). So the e-th-root barrier above protects only against an attacker who never sees a signature.</p>
+  <div class="callout">
+    <strong id="hash-then-sign">The fix: hash-then-sign</strong>
+    Sign a hash instead: σ = H(m)<sup>d</sup> mod n; accept iff σ<sup>e</sup> ≡ H(m). Here H is a black box — a public <a href="0008-hash-functions-merkle-trees.html#cryptographic-hash-function">cryptographic hash function</a>, easy to compute, infeasible to invert, outputs unrelated to each other. The attacks die: σ = 2 now yields 1752 = H(m), and the forger needs an m that <em>hashes</em> to 1752 (<a href="0008-hash-functions-merkle-trees.html#preimage-resistance">inverting H</a>); multiplying two signatures now signs the number H(m<sub>1</sub>) · H(m<sub>2</sub>) mod n, useless unless she can find a message hashing to it — inverting H again. With H's outputs covering a large fraction of 0…n−1 this is the <em>full domain hash</em> scheme, proven secure assuming the RSA problem is hard and H is modeled as a truly random function, the “random-oracle model” (Boneh &amp; Shoup §13.3–13.4); deployed RSA uses the related PSS and PKCS #1 v1.5 encodings. New obligation: if H(m) = H(m′), a signature on m also signs m′, so H must be <a href="0008-hash-functions-merkle-trees.html#collision-resistance">collision resistant</a>.
+  </div>
+
+  <h2 id="dsa">DSA: a signature built on the discrete log</h2>
+  <p>The Digital Signature Algorithm, which NIST chose in 1991 (Boneh &amp; Shoup §19.3), rests on the <a href="0004-diffie-hellman-discrete-log-problem.html#discrete-log-problem">discrete log problem</a> instead of RSA's. It works in a subgroup of <em>prime</em> order q inside the nonzero residues mod p, with q dividing p − 1 (§4 of <a href="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf" target="_blank">FIPS 186-4</a>, now withdrawn but still DSA's full specification):</p>
+  <pre><code>Setup:  primes p, q with q | p−1;  g of order q
+KeyGen: private x in [1, q−1];  y = g^x mod p
+Sign h = H(m) with a fresh secret nonce k:
+        r = (g^k mod p) mod q
+        s = k⁻¹ · (h + x·r) mod q,   σ = (r, s)
+Verify: w = s⁻¹,  u1 = h·w,  u2 = r·w   (mod q)
+        accept iff (g^u1 · y^u2 mod p) mod q = r</code></pre>
+  <p>The toy group: p = 23, and q = 11 divides 22. The Diffie-Hellman <a href="0004-diffie-hellman-discrete-log-problem.html#primitive-root">primitive root</a> 5 has order 22; its square g = 5<sup>2</sup> mod 23 = 2 has <a href="0003-why-factoring-is-hard-shors-algorithm.html#order-finding-def">order</a> 11 — its powers run 2, 4, 8, 16, 9, 18, 13, 3, 6, 12, 1 and repeat. The signer picks x = 7, so y = 2<sup>7</sup> = 128 = 5 · 23 + 13, giving y = 13.</p>
+  <div class="callout">
+    <strong>Worked example: sign h = 5 with k = 3, then verify</strong>
+    Every inverse is a <a href="0001-modular-arithmetic-eulers-theorem.html#modular-inverse">modular inverse</a> mod q = 11.
+    <pre><code>Sign
+  g^k = 2^3 mod 23            = 8
+  r   = 8 mod 11              = 8
+  k⁻¹ = 3⁻¹ mod 11            = 4    (3·4 = 12 ≡ 1)
+  h + x·r = 5 + 7·8           = 61
+  s   = 4·61 = 244 mod 11     = 2    σ = (8, 2)
+
+Verify with y = 13
+  w   = 2⁻¹ mod 11            = 6    (2·6 = 12 ≡ 1)
+  u1  = 5·6 = 30 mod 11       = 8
+  u2  = 8·6 = 48 mod 11       = 4
+  2^8 = 256 mod 23            = 3
+  13^4: 13² = 169 ≡ 8, 8²     ≡ 18
+  3·18 = 54 mod 23            = 8
+  v   = 8 mod 11              = 8 = r  ✓</code></pre>
+  </div>
+  <p>Why the verifier lands on r: g<sup>u1</sup> · y<sup>u2</sup> = g<sup>h·w</sup> · g<sup>x·r·w</sup> = g<sup>w(h + x·r)</sup>, and w = s<sup>−1</sup> = k · (h + x·r)<sup>−1</sup>, so the exponent collapses to k (exponents live mod q because g has order q). The verifier rebuilds g<sup>k</sup> without ever learning k or x. Recovering x from y is the discrete log problem — trivial at p = 23, but real DSA used p of 1024 to 3072 bits with q of 160 to 256 bits (FIPS 186-4 §4.2).</p>
+  <p>DSA itself is now legacy. As of 2026 the current Digital Signature Standard is still <a href="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-5.pdf" target="_blank">FIPS 186-5</a> (2023), and it states that DSA "is no longer specified in this standard and may only be used to verify previously generated digital signatures"; its approved schemes are RSA, ECDSA and EdDSA, while the post-quantum <a href="0007-post-quantum-lattices-lwe.html#nist-pqc-standards">ML-DSA and SLH-DSA</a> have standards of their own. ECDSA is this same algorithm with the mod-p group swapped for an elliptic-curve group (r comes from the x-coordinate of the point kG) — <a href="0006-elliptic-curve-cryptography.html#point-addition">lesson 6</a> builds that group and runs <a href="0006-elliptic-curve-cryptography.html#ecdh">ECDH</a> on it.</p>
+
+  <h2 id="nonce-reuse">Reuse the nonce once, lose the key</h2>
+  <p>The k in DSA is a <em>nonce</em> — a number used once — and FIPS 186-4 (§4.5) demands a new secret one for every signature. Suppose the signer above signs a second hash, h<sub>2</sub> = 9, with the same k = 3. Then r is again 8 (r depends only on k), and s<sub>2</sub> = 4 · (9 + 56) = 260 ≡ 7 (mod 11). An eavesdropper now holds (8, 2) on h<sub>1</sub> = 5 and (8, 7) on h<sub>2</sub> = 9, and the matching r is her signal that k repeated. (At real sizes two different k essentially never share an r. In this toy group they can, since k = 1 and k = 7 both give r = 2, so she checks g<sup>k</sup> at the end.) Subtracting the two signing equations cancels the x·r term: s<sub>1</sub> − s<sub>2</sub> ≡ k<sup>−1</sup>(h<sub>1</sub> − h<sub>2</sub>). So:</p>
+  <div class="callout">
+    <strong>Worked attack: two inverses to the private key</strong>
+    <pre><code>k = (h1 − h2) · (s1 − s2)⁻¹ mod 11
+  = (−4) · (−5)⁻¹ = 4 · 5⁻¹
+  = 4 · 9 = 36 mod 11 = 3        (5·9 = 45 ≡ 1)
+check: (2^3 mod 23) mod 11 = 8 = r  ✓
+x = (s1·k − h1) · r⁻¹ mod 11
+  = (2·3 − 5) · 8⁻¹ = 1 · 7 = 7  (8·7 = 56 ≡ 1)
+check: 2^7 mod 23 = 13 = y  ✓</code></pre>
+    No discrete log was solved. One repeated nonce turned two public signatures into the private key.
+  </div>
+  <p>This is not hypothetical. Sony's PlayStation 3 used ECDSA with the same k for every signature, and its signing key was recovered this way (<a href="https://andrea.corbellini.name/2015/05/30/elliptic-curve-cryptography-ecdh-and-ecdsa/" target="_blank">Corbellini</a>; Boneh &amp; Shoup §19.3). Exact repeats aren't the only danger: k must be uniformly random, and <a href="https://www.rfc-editor.org/rfc/rfc6979" target="_blank">RFC 6979</a> warns that "even slight biases in that process may be turned into attacks." Its fix derives k deterministically from the private key and the message hash: the same message always gets the same k (and the same, harmless, signature), different messages get unrelated ones. FIPS 186-5 approves this "deterministic ECDSA".</p>
+
+  <h2 id="authenticated-key-exchange">Closing the gap: signed Diffie-Hellman</h2>
+  <p>The <a href="0004-diffie-hellman-discrete-log-problem.html#diffie-hellman-protocol">Diffie-Hellman</a> man-in-the-middle worked because A and B were unauthenticated numbers: Eve replaced each with her own and held one shared secret with Alice and another with Bob. The fix is to have each party sign its Diffie-Hellman value — and the rest of the exchange so far — with a long-term signing key whose public half the other side already trusts. With the course's Diffie-Hellman numbers (p = 23, g = 5, a = 6, b = 15), and H(8 ‖ 19) meaning the hash of the two values concatenated:</p>
+  <pre><code>Alice → Bob:  A = 8
+Bob → Alice:  B = 19,
+              σ_B = Sign(sk_B, H(8 ‖ 19))
+Alice:        Verify(pk_B, H(8 ‖ 19), σ_B) ✓
+              key = 19^6 mod 23 = 2
+Bob:          key = 8^15 mod 23 = 2</code></pre>
+  <p>If Eve swaps 19 for her own value E, Alice checks σ<sub>B</sub> against H(8 ‖ E) and it fails; to get through, Eve must produce Sign(sk<sub>B</sub>, H(8 ‖ E)) herself — a forgery. Including Alice's fresh A also means a signature Bob made in yesterday's handshake won't verify today. Alice signs her side the same way when Bob needs to know who she is. TLS 1.3 does exactly this: in its CertificateVerify message the server signs a hash of the handshake transcript — which contains both key shares — as "explicit proof that an endpoint possesses the private key corresponding to its certificate" (<a href="https://www.rfc-editor.org/rfc/rfc8446#section-4.4.3" target="_blank">RFC 8446 §4.4.3</a>).</p>
+  <div class="callout warn">
+    <strong>What a valid signature still doesn't prove</strong>
+    σ<sub>B</sub> proves that whoever sent it holds sk<sub>B</sub> — not that sk<sub>B</sub> belongs to the Bob Alice meant. If Eve can get Alice to accept Eve's public key as "Bob's", she signs her own values and the attack is back. Binding keys to names is the job of certificates, which this course leaves out. And nothing here encrypts: the signature authenticates the exchange; the shared secret does the hiding.
+  </div>
+
+  <h2>Signatures and quantum computers</h2>
+  <p>Each scheme inherits its hardness assumption's fate. RSA signatures fall once n can be factored by <a href="0003-why-factoring-is-hard-shors-algorithm.html#shors-algorithm">Shor's algorithm</a>; DSA and ECDSA fall to Shor's discrete-log variant, which rests on the same quantum period-finding as <a href="0003-why-factoring-is-hard-shors-algorithm.html#quantum-order-finding">order-finding</a>. <a href="0007-post-quantum-lattices-lwe.html#what-shor-breaks">Lesson 7</a> sorts out what survives and names NIST's <a href="0007-post-quantum-lattices-lwe.html#nist-pqc-standards">post-quantum standards</a>, and <a href="0008-hash-functions-merkle-trees.html#hash-based-signatures">lesson 8</a> shows how to build a signature from nothing but a hash function.</p>
+
+  <h2>Try it: signature workbench</h2>
+  <p>Every card is a computation from this lesson. Work it on paper first, then click.</p>
+  <div id="sig-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. With Bob's RSA key (n = 3233, e = 17, d = 2753), who uses which key for signatures?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','That is the encryption arrangement (anyone uses the public key, Bob uses d). For signing it fails: if anyone could sign with the public (n, e), a signature would prove nothing about Bob.')">Anyone signs with (n, e); Bob checks with d</button>
+        <button onclick="quizAnswer(this,true,'q1','Right: the private exponent produces σ = m^d mod n, and the public pair checks σ^e ≡ m, so anyone can verify but only Bob can sign.')">Bob signs with d; anyone checks with (n, e)</button>
+        <button onclick="quizAnswer(this,false,'q1','e is public, so signing with it proves nothing, and verification needs only (n, e) — d never leaves Bob, and anyone, not only Alice, can verify.')">Bob signs with e; only Alice checks using d</button>
+        <button onclick="quizAnswer(this,false,'q1','A shared d is a symmetric key: a judge could not tell whether Alice or Bob made σ, so non-repudiation is lost.')">Both sides hold d, agreed in advance</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Why do real RSA signatures sign H(m) instead of m itself?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Hashing does not hide m: the message is still sent in the clear next to σ, and signatures never provide secrecy.')">So the signature keeps m hidden from every eavesdropper</button>
+        <button onclick="quizAnswer(this,false,'q2','Verification still uses the public key: it checks σ^e ≡ H(m) with the same (n, e). Hashing changes what is signed, not who checks.')">So verification no longer needs Bob’s public key</button>
+        <button onclick="quizAnswer(this,false,'q2','Hashing leaves n, e and d untouched; the attacks it stops never tried to factor n.')">So n becomes harder to factor for the attacker</button>
+        <button onclick="quizAnswer(this,true,'q2','Right: picking σ first now yields only a hash value with no known message, and a product of two signatures signs H(m1)·H(m2) mod n, which no known message hashes to. Both keyless forgeries fail.')">So forgers can’t pick σ first or multiply signatures</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Two DSA signatures from the same key have the same r. What can an eavesdropper do?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right: at real sizes equal r means equal k (checkable via g^k), so k = (h1 − h2)(s1 − s2)⁻¹ and then x = (s1·k − h1)·r⁻¹, all mod q — two inverses, no discrete log.')">Solve for k, then the private key x, mod q</button>
+        <button onclick="quizAnswer(this,false,'q3','r is public, but at real sizes a repeated r means a repeated k, and subtracting the two signing equations cancels x·r and exposes k, then x.')">Nothing, since r is public in every signature</button>
+        <button onclick="quizAnswer(this,false,'q3','With x she can sign any message at all, not only the two she saw: the whole key is lost.')">Forge new signatures on just those two messages</button>
+        <button onclick="quizAnswer(this,false,'q3','Signatures encrypt nothing: both messages travelled in the clear, and r is just g^k reduced mod q. What leaks is the private key x.')">Read the two messages that r had been hiding</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Bob sends m with a valid RSA signature on H(m). Which of these does the signature NOT give Alice?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','It does give integrity: changing m changes H(m), so σ^e ≡ H(m) would fail on the altered message.')">That m was not changed after it was signed</button>
+        <button onclick="quizAnswer(this,false,'q4','It does give this: producing σ without d means taking an e-th root of H(m) mod n, the RSA problem, so σ shows its maker held Bob’s private key.')">That whoever made σ held Bob’s private key</button>
+        <button onclick="quizAnswer(this,true,'q4','Right: m travels in the clear next to σ, and anyone with the public key can even run Verify. Secrecy needs encryption, a separate job.')">That nobody else could read m on the wire</button>
+        <button onclick="quizAnswer(this,false,'q4','It does give this: only d could have produced σ and anyone can verify it, so Bob cannot credibly deny signing — non-repudiation.')">That Bob can’t later credibly deny signing m</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>By hand, two short tasks. (1) Confirm that 1027 really is Bob's signature on 2: compute 1027<sup>17</sup> mod 3233 by square-and-multiply (four squarings, one multiply). You should pass through 771, 2802 and 1480, then get 1480<sup>2</sup> ≡ 1659 and 1659 · 1027 ≡ 2. (2) A different signer on the same group (p = 23, q = 11, g = 2) has public key y = 8 and publishes (r, s) = (9, 6) on h<sub>1</sub> = 3 and (9, 2) on h<sub>2</sub> = 5. Recover k and x, then confirm 2<sup>x</sup> mod 23 = 8. You should get k = 5 (via 4<sup>−1</sup> = 3) and x = 3 (via 9<sup>−1</sup> = 5).</p>
+
+  <h2>Primary resource</h2>
+  <p>See Dan Boneh &amp; Victor Shoup, <a href="https://toc.cryptobook.us/" target="_blank">A Graduate Course in Applied Cryptography</a> (v0.6, free PDF) — the book <a href="0002-rsa-key-generation-encryption-correctness-proof.html#primary-resource">lesson 2</a> pointed to. Chapter 13, "Digital signatures", states the security game this lesson only named, and §13.3 builds full domain hash and shows unhashed RSA falling to the choose-σ-first forgery; §19.3, "Case study: ECDSA signatures", covers DSA's 1991 origin (NIST chose it over the then-patented Schnorr scheme), why the per-signature random value must be fresh, the PlayStation 3 key recovery and deterministic nonces.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Ask Claude Code to sign a third hash with the same toy key and nonce k = 3, then show you that any two of the three signatures give back x = 7 — and then to work out why nonces that are merely <em>related</em> (k and k + 1, say) are just as fatal as equal ones.
+  </div>
+
+  <div class="nav">
+    <a href="0004-diffie-hellman-discrete-log-problem.html">← Lesson 4: Diffie-Hellman &amp; the Discrete Log Problem</a>
+    <span class="spacer"></span>
+    <a href="0006-elliptic-curve-cryptography.html">Lesson 6: Elliptic Curve Cryptography →</a>
+  </div>
+
+</div>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+const SIG_ITEMS = [
+  {
+    prompt: 'Verify under Bob’s public key (n = 3233, e = 17): what is 588^17 mod 3233?',
+    options: [
+      { text: '65', correct: true, explain: 'Right: squarings give 3046, 2639, 439, then 439² · 588 ≡ 1974 · 588 ≡ 65 = m, so (65, 588) verifies.' },
+      { text: '588', explain: '588 is σ itself; raising it to the 17th power takes it to 65.' },
+      { text: '2790', explain: '2790 is the RSA ciphertext of 65 (65^17 mod 3233, encryption). Verification raises σ, not m, to e.' },
+      { text: '2753', explain: '2753 is the private exponent d. Verification never touches d, only the public e = 17.' },
+    ],
+  },
+  {
+    prompt: 'Eve has only Bob’s public key. She picks σ = 2. Which message m does σ = 2 validly sign under textbook RSA?',
+    options: [
+      { text: '2', explain: 'Verify checks σ^17 ≡ m, and 2^17 mod 3233 is not 2. A signature is not its own message.' },
+      { text: '1752', correct: true, explain: 'Right: 2^17 = 131072 = 40 · 3233 + 1752, so (1752, 2) verifies: an existential forgery.' },
+      { text: 'None: she needs d', explain: 'd is needed only for a message chosen in advance; m = σ^e mod n uses just the public e.' },
+      { text: '1027', explain: '1027 is Bob’s real signature on 2, which mixes up σ = 2 with m = 2.' },
+    ],
+  },
+  {
+    prompt: 'Bob signed 2 and 3 for Eve: σ(2) = 1027, σ(3) = 1857. Which number is a valid signature on 6, made without d?',
+    options: [
+      { text: '2884', explain: '2884 is 1027 + 1857. Signatures multiply, not add: 2^d · 3^d = 6^d, so take 1027 · 1857 mod 3233.' },
+      { text: '1857', explain: '1857 signs 3: 1857^17 mod 3233 = 3, not 6.' },
+      { text: '2902', correct: true, explain: 'Right: 1027 · 1857 = 1907139 = 589 · 3233 + 2902, and 2902^17 mod 3233 = 6. Textbook RSA signatures are multiplicative.' },
+      { text: 'Impossible without d', explain: 'Signatures multiply: 1027 · 1857 mod 3233 = 2902 verifies for 6 with no key.' },
+    ],
+  },
+  {
+    prompt: 'DSA, p = 23, q = 11, g = 2, y = 13. Checking σ = (8, 2) on h = 5 gives w = 6, u1 = 8, u2 = 4. What is v = (2^8 · 13^4 mod 23) mod 11?',
+    options: [
+      { text: '3', explain: '3 is 2^8 mod 23 alone; it still has to be multiplied by 13^4 mod 23 = 18.' },
+      { text: '18', explain: '18 is 13^4 mod 23 alone (13² ≡ 8, 8² ≡ 18); multiply by 2^8 mod 23 = 3 first.' },
+      { text: '8', correct: true, explain: 'Right: 3 · 18 = 54 ≡ 8 (mod 23), and 8 mod 11 = 8 = r, so the signature is accepted.' },
+      { text: '54', explain: '54 is the product before reducing mod 23: 54 − 46 = 8, then 8 mod 11 = 8.' },
+    ],
+  },
+  {
+    prompt: 'Same key, two signatures: (8, 2) on h1 = 5 and (8, 7) on h2 = 9. The shared r signals a shared k. Compute k = (h1 − h2)(s1 − s2)⁻¹ mod 11.',
+    options: [
+      { text: '4', explain: '4 is only the numerator once both minus signs cancel: (−4)(−5)⁻¹ = 4 · 5⁻¹. Finish with 5⁻¹ = 9: 4 · 9 = 36 ≡ 3. (4 also happens to be k⁻¹.)' },
+      { text: '3', correct: true, explain: 'Right: (5 − 9)(2 − 7)⁻¹ = (−4)(−5)⁻¹ = 4 · 5⁻¹ = 4 · 9 = 36 ≡ 3. Check: 2^3 mod 23 = 8 = r.' },
+      { text: '9', explain: '9 is 5⁻¹ mod 11 (5 · 9 = 45 ≡ 1), an intermediate step; multiply it by 4 to finish.' },
+      { text: '8', explain: '8 is r. It reveals that k repeated but is not k; 2^k mod 23 = 8 gives k = 3.' },
+    ],
+  },
+  {
+    prompt: 'With k = 3, r = 8, s1 = 2, h1 = 5: recover the private key x = (s1·k − h1) · r⁻¹ mod 11.',
+    options: [
+      { text: '13', explain: '13 is y, the public key Eve already had. The private x is the exponent with 2^x mod 23 = 13.' },
+      { text: '1', explain: '1 is s1·k − h1 = 6 − 5, before multiplying by r⁻¹ = 8⁻¹ = 7 mod 11.' },
+      { text: '8', explain: '8 is r. Dividing by r means multiplying by r⁻¹ = 7, since 8 · 7 = 56 ≡ 1 (mod 11).' },
+      { text: '7', correct: true, explain: 'Right: (2 · 3 − 5) · 8⁻¹ = 1 · 7 = 7. Check: 2^7 mod 23 = 128 − 115 = 13 = y. No discrete log was solved.' },
+    ],
+  },
+  {
+    prompt: 'Signed Diffie-Hellman with p = 23, g = 5. What should Bob sign so Eve cannot swap his B = 19 for her own value?',
+    options: [
+      { text: 'B together with Alice’s A', correct: true, explain: 'Right: Alice checks σ_B against H(8 ‖ B) for the B she received, so a swapped B fails; her fresh A also defeats replayed old signatures.' },
+      { text: 'Nothing: Eve can’t get g^ab', explain: 'Eve never needs g^ab between Alice and Bob: she runs one exchange with each and relays — the man-in-the-middle attack.' },
+      { text: 'The shared secret 2', explain: 'σ travels in the clear and signatures give no secrecy: with textbook RSA, σ^17 mod 3233 hands Eve the secret itself. Sign the public values instead.' },
+      { text: 'Only Alice’s value A', explain: 'A signature on A says nothing about which B arrived, so Eve can still substitute her own value.' },
+    ],
+  },
+];
+
+renderMC('sig-exercise', SIG_ITEMS);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

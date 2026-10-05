@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 4 — Stacks &amp; Queues</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+    blockquote.talk { border-left: 3px solid var(--accent); padding: .6rem 1rem; margin: 1rem 0; color: var(--ink-dim); font-style: italic; font-size: .95rem; }
+    .mono { background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin: 1.25rem 0; font-family: var(--font-ui); font-size: .88rem; }
+    .mono-lbl, .mono-count, .mono small { color: var(--muted); font-size: .75rem; margin: 0 0 .4rem; }
+    .mono-days, .mono-stack { display: flex; flex-wrap: wrap; gap: .3rem; margin-bottom: .9rem; }
+    .mono-day { width: 2.15rem; text-align: center; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-sunken); padding: .2rem 0; }
+    .mono-day b, .mono-day i { display: block; font: 1rem var(--font-mono); color: var(--ink-dim); }
+    .mono-day i { font-size: .85rem; color: var(--muted); border-top: 1px solid var(--border); }
+    .mono-day.cur { background: var(--amber-soft); border-color: var(--amber); }
+    .mono-day.wait { border-color: var(--accent); }
+    .mono-day.done i { color: var(--accent-strong); }
+    .mono-stack { min-height: 2.6rem; padding: .35rem .5rem; border: 1px dashed var(--border); border-radius: var(--radius-sm); color: var(--muted); }
+    .mono button { font: inherit; background: var(--bg-sunken); color: var(--ink); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .35rem .7rem; cursor: pointer; }
+    .mono button:hover { border-color: var(--accent-border); background: var(--accent-soft); }
+    .mono button.top { border-color: var(--accent); }
+    .mono button:disabled { opacity: .5; cursor: default; }
+    .mono button small { display: block; margin: 0; font-size: .65rem; }
+    .mono-fb { min-height: 2.6em; margin: .6rem 0; font-size: .85rem; }
+    .mono-fb.good { color: var(--accent-strong); }
+    .mono-fb.bad { color: var(--err); }
+  </style>
+</head>
+<body>
+<nav class="topnav"><a class="tn-home" href="../../index.html">Learning Hub</a><span class="tn-sep">›</span><a class="tn-topic-link" href="../index.html">CS Interview Prep</a></nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 4 of 11 &nbsp;·&nbsp; CS Interview Prep &nbsp;·&nbsp; ~30 min</p>
+  <h1>Stacks &amp; Queues</h1>
+  <p>Stack, queue and heap questions hide one test: <em>in what order should things come back out?</em> The interviewer watches whether you pick the structure whose removal order fits (the newest, the oldest or the most important) and whether you know its cost. You already have the <a href="0002-arrays-and-hashmaps.html#dynamic-array">Vec cost model</a>, and you learned to <a href="0003-two-pointers-sliding-window.html#variable-window">count pointer moves, not loop nesting</a>; here that argument turns an O(n²) scan into O(n). Today’s win: Daily Temperatures with a monotonic stack in O(n), “k largest” with a size-k <code>BinaryHeap&lt;Reverse&lt;_&gt;&gt;</code> in O(n log k), and the right std collection named within a minute.</p>
+
+  <h2 id="stack-lifo">Stack: last in, first out</h2>
+  <p>A <strong>stack</strong> returns the most recently added item first. In Rust it is a <code>Vec</code>: <code>push</code>, <code>pop</code> and <code>last</code> all work at the end, where nothing shifts. <code>push</code> is O(1) <a href="0002-arrays-and-hashmaps.html#amortized-cost">amortized</a>; <a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#method.pop" target="_blank"><code>pop</code> “takes O(1) time”</a>. <strong>Cue:</strong> nesting, matching, or the most recent thing still unresolved: brackets, undo, Reverse Polish Notation. Valid Parentheses is one of the handbook’s two <a href="https://www.techinterviewhandbook.org/algorithms/stack/#essential-questions" target="_blank">essential stack questions</a>.</p>
+  <pre><code><span class="kw">fn</span> <span class="fn">is_valid</span>(s: &amp;<span class="ty">str</span>) -&gt; <span class="ty">bool</span> {
+    <span class="kw">let mut</span> stack = <span class="ty">Vec</span>::<span class="fn">new</span>(); <span class="cm">// closers we owe, innermost on top</span>
+    <span class="kw">for</span> c <span class="kw">in</span> s.<span class="fn">chars</span>() {
+        <span class="kw">match</span> c {
+            <span class="st">'('</span> =&gt; stack.<span class="fn">push</span>(<span class="st">')'</span>),
+            <span class="st">'['</span> =&gt; stack.<span class="fn">push</span>(<span class="st">']'</span>),
+            <span class="st">'{'</span> =&gt; stack.<span class="fn">push</span>(<span class="st">'}'</span>),
+            <span class="st">')'</span> | <span class="st">']'</span> | <span class="st">'}'</span> =&gt; {
+                <span class="kw">if</span> stack.<span class="fn">pop</span>() != <span class="ty">Some</span>(c) { <span class="kw">return false</span>; }
+            }
+            _ =&gt; {}
+        }
+    }
+    stack.<span class="fn">is_empty</span>()            <span class="cm">// an unclosed opener also fails</span>
+}
+<span class="cm">// O(n) time, O(n) space: "((((" keeps every opener.</span>
+<span class="cm">// Can you do better? Only with one bracket type: a depth counter, O(1).</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(n)</span><span class="label">Space</span><span class="val">O(n)</span></div>
+  <p>Pushing the expected closer makes each check one comparison. Min Stack pushes <code>(value, min so far)</code> pairs so the minimum is always on top (<a href="https://cp-algorithms.com/data_structures/stack_queue_modification.html#stack-modification" target="_blank">cp-algorithms</a>). Every recursive call pushes a frame, which is why <a href="0008-recursion-and-backtracking.html#call-stack-space">recursion depth costs space</a>, and an iterative <a href="0006-graph-traversal-bfs-dfs.html#graph-dfs">DFS</a> is a loop around an explicit <code>Vec</code>.</p>
+
+  <h2 id="queue-fifo">Queue: first in, first out</h2>
+  <p>A <strong>queue</strong> returns the oldest item first. In Rust that is <code>VecDeque</code>, “<a href="https://doc.rust-lang.org/std/collections/struct.VecDeque.html" target="_blank">a double-ended queue implemented with a growable ring buffer</a>”: <code>push_back</code> to add, <code>pop_front</code> to remove. The front is a head index that moves forward and wraps around, so nothing shifts; the <a href="https://doc.rust-lang.org/std/collections/index.html#cost-of-collection-operations" target="_blank">std cost table</a> prices insert at O(min(i, n − i)) amortized and remove at O(min(i, n − i)): O(1) at either end, amortized for pushes.</p>
+  <pre><code><span class="kw">let mut</span> q = <span class="ty">VecDeque</span>::<span class="fn">from</span>([root]);
+<span class="kw">while let</span> <span class="ty">Some</span>(x) = q.<span class="fn">pop_front</span>() {    <span class="cm">// oldest first</span>
+    q.<span class="fn">extend</span>(<span class="fn">children</span>(x));             <span class="cm">// newcomers join at the back</span>
+}
+<span class="cm">// The shape of every level-order traversal and BFS.</span></code></pre>
+  <p><strong>Cue:</strong> serve in arrival order (a printer, a request buffer, a rate limiter’s timestamps) or go level by level, which is <a href="0005-binary-trees-and-bsts.html#level-order">level-order traversal</a> and <a href="0006-graph-traversal-bfs-dfs.html#bfs-shortest-path">BFS</a>. At system scale, FIFO becomes a <a href="0011-system-design-fundamentals.html#message-queue">message queue</a>.</p>
+
+  <div class="callout warn">
+    <strong>Common interview trap</strong>
+    A <code>Vec</code> as a queue. <code>v.remove(0)</code> shifts everything left, so each dequeue is O(n) and a full drain is O(n²) (the <a href="0002-arrays-and-hashmaps.html#dynamic-array">Vec cost model</a>). The docs say: “<a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#method.remove" target="_blank">If you’d like to remove elements from the beginning of the Vec, consider using VecDeque::pop_front instead</a>.” Draining 200,000 <code>u32</code>s with <code>remove(0)</code> moves n(n − 1)/2 ≈ 2 × 10¹⁰ elements: 1.7 s on one machine and 28 s on another (Rust 1.97, <code>-O</code>), against about 0.2 ms with <code>pop_front</code> on both. In languages without a real queue the handbook says to <a href="https://www.techinterviewhandbook.org/algorithms/queue/#things-to-look-out-for-during-interviews" target="_blank">flag this</a>; Rust has one.
+  </div>
+
+  <h2 id="monotonic-stack">Monotonic stack: next greater element in O(n)</h2>
+  <p>Daily Temperatures: for each day, how many days until a warmer one (0 if never)? Scanning forward from every day is O(n²) on a falling input. Instead keep a stack of <em>indices</em> of days still waiting. <strong>Invariant:</strong> their temperatures never rise from bottom to top (equal days can sit together, since only a strictly warmer day answers). Day <code>i</code> pops every cooler waiting day <code>j</code>, answers it with <code>i − j</code>, then pushes itself. Popping stops at the first top that is not cooler, and since nothing below it is lower, nothing below it is cooler either.</p>
+  <pre><code><span class="kw">fn</span> <span class="fn">daily_temperatures</span>(t: &amp;[<span class="ty">i32</span>]) -&gt; <span class="ty">Vec</span>&lt;<span class="ty">usize</span>&gt; {
+    <span class="kw">let mut</span> ans = <span class="fn">vec!</span>[<span class="nm">0</span>; t.<span class="fn">len</span>()];
+    <span class="kw">let mut</span> stack: <span class="ty">Vec</span>&lt;<span class="ty">usize</span>&gt; = <span class="ty">Vec</span>::<span class="fn">new</span>(); <span class="cm">// temps never rise bottom → top</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="nm">0</span>..t.<span class="fn">len</span>() {
+        <span class="kw">while let</span> <span class="ty">Some</span>(&amp;j) = stack.<span class="fn">last</span>() {
+            <span class="kw">if</span> t[j] &gt;= t[i] { <span class="kw">break</span>; } <span class="cm">// nor is anything below</span>
+            stack.<span class="fn">pop</span>();
+            ans[j] = i - j;            <span class="cm">// i is j’s first warmer day</span>
+        }
+        stack.<span class="fn">push</span>(i);
+    }
+    ans                    <span class="cm">// left on the stack: never warmer, 0</span>
+}
+<span class="cm">// O(n) time: each index pushed once, popped at most once.</span>
+<span class="cm">// O(n) space (a strictly falling input never pops).</span>
+<span class="cm">// [73, 74, 75, 71, 69, 72, 76, 73] → [1, 1, 4, 2, 1, 1, 0, 0]</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(n)</span><span class="label">Space</span><span class="val">O(n)</span></div>
+  <p><strong>Why the nested <code>while</code> is O(n).</strong> Count stack operations, not loop nesting. Each index is pushed once and popped at most once, so all the inner loops <em>together</em> pop at most n times: at most 2n operations, O(1) amortized per day. <a href="https://cses.fi/book/book.pdf" target="_blank">CPH §8.2</a> makes the same argument for nearest smaller elements: “each element is added exactly once to the stack and removed at most once”. Space is O(n) worst case, since a strictly falling input never pops.</p>
+  <p><strong>Store indices, not values:</strong> the index gives the distance, and <code>t[j]</code> still gives the value. <strong>Variants:</strong> flip the comparison for next <em>smaller</em>; read the top before pushing for <em>previous</em> greater or smaller (CPH’s version); Largest Rectangle in Histogram pops a bar when a shorter one arrives, the moment both its boundaries are known. The cue: “for each element, the nearest bigger or smaller element to its left or right”.</p>
+
+  <div class="callout">
+    <strong>Why interviewers care</strong>
+    Daily Temperatures, Trapping Rain Water and Largest Rectangle in Histogram are all on the handbook’s <a href="https://www.techinterviewhandbook.org/algorithms/stack/#recommended-practice-questions" target="_blank">stack list</a>. The follow-up, “your loops are nested, so why isn’t it O(n²)?”, checks that you can make the amortized argument out loud.
+  </div>
+
+  <h3>Be the stack</h3>
+  <p>As each day arrives (amber), click the entries it pops, top first, then push. Wrong clicks are rejected with the reason.</p>
+  <div class="mono" id="mono">
+    <p class="mono-lbl">day · temp · answer</p>
+    <div class="mono-days" id="mono-days"></div>
+    <p class="mono-lbl">stack, bottom → top (click to pop)</p>
+    <div class="mono-stack" id="mono-stack"></div>
+    <button type="button" id="mono-push">Push day 0</button>
+    <button type="button" id="mono-reset">Reset</button>
+    <p class="mono-fb" id="mono-fb" aria-live="polite"></p>
+    <p class="mono-count" id="mono-count"></p>
+  </div>
+
+  <blockquote class="talk">“I’ll keep a stack of indices of days still waiting for a warmer day, temperatures never rising from bottom to top. Each new day pops and answers every cooler day. Each index is pushed once and popped at most once, so it’s O(n) time and O(n) space in the worst case. The brute force is O(n²).”</blockquote>
+
+  <p><strong>Stretch: the monotonic deque.</strong> For Sliding Window Maximum over a <a href="0003-two-pointers-sliding-window.html#sliding-window">fixed-size window</a>, keep a <code>VecDeque</code> of indices with falling values. Pop the back while the new value is at least as large, and pop the front once its index leaves the window; the front is the window’s maximum. Each index enters and leaves once: O(n) (<a href="https://cses.fi/book/book.pdf" target="_blank">CPH §8.3</a>, <a href="https://cp-algorithms.com/data_structures/stack_queue_modification.html#finding-the-minimum-for-all-subarrays-of-fixed-length" target="_blank">cp-algorithms</a>).</p>
+
+  <h2 id="binary-heap">Priority queue: BinaryHeap</h2>
+  <p>When the next item out should be the most important, you want a priority queue. A <strong>binary heap</strong> is a complete binary tree with the <em>heap property</em>: every parent is ≥ its children, so the maximum is the root (<a href="https://algs4.cs.princeton.edu/24pq/" target="_blank">Sedgewick &amp; Wayne §2.4</a>). It lives level by level in a plain array: the children of <code>i</code> are <code>2i + 1</code> and <code>2i + 2</code>, its parent is <code>(i − 1) / 2</code>. Push appends and swims up; pop moves the last item to the root and sinks it. Each walks one path of about log₂ n levels (algs4: at most 1 + lg n compares to insert, 2 lg n to remove the max). Only the root is ordered against everything; siblings are in no order.</p>
+  <p>The <a href="https://doc.rust-lang.org/std/collections/struct.BinaryHeap.html#time-complexity" target="_blank">std docs</a> give <code>peek</code> O(1) and <code>pop</code> O(log n) worst case. <code>push</code> is O(1) <em>expected</em> over random insertion orders, degrading to O(log n) amortized on ascending input, so say O(log n) in an interview. <code>BinaryHeap::from(vec)</code> heapifies <a href="https://doc.rust-lang.org/std/collections/struct.BinaryHeap.html#impl-From%3CVec%3CT,+A%3E%3E-for-BinaryHeap%3CT,+A%3E" target="_blank">in place in O(n)</a>.</p>
+  <pre><code><span class="kw">use</span> std::cmp::<span class="ty">Reverse</span>;
+<span class="kw">use</span> std::collections::<span class="ty">BinaryHeap</span>;
+
+<span class="kw">let mut</span> max = <span class="ty">BinaryHeap</span>::<span class="fn">from</span>(<span class="fn">vec!</span>[<span class="nm">5</span>, <span class="nm">1</span>, <span class="nm">8</span>, <span class="nm">3</span>]); <span class="cm">// O(n) heapify</span>
+<span class="fn">assert_eq!</span>(max.<span class="fn">pop</span>(), <span class="ty">Some</span>(<span class="nm">8</span>));                   <span class="cm">// largest first</span>
+
+<span class="kw">let mut</span> min = <span class="ty">BinaryHeap</span>::<span class="fn">new</span>();
+<span class="kw">for</span> x <span class="kw">in</span> [<span class="nm">5</span>, <span class="nm">1</span>, <span class="nm">8</span>, <span class="nm">3</span>] { min.<span class="fn">push</span>(<span class="ty">Reverse</span>(x)); }
+<span class="fn">assert_eq!</span>(min.<span class="fn">pop</span>(), <span class="ty">Some</span>(<span class="ty">Reverse</span>(<span class="nm">1</span>)));     <span class="cm">// Reverse: smallest first</span>
+
+<span class="cm">// (priority, item) tuples compare field by field; ties fall to the item</span>
+<span class="kw">let mut</span> q = <span class="ty">BinaryHeap</span>::<span class="fn">from</span>([(<span class="nm">2</span>, <span class="st">"docs"</span>), (<span class="nm">9</span>, <span class="st">"fix"</span>), (<span class="nm">9</span>, <span class="st">"pager"</span>)]);
+<span class="fn">assert_eq!</span>(q.<span class="fn">pop</span>(), <span class="ty">Some</span>((<span class="nm">9</span>, <span class="st">"pager"</span>)));       <span class="cm">// "pager" &gt; "fix"</span></code></pre>
+
+  <div class="callout warn">
+    <strong>Common interview trap</strong>
+    (1) <code>BinaryHeap</code> “<a href="https://doc.rust-lang.org/std/collections/struct.BinaryHeap.html" target="_blank">will be a max-heap</a>”; for smallest-first, <a href="https://doc.rust-lang.org/std/collections/struct.BinaryHeap.html#min-heap" target="_blank">wrap items in <code>Reverse</code></a>. (2) A heap is not sorted: <a href="https://doc.rust-lang.org/std/collections/struct.BinaryHeap.html#method.iter" target="_blank"><code>iter()</code></a> goes “in arbitrary order”, and <code>BinaryHeap::from(vec![5, 1, 8, 3])</code> iterated as <code>[8, 3, 5, 1]</code> on Rust 1.97. Pop repeatedly or call <a href="https://doc.rust-lang.org/std/collections/struct.BinaryHeap.html#method.into_sorted_vec" target="_blank"><code>into_sorted_vec</code></a>. (3) <code>f64</code> is not <code>Ord</code>, so pushing one fails to compile (E0277). Use integer keys (squared distances as <code>i64</code> in K Closest Points) or a newtype whose <code>Ord</code> calls <a href="https://doc.rust-lang.org/std/primitive.f64.html#method.total_cmp" target="_blank"><code>f64::total_cmp</code></a>.
+  </div>
+
+  <h2 id="top-k-heap">Top-k: a size-k min-heap</h2>
+  <p>The handbook’s cue is the <a href="https://www.techinterviewhandbook.org/algorithms/heap/#mention-of-k" target="_blank">mention of k</a>: “If you see a top or lowest k being mentioned in the question, it is usually a signal that a heap can be used.” The twist: to keep the k <em>largest</em>, use a <em>min</em>-heap capped at k. Its root is the weakest of the best k so far, the first to go when something better arrives.</p>
+  <pre><code><span class="kw">fn</span> <span class="fn">k_largest</span>(v: &amp;[<span class="ty">i32</span>], k: <span class="ty">usize</span>) -&gt; <span class="ty">Vec</span>&lt;<span class="ty">i32</span>&gt; {
+    <span class="cm">// min-heap holding the best k seen so far</span>
+    <span class="kw">let mut</span> heap = <span class="ty">BinaryHeap</span>::<span class="fn">with_capacity</span>(k + <span class="nm">1</span>);
+    <span class="kw">for</span> &amp;x <span class="kw">in</span> v {
+        heap.<span class="fn">push</span>(<span class="ty">Reverse</span>(x));
+        <span class="kw">if</span> heap.<span class="fn">len</span>() &gt; k {
+            heap.<span class="fn">pop</span>();            <span class="cm">// evict the smallest of the k + 1</span>
+        }
+    }
+    heap.<span class="fn">into_iter</span>().<span class="fn">map</span>(|<span class="ty">Reverse</span>(x)| x).<span class="fn">collect</span>() <span class="cm">// arbitrary order</span>
+}
+<span class="cm">// O(n log k) time, O(k) space. Can you do better? Quickselect is</span>
+<span class="cm">// O(n) expected, but it needs all n in memory and reorders them.</span></code></pre>
+  <div class="complexity"><span class="label">Time</span><span class="val">O(n log k)</span><span class="label">Space</span><span class="val">O(k)</span></div>
+  <p>Say the alternatives out loud. Sorting is O(n log n). A max-heap of all n is O(n + k log n) but holds every item. The size-k heap holds at most k + 1, so it works on a stream; at n = 10⁶, k = 100 each operation walks about log₂ 100 ≈ 6.6 levels, not log₂ 10⁶ ≈ 19.9. Faster still, <a href="0010-sorting-algorithms.html#quickselect">quickselect</a> is O(n) expected, and std’s <a href="https://doc.rust-lang.org/std/primitive.slice.html#method.select_nth_unstable" target="_blank"><code>select_nth_unstable</code></a> is documented as O(n), but both need the whole slice and reorder it. Kth Largest Element is the same loop, then <code>peek()</code> at the root; Top K Frequent is a <a href="0002-arrays-and-hashmaps.html#frequency-count">frequency count</a>, then this heap over <code>Reverse((count, item))</code>.</p>
+
+  <h2>Which structure? The one-minute checklist</h2>
+  <p>The std guide puts it in one line each: use a <code>Vec</code> when “<a href="https://doc.rust-lang.org/std/collections/index.html#use-a-vec-when" target="_blank">you want a stack</a>”, a <code>VecDeque</code> when “<a href="https://doc.rust-lang.org/std/collections/index.html#use-a-vecdeque-when" target="_blank">you want a queue</a>”, a <code>BinaryHeap</code> when “<a href="https://doc.rust-lang.org/std/collections/index.html#use-a-binaryheap-when" target="_blank">you want a priority queue</a>”. The cues:</p>
+  <ul>
+    <li><strong>Matching, nesting, undo, most recent unresolved</strong> → stack (<code>Vec</code>).</li>
+    <li><strong>Arrival order, level by level</strong> → queue (<code>VecDeque</code>).</li>
+    <li><strong>For every element, the next or previous greater or smaller</strong> → monotonic stack of indices.</li>
+    <li><strong>Repeatedly take the best, top or lowest k, merge k sorted</strong> → heap (<code>BinaryHeap</code>, <code>Reverse</code> for min).</li>
+  </ul>
+  <p>Later, DFS, BFS and best-first search turn out to be <a href="0006-graph-traversal-bfs-dfs.html#whatever-first-search">one loop with a different bag</a>: stack, queue or heap. Classify each problem; every option explains itself.</p>
+  <div id="pick-exercise" class="mc-exercise"></div>
+
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. You push 5, 1, 8 and 3, in that order, onto a Rust <code>BinaryHeap&lt;i32&gt;</code>, then call <code>pop()</code> once. What comes out?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','That is what a min-heap returns. Rust’s BinaryHeap is a max-heap; smallest-first needs Reverse(x).')">1, the smallest</button>
+        <button onclick="quizAnswer(this,true,'q1','Right. BinaryHeap is a max-heap: pop removes the greatest item in O(log n), whatever the arrival order.')">8, the largest</button>
+        <button onclick="quizAnswer(this,false,'q1','That is queue order: 5 went in first, so pop_front would return it. A heap ignores arrival order.')">5, the first pushed</button>
+        <button onclick="quizAnswer(this,false,'q1','That is stack order: 3 went in last, so Vec::pop would return it. A heap ignores arrival order.')">3, the last pushed</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. A queue built on a <code>Vec</code> dequeues with <code>v.remove(0)</code>. What does draining n items cost in total?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','Amortization covers growth at the back. remove(0) shifts every remaining element on every call; removals are not amortized.')">O(n): pushes are O(1) amortized</button>
+        <button onclick="quizAnswer(this,false,'q2','The shifts shrink (n − 1, n − 2, …) but sum to n(n − 1)/2, which is quadratic. Nothing is halved, so no log.')">O(n log n): the shifts shrink</button>
+        <button onclick="quizAnswer(this,true,'q2','Right. The k-th call shifts n − k elements, n(n − 1)/2 in total, because Vec::remove(i) shifts everything after i. VecDeque::pop_front is O(1).')">O(n²): each call shifts the rest</button>
+        <button onclick="quizAnswer(this,false,'q2','No hashing or randomness is involved, so nothing is expected. Every remove(0) deterministically shifts the whole tail.')">O(n) expected, as for HashMap lookups</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Scores arrive as a stream of n = 10⁶ values. You must keep the k = 100 largest. Which plan fits?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right. The root is the weakest of the k kept, so each new score meets it and the loser is evicted: O(log k) per score, at most k + 1 items held.')">Min-heap capped at k: O(n log k), O(k) space</button>
+        <button onclick="quizAnswer(this,false,'q3','A max-heap’s root is the largest kept, so popping to stay at size k throws away the best. You would keep the k smallest.')">Max-heap capped at k: O(n log k), O(k) space</button>
+        <button onclick="quizAnswer(this,false,'q3','Correct output in O(n + k log n), but it stores all million scores. On a stream, O(k) memory is the point.')">Max-heap of all n, then pop k: O(n) space</button>
+        <button onclick="quizAnswer(this,false,'q3','Correct output, but O(n log n) time and all n scores in memory. The size-k heap wins on both, since log k is far below log n.')">Sort all n, keep the top k: O(n log n) time</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Daily Temperatures on [30, 60, 50, 40, 55]. When day 4 (55) arrives, the stack holds days [1, 2, 3], with temps 60, 50, 40 from bottom to top. What happens?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','The while keeps going: after 40 the new top is 50, also cooler than 55, so it is popped too, with answer[2] = 2.')">Pop 3 only, set answer[3] = 1</button>
+        <button onclick="quizAnswer(this,false,'q4','60 is warmer than 55, so day 1 is still waiting. Its true answer is 0, because no later day beats 60.')">Pop 1, 2 and 3, then push 4</button>
+        <button onclick="quizAnswer(this,false,'q4','You compare with the top, not the bottom. The top is 40, cooler than 55, so the pops start there.')">Pop nothing: 55 is below 60, push 4</button>
+        <button onclick="quizAnswer(this,true,'q4','Right. 40 and 50 are cooler than 55, so they get 4 − 3 = 1 and 4 − 2 = 2. The top is now 60, not cooler, so the loop stops and the stack becomes [1, 4].')">Pop 3, then 2, then push 4</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>Rust, blank file. Name the structure and state time and space before you type. All but Kth Largest are on the handbook’s <a href="https://www.techinterviewhandbook.org/algorithms/stack/" target="_blank">stack</a>, <a href="https://www.techinterviewhandbook.org/algorithms/queue/" target="_blank">queue</a> and <a href="https://www.techinterviewhandbook.org/algorithms/heap/" target="_blank">heap</a> pages.</p>
+  <ol>
+    <li><strong>Valid Parentheses</strong>, <strong>Evaluate Reverse Polish Notation</strong>, then <strong>Min Stack</strong>.</li>
+    <li><strong>Implement Queue using Stacks</strong> with two <code>Vec</code>s. Say why each operation is O(1) amortized.</li>
+    <li><strong>Daily Temperatures</strong> without looking. State the invariant first.</li>
+    <li><strong>Kth Largest Element in an Array</strong>, <strong>K Closest Points to Origin</strong> (no <code>f64</code>), then <strong>Top K Frequent Elements</strong>.</li>
+    <li>Stretch: <strong>Largest Rectangle in Histogram</strong>; <strong>Find Median from Data Stream</strong> with two heaps (algs4 §2.4’s “dynamic-median finding” exercise).</li>
+  </ol>
+
+  <h2>Primary resource</h2>
+  <p>Laaksonen’s <a href="https://cses.fi/book/book.pdf" target="_blank"><em>Competitive Programmer’s Handbook</em></a> (free PDF), §8.2 “Nearest smaller elements” and §8.3 “Sliding window minimum”, pages 79–82. Four pages give the monotonic stack, the amortized proof that it is O(n), and the deque version for sliding windows: the least obvious, most valuable skill here. The code is C++; port it to Rust.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> Try: “Give me five problems I haven’t seen, one at a time. I’ll name stack, queue, monotonic stack or heap within a minute with time and space, and you ask what a Google interviewer would ask next.” Or ask why <code>BinaryHeap::from(vec)</code> is O(n) when n pushes look like O(n log n). Type a question in Claude Code.
+  </div>
+
+  <div class="nav">
+    <a href="0003-two-pointers-sliding-window.html">← Lesson 3: Two Pointers &amp; Sliding Window</a>
+    <span class="spacer"></span>
+    <a href="0005-binary-trees-and-bsts.html">Lesson 5: Binary Trees &amp; BSTs →</a>
+  </div>
+
+</div>
+
+<script src="../../assets/quiz.js"></script>
+<script>
+// "Be the stack": the learner pops and pushes for Daily Temperatures.
+(function () {
+  const T = [73, 74, 75, 71, 69, 72, 76, 73], $ = id => document.getElementById(id);
+  let i, st, ans, pushes, pops;
+  const top = () => st[st.length - 1];
+  function say(msg, kind) { $('mono-fb').textContent = msg; $('mono-fb').className = 'mono-fb ' + (kind || ''); }
+  function draw() {
+    $('mono-days').innerHTML = T.map((t, k) => '<span class="mono-day' + (k === i ? ' cur' : st.includes(k) ? ' wait' : '') +
+      (ans[k] !== null ? ' done' : '') + '"><small>' + k + '</small><b>' + t + '</b><i>' + (ans[k] === null ? '·' : ans[k]) + '</i></span>').join('');
+    const s = $('mono-stack');
+    s.textContent = st.length ? '' : '(empty)';
+    st.forEach((j, p) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      if (p === st.length - 1) b.className = 'top';
+      b.innerHTML = '<small>day ' + j + '</small>' + T[j];
+      b.addEventListener('click', () => pop(p));
+      s.appendChild(b);
+    });
+    const done = i >= T.length;
+    $('mono-push').textContent = done ? 'Finished' : (st.length ? 'Stop popping: push day ' : 'Push day ') + i;
+    $('mono-push').disabled = done;
+    $('mono-count').textContent = (done ? 'All 8 days done' : 'Day ' + i + ' (days 0–7)') + ' · ' + pushes + ' pushes · ' + pops + ' pops';
+  }
+  function pop(p) {
+    if (i >= T.length) return say('Finished. Press Reset to run it again.', 'bad');
+    const j = top(), cur = T[i];
+    if (p !== st.length - 1) return say('Only the top can come off: a stack is LIFO. The top is day ' + j + ' (' + T[j] + '). ' +
+      (T[j] < cur ? 'Deal with it first.' : 'It is not cooler than ' + cur + ', so nothing below it is either: temperatures fall from bottom to top.'), 'bad');
+    if (T[j] >= cur) return say('Popping ' + T[j] + ' is wrong: ' + cur + ' is not warmer than ' + T[j] + ', so day ' + j +
+      ' is still waiting, and the falling stack means nothing below it is cooler either. Push day ' + i + '.', 'bad');
+    st.pop(); pops++; ans[j] = i - j;
+    const nt = st.length ? T[top()] : null;
+    say('Popped day ' + j + ' (' + T[j] + '): day ' + i + ' (' + cur + ') is its first warmer day, so answer[' + j + '] = ' + i + ' − ' + j + ' = ' + (i - j) + '. ' +
+      (nt === null ? 'The stack is empty: push day ' + i + '.' : nt < cur ? 'The new top, ' + nt + ', is also cooler: keep popping.' :
+        'The new top, ' + nt + ', is not cooler: stop and push day ' + i + '.'), 'good');
+    draw();
+  }
+  $('mono-push').addEventListener('click', () => {
+    if (i >= T.length) return;
+    if (st.length && T[top()] < T[i]) return say('Not yet: the top, day ' + top() + ' (' + T[top()] + '), is cooler than ' + T[i] +
+      ', so day ' + i + ' is its answer. Pop it first, or it gets buried and never answered.', 'bad');
+    st.push(i); pushes++; i++;
+    if (i === T.length) {
+      st.forEach(j => { ans[j] = 0; });
+      say('Done: [' + ans.join(', ') + ']. Days ' + st.join(' and ') + ' never saw a warmer day, so they stay 0. ' + pushes + ' pushes and ' + pops +
+        ' pops: each index is pushed once and popped at most once, so all the inner loops together do at most 2n = 16 stack operations. That is the O(n) argument.', 'good');
+    } else say('Pushed. Bottom to top the stack is ' + st.map(j => T[j]).join(', ') + ', never rising. Day ' + i + ' (' + T[i] + ') is next: pop what it beats, then push.', 'good');
+    draw();
+  });
+  function reset() {
+    i = 0; st = []; ans = T.map(() => null); pushes = 0; pops = 0;
+    say('Day 0 (73) arrives and the stack is empty, so there is nothing to pop. Push it.');
+    draw();
+  }
+  $('mono-reset').addEventListener('click', reset);
+  reset();
+})();
+
+const PICKS = ['Stack using a Vec', 'Queue using a VecDeque', 'Heap using a BinaryHeap', 'Monotonic stack of indices'];
+const pick = (right, ex) => PICKS.map((text, k) => ({ text, correct: k === right, explain: ex[k] }));
+renderMC('pick-exercise', [
+  { prompt: 'Decide whether a string of ()[]{} closes every bracket in the right order.', options: pick(0, [
+    'The newest opener must close first: LIFO. Push the expected closer, compare on pop. O(n) time and space.',
+    'A queue returns the oldest opener, but in “([])” the “]” must match the newest, the “[”. Brackets nest.',
+    'Brackets have no priority. Recency is what matters, and a heap ignores it at O(log n) per operation.',
+    'Nothing is compared by size. A plain stack of expected closers is enough; no next-greater invariant needed.'
+  ]) },
+  { prompt: 'Simulate a shared printer that prints jobs in the order they were submitted.', options: pick(1, [
+    'A stack prints the newest job first, so an early job could wait forever. That is LIFO, not arrival order.',
+    'Arrival order is FIFO: push_back on submit, pop_front when free, both O(1) on the ring buffer (push amortized).',
+    'All jobs share one priority, so a heap costs O(log n) per operation and does not promise arrival order among ties.',
+    'No job is compared with another by size. Jobs simply leave in arrival order.'
+  ]) },
+  { prompt: 'A support desk always handles the most severe open ticket next, while new tickets keep arriving.', options: pick(2, [
+    'The newest ticket is not the most severe: a stack would answer a fresh typo report before an outage.',
+    'Arrival order ignores severity: an outage filed after ten typo reports would wait behind them all.',
+    '“Repeatedly take the best while items arrive” is the priority-queue cue. Push (severity, id): O(log n) pop, O(1) peek.',
+    'A monotonic stack answers a fixed question per array element. It cannot keep serving the max of a changing set.'
+  ]) },
+  { prompt: 'Return the k most frequent words in a huge log, where k is far smaller than the number of distinct words.', options: pick(2, [
+    'Recency is not frequency. After counting you need the k largest counts, which a stack cannot select.',
+    'Arrival order is not frequency. After counting you need the k largest counts, which a queue cannot select.',
+    'Count with a HashMap, then keep a size-k min-heap of Reverse((count, word)): O(m log k) for m distinct words, O(k) heap.',
+    'No per-position nearest-greater question here. You want the k largest counts overall: the “mention of k” cue.'
+  ]) },
+  { prompt: 'Print a binary tree’s values one level at a time, from the root down.', options: pick(1, [
+    'A stack dives down one branch before finishing the level above: depth-first order, so levels come out mixed.',
+    'Nodes leave in discovery order, so level d empties before level d + 1 starts. That is level-order traversal (BFS).',
+    'Values have nothing to do with depth. A heap would print the largest values first, wherever they sit.',
+    'Nothing is compared by size. Level order needs discovery order, which is FIFO.'
+  ]) },
+  { prompt: 'For each element of an array, find the first element to its right that is larger.', options: pick(3, [
+    'Close, but a plain stack misses the trick: values on it must fall from bottom to top, stored as indices.',
+    'Waiting elements are answered newest first: a larger value resolves the most recent smaller ones first. LIFO, not FIFO.',
+    'A min-heap of waiting values works, but in O(n log n). The waiting values are already ordered on a stack, which gives O(n).',
+    'Keep indices whose values never rise; each element pops and answers every smaller one. Pushed once, popped at most once: O(n).'
+  ]) }
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>

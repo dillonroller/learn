@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 7 — Shor's Algorithm &amp; Breaking RSA</title>
+  <link rel="stylesheet" href="../assets/style.css">
+  <style>
+  .pf-figure { margin: 1.25rem 0 1.5rem; }
+  .pf-chart { display: block; width: 100%; max-width: 560px; height: auto; margin: 0 auto; }
+  .pf-bar { fill: var(--accent); }
+  .pf-ideal { stroke: var(--amber); stroke-width: 1; stroke-dasharray: 3 3; opacity: .7; }
+  .pf-grid { stroke: var(--border); stroke-width: 1; }
+  .pf-base { stroke: var(--muted); stroke-width: 1; }
+  .pf-ax { fill: var(--muted); font: 13px var(--font-ui); }
+  .pf-hit { fill: transparent; }
+  .pf-figure figcaption { font-family: var(--font-ui); font-size: .8rem; color: var(--ink-dim); margin-top: .5rem; line-height: 1.5; }
+  </style>
+</head>
+<body>
+<nav class="topnav">
+  <a class="tn-home" href="../../index.html">Learning Hub</a>
+  <span class="tn-sep">›</span>
+  <a class="tn-topic-link" href="../index.html">Quantum Computing</a>
+</nav>
+<div class="page">
+
+  <p class="lesson-meta">Lesson 7 of 10 &nbsp;·&nbsp; Quantum Computing &nbsp;·&nbsp; ~45 min</p>
+  <h1>Shor's Algorithm &amp; Breaking RSA</h1>
+  <p><a href="0006-quantum-fourier-transform-phase-estimation.html#phase-estimation">Lesson 6</a>'s practice drilled phase estimation (t control qubits, controlled-U<sup>2ʲ</sup>, inverse QFT), the subroutine Shor's algorithm reuses. Cryptography gave you the classical half: <a href="../../cryptography/lessons/0003-why-factoring-is-hard-shors-algorithm.html#shors-algorithm">factoring N reduces to finding the order r of a random a mod N</a>, and <code>gcd(a^(r/2) ± 1, N)</code> then gives the factors. This lesson builds the missing middle: the circuit that finds r, the interference that makes it work, and the continued-fraction step that turns one measured number into r. The win: given a measured y, you finish the factoring by hand.</p>
+  <pre><code>classical   pick a with gcd(a, N) = 1; precompute a^(2^j) mod N
+quantum     order-finding circuit  →  one measured integer y
+classical   continued fractions on y/Q  →  candidate r; check a^r ≡ 1
+classical   gcd(a^(r/2) − 1, N) and gcd(a^(r/2) + 1, N)</code></pre>
+
+  <h2 id="period-finding">The picture first: a comb, and interference reads its spacing</h2>
+  <p>Put a t-qubit counting register into the uniform superposition over x = 0, …, Q−1 (Q = 2ᵗ), then compute the function f(x) = a<sup>x</sup> mod N into a second register:</p>
+  <pre><code>(1/√Q) Σ_x |x⟩ |a^x mod N⟩</code></pre>
+  <p>f repeats with period r, the <a href="../../cryptography/lessons/0003-why-factoring-is-hard-shors-algorithm.html#order-finding-def">order</a> of a. Imagine measuring the second register (whether you do changes nothing about the first register's statistics). You see some a<sup>s</sup>, and the first register collapses to a <em>comb</em> <code>|s⟩ + |s+r⟩ + |s+2r⟩ + …</code>: teeth spaced r apart, random offset s. Measuring the comb directly returns a random tooth, which is useless. The inverse QFT instead maps a comb of spacing r to a comb of spacing Q/r, and the offset s becomes a phase that drops out of the probabilities. That is <a href="0006-quantum-fourier-transform-phase-estimation.html#qft-definition">lesson 6's promise</a>, with real numbers.</p>
+  <div class="callout">
+    <strong>Worked example: N = 15, a = 7, t = 3 (Q = 8)</strong>
+    Powers 7<sup>x</sup> mod 15 for x = 0…7 are <code>1, 7, 4, 13, 1, 7, 4, 13</code>, so r = 4. Say the second register shows 4. The counting register is then <code>(|2⟩ + |6⟩)/√2</code>. Apply QFT⁻¹ (amplitude e<sup>−2πixy/8</sup>/√8 from |x⟩ to |y⟩):
+    <pre><code>amp(y) = (1/√2)(1/√8) [ e^(−2πi·2y/8) + e^(−2πi·6y/8) ]
+       = (1/4) e^(−iπy/2) [ 1 + (−1)^y ]
+
+y odd   →  1 + (−1) = 0             probability 0
+y even  →  |amp| = 2/4 = 1/2        probability 1/4   (y = 0, 2, 4, 6)</code></pre>
+    Every outcome is a multiple of Q/r = 2, whatever the second register showed. The odd outcomes are not “rejected guesses”: two paths of opposite phase <a href="0004-interference-deutsch-jozsa.html#interference">cancel exactly</a>.
+  </div>
+  <p>Q = 8 is a toy that works only because r = 4 divides 8. The real algorithm takes Q = 2ᵗ with <strong>N² &lt; Q ≤ 2N²</strong> (t ≈ 2n for an n-bit N), and then r usually does not divide Q. The peaks are no longer exact, but they stay sharp: with probability at least 4/π² ≈ 0.405 the outcome y lands within 1/2 of some c·Q/r (<a href="https://arxiv.org/abs/1907.09415" target="_blank">de Wolf, §5.3</a>). For N = 21, a = 2 (r = 6) and Q = 512, the exact distribution looks like this:</p>
+  <figure class="pf-figure">
+<svg class="pf-chart" viewBox="0 0 480 214" role="img" aria-label="Outcome probabilities P(y) for N = 21, a = 2, Q = 512: six tall peaks at y = 0, 85, 171, 256, 341, 427, each at the integer nearest c times 512/6, with small side lobes and near-zero elsewhere.">
+<path class="pf-grid" d="M34 30H470M34 86H470"/>
+<text class="pf-ax" x="30" y="34" text-anchor="end">1/6</text><text class="pf-ax" x="30" y="90" text-anchor="end">0.10</text>
+<path class="pf-ideal" d="M34 18V170M106.8 18V170M179.6 18V170M252.4 18V170M325.2 18V170M398 18V170"/>
+<path class="pf-bar" d="M33 170V30h2V170zM103 170V169h2V170zM103.8 170V168h2V170zM104.7 170V164h2V170zM105.5 170V74.2h2V170zM106.4 170V146.1h2V170zM107.2 170V166.2h2V170zM108.1 170V168.5h2V170zM176.3 170V168.5h2V170zM177.2 170V166.2h2V170zM178 170V146.1h2V170zM178.9 170V74.2h2V170zM179.8 170V164h2V170zM180.6 170V168h2V170zM181.5 170V169h2V170zM251.4 170V30h2V170zM321.4 170V169h2V170zM322.2 170V168h2V170zM323.1 170V164h2V170zM324 170V74.2h2V170zM324.8 170V146.1h2V170zM325.7 170V166.2h2V170zM326.5 170V168.5h2V170zM394.8 170V168.5h2V170zM395.6 170V166.2h2V170zM396.5 170V146.1h2V170zM397.3 170V74.2h2V170zM398.2 170V164h2V170zM399 170V168h2V170zM399.9 170V169h2V170z"/>
+<rect class="pf-hit" x="28" y="30" width="12" height="140"><title>y = 0: P = 0.167</title></rect>
+<rect class="pf-hit" x="100.5" y="30" width="12" height="140"><title>y = 85: P = 0.114</title></rect>
+<rect class="pf-hit" x="173.9" y="30" width="12" height="140"><title>y = 171: P = 0.114</title></rect>
+<rect class="pf-hit" x="246.4" y="30" width="12" height="140"><title>y = 256: P = 0.167</title></rect>
+<rect class="pf-hit" x="319" y="30" width="12" height="140"><title>y = 341: P = 0.114</title></rect>
+<rect class="pf-hit" x="392.3" y="30" width="12" height="140"><title>y = 427: P = 0.114</title></rect>
+<path class="pf-base" d="M34 170H470"/>
+<text class="pf-ax" x="34" y="186" text-anchor="middle">0</text><text class="pf-ax" x="106.5" y="186" text-anchor="middle">85</text><text class="pf-ax" x="179.9" y="186" text-anchor="middle">171</text><text class="pf-ax" x="252.4" y="186" text-anchor="middle">256</text><text class="pf-ax" x="325" y="186" text-anchor="middle">341</text><text class="pf-ax" x="398.3" y="186" text-anchor="middle">427</text>
+<text class="pf-ax" x="252" y="206" text-anchor="middle">measured y   (dashed: c · 512/6)</text>
+</svg>
+    <figcaption>Exact simulation. P(0) = P(256) ≈ 1/6; P(85) = P(171) = P(341) = P(427) ≈ 0.114; their neighbors 86, 170, 342, 426 ≈ 0.029. In total, about 79% of runs land within 1/2 of a dashed line.</figcaption>
+  </figure>
+
+  <h2 id="order-finding-circuit">The circuit: phase estimation on multiplication by a</h2>
+  <p>How do you compute |x⟩|a<sup>x</sup> mod N⟩? Define <code>U_a|w⟩ = |a·w mod N⟩</code> on an n-qubit work register (leaving w ≥ N alone). Because gcd(a, N) = 1, multiplication by a permutes 0…N−1, so U_a permutes basis states: <a href="0003-universal-gates-reversibility-no-cloning.html#reversibility">reversible</a>, hence unitary. Write x = Σ x<sub>j</sub>2ʲ in binary; then a<sup>x</sup> = Π (a<sup>2ʲ</sup>)<sup>x<sub>j</sub></sup>. So start the work register in |1⟩ and let counting qubit j control multiplication by b<sub>j</sub> = a<sup>2ʲ</sup> mod N:</p>
+  <pre><code>c0     |0⟩─H──●─────────────────────────┤       ├─ y0
+c1     |0⟩─H──┼───────●─────────────────┤ QFT⁻¹ ├─ y1
+ :            │       │                 │       │  :
+c(t−1) |0⟩─H──┼───────┼─── … ─────●─────┤       ├─ y(t−1)
+              │       │           │
+work   |1⟩──[×b0]───[×b1]─ … ─[×b(t−1)]─────────────
+
+b_j = a^(2^j) mod N        controlled-(×b_j) = controlled-U_a^(2^j)</code></pre>
+  <p>This is <a href="0006-quantum-fourier-transform-phase-estimation.html#phase-estimation">lesson 6's phase-estimation circuit</a> with U = U_a. The new ingredient is how controlled-U<sub>a</sub><sup>2ʲ</sup> gets built: it is multiplication by the <em>single constant</em> b<sub>j</sub>, and b<sub>j+1</sub> = b<sub>j</sub>² mod N is one classical squaring away (<a href="../../cryptography/lessons/0001-modular-arithmetic-eulers-theorem.html#square-and-multiply-def">square-and-multiply</a>), done before the quantum computer starts. For N = 21, a = 2 the constants are 2, 4, 16, 4, 16, 4, 16, 4, 16.</p>
+  <div class="callout warn">
+    <strong>The trap: “controlled-U<sup>2ʲ</sup> means applying U 2ʲ times”</strong>
+    That would cost 1 + 2 + … + 2<sup>t−1</sup> = 2ᵗ − 1 ≥ N² multiplications, exponential in n. For a generic unitary, phase estimation to t bits really does need about 2ᵗ uses of U. Shor's algorithm is efficient only because <em>powers of U<sub>a</sub> cost the same as U<sub>a</sub></em>.
+  </div>
+  <p>Cost: each controlled multiplication by a constant is O(n²) gates with schoolbook arithmetic, and there are t ≈ 2n of them, so O(n³); the <a href="0006-quantum-fourier-transform-phase-estimation.html#qft-circuit">inverse QFT</a> adds only O(n²) (<a href="https://quantum.cloud.ibm.com/learning/en/courses/fundamentals-of-quantum-algorithms/phase-estimation-and-factoring/shor-algorithm" target="_blank">Watrous</a>).</p>
+  <div class="complexity"><span class="label">Best known classical (<a href="../../cryptography/lessons/0003-why-factoring-is-hard-shors-algorithm.html#gnfs-def">GNFS</a>)</span><span class="val">sub-exponential</span><span class="label">Shor</span><span class="val">O(n³) gates</span></div>
+
+  <h2 id="shor-eigenstate-trick">Why starting in |1⟩ is enough</h2>
+  <p>Phase estimation wants an eigenstate of U, and you cannot write one down for U<sub>a</sub> without knowing r. First, the one-line argument the <a href="../../cryptography/lessons/0003-why-factoring-is-hard-shors-algorithm.html#quantum-order-finding">cryptography lesson</a>'s teacher tip promised: since a<sup>r</sup> ≡ 1, <strong>U<sub>a</sub><sup>r</sup> = I</strong>, so any eigenvalue λ satisfies λ<sup>r</sup> = 1 and is an r-th root of unity e<sup>2πik/r</sup>. On the orbit 1, a, a², … the eigenstates are explicit:</p>
+  <pre><code>|ψ_k⟩ = (1/√r) Σ_(s=0)^(r−1) e^(−2πiks/r) |a^s mod N⟩        U_a|ψ_k⟩ = e^(2πik/r) |ψ_k⟩
+
+(1/√r) Σ_k |ψ_k⟩ = |1⟩        since Σ_k e^(−2πiks/r) = r if s = 0, and 0 otherwise</code></pre>
+  <p>So |1⟩, the easiest state to prepare, is already an equal superposition of all r eigenstates. Phase estimation on it acts like phase estimation on a uniformly random |ψ<sub>k</sub>⟩: each controlled multiplication <a href="0004-interference-deutsch-jozsa.html#phase-kickback">kicks back</a> a phase, and the output satisfies <strong>y/Q ≈ k/r for a random k</strong>. For N = 15 the phases are 0, 1/4, 1/2, 3/4, which with Q = 8 is y = 0, 2, 4, 6, each with probability 1/4: the comb view and the eigenvalue view describe the same circuit.</p>
+
+  <h2 id="continued-fractions">From y to r: continued fractions</h2>
+  <p>You hold y and Q, and y/Q ≈ c/r with c and r unknown, r &lt; N. This is why Q exceeds N²: two different fractions with denominators ≤ N differ by at least 1/N² &gt; 1/Q. If y lands within 1/2 of a peak, |y/Q − c/r| ≤ 1/(2Q), so c/r is the <em>only</em> fraction with denominator ≤ N that close. Continued fractions find it: run Euclid's algorithm on (y, Q) for the partial quotients a<sub>n</sub>, build convergents p<sub>n</sub>/q<sub>n</sub> with p<sub>n</sub> = a<sub>n</sub>p<sub>n−1</sub> + p<sub>n−2</sub> and q<sub>n</sub> = a<sub>n</sub>q<sub>n−1</sub> + q<sub>n−2</sub>, and keep the last convergent with denominator ≤ N (proofs: de Wolf §5.4).</p>
+  <div class="callout">
+    <strong>Worked example: N = 21, a = 2, Q = 512 (441 &lt; 512 ≤ 882, so t = 9), measured y = 85</strong>
+    <pre><code>512 = 6·85 + 2       a1 = 6
+ 85 = 42·2 + 1       a2 = 42
+  2 = 2·1  + 0       a3 = 2            85/512 = [0; 6, 42, 2]
+
+convergent  1/6     42/253    85/512
+den ≤ 21?   yes     no        no         →  c/r = 1/6,  r = 6
+closeness   |85/512 − 1/6| = 1/1536  ≤  1/1024 = 1/(2Q)
+check       2^6 = 64 = 3·21 + 1 ≡ 1 (mod 21)
+factor      r even, 2^3 = 8 ≢ −1 ≡ 20 (mod 21)
+            gcd(8 − 1, 21) = 7      gcd(8 + 1, 21) = 3      21 = 3 · 7</code></pre>
+    That is the <a href="../../cryptography/lessons/0003-why-factoring-is-hard-shors-algorithm.html">cryptography lesson</a>'s by-hand practice answer, now produced by a single measurement.
+  </div>
+  <p><strong>When a run fails.</strong> Every candidate is checked classically, so a failure costs a rerun, never a wrong answer.</p>
+  <ul>
+    <li><strong>y = 0</strong> means c = 0, which says nothing about r. Rerun.</li>
+    <li><strong>gcd(c, r) &gt; 1</strong> hides part of r. y = 171 = [0; 2, 1, 170] has convergents 1/2, 1/3, so r′ = 3, but 2³ = 8 ≢ 1 (mod 21): the peak was 2/6. A run giving y = 256 (1/2) yields r′ = 2, and lcm(3, 2) = 6. Taking the LCM of denominators across runs is the standard fix.</li>
+    <li><strong>A missed peak</strong> (about 21% of runs for N = 21) may give a wrong candidate, which the a<sup>r</sup> ≡ 1 check catches.</li>
+    <li><strong>r odd, or a<sup>r/2</sup> ≡ −1</strong>: pick a new a. For odd N that is not a prime power, each random a splits N with probability at least 1/2 (<a href="https://quantum.cloud.ibm.com/learning/en/courses/fundamentals-of-quantum-algorithms/phase-estimation-and-factoring/shor-algorithm" target="_blank">Watrous</a>).</li>
+  </ul>
+  <div class="callout warn">
+    <strong>Keep this in perspective</strong>
+    Only order finding is quantum. Choosing a, precomputing b<sub>j</sub>, continued fractions and the gcds are all classical, and no step “tries every factor”. The speedup is real but stated carefully: O(n³) gates against the sub-exponential GNFS is a superpolynomial gap <em>over the best known classical algorithm</em>. No one has proven that factoring is classically hard, so this is not a proven exponential separation. <a href="0008-quantum-complexity-bqp.html#bqp">Lesson 8</a> places it on the complexity map.
+  </div>
+
+  <h2 id="quantum-vulnerable-crypto">What Shor breaks, and what it doesn't</h2>
+  <p>Shor's paper solves <a href="https://arxiv.org/abs/quant-ph/9508027" target="_blank">factoring and discrete logarithms</a> with the same period-finding core (discrete log uses two exponent registers), and the same method works in elliptic-curve groups (costed below). That covers the public-key schemes in wide use today:</p>
+  <pre><code>scheme                     hard problem             quantum status
+RSA                        factoring                broken (order finding)
+finite-field DH, DSA       discrete log mod p       broken (Shor's DLP variant)
+ECDH, ECDSA, EdDSA         elliptic-curve DL        broken (same idea, EC group)
+AES-128/256, SHA-2/3       no hidden period         generic (Grover-type) only
+ML-KEM (FIPS 203)          module lattices          no known efficient attack</code></pre>
+  <p>Diffie-Hellman rests on the <a href="../../cryptography/lessons/0004-diffie-hellman-discrete-log-problem.html#discrete-log-problem">discrete log problem</a> and <a href="../../cryptography/lessons/0006-elliptic-curve-cryptography.html">elliptic-curve cryptography</a> on its elliptic-curve version, so both fall on the same timeline as RSA. Symmetric ciphers and hashes have no known hidden-period structure to exploit; for key search and preimages the best known attack is generic Grover search, <a href="0005-grovers-algorithm.html#grover-optimality">provably limited to a square-root speedup</a>, and NIST's draft plan (below) expects its symmetric primitives with at least 128-bit classical security to stay adequate. For key exchange the replacement is the lattice-based ML-KEM, “believed to be secure, even against adversaries who possess a quantum computer” (<a href="https://csrc.nist.gov/pubs/fips/203/final" target="_blank">FIPS 203</a>, August 2024); how lattices work is <a href="../../cryptography/lessons/0007-post-quantum-lattices-lwe.html">Cryptography lesson 7</a>.</p>
+  <p>Why migrate before such a machine exists: <strong>harvest now, decrypt later</strong>. Traffic recorded today can be decrypted once a large quantum computer runs. NIST IR 8547 (<a href="https://csrc.nist.gov/pubs/ir/8547/ipd" target="_blank">initial public draft, November 2024, still a draft as of October 2026</a>) proposes deprecating RSA and elliptic-curve algorithms at 112-bit strength after 2030 and disallowing all quantum-vulnerable public-key algorithms after 2035.</p>
+
+  <h2 id="shor-resource-estimates">What it would cost (as of 2026)</h2>
+  <p>With perfect qubits, the textbook layout needs about 3n qubits (2n counting, n work), and known tricks bring that to slightly more than 2n, so a bit over 4,096 for RSA-2048 (<a href="https://arxiv.org/abs/1907.09415" target="_blank">de Wolf, §5.3</a>). Real qubits are noisy, so each perfect qubit must be an error-corrected <a href="0009-decoherence-noise-error-correction.html#logical-qubit">logical qubit</a> built from many physical ones. Published physical-qubit estimates, all assuming a physical error rate of 10⁻³ (0.1%) and a 1 µs error-correction cycle, have fallen fast:</p>
+  <ul>
+    <li><strong>RSA-2048:</strong> 20 million qubits, about 8 hours (<a href="https://arxiv.org/abs/1905.09749" target="_blank">Gidney &amp; Ekerå, 2019</a>).</li>
+    <li><strong>RSA-2048:</strong> under 1 million qubits, under a week (<a href="https://arxiv.org/abs/2505.15917" target="_blank">Gidney, 2025</a>), on the same nearest-neighbor square grid with surface codes.</li>
+    <li><strong>RSA-2048:</strong> under 100,000 qubits, about a month (<a href="https://arxiv.org/abs/2602.11457" target="_blank">Webster et al., 2026</a>), using QLDPC codes, which need longer-range qubit connections than a nearest-neighbor grid.</li>
+    <li><strong>ECC-256:</strong> under 1,200 logical qubits; minutes on under 500,000 physical qubits (<a href="https://arxiv.org/abs/2603.28846" target="_blank">Babbush et al., 2026</a>).</li>
+  </ul>
+  <div class="callout warn">
+    <strong>The trap: “RSA needs about 4,096 qubits, so it is nearly here”</strong>
+    That figure counts perfect logical qubits. The numbers that matter are physical-qubit counts at a stated error rate, and every estimate above is a paper design for a machine that does not exist yet. The estimates fall because of cheaper arithmetic, Shor variants that trade more runs for smaller registers, and better error-correcting codes and layouts; the period-finding core is the same one you just traced. <a href="0010-physical-qubits-nisq-era.html#quantum-advantage-claims">Lesson 10</a> covers what today's hardware can actually do.
+  </div>
+
+  <h2>Try it: the continued-fraction decoder</h2>
+  <p>Each card hands you a measured outcome. Finish the algorithm: decode, check, factor, then classify.</p>
+  <div id="shor-exercise" class="mc-exercise"></div>
+
+  <!-- Quiz -->
+  <div class="quiz">
+    <h3>Check your understanding</h3>
+
+    <div class="q-block" id="q1">
+      <p>1. In the N = 15, Q = 8 example, the counting register never reads y = 3. Why?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q1','Nothing is tested. y is a frequency read off by the inverse QFT, not an exponent; every x was present in superposition and none was checked against anything.')">The circuit tested exponent 3 and rejected it</button>
+        <button onclick="quizAnswer(this,true,'q1','Right. With the comb |2⟩ + |6⟩ the amplitude of y is proportional to 1 + (−1)^y, which is exactly 0 for odd y. That is destructive interference, not guessing.')">Its two paths arrive out of phase and cancel</button>
+        <button onclick="quizAnswer(this,false,'q1','Measuring the work register only fixes the offset s of the comb. Every offset gives the same zero at y = 3; the inverse QFT is what cancels it.')">Measuring the work register removed it</button>
+        <button onclick="quizAnswer(this,false,'q1','N = 21 is odd too, yet its odd outcomes 85 and 171 each occur with probability ≈ 0.114. The zeros at odd y come from r = 4 dividing Q = 8, not from N.')">Odd outcomes never occur when N is odd</button>
+      </div>
+      <div class="feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="q-block" id="q2">
+      <p>2. Why may the work register start in |1⟩ instead of an eigenstate of U_a?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q2','U_a|1⟩ = |a⟩, a different basis state, so |1⟩ is not an eigenstate (for a ≠ 1). It is a superposition of the r eigenstates.')">|1⟩ is itself an eigenstate with phase 1/r</button>
+        <button onclick="quizAnswer(this,false,'q2','The inverse QFT acts only on the counting register and never touches the work register. It decodes phases that kickback already placed there.')">The inverse QFT projects it onto an eigenstate</button>
+        <button onclick="quizAnswer(this,false,'q2','The phase-estimation argument is identical for every r. Parity of r matters only later, in the classical gcd step.')">Eigenstates only matter when r is odd</button>
+        <button onclick="quizAnswer(this,true,'q2','Right. (1/√r)Σ_k|ψ_k⟩ = |1⟩, so the run behaves like phase estimation on a uniformly random eigenstate and returns y/Q ≈ k/r for a random k.')">|1⟩ superposes all r eigenstates equally</button>
+      </div>
+      <div class="feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="q-block" id="q3">
+      <p>3. Why does Shor choose Q = 2ᵗ with N² &lt; Q ≤ 2N²?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,true,'q3','Right. Distinct fractions with denominators ≤ N differ by at least 1/N², which exceeds 1/Q, so at most one lies within 1/(2Q) of y/Q, and continued fractions find it.')">So only one c/r with r ≤ N is that close</button>
+        <button onclick="quizAnswer(this,false,'q3','Q is a power of 2 and r usually is not (r = 6 for N = 21). The peaks are sharp anyway: within 1/2 of c·Q/r with probability at least 4/π².')">So that r always divides Q exactly</button>
+        <button onclick="quizAnswer(this,false,'q3','The inverse QFT on t qubits costs O(t²) = O(n²) gates. The O(n³) total comes from the roughly 2n controlled modular multiplications.')">So the inverse QFT costs about n³ gates</button>
+        <button onclick="quizAnswer(this,false,'q3','The counting register never holds p or q. It holds an estimate of k/r; the factors appear only afterwards, from two classical gcds.')">So the register can hold p and q directly</button>
+      </div>
+      <div class="feedback" id="q3-fb"></div>
+    </div>
+
+    <div class="q-block" id="q4">
+      <p>4. Which statement about Shor's speedup is accurate?</p>
+      <div class="options">
+        <button onclick="quizAnswer(this,false,'q4','No classical lower bound for factoring is known. Shor beats the best known classical algorithm, GNFS; a fast classical algorithm has not been ruled out.')">It is proven exponential over every classical method</button>
+        <button onclick="quizAnswer(this,false,'q4','No candidate factors are ever tried. The circuit finds a period by interference, and the factors come from classical gcds afterwards.')">It comes from trying every candidate factor at once</button>
+        <button onclick="quizAnswer(this,true,'q4','Right. O(n³) gates against the sub-exponential GNFS is a superpolynomial gap, but only relative to the best classical algorithm known today.')">Superpolynomial over the best known classical one</button>
+        <button onclick="quizAnswer(this,false,'q4','Only schemes built on factoring or discrete logs fall. AES and SHA-2 face only Grover’s square-root speedup, and ML-KEM has no known efficient quantum attack.')">It makes every public and symmetric cipher unsafe</button>
+      </div>
+      <div class="feedback" id="q4-fb"></div>
+    </div>
+
+    <div class="quiz-score" id="score"></div>
+  </div>
+
+  <h2>Practice before next lesson</h2>
+  <p>By hand, for N = 21, a = 2, Q = 512: (1) decode y = 341. You should get r′ = 3 and a failed check; say which c the peak really had. (2) Decode y = 86, which is <em>not</em> within 1/(2Q) of 1/6. Expand 86/512 = [0; 5, 1, 20, 2] and see whether 1/6 still appears as a convergent. The 1/(2Q) condition guarantees success; it is not required for it. (3) For N = 15, a = 7 with the proper Q = 256, list every possible y and decode y = 192.</p>
+
+  <h2>Primary resource</h2>
+  <p>Read <a href="https://quantum.cloud.ibm.com/learning/en/courses/fundamentals-of-quantum-algorithms/phase-estimation-and-factoring/shor-algorithm" target="_blank">John Watrous, “Shor's algorithm”, IBM Quantum Learning</a>. It is the next page of the course <a href="0006-quantum-fourier-transform-phase-estimation.html">lesson 6</a> recommended, and follows this lesson's sequence: eigenvectors of multiplication by a, powers built from classically precomputed constants, the |1⟩ superposition, continued fractions with an LCM of denominators, and the O(n³) cost.</p>
+
+  <div class="teacher-tip">
+    <strong>Ask your teacher anything.</strong> The densest idea here is that the comb picture and the eigenvalue picture are the same circuit. Ask Claude Code to expand |1⟩ = (1/√4)Σ_k|ψ_k⟩ for N = 15, a = 7, push it through the Q = 8 circuit, and show that it gives the same y = 0, 2, 4, 6 distribution as the comb calculation.
+  </div>
+
+  <div class="nav">
+    <a href="0006-quantum-fourier-transform-phase-estimation.html">← Lesson 6: The Quantum Fourier Transform &amp; Phase Estimation</a>
+    <span class="spacer"></span>
+    <a href="0008-quantum-complexity-bqp.html">Lesson 8: Quantum Complexity &amp; BQP →</a>
+  </div>
+
+</div>
+
+
+<script src="../../assets/quiz.js"></script>
+<script>
+renderMC('shor-exercise', [
+  {
+    prompt: 'N = 15, a = 7, Q = 8, and the counting register reads y = 4. What should the decoder do?',
+    options: [
+      { text: 'Report r = 2 and go to the gcds', explain: '4/8 = 1/2 gives the candidate 2, but 7² = 49 ≡ 4 (mod 15), not 1. Always run the check before using a candidate.' },
+      { text: 'Candidate 2 fails the check: rerun', correct: true, explain: 'The peak was c/r = 2/4, and c = 2 shares a factor with r = 4, so lowest terms hide part of r. 7² ≡ 4 exposes this. Rerun, or take the LCM with another run (lcm(2, 4) = 4).' },
+      { text: 'Report r = 8, since 7⁸ ≡ 1', explain: '8 is Q, not a denominator in lowest terms. 7⁸ ≡ 1 does hold, but only because 8 is a multiple of the true order 4; plugging r = 8 into the gcds gives gcd(0, 15) = 15 and gcd(2, 15) = 1, nothing useful.' },
+    ],
+  },
+  {
+    prompt: 'N = 15, a = 7, Q = 8, and the counting register reads y = 0. What does this run tell you?',
+    options: [
+      { text: 'r = 1, since 0/8 = 0/1', explain: 'r = 1 would need 7¹ ≡ 1 (mod 15), but 7 ≢ 1. The outcome y = 0 is the peak c = 0, which is present for every r.' },
+      { text: 'Nothing about r: rerun', correct: true, explain: 'y = 0 means c = 0, and 0/r = 0/1 for every r, so the denominator carries no information. It happens with probability about 1/r (exactly 1/4 here); just rerun.' },
+      { text: 'r = 8, since y = 0 is Q mod Q', explain: 'Q is the register size, not a period. 7⁸ ≡ 1 holds only because 8 is a multiple of the true order 4, and y = 0 gave no evidence for that.' },
+    ],
+  },
+  {
+    prompt: 'N = 21, a = 2, Q = 512, y = 85. 85/512 = [0; 6, 42, 2]. What is r?',
+    options: [
+      { text: 'r = 253', explain: 'The order of a mod N is always less than N = 21. 42/253 approximates 85/512 more closely, but it fits the rounding, not the peak.' },
+      { text: 'r = 42', explain: '42 is a partial quotient, not a denominator. Denominators come from qₙ = aₙqₙ₋₁ + qₙ₋₂: 1, 6, 253, 512.' },
+      { text: 'r = 6', correct: true, explain: 'Convergents are 1/6, 42/253, 85/512. The last with denominator ≤ 21 is 1/6, so r = 6, and 2⁶ = 64 = 3·21 + 1 ≡ 1 (mod 21).' },
+    ],
+  },
+  {
+    prompt: 'Same setup, y = 427 = [0; 1, 5, 42, 2]. What is r?',
+    options: [
+      { text: 'r = 5', explain: '5 is a partial quotient. The convergents are 1/1, 5/6, 211/253, so keep 6; also 2⁵ = 32 ≡ 11 (mod 21), not 1.' },
+      { text: 'r = 6', correct: true, explain: 'Convergents 1/1, 5/6, 211/253, 427/512: the last with denominator ≤ 21 is 5/6. Here c = 5 is coprime to 6, so the full period appears directly.' },
+      { text: 'r = 1', explain: '1/1 is a convergent with denominator ≤ 21, but not the last one: 5/6 comes later and is closer. And 2¹ = 2 ≢ 1 (mod 21).' },
+    ],
+  },
+  {
+    prompt: 'Same setup, y = 171 = [0; 2, 1, 170], convergents 1/2, 1/3, 171/512. What do you conclude?',
+    options: [
+      { text: 'r = 3, so go to the gcd step', explain: '2³ = 8 ≢ 1 (mod 21), so 3 is not the order. The peak was c/r = 2/6, which lowest terms shrank to 1/3.' },
+      { text: 'r = 171, the measured value', explain: '171 is the measured y, not a period, and the order of 2 mod 21 must be less than 21.' },
+      { text: '3 divides r; combine with more runs', correct: true, explain: '1/3 is 2/6 in lowest terms (c = 2 shares a factor with 6). The failed check says rerun; if another run gives y = 256 (1/2), then lcm(3, 2) = 6.' },
+    ],
+  },
+  {
+    prompt: 'With r = 6 for a = 2, N = 21: which gcds give the factors?',
+    options: [
+      { text: 'gcd(2⁶ − 1, 21) and gcd(2⁶ + 1, 21)', explain: 'Using a^r instead of a^(r/2) gives trivial results: 2⁶ − 1 = 63 = 3·21 is a multiple of N (gcd 21), and gcd(65, 21) = 1.' },
+      { text: 'gcd(2³ − 1, 21) and gcd(2³ + 1, 21)', correct: true, explain: 'r is even and 2³ = 8 ≢ 20 ≡ −1 (mod 21), so gcd(7, 21) = 7 and gcd(9, 21) = 3. 21 = 3 · 7.' },
+      { text: 'Divide 21 by r = 6', explain: '21/6 is not an integer. r is the order of a, not a factor of N; the factors come from a^(r/2) ± 1.' },
+    ],
+  },
+  {
+    prompt: 'Why are the controlled-U^(2^j) gates cheap in Shor’s algorithm?',
+    options: [
+      { text: 'Chain 2ʲ copies of controlled-U_a in a row', explain: 'That costs 2⁰ + 2¹ + … + 2^(t−1) = 2^t − 1 ≥ N² multiplications, exponential in n. It is exactly what Shor avoids.' },
+      { text: 'Grover search finds each power a^(2^j)', explain: 'Grover is not used anywhere in Shor’s algorithm. a^(2^j) mod N is a fixed number you can compute directly; there is nothing to search for.' },
+      { text: 'The inverse QFT applies all the powers at once', explain: 'The inverse QFT acts only on the counting register, after all the multiplications. It decodes the phases; it does not create them.' },
+      { text: 'a^(2^j) mod N is precomputed classically', correct: true, explain: 'Repeated squaring gives b_j = a^(2^j) mod N with one classical squaring each, and U_a^(2^j) is just multiplication by b_j: O(n²) gates for every j.' },
+    ],
+  },
+  {
+    prompt: 'Which of these falls to Shor’s algorithm on a large fault-tolerant quantum computer?',
+    options: [
+      { text: 'AES-256 encryption', explain: 'AES has no group structure with a hidden period. The best known quantum attack is Grover key search, still about 2¹²⁸ iterations for a 256-bit key.' },
+      { text: 'ECDSA signatures', correct: true, explain: 'ECDSA rests on the elliptic-curve discrete log, which Shor’s generalized period finding solves. Babbush et al. (2026) estimate ECC-256 falls in minutes on under 500,000 physical qubits.' },
+      { text: 'SHA-256 hashing', explain: 'Hash functions face only generic Grover-type speedups (preimages in about 2¹²⁸ steps instead of 2²⁵⁶). No hidden period, no Shor.' },
+      { text: 'ML-KEM key exchange', explain: 'ML-KEM (FIPS 203) is built on module lattices, chosen because no efficient quantum algorithm is known for them. It is believed to resist Shor.' },
+    ],
+  },
+]);
+</script>
+<script src="../../assets/search.js"></script>
+</body>
+</html>
